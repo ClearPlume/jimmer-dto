@@ -56,5 +56,11 @@
                 language="JimmerDTO"
                 implementationClass="net.fallingangel.jimmerdto.language.DTOParserDefinition"
         />
+
+        <lang.syntaxHighlighterFactory
+                language="JimmerDTO"
+                implementationClass="net.fallingangel.jimmerdto.language.DTOSyntaxHighlighterFactory"/>
+
+        <colorSettingsPage implementation="net.fallingangel.jimmerdto.language.DTOColorSettingsPage"/>
     </extensions>
 </idea-plugin>
