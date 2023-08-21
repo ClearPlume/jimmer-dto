@@ -1,0 +1,2 @@
+src/main/resources/META-INF/pluginIcon.svg filter=lfs diff=lfs merge=lfs -text
+src/main/resources/languageIcon.png filter=lfs diff=lfs merge=lfs -text

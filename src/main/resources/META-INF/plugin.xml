@@ -1,0 +1,54 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <id>net.fallingangel.jimmer-dto</id>
+
+    <!-- Public plugin name should be written in Title Case.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+    <name>JimmerDTO</name>
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor email="the.fallenangel.965@gmail.com" url="https://fallingangel.net">the_FallenAngel</vendor>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+    <description><![CDATA[
+    <h3>English:</h3>
+    <ul>
+    <li>Provide syntax support for the DTO language of the Jimmer framework.</li>
+    <li>Provide legality check for hard-coded strings of Jimmer entity interfaces, supporting Java and Kotlin.</li>
+    </ul>
+    <h3>中文：</h3>
+    <ul>
+    <li>为Jimmer框架的DTO语言提供语法支持</li>
+    <li>为Jimmer实体接口的硬编码字符串提供合法检测，支持Java、Kotlin</li>
+    </ul>
+  ]]></description>
+
+    <!--TODO 发布时间调整-->
+    <change-notes><![CDATA[
+    <p><b>0.0.1 (2022-10-13)</b></p>
+    <ul>
+      <li>Plugin published</li>
+    </ul>
+    <ul>
+      <li>插件发布了</li>
+    </ul>
+    ]]></change-notes>
+
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType
+                name="Jimmer DTO File"
+                implementationClass="net.fallingangel.jimmerdto.language.JimmerDTOFileType"
+                fieldName="INSTANCE"
+                language="JimmerDTO"
+                extensions="dto"/>
+    </extensions>
+</idea-plugin>
