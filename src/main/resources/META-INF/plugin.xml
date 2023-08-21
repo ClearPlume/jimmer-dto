@@ -46,9 +46,15 @@
     <extensions defaultExtensionNs="com.intellij">
         <fileType
                 name="Jimmer DTO File"
-                implementationClass="net.fallingangel.jimmerdto.language.JimmerDTOFileType"
+                implementationClass="net.fallingangel.jimmerdto.language.DTOFileType"
                 fieldName="INSTANCE"
                 language="JimmerDTO"
-                extensions="dto"/>
+                extensions="dto"
+        />
+
+        <lang.parserDefinition
+                language="JimmerDTO"
+                implementationClass="net.fallingangel.jimmerdto.language.DTOParserDefinition"
+        />
     </extensions>
 </idea-plugin>

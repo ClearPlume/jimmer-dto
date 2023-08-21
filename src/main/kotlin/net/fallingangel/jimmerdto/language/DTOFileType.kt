@@ -3,7 +3,7 @@ package net.fallingangel.jimmerdto.language
 import com.intellij.openapi.fileTypes.LanguageFileType
 import net.fallingangel.jimmerdto.Constant
 
-class JimmerDTOFileType : LanguageFileType(JimmerDTOLanguage.INSTANCE) {
+class DTOFileType : LanguageFileType(DTOLanguage.INSTANCE) {
     override fun getName() = Constant.NAME
 
     override fun getDescription() = "Jimmer框架的DTO转换语言"
@@ -15,6 +15,6 @@ class JimmerDTOFileType : LanguageFileType(JimmerDTOLanguage.INSTANCE) {
     @Suppress("CompanionObjectInExtension")
     companion object {
         @Suppress("unused")
-        val INSTANCE = JimmerDTOFileType()
+        val INSTANCE = DTOFileType()
     }
 }
