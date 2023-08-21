@@ -14,7 +14,6 @@ class DTOFileType : LanguageFileType(DTOLanguage.INSTANCE) {
 
     @Suppress("CompanionObjectInExtension")
     companion object {
-        @Suppress("unused")
         val INSTANCE = DTOFileType()
     }
 }

@@ -10,7 +10,7 @@ import com.intellij.psi.tree.TokenSet
 import net.fallingangel.jimmerdto.language.parser.DTOParser
 import net.fallingangel.jimmerdto.language.psi.DTOFile
 import net.fallingangel.jimmerdto.language.psi.DTOTypes
-import net.fallingangel.jimmerdto.language.psi.IDTOTokenSets
+import net.fallingangel.jimmerdto.language.psi.DTOTokenSets
 
 class DTOParserDefinition : ParserDefinition {
     override fun createLexer(project: Project) = DTOLexerAdapter()
@@ -19,7 +19,7 @@ class DTOParserDefinition : ParserDefinition {
 
     override fun getFileNodeType() = FILE
 
-    override fun getCommentTokens() = IDTOTokenSets.COMMENTS
+    override fun getCommentTokens() = DTOTokenSets.COMMENTS
 
     override fun getStringLiteralElements(): TokenSet = TokenSet.EMPTY
 
@@ -27,6 +27,7 @@ class DTOParserDefinition : ParserDefinition {
 
     override fun createFile(viewProvider: FileViewProvider) = DTOFile(viewProvider)
 
+    @Suppress("CompanionObjectInExtension")
     companion object {
         val FILE = IFileElementType(DTOLanguage.INSTANCE)
     }
