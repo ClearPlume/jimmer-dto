@@ -40,11 +40,9 @@
 
 dto-file ::= import-statement* dto* LINE_COMMENT* BLOCK_COMMENT*
 
-import-statement ::= "import" IDENTIFIER ("." IDENTIFIER)+ (type-alias | grouped-type-alias)?
+import-statement ::= "import" IDENTIFIER ("." IDENTIFIER)+ (alias | grouped-type-alias)?
 
-grouped-type-alias ::= "." "{" IDENTIFIER type-alias? ("," IDENTIFIER type-alias?)* "}"
-
-type-alias ::= "as" IDENTIFIER
+grouped-type-alias ::= "." "{" IDENTIFIER alias? ("," IDENTIFIER alias?)* "}"
 
 dto ::= annotation* MODIFIER* IDENTIFIER dto-supers? dto-body
 
@@ -56,6 +54,9 @@ explicit-prop ::= IDENTIFIER ("," | ";")?
 
 /// GLOBAL ///
 qualified-name ::= IDENTIFIER ("." IDENTIFIER)*
+
+// alias
+alias ::= "as" IDENTIFIER
 
 // annotation
 annotation ::= annotation-constructor ("(" (annotation-value | annotation-parameter) ("," annotation-parameter)* ")")?
