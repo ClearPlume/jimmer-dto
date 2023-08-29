@@ -56,7 +56,7 @@ class DTOColorSettingsPage : ColorSettingsPage {
         <annotation-constructor>@Shallow</annotation-constructor>(true, fdsdf = "false", sdf = null, age = 15.3, height = 180, sdf = '0', arr = [10, 20])
         abstract Book { sdf }
         
-        <annotation-constructor>@D</annotation-constructor>(<annotation-constructor>@N</annotation-constructor>, c = <annotation-constructor>@k.l.M</annotation-constructor>(20), arr = {23, 30})
+        <annotation-constructor>@D</annotation-constructor>(<annotation-constructor>@N</annotation-constructor>, c = <annotation-constructor>@k.l.M</annotation-constructor>(20), d = <annotation-constructor>F</annotation-constructor>(), e = @<annotation-constructor>E</annotation-constructor>, arr = {23, 30})
         abstract input Book { sdf }
         
         input-only Book { sdf }

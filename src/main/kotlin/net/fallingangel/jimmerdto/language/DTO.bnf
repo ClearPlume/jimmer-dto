@@ -56,18 +56,18 @@ explicit-prop ::= IDENTIFIER ("," | ";")?
 
 /// GLOBAL ///
 // annotation
-annotation ::= annotation-constructor ("(" (value | named-parameter) ("," named-parameter)* ")")?
+annotation ::= annotation-constructor ("(" (annotation-value | annotation-parameter) ("," annotation-parameter)* ")")?
 
 annotation-constructor ::= "@" qualified-name
 
-qualified-name ::= IDENTIFIER ("." IDENTIFIER)*
+nest-annotation ::= qualified-name "(" ((annotation-value | annotation-parameter) ("," annotation-parameter)*)? ")"
 
-// parameter
-named-parameter ::= IDENTIFIER "=" value
+// annotation parameter
+annotation-parameter ::= IDENTIFIER "=" annotation-value
 
-value ::= CHAR_CONSTANT | STRING_CONSTANT |
+annotation-value ::= CHAR_CONSTANT | STRING_CONSTANT |
              INTEGER_CONSTANT | FLOAT_CONSTANT |
              BOOLEAN_CONSTANT | NULL_CONSTANT |
-             annotation | array-value
+             annotation | nest-annotation | annotation-array-value
 
-array-value ::= "[" (value ("," value)*)? "]" | "{" (value ("," value)*)? "}"
+annotation-array-value ::= "[" (annotation-value ("," annotation-value)*)? "]" | "{" (annotation-value ("," annotation-value)*)? "}"
