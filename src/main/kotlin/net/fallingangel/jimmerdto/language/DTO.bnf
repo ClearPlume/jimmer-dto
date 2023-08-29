@@ -55,6 +55,8 @@ dto-body ::= "{" explicit-prop* "}"
 explicit-prop ::= IDENTIFIER ("," | ";")?
 
 /// GLOBAL ///
+qualified-name ::= IDENTIFIER ("." IDENTIFIER)*
+
 // annotation
 annotation ::= annotation-constructor ("(" (annotation-value | annotation-parameter) ("," annotation-parameter)* ")")?
 
