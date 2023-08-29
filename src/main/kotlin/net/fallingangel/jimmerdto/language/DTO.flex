@@ -57,7 +57,7 @@ IDENTIFIER = [$A-Za-z_][$\w]*
 LINE_COMMENT = "//"[^\r\n]*
 BLOCK_COMMENT = "/*"([^*]* | [*]*)"*/"
 
-MODIFIER = abstract | input | input-only | inputOnly
+MODIFIER = abstract | input | input-only | inputOnly | out | in
 BOOLEAN = true | false
 CHAR = '[^']'
 STRING = \"[^\"]*\"
@@ -90,10 +90,21 @@ FLOAT = \d+\.\d+
     "="                                                         { return DTOTypes.EQUALS; }
     ":"                                                         { return DTOTypes.COLON; }
     ";"                                                         { return DTOTypes.SEMICOLON; }
+    "#"                                                         { return DTOTypes.HASH; }
+    "+"                                                         { return DTOTypes.PLUS; }
+    "-"                                                         { return DTOTypes.MINUS; }
+    "?"                                                         { return DTOTypes.OPTIONAL; }
+    "!"                                                         { return DTOTypes.REQUIRED; }
+    "*"                                                         { return DTOTypes.ASTERISK; }
+    "^"                                                         { return DTOTypes.POWER; }
+    "$"                                                         { return DTOTypes.DOLLAR; }
+    "->"                                                        { return DTOTypes.ARROW; }
     "("                                                         { return DTOTypes.PAREN_L; }
     ")"                                                         { return DTOTypes.PAREN_R; }
     "["                                                         { return DTOTypes.BRACKET_L; }
     "]"                                                         { return DTOTypes.BRACKET_R; }
+    "<"                                                         { return DTOTypes.ANGLE_BRACKET_L; }
+    ">"                                                         { return DTOTypes.ANGLE_BRACKET_R; }
     "{"                                                         { return DTOTypes.BRACE_L; }
     "}"                                                         { return DTOTypes.BRACE_R; }
 

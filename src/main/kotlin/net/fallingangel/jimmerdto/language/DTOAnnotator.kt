@@ -24,6 +24,25 @@ class DTOAnnotator : Annotator {
             applyStyle(o.qualifiedName, DTOSyntaxHighlighter.ANNOTATION)
         }
 
+        override fun visitMacro(o: DTOMacro) {
+            applyStyle(o.macroName.prevSibling, DTOSyntaxHighlighter.MACRO)
+            applyStyle(o.macroName, DTOSyntaxHighlighter.MACRO)
+        }
+
+        /**
+         * 为as组的『as』上色
+         */
+        override fun visitAliasGroup(o: DTOAliasGroup) {
+            applyStyle(o.firstChild, DTOSyntaxHighlighter.FUNCTION)
+        }
+
+        /**
+         * 为方法上色
+         */
+        override fun visitFunctionProp(o: DTOFunctionProp) {
+            applyStyle(o.firstChild, DTOSyntaxHighlighter.FUNCTION)
+        }
+
         private fun applyStyle(element: PsiElement, style: TextAttributesKey) {
             holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
                     .range(element)

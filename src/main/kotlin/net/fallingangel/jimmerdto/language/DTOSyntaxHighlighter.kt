@@ -36,10 +36,13 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
         val KEYWORD = TextAttributesKey.createTextAttributesKey("KEYWORD", DefaultLanguageHighlighterColors.KEYWORD)
         val MODIFIER = TextAttributesKey.createTextAttributesKey("MODIFIER", DefaultLanguageHighlighterColors.KEYWORD)
 
-        val ANNOTATION = TextAttributesKey.createTextAttributesKey("ANNOTATION", DefaultLanguageHighlighterColors.METADATA)
         val CHAR = TextAttributesKey.createTextAttributesKey("CHAR", DefaultLanguageHighlighterColors.STRING)
         val STRING = TextAttributesKey.createTextAttributesKey("STRING", DefaultLanguageHighlighterColors.STRING)
         val NUMBER = TextAttributesKey.createTextAttributesKey("NUMBER", DefaultLanguageHighlighterColors.NUMBER)
+
+        val ANNOTATION = TextAttributesKey.createTextAttributesKey("ANNOTATION", DefaultLanguageHighlighterColors.METADATA)
+        val FUNCTION = TextAttributesKey.createTextAttributesKey("FUNCTION", DefaultLanguageHighlighterColors.STATIC_METHOD)
+        val MACRO = TextAttributesKey.createTextAttributesKey("MACRO", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION)
 
         private val LINE_COMMENT_KEYS = arrayOf(LINE_COMMENT)
         private val BLOCK_COMMENT_KEYS = arrayOf(BLOCK_COMMENT)

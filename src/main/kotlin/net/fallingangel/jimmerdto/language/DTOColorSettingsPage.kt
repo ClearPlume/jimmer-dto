@@ -16,11 +16,15 @@ class DTOColorSettingsPage : ColorSettingsPage {
         AttributesDescriptor("Values//String", DTOSyntaxHighlighter.STRING),
         AttributesDescriptor("Values//Number", DTOSyntaxHighlighter.NUMBER),
         AttributesDescriptor("Annotation", DTOSyntaxHighlighter.ANNOTATION),
+        AttributesDescriptor("Function", DTOSyntaxHighlighter.FUNCTION),
+        AttributesDescriptor("Macro", DTOSyntaxHighlighter.MACRO),
         AttributesDescriptor("Bad value", HighlighterColors.BAD_CHARACTER)
     )
 
     override fun getAdditionalHighlightingTagToDescriptorMap() = mapOf(
-        "annotation-constructor" to DTOSyntaxHighlighter.ANNOTATION
+        "annotation-constructor" to DTOSyntaxHighlighter.ANNOTATION,
+        "function" to DTOSyntaxHighlighter.FUNCTION,
+        "macro" to DTOSyntaxHighlighter.MACRO
     )
 
     override fun getColorDescriptors(): Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY
@@ -51,15 +55,36 @@ class DTOColorSettingsPage : ColorSettingsPage {
         
         // Dto
         <annotation-constructor>@a.b.S</annotation-constructor>
-        Book { sdf }
+        Book : A, B, C, D {
+            <macro>#allScalars</macro>
+            sdf234
+            +sdf
+
+            @B
+            -sff
+
+            @A
+            sd as fds
+            sdf: a.d.f.Int
+            sdfGen: a.d.f.Int<out T, in F<D, in V>>
+            <function>as</function>(sdf -> fds) {
+                <macro>#allScalars</macro>
+            }
+            <function>flat</function>(parent) <annotation-constructor>@Shallow</annotation-constructor> {
+                <macro>#allScalars</macro>
+            }
+            <function>id</function>(asd)
+            <function>id</function>(dsa) as fd
+        }
         
+        // Annotation
         <annotation-constructor>@Shallow</annotation-constructor>(true, fdsdf = "false", sdf = null, age = 15.3, height = 180, sdf = '0', arr = [10, 20])
-        abstract Book { sdf }
+        abstract Book {}
         
         <annotation-constructor>@D</annotation-constructor>(<annotation-constructor>@N</annotation-constructor>, c = <annotation-constructor>@k.l.M</annotation-constructor>(20), d = <annotation-constructor>F</annotation-constructor>(), e = <annotation-constructor>@E</annotation-constructor>, arr = {23, 30})
-        abstract input Book { sdf }
+        abstract input Book {}
         
-        input-only Book { sdf }
+        input-only Book {}
     """.trimIndent()
     }
 }
