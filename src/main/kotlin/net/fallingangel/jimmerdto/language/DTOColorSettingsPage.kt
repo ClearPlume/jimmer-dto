@@ -1,12 +1,27 @@
 package net.fallingangel.jimmerdto.language
 
+import com.intellij.openapi.editor.HighlighterColors
 import com.intellij.openapi.options.colors.AttributesDescriptor
 import com.intellij.openapi.options.colors.ColorDescriptor
 import com.intellij.openapi.options.colors.ColorSettingsPage
 import net.fallingangel.jimmerdto.Constant
 
 class DTOColorSettingsPage : ColorSettingsPage {
-    override fun getAttributeDescriptors() = DESCRIPTORS
+    override fun getAttributeDescriptors() = arrayOf(
+        AttributesDescriptor("Comments//LineComment", DTOSyntaxHighlighter.LINE_COMMENT),
+        AttributesDescriptor("Comments//BlockComment", DTOSyntaxHighlighter.BLOCK_COMMENT),
+        AttributesDescriptor("Keywords//Keyword", DTOSyntaxHighlighter.KEYWORD),
+        AttributesDescriptor("Keywords//Modifier", DTOSyntaxHighlighter.MODIFIER),
+        AttributesDescriptor("Values//Character", DTOSyntaxHighlighter.CHAR),
+        AttributesDescriptor("Values//String", DTOSyntaxHighlighter.STRING),
+        AttributesDescriptor("Values//Number", DTOSyntaxHighlighter.NUMBER),
+        AttributesDescriptor("Annotation", DTOSyntaxHighlighter.ANNOTATION),
+        AttributesDescriptor("Bad value", HighlighterColors.BAD_CHARACTER)
+    )
+
+    override fun getAdditionalHighlightingTagToDescriptorMap() = mapOf(
+        "annotation-constructor" to DTOSyntaxHighlighter.ANNOTATION
+    )
 
     override fun getColorDescriptors(): Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY
 
@@ -18,31 +33,33 @@ class DTOColorSettingsPage : ColorSettingsPage {
 
     override fun getDemoText(): String {
         return """
-        # You are reading the ".properties" entry.
-        ! The exclamation mark can also mark text as comments.
-        website = https://en.wikipedia.org/
-        language = English
-        # The backslash below tells the application to continue reading
-        # the value onto the next line.
-        message = Welcome to \
-                  Wikipedia!
-        # Add spaces to the key
-        key\ with\ spaces = This is the value that could be looked up with the key "key with spaces".
-        # Unicode
-        tab : \u0009
+        // You are reading the ".dto" entry.
+        /*
+         This is a multiline
+         comments.
+         */
+        // import
+        import abc.sdf
+        import abc.Def as D
+        import sdf.sdf.Sdf as S
+        import abc.def.{
+            Aaa as DA,
+            Bbb,
+            aks,
+            B
+        }
+        
+        // Dto
+        <annotation-constructor>@a.b.S</annotation-constructor>
+        Book { sdf }
+        
+        <annotation-constructor>@Shallow</annotation-constructor>(true, fdsdf = "false", sdf = null, age = 15.3, height = 180, sdf = '0', arr = [10, 20])
+        abstract Book { sdf }
+        
+        <annotation-constructor>@D</annotation-constructor>(<annotation-constructor>@N</annotation-constructor>, c = <annotation-constructor>@k.l.M</annotation-constructor>(20), arr = {23, 30})
+        abstract input Book { sdf }
+        
+        input-only Book { sdf }
     """.trimIndent()
-    }
-
-    override fun getAdditionalHighlightingTagToDescriptorMap() = null
-
-    @Suppress("CompanionObjectInExtension")
-    companion object {
-        private val DESCRIPTORS = arrayOf(
-            AttributesDescriptor("Separator", DTOSyntaxHighlighter.SEPARATOR),
-            AttributesDescriptor("Key", DTOSyntaxHighlighter.KEY),
-            AttributesDescriptor("Value", DTOSyntaxHighlighter.VALUE),
-            AttributesDescriptor("Comment", DTOSyntaxHighlighter.COMMENT),
-            AttributesDescriptor("Bad value", DTOSyntaxHighlighter.BAD_CHARACTER)
-        )
     }
 }

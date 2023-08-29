@@ -29,7 +29,8 @@ intellij {
     type.set("IC") // Target IDE Platform
     plugins.set(
         listOf(
-            // "com.intellij.database"
+            // "com.intellij.database",
+            "com.intellij.java"
         )
     )
 }

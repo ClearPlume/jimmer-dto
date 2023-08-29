@@ -13,36 +13,45 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
     override fun getHighlightingLexer() = DTOLexerAdapter()
 
     override fun getTokenHighlights(tokenType: IElementType): Array<TextAttributesKey> {
-        if (tokenType == DTOTypes.SEPARATOR) {
-            return SEPARATOR_KEYS
+        return when (tokenType) {
+            DTOTypes.LINE_COMMENT -> LINE_COMMENT_KEYS
+            DTOTypes.BLOCK_COMMENT -> BLOCK_COMMENT_KEYS
+
+            DTOTypes.AS_KEYWORD, DTOTypes.IMPORT_KEYWORD, DTOTypes.BOOLEAN_CONSTANT, DTOTypes.NULL_CONSTANT -> KEYWORD_KEYS
+            DTOTypes.MODIFIER -> MODIFIER_KEYS
+
+            DTOTypes.CHAR_CONSTANT -> CHAR_KEYS
+            DTOTypes.STRING_CONSTANT -> STRING_KEYS
+            DTOTypes.INTEGER_CONSTANT, DTOTypes.FLOAT_CONSTANT -> NUMBER_KEYS
+
+            TokenType.BAD_CHARACTER -> BAD_CHAR_KEYS
+            else -> EMPTY_KEYS
         }
-        if (tokenType == DTOTypes.KEY) {
-            return KEY_KEYS
-        }
-        if (tokenType == DTOTypes.VALUE) {
-            return VALUE_KEYS
-        }
-        if (tokenType == DTOTypes.COMMENT) {
-            return COMMENT_KEYS
-        }
-        if (tokenType == TokenType.BAD_CHARACTER) {
-            return BAD_CHAR_KEYS
-        }
-        return EMPTY_KEYS
     }
 
     companion object {
-        val SEPARATOR = TextAttributesKey.createTextAttributesKey("DTO_SEPARATOR", DefaultLanguageHighlighterColors.OPERATION_SIGN)
-        val KEY = TextAttributesKey.createTextAttributesKey("DTO_KEY", DefaultLanguageHighlighterColors.KEYWORD)
-        val VALUE = TextAttributesKey.createTextAttributesKey("DTO_VALUE", DefaultLanguageHighlighterColors.STRING)
-        val COMMENT = TextAttributesKey.createTextAttributesKey("DTO_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT)
-        val BAD_CHARACTER = TextAttributesKey.createTextAttributesKey("DTO_BAD_CHARACTER", HighlighterColors.BAD_CHARACTER)
+        val LINE_COMMENT = TextAttributesKey.createTextAttributesKey("LINE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT)
+        val BLOCK_COMMENT = TextAttributesKey.createTextAttributesKey("BLOCK_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT)
 
-        private val SEPARATOR_KEYS = arrayOf(SEPARATOR)
-        private val KEY_KEYS = arrayOf(KEY)
-        private val VALUE_KEYS = arrayOf(VALUE)
-        private val COMMENT_KEYS = arrayOf(COMMENT)
-        private val BAD_CHAR_KEYS = arrayOf(BAD_CHARACTER)
+        val KEYWORD = TextAttributesKey.createTextAttributesKey("KEYWORD", DefaultLanguageHighlighterColors.KEYWORD)
+        val MODIFIER = TextAttributesKey.createTextAttributesKey("MODIFIER", DefaultLanguageHighlighterColors.KEYWORD)
+
+        val ANNOTATION = TextAttributesKey.createTextAttributesKey("ANNOTATION", DefaultLanguageHighlighterColors.METADATA)
+        val CHAR = TextAttributesKey.createTextAttributesKey("CHAR", DefaultLanguageHighlighterColors.STRING)
+        val STRING = TextAttributesKey.createTextAttributesKey("STRING", DefaultLanguageHighlighterColors.STRING)
+        val NUMBER = TextAttributesKey.createTextAttributesKey("NUMBER", DefaultLanguageHighlighterColors.NUMBER)
+
+        private val LINE_COMMENT_KEYS = arrayOf(LINE_COMMENT)
+        private val BLOCK_COMMENT_KEYS = arrayOf(BLOCK_COMMENT)
+
+        private val KEYWORD_KEYS = arrayOf(KEYWORD)
+        private val MODIFIER_KEYS = arrayOf(MODIFIER)
+
+        private val CHAR_KEYS = arrayOf(CHAR)
+        private val STRING_KEYS = arrayOf(STRING)
+        private val NUMBER_KEYS = arrayOf(NUMBER)
+
+        private val BAD_CHAR_KEYS = arrayOf(HighlighterColors.BAD_CHARACTER)
         private val EMPTY_KEYS = arrayOf<TextAttributesKey>()
     }
 }
