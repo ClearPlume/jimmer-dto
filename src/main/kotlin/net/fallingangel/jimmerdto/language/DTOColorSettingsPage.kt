@@ -10,6 +10,7 @@ class DTOColorSettingsPage : ColorSettingsPage {
     override fun getAttributeDescriptors() = arrayOf(
         AttributesDescriptor("Comments//LineComment", DTOSyntaxHighlighter.LINE_COMMENT),
         AttributesDescriptor("Comments//BlockComment", DTOSyntaxHighlighter.BLOCK_COMMENT),
+        AttributesDescriptor("Comments//DocComment", DTOSyntaxHighlighter.DOC_COMMENT),
         AttributesDescriptor("Keywords//Keyword", DTOSyntaxHighlighter.KEYWORD),
         AttributesDescriptor("Keywords//Modifier", DTOSyntaxHighlighter.MODIFIER),
         AttributesDescriptor("Values//Character", DTOSyntaxHighlighter.CHAR),
@@ -39,8 +40,8 @@ class DTOColorSettingsPage : ColorSettingsPage {
         return """
         // You are reading the ".dto" entry.
         /*
-         This is a multiline
-         comments.
+         * This is a multiline
+         * comments.
          */
         // import
         import abc.sdf
@@ -53,7 +54,9 @@ class DTOColorSettingsPage : ColorSettingsPage {
             B
         }
         
-        // Dto
+        /**
+         * Doc
+         */
         <annotation-constructor>@a.b.S</annotation-constructor>
         Book : A, B, C, D {
             <macro>#allScalars</macro>

@@ -49,7 +49,7 @@
   ]
 }
 
-dto-file ::= import-statement* dto* LINE_COMMENT* BLOCK_COMMENT*
+dto-file ::= import-statement* dto*
 
 import-statement ::= "import" IDENTIFIER ("." IDENTIFIER)+ (alias | grouped-type-alias)?
 
@@ -69,7 +69,7 @@ macro-name ::= IDENTIFIER
 
 alias-group ::= "as" "(" alias-pattern ")" "{" (macro | positive-prop)* "}"
 
-alias-pattern ::= (IDENTIFIER | ("^" IDENTIFIER) | (IDENTIFIER "$")) "->" IDENTIFIER
+alias-pattern ::= (IDENTIFIER | ("^" IDENTIFIER?) | (IDENTIFIER? "$")) "->" IDENTIFIER
 
 positive-prop ::= annotation* (function-prop | regular-prop) relation-prop?
 

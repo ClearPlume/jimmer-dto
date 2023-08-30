@@ -6,6 +6,7 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
+import net.fallingangel.jimmerdto.language.psi.DTOTokenTypes
 import net.fallingangel.jimmerdto.language.psi.DTOTypes
 
 
@@ -14,8 +15,9 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
 
     override fun getTokenHighlights(tokenType: IElementType): Array<TextAttributesKey> {
         return when (tokenType) {
-            DTOTypes.LINE_COMMENT -> LINE_COMMENT_KEYS
-            DTOTypes.BLOCK_COMMENT -> BLOCK_COMMENT_KEYS
+            DTOTokenTypes.LINE_COMMENT -> LINE_COMMENT_KEYS
+            DTOTokenTypes.BLOCK_COMMENT -> BLOCK_COMMENT_KEYS
+            DTOTokenTypes.DOC_COMMENT -> DOC_COMMENT_KEYS
 
             DTOTypes.AS_KEYWORD, DTOTypes.IMPORT_KEYWORD, DTOTypes.BOOLEAN_CONSTANT, DTOTypes.NULL_CONSTANT -> KEYWORD_KEYS
             DTOTypes.MODIFIER -> MODIFIER_KEYS
@@ -32,6 +34,7 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
     companion object {
         val LINE_COMMENT = TextAttributesKey.createTextAttributesKey("LINE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT)
         val BLOCK_COMMENT = TextAttributesKey.createTextAttributesKey("BLOCK_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT)
+        val DOC_COMMENT = TextAttributesKey.createTextAttributesKey("DOC_COMMENT", DefaultLanguageHighlighterColors.DOC_COMMENT)
 
         val KEYWORD = TextAttributesKey.createTextAttributesKey("KEYWORD", DefaultLanguageHighlighterColors.KEYWORD)
         val MODIFIER = TextAttributesKey.createTextAttributesKey("MODIFIER", DefaultLanguageHighlighterColors.KEYWORD)
@@ -46,6 +49,7 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
 
         private val LINE_COMMENT_KEYS = arrayOf(LINE_COMMENT)
         private val BLOCK_COMMENT_KEYS = arrayOf(BLOCK_COMMENT)
+        private val DOC_COMMENT_KEYS = arrayOf(DOC_COMMENT)
 
         private val KEYWORD_KEYS = arrayOf(KEYWORD)
         private val MODIFIER_KEYS = arrayOf(MODIFIER)

@@ -5,57 +5,25 @@ import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.TokenType;
 import net.fallingangel.jimmerdto.language.psi.DTOTypes;
+import net.fallingangel.jimmerdto.language.psi.DTOTokenTypes;
 
 import java.util.Stack;
 
 %%
-
-%{
-private static final class State {
-    final int state;
-
-    public State(int state) {
-        this.state = state;
-    }
-
-    @Override
-    public String toString() {
-        return "yystate = " + state;
-    }
-}
-
-protected final Stack<State> stateStack = new Stack<State>();
-
-private void pushState(int state) {
-    stateStack.push(new State(yystate()));
-    yybegin(state);
-}
-
-private void popState() {
-    State state = stateStack.pop();
-    yybegin(state.state);
-}
-%}
 
 %class DTOLexer
 %implements FlexLexer
 %unicode
 %function advance
 %type IElementType
-%eof{  return;
+%eof{
 %eof}
 
 CRLF=\R
 WHITE_SPACE=[\ \n\t\f]
-FIRST_VALUE_CHARACTER=[^ \n\f\\] | "\\"{CRLF} | "\\".
-VALUE_CHARACTER=[^\n\f\\] | "\\"{CRLF} | "\\".
-END_OF_LINE_COMMENT=("#"|"!")[^\r\n]*
-SEPARATOR=[:=]
-KEY_CHARACTER=[^:=\ \n\t\f\\] | "\\ "
-
 IDENTIFIER = [$A-Za-z_][$\w]*
 LINE_COMMENT = "//"[^\r\n]*
-BLOCK_COMMENT = "/*"([^*]* | [*]*)"*/"
+BLOCK_COMMENT = "/*"[*\r\s\.]*"*/"
 
 MODIFIER = abstract | input | input-only | inputOnly | out | in
 BOOLEAN = true | false
@@ -64,14 +32,17 @@ STRING = \"[^\"]*\"
 INTEGER = \d+
 FLOAT = \d+\.\d+
 
-%state ANNOTATION
+%state BLOCK_COMMENT DOC_COMMENT
 
 %%
 
 <YYINITIAL> {
+    {LINE_COMMENT}                                              { return DTOTokenTypes.LINE_COMMENT; }
+    "/*"                                                        { yybegin(BLOCK_COMMENT); }
+    "/**"                                                       { yybegin(DOC_COMMENT); }
+
     "import"                                                    { return DTOTypes.IMPORT_KEYWORD; }
     "as"                                                        { return DTOTypes.AS_KEYWORD; }
-
     {MODIFIER}                                                  { return DTOTypes.MODIFIER; }
     {BOOLEAN}                                                   { return DTOTypes.BOOLEAN_CONSTANT; }
     "null"                                                      { return DTOTypes.NULL_CONSTANT; }
@@ -79,9 +50,6 @@ FLOAT = \d+\.\d+
     {STRING}                                                    { return DTOTypes.STRING_CONSTANT; }
     {INTEGER}                                                   { return DTOTypes.INTEGER_CONSTANT; }
     {FLOAT}                                                     { return DTOTypes.FLOAT_CONSTANT; }
-
-    {LINE_COMMENT}                                              { return DTOTypes.LINE_COMMENT; }
-    {BLOCK_COMMENT}                                             { return DTOTypes.BLOCK_COMMENT; }
     {IDENTIFIER}                                                { return DTOTypes.IDENTIFIER; }
 
     ","                                                         { return DTOTypes.COMMA; }
@@ -111,4 +79,16 @@ FLOAT = \d+\.\d+
     ({CRLF}|{WHITE_SPACE})+                                     { return TokenType.WHITE_SPACE; }
 
     [^]                                                         { return TokenType.BAD_CHARACTER; }
+}
+
+<BLOCK_COMMENT> {
+    [^"*/"]                                                     {}
+    [^\r\n]                                                     {}
+    "*/"                                                        { yybegin(YYINITIAL); return DTOTokenTypes.BLOCK_COMMENT; }
+}
+
+<DOC_COMMENT> {
+    [^"*/"]                                                     {}
+    [^\r\n]                                                     {}
+    "*/"                                                        { yybegin(YYINITIAL); return DTOTokenTypes.DOC_COMMENT; }
 }

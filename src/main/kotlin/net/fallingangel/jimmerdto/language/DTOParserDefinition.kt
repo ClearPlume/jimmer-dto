@@ -9,8 +9,8 @@ import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
 import net.fallingangel.jimmerdto.language.parser.DTOParser
 import net.fallingangel.jimmerdto.language.psi.DTOFile
+import net.fallingangel.jimmerdto.language.psi.DTOTokenTypes
 import net.fallingangel.jimmerdto.language.psi.DTOTypes
-import net.fallingangel.jimmerdto.language.psi.DTOTokenSets
 
 class DTOParserDefinition : ParserDefinition {
     override fun createLexer(project: Project) = DTOLexerAdapter()
@@ -19,7 +19,11 @@ class DTOParserDefinition : ParserDefinition {
 
     override fun getFileNodeType() = FILE
 
-    override fun getCommentTokens() = DTOTokenSets.COMMENTS
+    override fun getCommentTokens() = TokenSet.create(
+        DTOTokenTypes.LINE_COMMENT,
+        DTOTokenTypes.BLOCK_COMMENT,
+        DTOTokenTypes.DOC_COMMENT
+    )
 
     override fun getStringLiteralElements(): TokenSet = TokenSet.EMPTY
 
