@@ -2,7 +2,7 @@
 
 ---
 
-[English Version]()
+[English Version](https://github.com/ClearPlume/jimmer-dto/blob/master/README.md)
 
 ## 项目简介
 

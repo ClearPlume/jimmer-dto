@@ -2,7 +2,7 @@
 
 ---
 
-[中文说明]()
+[中文说明](https://github.com/ClearPlume/jimmer-dto/blob/master/README_ZH.md)
 
 ## Introduction
 
