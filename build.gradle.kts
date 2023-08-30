@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "net.fallingangel"
-version = "0.0.1"
+version = "0.0.2"
 
 val sinceVersion by extra("203")
 val untilVersion by extra("232.*")
@@ -29,7 +29,6 @@ intellij {
     type.set("IC") // Target IDE Platform
     plugins.set(
         listOf(
-            // "com.intellij.database",
             "com.intellij.java"
         )
     )

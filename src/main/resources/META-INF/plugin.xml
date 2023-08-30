@@ -27,6 +27,16 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.2 (2023-08-30)</b></p>
+    <ul>
+      <li><b>Bug Fix</b>Add restrictions on the order in which import statements appear</li>
+      <li><b>Feature</b>Add documentation comments</li>
+    </ul>
+    <ul>
+      <li><b>修复Bug</b>加入对import语句出现顺序的限制</li>
+      <li><b>新特性</b>加入文档注释</li>
+    </ul>
+    <hr/>
     <p><b>0.0.1 (2023-08-29)</b></p>
     <ul>
       <li>Plugin published</li>
