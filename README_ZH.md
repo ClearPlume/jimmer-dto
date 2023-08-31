@@ -18,6 +18,18 @@
 
 ## 效果展示
 
+> 文档注释、块注释、单行注释、allScalars、flat、别名块、修饰符
+
+![all-flat-as-recursive](https://media.githubusercontent.com/media/ClearPlume/jimmer-dto/orphan/doc/static/image/dto/all-flat-as-recursive.webp "all-flat-as-recursive")
+
+> 导包、注解
+
+![annotation](https://media.githubusercontent.com/media/ClearPlume/jimmer-dto/orphan/doc/static/image/dto/annotation.webp "annotation")
+
+> allScalars、id、别名
+
+![id](https://media.githubusercontent.com/media/ClearPlume/jimmer-dto/orphan/doc/static/image/dto/id.webp "id")
+
 ## 支持信息
 
 插件支持IDEA的社区版和旗舰版，从2020.3.4到最新版本。

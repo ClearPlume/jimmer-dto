@@ -18,6 +18,18 @@ In the future, these features will be added:
 
 ## DEMO
 
+> doc comment、block comment、end of line comment、allScalars、flat、alias group、modifier
+
+![all-flat-as-recursive](https://media.githubusercontent.com/media/ClearPlume/jimmer-dto/orphan/doc/static/image/dto/all-flat-as-recursive.webp "all-flat-as-recursive")
+
+> package import、annotation
+
+![annotation](https://media.githubusercontent.com/media/ClearPlume/jimmer-dto/orphan/doc/static/image/dto/annotation.webp "annotation")
+
+> allScalars、id、alias
+
+![id](https://media.githubusercontent.com/media/ClearPlume/jimmer-dto/orphan/doc/static/image/dto/id.webp "id")
+
 ## Support Information
 
 The plugin supports both the community and ultimate editions of IDEA, from version 2020.3.4 to the latest.
