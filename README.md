@@ -37,3 +37,5 @@ The plugin supports both the community and ultimate editions of IDEA, from versi
 ## Installation Method
 
 You can directly search for "JimmerDTO" in the IDEA plugin market.
+
+![installation](https://raw.githubusercontent.com/ClearPlume/jimmer-dto/orphan/doc/static/image/introduction/install.webp "installation")

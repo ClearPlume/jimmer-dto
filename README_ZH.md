@@ -37,3 +37,5 @@
 ## 安装方式
 
 直接在IDEA的插件市场中搜索『JimmerDTO』即可。
+
+![installation](https://raw.githubusercontent.com/ClearPlume/jimmer-dto/orphan/doc/static/image/introduction/install.webp "installation")
