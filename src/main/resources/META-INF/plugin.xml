@@ -77,6 +77,8 @@
 
         <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>
 
+        <completion.contributor language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCompletionContributor"/>
+
         <psi.referenceContributor language="JimmerDTO" implementation="net.fallingangel.jimmerdto.reference.DTOReferenceContributor"/>
     </extensions>
 </idea-plugin>
