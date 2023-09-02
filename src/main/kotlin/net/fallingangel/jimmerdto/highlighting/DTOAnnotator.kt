@@ -1,11 +1,11 @@
-package net.fallingangel.jimmerdto.language
+package net.fallingangel.jimmerdto.highlighting
 
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.psi.PsiElement
-import net.fallingangel.jimmerdto.language.psi.*
+import net.fallingangel.jimmerdto.psi.*
 
 /**
  * 部分代码结构的高亮

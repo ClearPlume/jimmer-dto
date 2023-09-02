@@ -1,7 +1,6 @@
-package net.fallingangel.jimmerdto.language
+package net.fallingangel.jimmerdto
 
 import com.intellij.lang.Language
-import net.fallingangel.jimmerdto.Constant
 
 class DTOLanguage : Language(Constant.NAME) {
     companion object {

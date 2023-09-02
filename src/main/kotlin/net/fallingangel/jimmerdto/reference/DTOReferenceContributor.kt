@@ -1,10 +1,10 @@
-package net.fallingangel.jimmerdto.language
+package net.fallingangel.jimmerdto.reference
 
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.*
 import com.intellij.util.ProcessingContext
-import net.fallingangel.jimmerdto.language.psi.DTODtoName
-import net.fallingangel.jimmerdto.language.psi.DTOTypes
+import net.fallingangel.jimmerdto.psi.DTODtoName
+import net.fallingangel.jimmerdto.psi.DTOTypes
 
 class DTOReferenceContributor : PsiReferenceContributor() {
     override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {

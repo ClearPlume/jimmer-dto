@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto.language
+package net.fallingangel.jimmerdto
 
 import com.intellij.lexer.FlexAdapter
 

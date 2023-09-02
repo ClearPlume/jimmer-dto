@@ -1,18 +1,18 @@
 {
-  parserClass="net.fallingangel.jimmerdto.language.parser.DTOParser"
+  parserClass="net.fallingangel.jimmerdto.parser.DTOParser"
 
   extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
 
   psiClassPrefix="DTO"
   psiImplClassSuffix="Impl"
-  psiPackage="net.fallingangel.jimmerdto.language.psi"
-  psiImplPackage="net.fallingangel.jimmerdto.language.psi.impl"
+  psiPackage="net.fallingangel.jimmerdto.psi"
+  psiImplPackage="net.fallingangel.jimmerdto.psi.impl"
 
-  elementTypeHolderClass="net.fallingangel.jimmerdto.language.psi.DTOTypes"
-  elementTypeClass="net.fallingangel.jimmerdto.language.psi.DTOElementType"
-  tokenTypeClass="net.fallingangel.jimmerdto.language.psi.DTOTokenType"
+  elementTypeHolderClass="net.fallingangel.jimmerdto.psi.DTOTypes"
+  elementTypeClass="net.fallingangel.jimmerdto.psi.DTOElementType"
+  tokenTypeClass="net.fallingangel.jimmerdto.psi.DTOTokenType"
 
-  psiImplUtilClass="net.fallingangel.jimmerdto.language.psi.impl.DTOPsiImplUtil"
+  psiImplUtilClass="net.fallingangel.jimmerdto.psi.impl.DTOPsiImplUtil"
 
   tokens=[
     COMMA=","
@@ -61,8 +61,8 @@ grouped-type-alias ::= "." "{" IDENTIFIER alias? ("," IDENTIFIER alias?)* "}"
 dto ::= annotation* MODIFIER* dto-name dto-supers? dto-body
 
 dto-name ::= IDENTIFIER {
-    mixin="net.fallingangel.jimmerdto.language.psi.impl.DTONamedElementImpl"
-    implements="net.fallingangel.jimmerdto.language.psi.DTONamedElement"
+    mixin="net.fallingangel.jimmerdto.psi.impl.DTONamedElementImpl"
+    implements="net.fallingangel.jimmerdto.psi.DTONamedElement"
     methods=[getNameIdentifier getName setName]
 }
 

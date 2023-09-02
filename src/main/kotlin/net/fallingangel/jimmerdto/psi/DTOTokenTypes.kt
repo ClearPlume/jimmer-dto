@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto.language.psi
+package net.fallingangel.jimmerdto.psi
 
 object DTOTokenTypes {
     @JvmField

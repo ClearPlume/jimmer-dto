@@ -1,13 +1,11 @@
 // Copyright 2000-2022 JetBrains s.r.o. and other contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-package net.fallingangel.jimmerdto.language;
+package net.fallingangel.jimmerdto;
 
 import com.intellij.lexer.FlexLexer;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.TokenType;
-import net.fallingangel.jimmerdto.language.psi.DTOTypes;
-import net.fallingangel.jimmerdto.language.psi.DTOTokenTypes;
-
-import java.util.Stack;
+import net.fallingangel.jimmerdto.psi.DTOTypes;
+import net.fallingangel.jimmerdto.psi.DTOTokenTypes;
 
 %%
 

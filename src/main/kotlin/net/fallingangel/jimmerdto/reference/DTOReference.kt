@@ -1,10 +1,10 @@
-package net.fallingangel.jimmerdto.language
+package net.fallingangel.jimmerdto.reference
 
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import net.fallingangel.jimmerdto.Constant
-import net.fallingangel.jimmerdto.language.psi.impl.DTOPsiImplUtil
+import net.fallingangel.jimmerdto.psi.impl.DTOPsiImplUtil
 
 
 class DTOReference(private val element: PsiElement, range: TextRange) : PsiReferenceBase<PsiElement>(element, range), PsiPolyVariantReference {

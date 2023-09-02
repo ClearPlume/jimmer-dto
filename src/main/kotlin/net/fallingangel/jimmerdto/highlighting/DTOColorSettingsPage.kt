@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto.language
+package net.fallingangel.jimmerdto.highlighting
 
 import com.intellij.openapi.editor.HighlighterColors
 import com.intellij.openapi.options.colors.AttributesDescriptor

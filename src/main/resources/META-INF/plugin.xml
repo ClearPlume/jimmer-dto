@@ -58,7 +58,7 @@
     <extensions defaultExtensionNs="com.intellij">
         <fileType
                 name="JimmerDTO"
-                implementationClass="net.fallingangel.jimmerdto.language.DTOFileType"
+                implementationClass="net.fallingangel.jimmerdto.DTOFileType"
                 fieldName="INSTANCE"
                 language="JimmerDTO"
                 extensions="dto"
@@ -66,17 +66,17 @@
 
         <lang.parserDefinition
                 language="JimmerDTO"
-                implementationClass="net.fallingangel.jimmerdto.language.DTOParserDefinition"
+                implementationClass="net.fallingangel.jimmerdto.DTOParserDefinition"
         />
 
         <lang.syntaxHighlighterFactory
                 language="JimmerDTO"
-                implementationClass="net.fallingangel.jimmerdto.language.DTOSyntaxHighlighterFactory"/>
+                implementationClass="net.fallingangel.jimmerdto.highlighting.DTOSyntaxHighlighterFactory"/>
 
-        <colorSettingsPage implementation="net.fallingangel.jimmerdto.language.DTOColorSettingsPage"/>
+        <colorSettingsPage implementation="net.fallingangel.jimmerdto.highlighting.DTOColorSettingsPage"/>
 
-        <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.language.DTOAnnotator"/>
+        <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>
 
-        <psi.referenceContributor language="JimmerDTO" implementation="net.fallingangel.jimmerdto.language.DTOReferenceContributor"/>
+        <psi.referenceContributor language="JimmerDTO" implementation="net.fallingangel.jimmerdto.reference.DTOReferenceContributor"/>
     </extensions>
 </idea-plugin>

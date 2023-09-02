@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto.language
+package net.fallingangel.jimmerdto
 
 import com.intellij.lang.ASTNode
 import com.intellij.lang.ParserDefinition
@@ -7,10 +7,10 @@ import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
-import net.fallingangel.jimmerdto.language.parser.DTOParser
-import net.fallingangel.jimmerdto.language.psi.DTOFile
-import net.fallingangel.jimmerdto.language.psi.DTOTokenTypes
-import net.fallingangel.jimmerdto.language.psi.DTOTypes
+import net.fallingangel.jimmerdto.parser.DTOParser
+import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.psi.DTOTokenTypes
+import net.fallingangel.jimmerdto.psi.DTOTypes
 
 class DTOParserDefinition : ParserDefinition {
     override fun createLexer(project: Project) = DTOLexerAdapter()

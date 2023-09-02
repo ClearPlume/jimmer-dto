@@ -1,6 +1,6 @@
 @file:JvmName("DTOPsiImplUtil")
 
-package net.fallingangel.jimmerdto.language.psi.impl
+package net.fallingangel.jimmerdto.psi.impl
 
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -8,10 +8,10 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.search.FileTypeIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
-import net.fallingangel.jimmerdto.language.DTOFileType
-import net.fallingangel.jimmerdto.language.psi.DTODto
-import net.fallingangel.jimmerdto.language.psi.DTODtoName
-import net.fallingangel.jimmerdto.language.psi.DTOFile
+import net.fallingangel.jimmerdto.DTOFileType
+import net.fallingangel.jimmerdto.psi.DTODto
+import net.fallingangel.jimmerdto.psi.DTODtoName
+import net.fallingangel.jimmerdto.psi.DTOFile
 
 object DTOPsiImplUtil {
     @JvmStatic

@@ -1,9 +1,9 @@
-package net.fallingangel.jimmerdto.language.psi
+package net.fallingangel.jimmerdto.psi
 
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.psi.FileViewProvider
-import net.fallingangel.jimmerdto.language.DTOFileType
-import net.fallingangel.jimmerdto.language.DTOLanguage
+import net.fallingangel.jimmerdto.DTOFileType
+import net.fallingangel.jimmerdto.DTOLanguage
 
 class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLanguage.INSTANCE) {
     override fun getFileType() = DTOFileType.INSTANCE

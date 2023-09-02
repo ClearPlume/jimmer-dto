@@ -1,7 +1,6 @@
-package net.fallingangel.jimmerdto.language
+package net.fallingangel.jimmerdto
 
 import com.intellij.openapi.fileTypes.LanguageFileType
-import net.fallingangel.jimmerdto.Constant
 
 class DTOFileType : LanguageFileType(DTOLanguage.INSTANCE) {
     override fun getName() = Constant.NAME

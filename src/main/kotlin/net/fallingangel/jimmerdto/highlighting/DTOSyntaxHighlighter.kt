@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto.language
+package net.fallingangel.jimmerdto.highlighting
 
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.HighlighterColors
@@ -6,8 +6,9 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
-import net.fallingangel.jimmerdto.language.psi.DTOTokenTypes
-import net.fallingangel.jimmerdto.language.psi.DTOTypes
+import net.fallingangel.jimmerdto.DTOLexerAdapter
+import net.fallingangel.jimmerdto.psi.DTOTokenTypes
+import net.fallingangel.jimmerdto.psi.DTOTypes
 
 
 class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
