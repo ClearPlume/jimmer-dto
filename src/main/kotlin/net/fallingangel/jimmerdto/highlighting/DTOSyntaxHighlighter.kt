@@ -3,9 +3,11 @@ package net.fallingangel.jimmerdto.highlighting
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.HighlighterColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
+import com.intellij.openapi.editor.markup.EffectType
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
+import com.intellij.ui.JBColor
 import net.fallingangel.jimmerdto.DTOLexerAdapter
 import net.fallingangel.jimmerdto.psi.DTOTokenTypes
 import net.fallingangel.jimmerdto.psi.DTOTypes
@@ -47,6 +49,14 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
         val ANNOTATION = TextAttributesKey.createTextAttributesKey("ANNOTATION", DefaultLanguageHighlighterColors.METADATA)
         val FUNCTION = TextAttributesKey.createTextAttributesKey("FUNCTION", DefaultLanguageHighlighterColors.STATIC_METHOD)
         val MACRO = TextAttributesKey.createTextAttributesKey("MACRO", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION)
+
+        val ERROR = TextAttributesKey.createTextAttributesKey("ERROR").apply {
+            defaultAttributes.apply {
+                this.foregroundColor = JBColor.RED
+                effectType = EffectType.WAVE_UNDERSCORE
+                effectColor = JBColor.RED
+            }
+        }
 
         private val LINE_COMMENT_KEYS = arrayOf(LINE_COMMENT)
         private val BLOCK_COMMENT_KEYS = arrayOf(BLOCK_COMMENT)

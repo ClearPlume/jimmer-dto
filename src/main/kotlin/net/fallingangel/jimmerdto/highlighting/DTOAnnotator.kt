@@ -25,8 +25,13 @@ class DTOAnnotator : Annotator {
         }
 
         override fun visitMacro(o: DTOMacro) {
-            applyStyle(o.firstChild, DTOSyntaxHighlighter.MACRO)
-            applyStyle(o.macroName, DTOSyntaxHighlighter.MACRO)
+            if (o.macroName.text == "allScalars") {
+                applyStyle(o.firstChild, DTOSyntaxHighlighter.MACRO)
+                applyStyle(o.macroName, DTOSyntaxHighlighter.MACRO)
+            } else {
+                applyStyle(o.firstChild, DTOSyntaxHighlighter.ERROR, HighlightSeverity.ERROR)
+                applyStyle(o.macroName, DTOSyntaxHighlighter.ERROR, HighlightSeverity.ERROR)
+            }
         }
 
         /**
@@ -40,11 +45,15 @@ class DTOAnnotator : Annotator {
          * 为方法上色
          */
         override fun visitFunctionProp(o: DTOFunctionProp) {
-            applyStyle(o.firstChild, DTOSyntaxHighlighter.FUNCTION)
+            if (o.firstChild.text in arrayOf("id", "flat")) {
+                applyStyle(o.firstChild, DTOSyntaxHighlighter.FUNCTION)
+            } else {
+                applyStyle(o.firstChild, DTOSyntaxHighlighter.ERROR, HighlightSeverity.ERROR)
+            }
         }
 
-        private fun applyStyle(element: PsiElement, style: TextAttributesKey) {
-            holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+        private fun applyStyle(element: PsiElement, style: TextAttributesKey, severity: HighlightSeverity = HighlightSeverity.INFORMATION) {
+            holder.newSilentAnnotation(severity)
                     .range(element)
                     .textAttributes(style)
                     .create()
