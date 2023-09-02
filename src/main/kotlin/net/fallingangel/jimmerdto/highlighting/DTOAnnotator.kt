@@ -25,7 +25,7 @@ class DTOAnnotator : Annotator {
         }
 
         override fun visitMacro(o: DTOMacro) {
-            applyStyle(o.macroName.prevSibling, DTOSyntaxHighlighter.MACRO)
+            applyStyle(o.firstChild, DTOSyntaxHighlighter.MACRO)
             applyStyle(o.macroName, DTOSyntaxHighlighter.MACRO)
         }
 
