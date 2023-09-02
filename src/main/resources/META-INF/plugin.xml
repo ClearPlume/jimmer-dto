@@ -27,24 +27,38 @@
   ]]></description>
 
     <change-notes><![CDATA[
-    <p><b>0.0.2 (2023-08-30)</b></p>
+    <p><b>0.0.3 (2023-09-02)</b></p>
     <ul>
-      <li><b>Bug Fix</b>Add restrictions on the order in which import statements appear</li>
-      <li><b>Feature</b>Add documentation comments</li>
+      <li><b>Feature</b>Add syntax hints for user types and user type generics</li>
+      <li><b>Feature</b>Add restrictions on method and macro names</li>
+      <li><b>Feature</b>Add highlighting when DTO name is selected</li>
+      <li><b>Bug Fix</b>Fixed the macro highlighting exception when a space exposes '#' and the macro name</li>
     </ul>
     <ul>
-      <li><b>修复Bug</b>加入对import语句出现顺序的限制</li>
+      <li><b>新特性</b>新增对用户类型及用户类型泛型的语法提示</li>
+      <li><b>新特性</b>新增对方法名和宏名的限制</li>
+      <li><b>新特性</b>加入选中DTO名称时的高亮</li>
+      <li><b>修复Bug</b>修复宏的高亮在空格公开『#』和宏名时的异常显示</li>
+    </ul>
+    <hr/>
+    <p><b>0.0.2 (2023-08-30)</b></p>
+    <ul>
+      <li><b>Feature</b>Add documentation comments</li>
+      <li><b>Bug Fix</b>Add restrictions on the order in which import statements appear</li>
+    </ul>
+    <ul>
       <li><b>新特性</b>加入文档注释</li>
+      <li><b>修复Bug</b>加入对import语句出现顺序的限制</li>
     </ul>
     <hr/>
     <p><b>0.0.1 (2023-08-29)</b></p>
     <ul>
       <li>Plugin published</li>
-      <li><b>Feature</b>Provides basic syntax highlighting</li>
+      <li>Provides basic syntax highlighting</li>
     </ul>
     <ul>
       <li>插件发布了</li>
-      <li><b>新特性</b>提供了基本的语法高亮</li>
+      <li>提供了基本的语法高亮</li>
     </ul>
     ]]></change-notes>
 
