@@ -76,5 +76,7 @@
         <colorSettingsPage implementation="net.fallingangel.jimmerdto.language.DTOColorSettingsPage"/>
 
         <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.language.DTOAnnotator"/>
+
+        <psi.referenceContributor language="JimmerDTO" implementation="net.fallingangel.jimmerdto.language.DTOReferenceContributor"/>
     </extensions>
 </idea-plugin>

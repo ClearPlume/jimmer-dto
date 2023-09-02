@@ -12,6 +12,8 @@
   elementTypeClass="net.fallingangel.jimmerdto.language.psi.DTOElementType"
   tokenTypeClass="net.fallingangel.jimmerdto.language.psi.DTOTokenType"
 
+  psiImplUtilClass="net.fallingangel.jimmerdto.language.psi.impl.DTOPsiImplUtil"
+
   tokens=[
     COMMA=","
     DOT="."
@@ -37,6 +39,7 @@
     BRACE_L="{"
     BRACE_R="}"
 
+    IDENTIFIER="regexp:[$A-Za-z_][$\\w]*"
     IMPORT_KEYWORD="import"
     AS_KEYWORD="as"
 
@@ -55,9 +58,15 @@ import-statement ::= "import" IDENTIFIER ("." IDENTIFIER)+ (alias | grouped-type
 
 grouped-type-alias ::= "." "{" IDENTIFIER alias? ("," IDENTIFIER alias?)* "}"
 
-dto ::= annotation* MODIFIER* IDENTIFIER dto-supers? dto-body
+dto ::= annotation* MODIFIER* dto-name dto-supers? dto-body
 
-dto-supers ::= ":" IDENTIFIER ("," IDENTIFIER)*
+dto-name ::= IDENTIFIER {
+    mixin="net.fallingangel.jimmerdto.language.psi.impl.DTONamedElementImpl"
+    implements="net.fallingangel.jimmerdto.language.psi.DTONamedElement"
+    methods=[getNameIdentifier getName setName]
+}
+
+dto-supers ::= ":" dto-name ("," dto-name)*
 
 dto-body ::= "{" explicit-prop* "}"
 
