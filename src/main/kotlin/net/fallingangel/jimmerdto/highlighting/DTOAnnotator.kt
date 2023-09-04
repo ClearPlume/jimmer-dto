@@ -17,20 +17,20 @@ class DTOAnnotator : Annotator {
 
     private class DTOAnnotatorVisitor(private val holder: AnnotationHolder) : DTOVisitor() {
         override fun visitAnnotationConstructor(o: DTOAnnotationConstructor) {
-            applyStyle(o, DTOSyntaxHighlighter.ANNOTATION)
+            o.style(DTOSyntaxHighlighter.ANNOTATION)
         }
 
         override fun visitNestAnnotation(o: DTONestAnnotation) {
-            applyStyle(o.qualifiedName, DTOSyntaxHighlighter.ANNOTATION)
+            o.qualifiedName.style(DTOSyntaxHighlighter.ANNOTATION)
         }
 
         override fun visitMacro(o: DTOMacro) {
             if (o.macroName.text == "allScalars") {
-                applyStyle(o.firstChild, DTOSyntaxHighlighter.MACRO)
-                applyStyle(o.macroName, DTOSyntaxHighlighter.MACRO)
+                o.firstChild.style(DTOSyntaxHighlighter.MACRO)
+                o.macroName.style(DTOSyntaxHighlighter.MACRO)
             } else {
-                applyStyle(o.firstChild, DTOSyntaxHighlighter.ERROR, HighlightSeverity.ERROR)
-                applyStyle(o.macroName, DTOSyntaxHighlighter.ERROR, HighlightSeverity.ERROR)
+                o.firstChild.error()
+                o.macroName.error()
             }
         }
 
@@ -38,7 +38,7 @@ class DTOAnnotator : Annotator {
          * 为as组的『as』上色
          */
         override fun visitAliasGroup(o: DTOAliasGroup) {
-            applyStyle(o.firstChild, DTOSyntaxHighlighter.FUNCTION)
+            o.firstChild.style(DTOSyntaxHighlighter.FUNCTION)
         }
 
         /**
@@ -46,15 +46,19 @@ class DTOAnnotator : Annotator {
          */
         override fun visitFunctionProp(o: DTOFunctionProp) {
             if (o.firstChild.text in arrayOf("id", "flat")) {
-                applyStyle(o.firstChild, DTOSyntaxHighlighter.FUNCTION)
+                o.firstChild.style(DTOSyntaxHighlighter.FUNCTION)
             } else {
-                applyStyle(o.firstChild, DTOSyntaxHighlighter.ERROR, HighlightSeverity.ERROR)
+                o.firstChild.error()
             }
         }
 
-        private fun applyStyle(element: PsiElement, style: TextAttributesKey, severity: HighlightSeverity = HighlightSeverity.INFORMATION) {
+        private fun PsiElement.style(style: TextAttributesKey) = annotator(style, HighlightSeverity.INFORMATION)
+
+        private fun PsiElement.error(style: TextAttributesKey = DTOSyntaxHighlighter.ERROR) = annotator(style, HighlightSeverity.ERROR)
+
+        private fun PsiElement.annotator(style: TextAttributesKey, severity: HighlightSeverity) {
             holder.newSilentAnnotation(severity)
-                    .range(element)
+                    .range(this)
                     .textAttributes(style)
                     .create()
         }
