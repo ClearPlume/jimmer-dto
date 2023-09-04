@@ -7,5 +7,5 @@ object Constant {
 
     const val EXTENSION = "dto"
 
-    val ICON = IconLoader.getIcon("/languageIcon.png", DTOLanguage::class.java)
+    val ICON = IconLoader.getIcon("/META-INF/pluginIcon.svg", DTOLanguage::class.java)
 }
