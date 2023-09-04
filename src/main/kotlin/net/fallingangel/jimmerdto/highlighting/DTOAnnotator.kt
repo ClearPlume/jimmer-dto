@@ -42,13 +42,16 @@ class DTOAnnotator : Annotator {
         }
 
         /**
-         * 为方法上色
+         * 为属性上色
          */
-        override fun visitFunctionProp(o: DTOFunctionProp) {
-            if (o.firstChild.text in arrayOf("id", "flat")) {
-                o.firstChild.style(DTOSyntaxHighlighter.FUNCTION)
-            } else {
-                o.firstChild.error()
+        override fun visitPositiveProp(o: DTOPositiveProp) {
+            // 当前属性为方法
+            if (o.propArgs != null) {
+                if (o.propName.text in arrayOf("id", "flat")) {
+                    o.propName.style(DTOSyntaxHighlighter.FUNCTION)
+                } else {
+                    o.propName.error()
+                }
             }
         }
 

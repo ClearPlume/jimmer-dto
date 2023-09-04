@@ -80,15 +80,19 @@ macro-name ::= IDENTIFIER
 
 alias-group ::= "as" "(" alias-pattern ")" "{" (macro | positive-prop)* "}"
 
-alias-pattern ::= (IDENTIFIER | ("^" IDENTIFIER?) | (IDENTIFIER? "$")) "->" IDENTIFIER
+alias-pattern ::= original "->" replacement
 
-positive-prop ::= annotation* (function-prop | regular-prop) relation-prop?
+original ::= IDENTIFIER | ("^" IDENTIFIER?) | (IDENTIFIER? "$")
 
-regular-prop ::= "+"? IDENTIFIER ("?" | "!")? alias?
+replacement ::= IDENTIFIER
 
-function-prop ::= IDENTIFIER ("(" (named-parameter | value) ("," named-parameter)* ")") ((annotation* dto-body) | alias)?
+positive-prop ::= annotation* "+"? prop-name prop-args? ("?" | "!")? alias? prop-body?
 
-relation-prop ::= dto-body "*"?
+prop-name ::= IDENTIFIER
+
+prop-args ::= "(" (named-parameter | value) ("," named-parameter)* ")"
+
+prop-body ::= annotation* dto-body "*"?
 
 negative-prop ::= "-" IDENTIFIER
 
@@ -107,15 +111,17 @@ generic-arg ::= "*" | MODIFIER? type-def
 /// GLOBAL ///
 qualified-name ::= IDENTIFIER ("." IDENTIFIER)*
 
+enum-value ::= IDENTIFIER ("." IDENTIFIER)+
+
 // parameter
 named-parameter ::= parameter-name "=" value
 
 parameter-name ::= IDENTIFIER
 
-value ::= CHAR_CONSTANT | STRING_CONSTANT | IDENTIFIER |
+value ::= CHAR_CONSTANT | STRING_CONSTANT |
              INTEGER_CONSTANT | FLOAT_CONSTANT |
              BOOLEAN_CONSTANT | NULL_CONSTANT |
-             array-value
+             qualified-name | array-value
 
 array-value ::= "[" (value ("," value)*)? "]" | "{" (value ("," value)*)? "}"
 
@@ -135,6 +141,6 @@ annotation-parameter ::= IDENTIFIER "=" annotation-value
 annotation-value ::= CHAR_CONSTANT | STRING_CONSTANT |
              INTEGER_CONSTANT | FLOAT_CONSTANT |
              BOOLEAN_CONSTANT | NULL_CONSTANT |
-             annotation | nest-annotation | annotation-array-value
+             annotation | nest-annotation | enum-value | annotation-array-value
 
 annotation-array-value ::= "[" (annotation-value ("," annotation-value)*)? "]" | "{" (annotation-value ("," annotation-value)*)? "}"
