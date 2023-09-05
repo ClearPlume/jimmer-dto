@@ -2,8 +2,8 @@ package net.fallingangel.jimmerdto.highlighting
 
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
 import com.intellij.openapi.editor.HighlighterColors
+import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
-import com.intellij.openapi.editor.markup.EffectType
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
@@ -50,11 +50,9 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
         val FUNCTION = TextAttributesKey.createTextAttributesKey("FUNCTION", DefaultLanguageHighlighterColors.STATIC_METHOD)
         val MACRO = TextAttributesKey.createTextAttributesKey("MACRO", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION)
 
-        val ERROR = TextAttributesKey.createTextAttributesKey("ERROR").apply {
+        val ERROR = TextAttributesKey.createTextAttributesKey("ERROR", CodeInsightColors.ERRORS_ATTRIBUTES).apply {
             defaultAttributes.apply {
-                this.foregroundColor = JBColor.RED
-                effectType = EffectType.WAVE_UNDERSCORE
-                effectColor = JBColor.RED
+                foregroundColor = JBColor.RED
             }
         }
 
