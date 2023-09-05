@@ -1,0 +1,75 @@
+import java.time.LocalDateTime
+import testpkg.annotations.{Job, Task, Priority, Shallow, Deep }
+
+abstract Key {
+
+    @Shallow
+    name
+
+    @Shallow
+    edition
+}
+
+@Shallow
+BookView : Key {
+
+    @Shallow
+    id
+
+    store @Deep {
+        @Deep
+        name
+    }
+    authors @Deep {
+
+        @Deep
+        firstName
+
+        @Deep
+        lastName
+    }
+}
+
+input-only BookSpecification {
+
+    #allScalars(Book)?
+
+    @Job(value = [
+        Task("Prepare environment", priority = Priority.HIGH, estimation = 4),
+        Task("Install intellij", estimation = 1),
+        Task("Develop Service", estimation = 800),
+        Task(value = "Develop UI", priority = Priority.LOW, estimation = 100)
+    ])
+    tag1: Int
+    tag2: Int?
+    tag3: Map<String, Set<String>>
+    tag4: MutableMap<String, MutableSet<String>>
+    tag5: Array<Int>
+    tag6: Array<Int?>
+    tag7: LocalDateTime
+    tag8: Any
+    tag9: Array<*>
+    tag10: Array<Any>
+    tag11: List<*>
+    tag12: MutableList<*>
+    tag13: List<Any>
+    tag14: MutableList<Any>
+}
+
+input-only BookInput {
+    #allScalars
+    id(store)!
+    id(authors) as authorIds
+}
+
+input-only CompositeBookInput {
+    #allScalars
+    store! {
+        #allScalars
+        -id
+    }
+    authors {
+        #allScalars
+        -id
+    }
+}

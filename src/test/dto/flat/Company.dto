@@ -1,0 +1,42 @@
+CompanyView {
+    #allScalars
+    value?
+    flat(street) {
+        #allScalars
+        -id
+        flat(city) {
+            #allScalars
+            -id
+            flat(province) {
+                #allScalars
+                -id
+                flat(country) {
+                    #allScalars
+                    -id
+                }
+            }
+        }
+    }
+    tag: Int
+}
+
+MixedCompanyView {
+    #allScalars
+    value?
+    flat(street) {
+        #allScalars
+        -id
+        flat(city) {
+            #allScalars
+            -id
+            province {
+                #allScalars
+                -id
+                country {
+                    #allScalars
+                    -id
+                }
+            }
+        }
+    }
+}
