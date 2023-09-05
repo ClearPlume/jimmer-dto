@@ -27,6 +27,16 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.4 (2023-09-05)</b></p>
+    <ul>
+      <li><b>Bug Fix</b>Fix incorrect syntax color definitions, unaffect syntax coloring for all languages</li>
+      <li><b>Bug Fix</b>Adjust BNF grammar and fix the issue of adding annotations to associated attributes that may result in errors</li>
+    </ul>
+    <ul>
+      <li><b>修复Bug</b>修复错误的语法颜色定义，解除对所有语言的语法着色的影响</li>
+      <li><b>修复Bug</b>调整BNF文法，修复为关联属性添加注解会报错的问题</li>
+    </ul>
+    <hr/>
     <p><b>0.0.3 (2023-09-02)</b></p>
     <ul>
       <li><b>Feature</b>Add syntax hints for user types and user type generics</li>
