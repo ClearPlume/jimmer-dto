@@ -3,6 +3,7 @@ package net.fallingangel.jimmerdto.highlighting
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.psi.*
@@ -16,10 +17,16 @@ class DTOAnnotator : Annotator {
     }
 
     private class DTOAnnotatorVisitor(private val holder: AnnotationHolder) : DTOVisitor() {
+        /**
+         * 为注解上色
+         */
         override fun visitAnnotationConstructor(o: DTOAnnotationConstructor) {
             o.style(DTOSyntaxHighlighter.ANNOTATION)
         }
 
+        /**
+         * 为注解上色
+         */
         override fun visitNestAnnotation(o: DTONestAnnotation) {
             o.qualifiedName.style(DTOSyntaxHighlighter.ANNOTATION)
         }
@@ -53,6 +60,10 @@ class DTOAnnotator : Annotator {
                     o.propName.error()
                 }
             }
+        }
+
+        override fun visitNegativeProp(o: DTONegativeProp) {
+            o.style(CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES)
         }
 
         private fun PsiElement.style(style: TextAttributesKey) = annotator(style, HighlightSeverity.INFORMATION)

@@ -24,6 +24,7 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
 
             DTOTypes.AS_KEYWORD, DTOTypes.IMPORT_KEYWORD, DTOTypes.BOOLEAN_CONSTANT, DTOTypes.NULL_CONSTANT -> KEYWORD_KEYS
             DTOTypes.MODIFIER -> MODIFIER_KEYS
+            DTOTypes.NEGATIVE_PROP -> NEGATIVE_PROP_KEYS
 
             DTOTypes.CHAR_CONSTANT -> CHAR_KEYS
             DTOTypes.STRING_CONSTANT -> STRING_KEYS
@@ -49,6 +50,7 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
         val ANNOTATION = TextAttributesKey.createTextAttributesKey("ANNOTATION", DefaultLanguageHighlighterColors.METADATA)
         val FUNCTION = TextAttributesKey.createTextAttributesKey("FUNCTION", DefaultLanguageHighlighterColors.STATIC_METHOD)
         val MACRO = TextAttributesKey.createTextAttributesKey("MACRO", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION)
+        val NEGATIVE_PROP = TextAttributesKey.createTextAttributesKey("NEGATIVE_PROP", CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES)
 
         val ERROR = TextAttributesKey.createTextAttributesKey("ERROR", CodeInsightColors.ERRORS_ATTRIBUTES).apply {
             defaultAttributes.apply {
@@ -62,6 +64,7 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
 
         private val KEYWORD_KEYS = arrayOf(KEYWORD)
         private val MODIFIER_KEYS = arrayOf(MODIFIER)
+        private val NEGATIVE_PROP_KEYS = arrayOf(NEGATIVE_PROP)
 
         private val CHAR_KEYS = arrayOf(CHAR)
         private val STRING_KEYS = arrayOf(STRING)

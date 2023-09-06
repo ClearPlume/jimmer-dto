@@ -13,12 +13,13 @@ class DTOColorSettingsPage : ColorSettingsPage {
         AttributesDescriptor("Comments//DocComment", DTOSyntaxHighlighter.DOC_COMMENT),
         AttributesDescriptor("Keywords//Keyword", DTOSyntaxHighlighter.KEYWORD),
         AttributesDescriptor("Keywords//Modifier", DTOSyntaxHighlighter.MODIFIER),
+        AttributesDescriptor("Props//Function", DTOSyntaxHighlighter.FUNCTION),
+        AttributesDescriptor("Props//Macro", DTOSyntaxHighlighter.MACRO),
+        AttributesDescriptor("Props//NegativeProp", DTOSyntaxHighlighter.NEGATIVE_PROP),
+        AttributesDescriptor("Annotation", DTOSyntaxHighlighter.ANNOTATION),
         AttributesDescriptor("Values//Character", DTOSyntaxHighlighter.CHAR),
         AttributesDescriptor("Values//String", DTOSyntaxHighlighter.STRING),
         AttributesDescriptor("Values//Number", DTOSyntaxHighlighter.NUMBER),
-        AttributesDescriptor("Annotation", DTOSyntaxHighlighter.ANNOTATION),
-        AttributesDescriptor("Function", DTOSyntaxHighlighter.FUNCTION),
-        AttributesDescriptor("Macro", DTOSyntaxHighlighter.MACRO),
         AttributesDescriptor("Bad value", HighlighterColors.BAD_CHARACTER)
     )
 
