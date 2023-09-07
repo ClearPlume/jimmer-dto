@@ -80,9 +80,11 @@ macro-name ::= IDENTIFIER
 
 alias-group ::= "as" "(" alias-pattern ")" "{" (macro | positive-prop)* "}"
 
-alias-pattern ::= original "->" replacement
+alias-pattern ::= original "->" replacement {
+    pin = 2
+}
 
-original ::= IDENTIFIER | ("^" IDENTIFIER?) | (IDENTIFIER? "$")
+original ::= IDENTIFIER | "^"? IDENTIFIER? "$"?
 
 replacement ::= IDENTIFIER
 

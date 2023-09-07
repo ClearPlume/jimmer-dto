@@ -19,7 +19,7 @@ import net.fallingangel.jimmerdto.psi.DTOTokenTypes;
 
 CRLF=\R
 WHITE_SPACE=[\ \n\t\f]
-IDENTIFIER = [$A-Za-z_][$\w]*
+IDENTIFIER = [A-Za-z_$][$\w]*
 LINE_COMMENT = "//"[^\r\n]*
 BLOCK_COMMENT = "/*"[*\r\s\.]*"*/"
 
@@ -30,7 +30,7 @@ STRING = \"[^\"]*\"
 INTEGER = \d+
 FLOAT = \d+\.\d+
 
-%state BLOCK_COMMENT DOC_COMMENT
+%state BLOCK_COMMENT DOC_COMMENT ALIAS_PATTERN_ORIGINAL
 
 %%
 
@@ -38,6 +38,8 @@ FLOAT = \d+\.\d+
     {LINE_COMMENT}                                              { return DTOTokenTypes.LINE_COMMENT; }
     "/*"                                                        { yybegin(BLOCK_COMMENT); }
     "/**"                                                       { yybegin(DOC_COMMENT); }
+
+    "as" " "* "("                                               { yypushback(yylength()); yybegin(ALIAS_PATTERN_ORIGINAL); }
 
     "import"                                                    { return DTOTypes.IMPORT_KEYWORD; }
     "as"                                                        { return DTOTypes.AS_KEYWORD; }
@@ -48,7 +50,6 @@ FLOAT = \d+\.\d+
     {STRING}                                                    { return DTOTypes.STRING_CONSTANT; }
     {INTEGER}                                                   { return DTOTypes.INTEGER_CONSTANT; }
     {FLOAT}                                                     { return DTOTypes.FLOAT_CONSTANT; }
-    {IDENTIFIER}                                                { return DTOTypes.IDENTIFIER; }
 
     ","                                                         { return DTOTypes.COMMA; }
     "."                                                         { return DTOTypes.DOT; }
@@ -74,6 +75,7 @@ FLOAT = \d+\.\d+
     "{"                                                         { return DTOTypes.BRACE_L; }
     "}"                                                         { return DTOTypes.BRACE_R; }
 
+    {IDENTIFIER}                                                { return DTOTypes.IDENTIFIER; }
     ({CRLF}|{WHITE_SPACE})+                                     { return TokenType.WHITE_SPACE; }
 
     [^]                                                         { return TokenType.BAD_CHARACTER; }
@@ -89,4 +91,16 @@ FLOAT = \d+\.\d+
     [^"*/"]                                                     {}
     [^\r\n]                                                     {}
     "*/"                                                        { yybegin(YYINITIAL); return DTOTokenTypes.DOC_COMMENT; }
+}
+
+<ALIAS_PATTERN_ORIGINAL> {
+    "as"                                                        { return DTOTypes.AS_KEYWORD; }
+    ({CRLF}|{WHITE_SPACE})+                                     { return TokenType.WHITE_SPACE; }
+    "("                                                         { return DTOTypes.PAREN_L; }
+    "^"                                                         { return DTOTypes.POWER; }
+    "$"                                                         { return DTOTypes.DOLLAR; }
+    {IDENTIFIER}                                                { return DTOTypes.IDENTIFIER; }
+    "->"                                                        { yybegin(YYINITIAL); return DTOTypes.ARROW; }
+    ")"                                                         { return DTOTypes.PAREN_R; }
+    "{"                                                         { yypushback(1); yybegin(YYINITIAL); }
 }

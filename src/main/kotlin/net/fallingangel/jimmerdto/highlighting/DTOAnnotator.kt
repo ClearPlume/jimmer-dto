@@ -42,10 +42,19 @@ class DTOAnnotator : Annotator {
         }
 
         /**
-         * 为as组的『as』上色
+         * 为as组上色
+         *
+         * as(original -> replacement) { ... }
          */
         override fun visitAliasGroup(o: DTOAliasGroup) {
+            // 『as』
             o.firstChild.style(DTOSyntaxHighlighter.FUNCTION)
+
+            // original
+            val original = o.aliasPattern.original
+            if (original.firstChild.text == "^" && original.lastChild.text.last() == '$') {
+                original.error()
+            }
         }
 
         /**
