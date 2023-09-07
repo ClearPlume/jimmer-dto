@@ -27,6 +27,18 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.5 (2023-09-07)</b></p>
+    <ul>
+      <li><b>Feature</b>Add styles for negative properties</li>
+      <li><b>Feature</b>Add error style prompts for original in the as group</li>
+      <li><b>Bug Fix</b>Fixed an issue where incorrect styles would affect other languages</li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>为负属性添加样式</li>
+      <li><b>新特性</b>为as组中的original添加错误样式提示</li>
+      <li><b>修复Bug</b>修复错误样式会对其它语言有影响的问题</li>
+    </ul>
+    <hr/>
     <p><b>0.0.4 (2023-09-05)</b></p>
     <ul>
       <li><b>Bug Fix</b>Fix incorrect syntax color definitions, unaffect syntax coloring for all languages</li>
