@@ -92,14 +92,13 @@
                 language="JimmerDTO"
                 implementationClass="net.fallingangel.jimmerdto.DTOParserDefinition"
         />
-
         <lang.syntaxHighlighterFactory
                 language="JimmerDTO"
                 implementationClass="net.fallingangel.jimmerdto.highlighting.DTOSyntaxHighlighterFactory"/>
 
         <colorSettingsPage implementation="net.fallingangel.jimmerdto.highlighting.DTOColorSettingsPage"/>
-
         <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>
+        <additionalTextAttributes scheme="Default" file="colorSchema.xml" />
 
         <completion.contributor language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCompletionContributor"/>
 

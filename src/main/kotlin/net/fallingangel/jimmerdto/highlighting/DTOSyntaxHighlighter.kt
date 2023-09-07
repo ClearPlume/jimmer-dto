@@ -7,7 +7,6 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
-import com.intellij.ui.JBColor
 import net.fallingangel.jimmerdto.DTOLexerAdapter
 import net.fallingangel.jimmerdto.psi.DTOTokenTypes
 import net.fallingangel.jimmerdto.psi.DTOTypes
@@ -36,27 +35,23 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
     }
 
     companion object {
-        val LINE_COMMENT = TextAttributesKey.createTextAttributesKey("LINE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT)
-        val BLOCK_COMMENT = TextAttributesKey.createTextAttributesKey("BLOCK_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT)
-        val DOC_COMMENT = TextAttributesKey.createTextAttributesKey("DOC_COMMENT", DefaultLanguageHighlighterColors.DOC_COMMENT)
+        val LINE_COMMENT = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_LINE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT)
+        val BLOCK_COMMENT = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_BLOCK_COMMENT", DefaultLanguageHighlighterColors.BLOCK_COMMENT)
+        val DOC_COMMENT = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_DOC_COMMENT", DefaultLanguageHighlighterColors.DOC_COMMENT)
 
-        val KEYWORD = TextAttributesKey.createTextAttributesKey("KEYWORD", DefaultLanguageHighlighterColors.KEYWORD)
-        val MODIFIER = TextAttributesKey.createTextAttributesKey("MODIFIER", DefaultLanguageHighlighterColors.KEYWORD)
+        val KEYWORD = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD)
+        val MODIFIER = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_MODIFIER", DefaultLanguageHighlighterColors.KEYWORD)
 
-        val CHAR = TextAttributesKey.createTextAttributesKey("CHAR", DefaultLanguageHighlighterColors.STRING)
-        val STRING = TextAttributesKey.createTextAttributesKey("STRING", DefaultLanguageHighlighterColors.STRING)
-        val NUMBER = TextAttributesKey.createTextAttributesKey("NUMBER", DefaultLanguageHighlighterColors.NUMBER)
+        val CHAR = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_CHAR", DefaultLanguageHighlighterColors.STRING)
+        val STRING = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_STRING", DefaultLanguageHighlighterColors.STRING)
+        val NUMBER = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NUMBER", DefaultLanguageHighlighterColors.NUMBER)
 
-        val ANNOTATION = TextAttributesKey.createTextAttributesKey("ANNOTATION", DefaultLanguageHighlighterColors.METADATA)
-        val FUNCTION = TextAttributesKey.createTextAttributesKey("FUNCTION", DefaultLanguageHighlighterColors.STATIC_METHOD)
-        val MACRO = TextAttributesKey.createTextAttributesKey("MACRO", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION)
-        val NEGATIVE_PROP = TextAttributesKey.createTextAttributesKey("NEGATIVE_PROP", CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES)
+        val ANNOTATION = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ANNOTATION", DefaultLanguageHighlighterColors.METADATA)
+        val FUNCTION = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_FUNCTION", DefaultLanguageHighlighterColors.STATIC_METHOD)
+        val MACRO = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_MACRO", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION)
+        val NEGATIVE_PROP = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NEGATIVE_PROP", CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES)
 
-        val ERROR = TextAttributesKey.createTextAttributesKey("ERROR", CodeInsightColors.ERRORS_ATTRIBUTES).apply {
-            defaultAttributes.apply {
-                foregroundColor = JBColor.RED
-            }
-        }
+        val ERROR = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ERROR")
 
         private val LINE_COMMENT_KEYS = arrayOf(LINE_COMMENT)
         private val BLOCK_COMMENT_KEYS = arrayOf(BLOCK_COMMENT)
