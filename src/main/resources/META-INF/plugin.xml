@@ -112,6 +112,7 @@
         <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>
         <additionalTextAttributes scheme="Default" file="colorSchemas/default.xml" />
 
+        <lang.braceMatcher language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOBraceMatcher"/>
         <completion.contributor language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCompletionContributor"/>
 
         <psi.referenceContributor language="JimmerDTO" implementation="net.fallingangel.jimmerdto.reference.DTOReferenceContributor"/>
