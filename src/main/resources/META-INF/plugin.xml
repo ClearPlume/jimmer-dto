@@ -110,7 +110,7 @@
 
         <colorSettingsPage implementation="net.fallingangel.jimmerdto.highlighting.DTOColorSettingsPage"/>
         <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>
-        <additionalTextAttributes scheme="Default" file="colorSchema.xml" />
+        <additionalTextAttributes scheme="Default" file="colorSchemas/default.xml" />
 
         <completion.contributor language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCompletionContributor"/>
 
