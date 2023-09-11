@@ -6,6 +6,9 @@ import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.psi.PsiElement
+import com.intellij.psi.tree.IElementType
+import com.intellij.psi.util.elementType
+import com.intellij.psi.util.nextLeaf
 import net.fallingangel.jimmerdto.psi.*
 
 /**
@@ -73,6 +76,26 @@ class DTOAnnotator : Annotator {
 
         override fun visitNegativeProp(o: DTONegativeProp) {
             o.style(CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES)
+        }
+
+        /**
+         * 为参数名上色
+         */
+        override fun visitNamedParameter(o: DTONamedParameter) {
+            o.parameterName.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
+            o.parameterName.next(DTOTypes.EQUALS).style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
+        }
+
+        /**
+         * 为参数名上色
+         */
+        override fun visitAnnotationParameter(o: DTOAnnotationParameter) {
+            o.firstChild.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
+            o.firstChild.next(DTOTypes.EQUALS).style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
+        }
+
+        private fun PsiElement.next(elementType: IElementType): PsiElement {
+            return nextLeaf { it.elementType == elementType }!!
         }
 
         private fun PsiElement.style(style: TextAttributesKey) = annotator(style, HighlightSeverity.INFORMATION)
