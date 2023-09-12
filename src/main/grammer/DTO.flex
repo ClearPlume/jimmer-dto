@@ -20,8 +20,11 @@ import net.fallingangel.jimmerdto.psi.DTOTokenTypes;
 CRLF=\R
 WHITE_SPACE=[\ \n\t\f]
 IDENTIFIER = [A-Za-z_$][$\w]*
+
 LINE_COMMENT = "//"[^\r\n]*
-BLOCK_COMMENT = "/*"[*\r\s\.]*"*/"
+COMMENT_CONTENT = ([^*] | \*+ [^/*])*
+BLOCK_COMMENT = "/*"{COMMENT_CONTENT}"*/"
+DOC_COMMENT = "/**"{COMMENT_CONTENT}"*/"
 
 MODIFIER = abstract | input | input-only | inputOnly | out | in
 BOOLEAN = true | false
@@ -30,14 +33,14 @@ STRING = \"[^\"]*\"
 INTEGER = \d+
 FLOAT = \d+\.\d+
 
-%state BLOCK_COMMENT DOC_COMMENT ALIAS_PATTERN_ORIGINAL
+%state ALIAS_PATTERN_ORIGINAL
 
 %%
 
 <YYINITIAL> {
+    {DOC_COMMENT}                                               { return DTOTokenTypes.DOC_COMMENT; }
+    {BLOCK_COMMENT}                                             { return DTOTokenTypes.BLOCK_COMMENT; }
     {LINE_COMMENT}                                              { return DTOTokenTypes.LINE_COMMENT; }
-    "/*"                                                        { yybegin(BLOCK_COMMENT); }
-    "/**"                                                       { yybegin(DOC_COMMENT); }
 
     "as" " "* "("                                               { yypushback(yylength()); yybegin(ALIAS_PATTERN_ORIGINAL); }
 
@@ -79,18 +82,6 @@ FLOAT = \d+\.\d+
     ({CRLF}|{WHITE_SPACE})+                                     { return TokenType.WHITE_SPACE; }
 
     [^]                                                         { return TokenType.BAD_CHARACTER; }
-}
-
-<BLOCK_COMMENT> {
-    [^"*/"]                                                     {}
-    [^\r\n]                                                     {}
-    "*/"                                                        { yybegin(YYINITIAL); return DTOTokenTypes.BLOCK_COMMENT; }
-}
-
-<DOC_COMMENT> {
-    [^"*/"]                                                     {}
-    [^\r\n]                                                     {}
-    "*/"                                                        { yybegin(YYINITIAL); return DTOTokenTypes.DOC_COMMENT; }
 }
 
 <ALIAS_PATTERN_ORIGINAL> {

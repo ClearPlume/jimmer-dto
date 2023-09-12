@@ -11,7 +11,6 @@ import net.fallingangel.jimmerdto.DTOLexerAdapter
 import net.fallingangel.jimmerdto.psi.DTOTokenTypes
 import net.fallingangel.jimmerdto.psi.DTOTypes
 
-
 class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
     override fun getHighlightingLexer() = DTOLexerAdapter()
 
