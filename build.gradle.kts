@@ -27,11 +27,12 @@ repositories {
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
     pluginName.set("JimmerDTO")
-    version.set("2020.3.4")
+    version.set("2023.2.1")
     type.set("IC") // Target IDE Platform
     plugins.set(
         listOf(
-            "com.intellij.java"
+            "com.intellij.java",
+            "org.jetbrains.kotlin",
         )
     )
 }

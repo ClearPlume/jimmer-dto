@@ -60,7 +60,9 @@ grouped-types ::= "." "{" grouped-type ("," grouped-type)* "}"
 
 grouped-type ::= IDENTIFIER alias?
 
-dto ::= annotation* MODIFIER* dto-name dto-supers? dto-body
+dto ::= annotation* dto-modifier* dto-name dto-supers? dto-body
+
+dto-modifier ::= MODIFIER
 
 dto-name ::= IDENTIFIER {
     mixin="net.fallingangel.jimmerdto.psi.impl.DTONamedElementImpl"
