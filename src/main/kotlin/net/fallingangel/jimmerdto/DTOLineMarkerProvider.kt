@@ -49,7 +49,7 @@ class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
     private inline fun <reified T : PsiNameIdentifierOwner> VirtualFile.createLineMarker(project: Project, element: PsiElement, dtoName: String): RelatedItemLineMarkerInfo<PsiElement> {
         val psiManager = PsiManager.getInstance(project)
         val dtoFile = psiManager.findFile(children.find { it.name.split('.')[0] == dtoName }!!)!!
-        val dtoClass = PsiTreeUtil.findChildOfAnyType(dtoFile.originalElement, T::class.java)!!
+        val dtoClass = PsiTreeUtil.findChildOfType(dtoFile.originalElement, T::class.java)!!
 
         return NavigationGutterIconBuilder.create(Constant.ICON)
                 .setTargets(dtoFile)
