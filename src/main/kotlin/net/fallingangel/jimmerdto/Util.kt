@@ -16,7 +16,7 @@ fun generateRoot(element: PsiElement): VirtualFile? {
 fun sourceRoot(element: PsiElement): VirtualFile {
     val sourceRoot by lazy {
         root(element)
-                .filter { file -> "generated-sources" !in file.path && "generated" !in file.path }
+                .filter { file -> "src" in file.path }
                 .random()
     }
     return sourceRoot
