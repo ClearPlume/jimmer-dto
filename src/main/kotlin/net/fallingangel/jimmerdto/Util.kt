@@ -1,10 +1,13 @@
 package net.fallingangel.jimmerdto
 
 import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiElement
+import com.intellij.psi.*
+import com.intellij.psi.util.PsiTreeUtil
 import org.jetbrains.jps.model.java.JavaSourceRootType
+import org.jetbrains.kotlin.psi.KtClass
 
 fun generateRoot(element: PsiElement): VirtualFile? {
     val generateRoot by lazy {
@@ -30,4 +33,35 @@ fun root(element: PsiElement): List<VirtualFile> {
                 .getSourceRoots(JavaSourceRootType.SOURCE)
     }
     return roots
+}
+
+fun VirtualFile.psiFile(project: Project): PsiFile? {
+    return PsiManager.getInstance(project).findFile(this)
+}
+
+/**
+ * true if this file is a java file,
+ * false if this file is a kotlin file
+ */
+val VirtualFile.isJavaOrKotlin: Boolean
+    get() = name.endsWith(".java")
+
+fun VirtualFile.nameIdentifier(project: Project): PsiNameIdentifierOwner? {
+    return if (isJavaOrKotlin) {
+        psiClass(project)
+    } else {
+        ktClass(project)
+    }
+}
+
+fun VirtualFile.psiClass(project: Project): PsiClass? {
+    return psiFile(project)?.clazz()
+}
+
+fun VirtualFile.ktClass(project: Project): KtClass? {
+    return psiFile(project)?.clazz()
+}
+
+private inline fun <reified T : PsiNameIdentifierOwner> PsiFile.clazz(): T? {
+    return PsiTreeUtil.findChildOfType(originalElement, T::class.java)
 }
