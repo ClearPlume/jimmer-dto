@@ -90,6 +90,22 @@
     <depends>com.intellij.java</depends>
     <depends>org.jetbrains.kotlin</depends>
 
+    <actions>
+        <group id="JimmerDTOEntityPopupMenu">
+            <separator/>
+        </group>
+
+        <action id="CreateOrJumpToJimmerDtoFile" class="net.fallingangel.jimmerdto.action.CreateJimmerDtoFile" text="JimmerDto File"
+                description="Create new JimmerDTO file or jump to it if exists" icon="MyIcons.newFileActionIcon">
+            <add-to-group group-id="JimmerDTOEntityPopupMenu"/>
+        </action>
+
+        <group>
+            <reference ref="JimmerDTOEntityPopupMenu"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="WeighingNewGroup"/>
+        </group>
+    </actions>
+
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
     <extensions defaultExtensionNs="com.intellij">
