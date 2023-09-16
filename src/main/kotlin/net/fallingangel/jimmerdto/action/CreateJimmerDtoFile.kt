@@ -36,7 +36,7 @@ class CreateJimmerDtoFile : AnAction() {
         }
 
         WriteCommandAction.runWriteCommandAction(project) {
-            val dtoDir = dtoRoot.findOrCreateDirectory(entityPackage)
+            val dtoDir = dtoRoot.findOrCreateDirectory(entityPackage.replace('.', '/'))
             val createDtoFile = dtoDir.createChildData(project, "$entityName.dto")
             openFile(project, createDtoFile)
         }
