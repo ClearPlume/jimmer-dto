@@ -116,7 +116,7 @@
             <add-to-group group-id="JimmerDTOEntityPopupMenu"/>
         </action>
 
-        <group>
+        <group id="JimmerDTOEntityPopupMenuWrapper">
             <reference ref="JimmerDTOEntityPopupMenu"/>
             <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="WeighingNewGroup"/>
         </group>
