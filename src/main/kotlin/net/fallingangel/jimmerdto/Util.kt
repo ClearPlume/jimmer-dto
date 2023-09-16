@@ -74,12 +74,18 @@ fun VirtualFile.annotations(project: Project): List<String> {
     return annotations ?: emptyList()
 }
 
+/**
+ * 获取类文件中的实体类定义
+ */
 fun VirtualFile.psiClass(project: Project): PsiClass? {
-    return psiFile(project)?.clazz()
+    return psiFile(project)?.clazz<PsiClass>()?.takeIf { it.isInterface }
 }
 
+/**
+ * 获取类文件中的实体类定义
+ */
 fun VirtualFile.ktClass(project: Project): KtClass? {
-    return psiFile(project)?.clazz()
+    return psiFile(project)?.clazz<KtClass>()?.takeIf { it.isInterface() }
 }
 
 private inline fun <reified T : PsiNameIdentifierOwner> PsiFile.clazz(): T? {
