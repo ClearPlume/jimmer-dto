@@ -27,8 +27,9 @@
   ]]></description>
 
     <change-notes><![CDATA[
-    <p><b>0.0.6 (2023-09-16)</b></p>
+    <p><b>0.0.6 (2023-09-18)</b></p>
     <ul>
+      <li><b>Removal</b>Removed support for 2020.x, 2021.x IDEs</li>
       <li><b>Feature</b>Support to create/jump to dto file by "Right click/JimmerDtoFile" on entity interface file</li>
       <li><b>Feature</b>Add Gutter icon for dto definitions in dto file to jump directly to the generated class definition</li>
       <li><b>Feature</b>Added support for creating line comments and block comments via shortcut keys, but document comments still need to be created manually</li>
@@ -36,6 +37,7 @@
       <li><b>Feature</b>Colorize [param-name =] for named parameters</li>
     </ul>
     <ul>
+      <li><b>移除</b>删除了对 2020.x、2021.x IDE的支持</li>
       <li><b>新特性</b>支持通过在实体接口文件上『右键/JimmerDtoFile』创建/跳转dto文件</li>
       <li><b>新特性</b>在dto文件中为dto定义新增Gutter图标，可直接跳转生成的类定义</li>
       <li><b>新特性</b>新增通过快捷键创建行注释、块注释，但文档注释仍需手动创建</li>
