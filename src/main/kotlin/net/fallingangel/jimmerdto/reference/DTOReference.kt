@@ -24,13 +24,13 @@ class DTOReference(private val element: PsiElement, range: TextRange) : PsiRefer
     }
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
-        return DTOPsiImplUtil.findDTOs(element.project)
+        return DTOPsiImplUtil.findDTOs(element)
                 .map { PsiElementResolveResult(it) }
                 .toTypedArray()
     }
 
     override fun getVariants(): Array<Any> {
-        return DTOPsiImplUtil.findDTOs(element.project)
+        return DTOPsiImplUtil.findDTOs(element)
                 .filter { it.dtoName.name.isNotBlank() }
                 .map {
                     LookupElementBuilder

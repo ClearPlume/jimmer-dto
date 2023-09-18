@@ -2,27 +2,19 @@
 
 package net.fallingangel.jimmerdto.psi.impl
 
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiManager
-import com.intellij.psi.search.FileTypeIndex
-import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
-import net.fallingangel.jimmerdto.DTOFileType
 import net.fallingangel.jimmerdto.psi.DTODto
 import net.fallingangel.jimmerdto.psi.DTODtoName
 import net.fallingangel.jimmerdto.psi.DTOFile
 
 object DTOPsiImplUtil {
-    @JvmStatic
-    fun findDTOs(project: Project): List<DTODto> {
-        val psiManager = PsiManager.getInstance(project)
-        return FileTypeIndex.getFiles(DTOFileType.INSTANCE, GlobalSearchScope.allScope(project))
-                .map { file ->
-                    val dtoFile = psiManager.findFile(file) as DTOFile? ?: return@map emptyList()
-                    PsiTreeUtil.getChildrenOfTypeAsList(dtoFile, DTODto::class.java)
-                }
-                .flatten()
+    /**
+     * 获取element元素所在文件中的所有DTO定义
+     */
+    fun findDTOs(element: PsiElement): List<DTODto> {
+        val dtoFile = element.containingFile as DTOFile? ?: return emptyList()
+        return PsiTreeUtil.getChildrenOfTypeAsList(dtoFile, DTODto::class.java)
     }
 
     @JvmStatic
