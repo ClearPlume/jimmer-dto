@@ -4,10 +4,6 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import net.fallingangel.jimmerdto.util.*
 import org.jetbrains.kotlin.idea.refactoring.memberInfo.qualifiedClassNameForRendering
 
@@ -25,20 +21,14 @@ class CreateJimmerDtoFile : AnAction() {
         val dtoFile = dtoRoot.findFile(dtoFileName)
 
         if (dtoFile != null) {
-            openFile(project, dtoFile)
+            dtoFile.open(project)
             return
         }
 
         WriteCommandAction.runWriteCommandAction(project) {
             val dtoDir = dtoRoot.findOrCreateDirectory(entityPackage.replace('.', '/'))
-            val createDtoFile = dtoDir.createChildData(project, "$entityName.dto")
-            openFile(project, createDtoFile)
+            dtoDir.createChildData(project, "$entityName.dto").open(project)
         }
-    }
-
-    private fun openFile(project: Project, file: VirtualFile) {
-        val openFileDescriptor = OpenFileDescriptor(project, file, 0)
-        FileEditorManager.getInstance(project).openEditor(openFileDescriptor, true)
     }
 
     override fun update(event: AnActionEvent) {

@@ -28,7 +28,7 @@ fun dtoRoot(element: PsiElement): VirtualFile? {
 
 fun root(element: PsiElement): List<VirtualFile> {
     val roots by lazy {
-        val module = ModuleUtil.findModuleForPsiElement(element)!!
+        val module = ModuleUtil.findModuleForPsiElement(element) ?: return@lazy emptyList()
         ModuleRootManager
                 .getInstance(module)
                 .getSourceRoots(JavaSourceRootType.SOURCE)

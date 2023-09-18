@@ -3,8 +3,6 @@ package net.fallingangel.jimmerdto
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -16,11 +14,13 @@ import net.fallingangel.jimmerdto.psi.DTODto
 import net.fallingangel.jimmerdto.psi.DTOTypes
 import net.fallingangel.jimmerdto.util.generateRoot
 import net.fallingangel.jimmerdto.util.nameIdentifier
+import net.fallingangel.jimmerdto.util.open
 import net.fallingangel.jimmerdto.util.psiFile
 import java.nio.file.Paths
 
 class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
     override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<*>>) {
+        // 针对DTO名称元素发起跳转
         if (element.elementType == DTOTypes.IDENTIFIER && element.parent.elementType == DTOTypes.DTO_NAME && element.parent.parent.elementType == DTOTypes.DTO) {
             val project = element.project
             // 获取生成的源码路径
@@ -40,14 +40,11 @@ class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
     private fun VirtualFile.createLineMarker(project: Project, element: PsiElement, dtoName: String): RelatedItemLineMarkerInfo<PsiElement>? {
         val dtoFile = children.find { it.name.split('.')[0] == dtoName } ?: return null
-        val nameIdentifier = dtoFile.nameIdentifier(project) ?: return null
+        val nameIdentifier = dtoFile.nameIdentifier(project, false) ?: return null
 
         return NavigationGutterIconBuilder.create(Constant.ICON)
                 .setTargets(dtoFile.psiFile(project))
                 .setTooltipText("Jump to generated class [$dtoName]")
-                .createLineMarkerInfo(element) { _, _ ->
-                    val openFileDescriptor = OpenFileDescriptor(project, dtoFile, nameIdentifier.textOffset)
-                    FileEditorManager.getInstance(project).openEditor(openFileDescriptor, true)
-                }
+                .createLineMarkerInfo(element) { _, _ -> dtoFile.open(project, nameIdentifier.textOffset) }
     }
 }
