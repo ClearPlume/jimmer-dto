@@ -12,6 +12,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
 import net.fallingangel.jimmerdto.psi.DTODto
 import net.fallingangel.jimmerdto.psi.DTOTypes
+import net.fallingangel.jimmerdto.util.generateRoot
+import net.fallingangel.jimmerdto.util.nameIdentifier
+import net.fallingangel.jimmerdto.util.psiFile
 import java.nio.file.Paths
 
 class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {

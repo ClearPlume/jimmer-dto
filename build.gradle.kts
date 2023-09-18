@@ -9,7 +9,7 @@ plugins {
 group = "net.fallingangel"
 version = "0.0.6"
 
-val sinceVersion by extra("203")
+val sinceVersion by extra("221.5080.210")
 val untilVersion by extra("232.*")
 
 val certificateChainValue: String = findProperty("certificateChainValue") as String
@@ -27,12 +27,12 @@ repositories {
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
     pluginName.set("JimmerDTO")
-    version.set("2023.2.1")
+    version.set("2022.1")
     type.set("IC") // Target IDE Platform
     plugins.set(
         listOf(
             "com.intellij.java",
-            "org.jetbrains.kotlin",
+            "org.jetbrains.kotlin"
         )
     )
 }
