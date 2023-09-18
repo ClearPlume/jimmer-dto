@@ -10,6 +10,8 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
+import net.fallingangel.jimmerdto.enums.Modifier
+import net.fallingangel.jimmerdto.enums.notModifiedBy
 import net.fallingangel.jimmerdto.psi.DTODto
 import net.fallingangel.jimmerdto.psi.DTOTypes
 import net.fallingangel.jimmerdto.util.generateRoot
@@ -28,9 +30,8 @@ class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
             val dto = element.parent.parent as? DTODto ?: return
             val dtoName = dto.dtoName.text
-            val dtoModifiers = dto.dtoModifierList
 
-            if (dtoModifiers.none { it.text == "abstract" }) {
+            if (dto notModifiedBy Modifier.ABSTRACT) {
                 val lineMarker = generateDtoRoot.createLineMarker(project, element, dtoName) ?: return
                 result.add(lineMarker)
             }
