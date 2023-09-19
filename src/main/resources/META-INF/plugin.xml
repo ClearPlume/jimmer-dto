@@ -114,7 +114,7 @@
         </group>
 
         <action id="CreateOrJumpToJimmerDtoFile" class="net.fallingangel.jimmerdto.action.CreateJimmerDtoFile" text="JimmerDto File"
-                description="Create new JimmerDTO file or jump to it if exists" icon="MyIcons.newFileActionIcon">
+                description="Create new JimmerDTO file or jump to it if exists" icon="Icons.icon_16">
             <add-to-group group-id="JimmerDTOEntityPopupMenu"/>
         </action>
 

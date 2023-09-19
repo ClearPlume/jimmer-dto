@@ -26,9 +26,9 @@ fun VirtualFile.psiFile(project: Project): PsiFile? {
 }
 
 /**
- * 获取Java类文件中的实体类定义
+ * 获取类文件中的类名Element
  *
- * @param isEntity 是否正在获取实体接口的类定义
+ * @param isEntity 是否正在获取实体接口的类名Element
  */
 
 fun VirtualFile.nameIdentifier(project: Project, isEntity: Boolean = true): PsiNameIdentifierOwner? {
@@ -39,6 +39,9 @@ fun VirtualFile.nameIdentifier(project: Project, isEntity: Boolean = true): PsiN
     }
 }
 
+/**
+ * 获取类文件中类的注解，全限定名
+ */
 fun VirtualFile.annotations(project: Project): List<String> {
     val annotations = if (isJavaOrKotlin) {
         psiClass(project)?.annotations?.map { it.qualifiedName ?: "" }

@@ -1,6 +1,7 @@
 package net.fallingangel.jimmerdto
 
 import com.intellij.openapi.fileTypes.LanguageFileType
+import icons.Icons
 
 class DTOFileType : LanguageFileType(DTOLanguage.INSTANCE) {
     override fun getName() = Constant.NAME
@@ -9,7 +10,7 @@ class DTOFileType : LanguageFileType(DTOLanguage.INSTANCE) {
 
     override fun getDefaultExtension() = Constant.EXTENSION
 
-    override fun getIcon() = Constant.ICON
+    override fun getIcon() = Icons.icon_16
 
     @Suppress("CompanionObjectInExtension")
     companion object {

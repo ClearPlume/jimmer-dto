@@ -4,6 +4,7 @@ import com.intellij.openapi.editor.HighlighterColors
 import com.intellij.openapi.options.colors.AttributesDescriptor
 import com.intellij.openapi.options.colors.ColorDescriptor
 import com.intellij.openapi.options.colors.ColorSettingsPage
+import icons.Icons
 import net.fallingangel.jimmerdto.Constant
 
 class DTOColorSettingsPage : ColorSettingsPage {
@@ -33,7 +34,7 @@ class DTOColorSettingsPage : ColorSettingsPage {
 
     override fun getDisplayName() = Constant.NAME
 
-    override fun getIcon() = Constant.ICON
+    override fun getIcon() = Icons.icon_16
 
     override fun getHighlighter() = DTOSyntaxHighlighter()
 

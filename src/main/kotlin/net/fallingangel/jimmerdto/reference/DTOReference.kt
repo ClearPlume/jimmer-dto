@@ -3,7 +3,7 @@ package net.fallingangel.jimmerdto.reference
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
-import net.fallingangel.jimmerdto.Constant
+import icons.Icons
 import net.fallingangel.jimmerdto.psi.impl.DTOPsiImplUtil
 
 
@@ -35,7 +35,7 @@ class DTOReference(private val element: PsiElement, range: TextRange) : PsiRefer
                 .map {
                     LookupElementBuilder
                             .create(it)
-                            .withIcon(Constant.ICON)
+                            .withIcon(Icons.icon_16)
                             .withTypeText(it.containingFile.name)
                 }
                 .toTypedArray()
