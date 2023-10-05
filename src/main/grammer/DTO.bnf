@@ -94,13 +94,23 @@ original ::= IDENTIFIER | "^"? IDENTIFIER? "$"?
 
 replacement ::= IDENTIFIER
 
-positive-prop ::= annotation* "+"? prop-name prop-args? ("?" | "!")? alias? prop-body?
+positive-prop ::= annotation* "+"? prop-name prop-args? ("?" | "!")? alias? (prop-body | enum-body)?
 
 prop-name ::= IDENTIFIER
 
 prop-args ::= "(" (named-parameter | value) ("," named-parameter)* ")"
 
-prop-body ::= annotation* dto-body "*"?
+prop-body ::= annotation* dto-body "*"? {
+    pin = 2
+}
+
+enum-body ::= "{" enum-instance-mapping (("," | ";")? enum-instance-mapping)? "}" {
+    pin = 1
+}
+
+enum-instance-mapping ::= enum-instance "->" (INTEGER_CONSTANT | STRING_CONSTANT)
+
+enum-instance ::= IDENTIFIER
 
 negative-prop ::= "-" IDENTIFIER {
     pin = 1
