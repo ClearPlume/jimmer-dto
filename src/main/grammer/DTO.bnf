@@ -76,7 +76,9 @@ dto-body ::= "{" explicit-prop* "}"
 
 explicit-prop ::= (user-prop | macro | positive-prop | alias-group | negative-prop) ("," | ";")?
 
-macro ::= "#" macro-name ("(" qualified-name ("," qualified-name)* ")")? ("?" | "!")?
+macro ::= "#" macro-name ("(" qualified-name ("," qualified-name)* ")")? ("?" | "!")? {
+    pin = 1
+}
 
 macro-name ::= IDENTIFIER
 
@@ -98,7 +100,9 @@ prop-args ::= "(" (named-parameter | value) ("," named-parameter)* ")"
 
 prop-body ::= annotation* dto-body "*"?
 
-negative-prop ::= "-" IDENTIFIER
+negative-prop ::= "-" IDENTIFIER {
+    pin = 1
+}
 
 user-prop ::= annotation* IDENTIFIER ":" type-def {
     pin = 3
