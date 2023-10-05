@@ -15,6 +15,7 @@ import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
 import net.fallingangel.jimmerdto.structure.Property
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.nj2k.postProcessing.type
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.resolve.BindingContext
 import java.nio.file.Paths
@@ -63,12 +64,7 @@ fun VirtualFile.annotations(project: Project): List<String> {
         if (isJavaOrKotlin) {
             psiClass(project)?.annotations?.map { it.qualifiedName ?: "" }
         } else {
-            ktClass(project)?.annotationEntries?.map {
-                // 解析注解条目，获取上下文
-                val context = it.analyze()
-                // 获取注解信息
-                context[BindingContext.ANNOTATION, it]?.fqName?.asString() ?: ""
-            }
+            ktClass(project)?.annotationEntries?.map(KtAnnotationEntry::qualifiedName)
         }
     } catch (e: IllegalFileFormatException) {
         emptyList()
@@ -99,11 +95,23 @@ fun VirtualFile.properties(project: Project): List<Property> {
         if (isJavaOrKotlin) {
             classFile?.psiClass(project)
                     ?.methods
-                    ?.map { Property(it.name, it.returnType!!.presentableText) }
+                    ?.map { property ->
+                        Property(
+                            property.name,
+                            property.returnType!!.presentableText,
+                            property.annotations.map { it.qualifiedName ?: "" }
+                        )
+                    }
         } else {
             classFile?.ktClass(project)
                     ?.getProperties()
-                    ?.map { Property(it.name!!, it.type()!!.toString()) }
+                    ?.map { property ->
+                        Property(
+                            property.name!!,
+                            property.type()!!.toString(),
+                            property.annotationEntries.map(KtAnnotationEntry::qualifiedName)
+                        )
+                    }
         }
     } catch (e: IllegalFileFormatException) {
         null
@@ -135,4 +143,11 @@ fun VirtualFile.ktClass(project: Project, isEntity: Boolean = true): KtClass? {
 
 private inline fun <reified T : PsiNameIdentifierOwner> PsiFile.clazz(): T? {
     return PsiTreeUtil.findChildOfType(originalElement, T::class.java)
+}
+
+private fun KtAnnotationEntry.qualifiedName(): String {
+    // 解析注解条目，获取上下文
+    val context = analyze()
+    // 获取注解全限定类名
+    return context[BindingContext.ANNOTATION, this]?.fqName?.asString() ?: ""
 }
