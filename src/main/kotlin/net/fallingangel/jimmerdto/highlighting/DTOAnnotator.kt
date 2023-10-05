@@ -10,6 +10,7 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.nextLeaf
 import net.fallingangel.jimmerdto.psi.*
+import net.fallingangel.jimmerdto.util.supers
 
 /**
  * 部分代码结构的高亮
@@ -35,12 +36,28 @@ class DTOAnnotator : Annotator {
         }
 
         override fun visitMacro(o: DTOMacro) {
-            if (o.macroName.text == "allScalars") {
+            val macroName = o.macroName!!
+            if (macroName.text == "allScalars") {
                 o.firstChild.style(DTOSyntaxHighlighter.MACRO)
-                o.macroName.style(DTOSyntaxHighlighter.MACRO)
+                macroName.style(DTOSyntaxHighlighter.MACRO)
             } else {
                 o.firstChild.error()
-                o.macroName.error()
+                macroName.error()
+            }
+        }
+
+        override fun visitMacroArgs(o: DTOMacroArgs) {
+            val dtoFile = o.containingFile.virtualFile
+            val project = o.project
+            val macroParams = dtoFile.supers(project) + dtoFile.name.substringBeforeLast('.')
+
+            for (macroArg in o.qualifiedNameList) {
+                if (macroArg.text !in macroParams) {
+                    macroArg.error()
+                }
+                if (o.qualifiedNameList.count { it.text == macroArg.text } != 1) {
+                    macroArg.error(DTOSyntaxHighlighter.DUPLICATION)
+                }
             }
         }
 

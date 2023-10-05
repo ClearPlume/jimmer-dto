@@ -2,9 +2,15 @@
 <list>
     <option name="JIMMER_DTO_ERROR">
         <value>
-            <option name="FOREGROUND" value="ff0000"/>
-            <option name="EFFECT_COLOR" value="ff0000"/>
+            <option name="FOREGROUND" value="FF0000"/>
+            <option name="EFFECT_COLOR" value="FF0000"/>
             <option name="EFFECT_TYPE" value="2"/>
+        </value>
+    </option>
+    <option name="JIMMER_DTO_DUPLICATION">
+        <value>
+            <option name="FOREGROUND" value="A43232"/>
+            <option name="BACKGROUND" value="FCF4D4"/>
         </value>
     </option>
     <option name="JIMMER_DTO_NAMED_PARAMETER_NAME">

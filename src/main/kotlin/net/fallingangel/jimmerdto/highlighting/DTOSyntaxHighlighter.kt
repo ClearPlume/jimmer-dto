@@ -52,6 +52,7 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
         val NAMED_PARAMETER_NAME = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NAMED_PARAMETER_NAME")
 
         val ERROR = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ERROR")
+        val DUPLICATION = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_DUPLICATION")
 
         private val LINE_COMMENT_KEYS = arrayOf(LINE_COMMENT)
         private val BLOCK_COMMENT_KEYS = arrayOf(BLOCK_COMMENT)
