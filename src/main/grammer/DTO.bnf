@@ -141,7 +141,7 @@ parameter-name ::= IDENTIFIER
 value ::= CHAR_CONSTANT | STRING_CONSTANT |
              INTEGER_CONSTANT | FLOAT_CONSTANT |
              BOOLEAN_CONSTANT | NULL_CONSTANT |
-             qualified-name | array-value
+             enum-value | IDENTIFIER | array-value
 
 array-value ::= "[" (value ("," value)*)? "]" | "{" (value ("," value)*)? "}"
 
