@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
 import org.jetbrains.kotlin.resolve.BindingContext
 import java.nio.file.Paths
 
@@ -73,27 +74,13 @@ fun VirtualFile.annotations(project: Project): List<String> {
 }
 
 /**
- * 获取类文件中类的属性列表
+ * 获取DTO文件对应实体的属性列表
  */
 fun VirtualFile.properties(project: Project): List<Property> {
-    val psiFile = psiFile(project) ?: return emptyList()
-    val sourcePath = sourceRoot(psiFile)?.path ?: return emptyList()
-
-    // sourcePath: src/main/kotlin
-    // path: src/main/dto/net/fallingangel/Book.dto
-    // pathPrefix: src/main/
-    val pathPrefix = sourcePath.commonPrefixWith(path)
-    val isJavaOrKotlin = sourcePath.removePrefix(pathPrefix) == "java"
-
-    val modelRelativePath = path.removePrefix(pathPrefix)
-            .substringAfter('/')
-            .replaceAfterLast('.', if (isJavaOrKotlin) "java" else "kt")
-    val classFile = VirtualFileManager.getInstance()
-            .findFileByNioPath(Paths.get("$sourcePath/$modelRelativePath"))
-
+    val classFile = entityFile(project) ?: return emptyList()
     val properties = try {
-        if (isJavaOrKotlin) {
-            classFile?.psiClass(project)
+        if (classFile.isJavaOrKotlin) {
+            classFile.psiClass(project)
                     ?.methods
                     ?.map { property ->
                         Property(
@@ -103,7 +90,7 @@ fun VirtualFile.properties(project: Project): List<Property> {
                         )
                     }
         } else {
-            classFile?.ktClass(project)
+            classFile.ktClass(project)
                     ?.getProperties()
                     ?.map { property ->
                         Property(
@@ -117,6 +104,49 @@ fun VirtualFile.properties(project: Project): List<Property> {
         null
     }
     return properties ?: emptyList()
+}
+
+/**
+ * 获取DTO文件对应实体的基类型列表
+ */
+fun VirtualFile.supers(project: Project): List<String> {
+    val classFile = entityFile(project) ?: return emptyList()
+    val supers = try {
+        if (classFile.isJavaOrKotlin) {
+            classFile.psiClass(project)
+                    ?.supers
+                    ?.map { it.name ?: "" }
+                    ?.filter { it != "Object" }
+        } else {
+            classFile.ktClass(project)
+                    ?.superTypeListEntries
+                    ?.map(KtSuperTypeListEntry::qualifiedName)
+        }
+    } catch (e: IllegalFileFormatException) {
+        null
+    }
+    return supers ?: emptyList()
+}
+
+/**
+ * 获取DTO文件对应的实体文件
+ */
+fun VirtualFile.entityFile(project: Project): VirtualFile? {
+    val psiFile = psiFile(project) ?: return null
+    val sourcePath = sourceRoot(psiFile)?.path ?: return null
+
+    // sourcePath: src/main/kotlin
+    // path: src/main/dto/net/fallingangel/Book.dto
+    // pathPrefix: src/main/
+    val pathPrefix = sourcePath.commonPrefixWith(path)
+    val isJavaOrKotlin = sourcePath.removePrefix(pathPrefix) == "java"
+
+    // net/fallingangel/Book.(java|kt)
+    val modelRelativePath = path.removePrefix(pathPrefix)
+            .substringAfter('/')
+            .replaceAfterLast('.', if (isJavaOrKotlin) "java" else "kt")
+    return VirtualFileManager.getInstance()
+            .findFileByNioPath(Paths.get("$sourcePath/$modelRelativePath"))
 }
 
 /**
@@ -145,9 +175,19 @@ private inline fun <reified T : PsiNameIdentifierOwner> PsiFile.clazz(): T? {
     return PsiTreeUtil.findChildOfType(originalElement, T::class.java)
 }
 
+/**
+ * 获取KtAnnotationEntry对应注解的全限定名
+ */
 private fun KtAnnotationEntry.qualifiedName(): String {
     // 解析注解条目，获取上下文
     val context = analyze()
     // 获取注解全限定类名
     return context[BindingContext.ANNOTATION, this]?.fqName?.asString() ?: ""
+}
+
+/**
+ * 获取KtSuperTypeListEntry对应基类型的全限定名
+ */
+private fun KtSuperTypeListEntry.qualifiedName(): String {
+    return firstChild.text
 }

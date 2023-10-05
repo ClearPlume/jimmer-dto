@@ -11,6 +11,7 @@ import com.intellij.util.ProcessingContext
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.structure.Property
 import net.fallingangel.jimmerdto.util.properties
+import net.fallingangel.jimmerdto.util.supers
 
 class DTOCompletionContributor : CompletionContributor() {
     private val identifier = psiElement(DTOTypes.IDENTIFIER)
@@ -183,6 +184,20 @@ class DTOCompletionContributor : CompletionContributor() {
             object : CompletionProvider<CompletionParameters>() {
                 override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
                     result.addAllElements(listOf("allScalars").lookUp())
+                }
+            }
+        )
+        extend(
+            CompletionType.BASIC,
+            identifier.withParent(DTOQualifiedName::class.java)
+                    .withSuperParent(2, psiElement(DTOMacroArgs::class.java)),
+            object : CompletionProvider<CompletionParameters>() {
+                override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+                    val dtoFile = parameters.originalFile.virtualFile
+                    val project = parameters.originalFile.project
+
+                    val macroParams = dtoFile.supers(project) + dtoFile.name.substringBeforeLast('.')
+                    result.addAllElements(macroParams.lookUp())
                 }
             }
         )

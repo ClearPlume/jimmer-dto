@@ -76,11 +76,13 @@ dto-body ::= "{" explicit-prop* "}"
 
 explicit-prop ::= (user-prop | macro | positive-prop | alias-group | negative-prop) ("," | ";")?
 
-macro ::= "#" macro-name ("(" qualified-name ("," qualified-name)* ")")? ("?" | "!")? {
+macro ::= "#" macro-name macro-args? ("?" | "!")? {
     pin = 1
 }
 
 macro-name ::= IDENTIFIER
+
+macro-args ::= "(" qualified-name ("," qualified-name)* ")"
 
 alias-group ::= "as" "(" alias-pattern ")" "{" (macro | positive-prop)* "}"
 
