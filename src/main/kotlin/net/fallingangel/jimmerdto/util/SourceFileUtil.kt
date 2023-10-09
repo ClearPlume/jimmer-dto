@@ -120,7 +120,7 @@ fun VirtualFile.supers(project: Project): List<String> {
         } else {
             classFile.ktClass(project)
                     ?.superTypeListEntries
-                    ?.map(KtSuperTypeListEntry::qualifiedName)
+                    ?.map(KtSuperTypeListEntry::getText)
         }
     } catch (e: IllegalFileFormatException) {
         null
@@ -183,11 +183,4 @@ private fun KtAnnotationEntry.qualifiedName(): String {
     val context = analyze()
     // 获取注解全限定类名
     return context[BindingContext.ANNOTATION, this]?.fqName?.asString() ?: ""
-}
-
-/**
- * 获取KtSuperTypeListEntry对应基类型的全限定名
- */
-private fun KtSuperTypeListEntry.qualifiedName(): String {
-    return firstChild.text
 }
