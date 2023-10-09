@@ -178,9 +178,10 @@ private inline fun <reified T : PsiNameIdentifierOwner> PsiFile.clazz(): T? {
 /**
  * 获取KtAnnotationEntry对应注解的全限定名
  */
-private fun KtAnnotationEntry.qualifiedName(): String {
-    // 解析注解条目，获取上下文
-    val context = analyze()
-    // 获取注解全限定类名
-    return context[BindingContext.ANNOTATION, this]?.fqName?.asString() ?: ""
-}
+private val KtAnnotationEntry.qualifiedName: String
+    get() {
+        // 解析注解条目，获取上下文
+        val context = analyze()
+        // 获取注解全限定类名
+        return context[BindingContext.ANNOTATION, this]?.fqName?.asString() ?: ""
+    }
