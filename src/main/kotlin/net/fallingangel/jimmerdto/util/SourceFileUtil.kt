@@ -41,16 +41,13 @@ fun VirtualFile.psiFile(project: Project): PsiFile? {
 
 /**
  * 获取类文件中的类名Element
- *
- * @param isEntity 是否正在获取实体接口的类名Element
  */
-
-fun VirtualFile.nameIdentifier(project: Project, isEntity: Boolean = true): PsiNameIdentifierOwner? {
+fun VirtualFile.nameIdentifier(project: Project): PsiNameIdentifierOwner? {
     return try {
         if (isJavaOrKotlin) {
-            psiClass(project, isEntity)
+            psiClass(project)
         } else {
-            ktClass(project, isEntity)
+            ktClass(project)
         }
     } catch (e: IllegalFileFormatException) {
         null
@@ -154,10 +151,9 @@ fun VirtualFile.entityFile(project: Project): VirtualFile? {
  *
  * @param isEntity 是否正在获取实体接口的类定义
  */
-fun VirtualFile.psiClass(project: Project, isEntity: Boolean = true): PsiClass? {
+fun VirtualFile.psiClass(project: Project): PsiClass? {
     return psiFile(project)
             ?.clazz<PsiClass>()
-            ?.takeIf { !isEntity || it.isInterface }
 }
 
 /**
@@ -165,10 +161,9 @@ fun VirtualFile.psiClass(project: Project, isEntity: Boolean = true): PsiClass? 
  *
  * @param isEntity 是否正在获取实体接口的类定义
  */
-fun VirtualFile.ktClass(project: Project, isEntity: Boolean = true): KtClass? {
+fun VirtualFile.ktClass(project: Project): KtClass? {
     return psiFile(project)
             ?.clazz<KtClass>()
-            ?.takeIf { !isEntity || it.isInterface() }
 }
 
 private inline fun <reified T : PsiNameIdentifierOwner> PsiFile.clazz(): T? {

@@ -41,7 +41,7 @@ class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
     private fun VirtualFile.createLineMarker(project: Project, element: PsiElement, dtoName: String): RelatedItemLineMarkerInfo<PsiElement>? {
         val dtoFile = children.find { it.name.split('.')[0] == dtoName } ?: return null
-        val nameIdentifier = dtoFile.nameIdentifier(project, false) ?: return null
+        val nameIdentifier = dtoFile.nameIdentifier(project) ?: return null
 
         return NavigationGutterIconBuilder.create(Icons.icon_16)
                 .setTargets(dtoFile.psiFile(project))
