@@ -148,8 +148,6 @@ fun VirtualFile.entityFile(project: Project): VirtualFile? {
 
 /**
  * 获取Java类文件中的实体类定义
- *
- * @param isEntity 是否正在获取实体接口的类定义
  */
 fun VirtualFile.psiClass(project: Project): PsiClass? {
     return psiFile(project)
@@ -158,8 +156,6 @@ fun VirtualFile.psiClass(project: Project): PsiClass? {
 
 /**
  * 获取Kotlin类文件中的实体类定义
- *
- * @param isEntity 是否正在获取实体接口的类定义
  */
 fun VirtualFile.ktClass(project: Project): KtClass? {
     return psiFile(project)
