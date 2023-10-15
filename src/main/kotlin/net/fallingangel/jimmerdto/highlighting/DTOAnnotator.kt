@@ -126,15 +126,7 @@ class DTOAnnotator : Annotator {
         }
 
         /**
-         * 为参数名上色
-         */
-        override fun visitNamedParameter(o: DTONamedParameter) {
-            o.parameterName.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
-            o.parameterName.next(DTOTypes.EQUALS).style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
-        }
-
-        /**
-         * 为参数名上色
+         * 为注解参数名上色
          */
         override fun visitAnnotationParameter(o: DTOAnnotationParameter) {
             o.firstChild.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
@@ -158,6 +150,13 @@ class DTOAnnotator : Annotator {
                     }
                 }
             }
+        }
+
+        /**
+         * 为枚举映射上色
+         */
+        override fun visitEnumInstanceMapping(o: DTOEnumInstanceMapping) {
+            o.enumInstance.style(DTOSyntaxHighlighter.ENUM_INSTANCE)
         }
 
         private fun PsiElement.next(elementType: IElementType): PsiElement {

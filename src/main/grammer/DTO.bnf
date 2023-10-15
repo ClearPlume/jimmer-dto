@@ -109,9 +109,11 @@ enum-body ::= "{" enum-instance-mapping (("," | ";")? enum-instance-mapping)* "}
     pin = 1
 }
 
-enum-instance-mapping ::= enum-instance "->" (INTEGER_CONSTANT | STRING_CONSTANT)
+enum-instance-mapping ::= enum-instance "->" enum-instance-value
 
 enum-instance ::= IDENTIFIER
+
+enum-instance-value ::= (INTEGER_CONSTANT | STRING_CONSTANT)
 
 negative-prop ::= "-" IDENTIFIER {
     pin = 1
@@ -132,8 +134,6 @@ generic-arg ::= "*" | MODIFIER? type-def
 /// GLOBAL ///
 qualified-name ::= IDENTIFIER ("." IDENTIFIER)*
 
-enum-value ::= IDENTIFIER ("." IDENTIFIER)+
-
 // parameter
 //named-parameter ::= parameter-name "=" value
 
@@ -143,6 +143,8 @@ value ::= CHAR_CONSTANT | STRING_CONSTANT |
              INTEGER_CONSTANT | FLOAT_CONSTANT |
              BOOLEAN_CONSTANT | NULL_CONSTANT |
              enum-value | IDENTIFIER | array-value
+
+enum-value ::= IDENTIFIER ("." IDENTIFIER)+
 
 array-value ::= "[" (value ("," value)*)? "]" | "{" (value ("," value)*)? "}"
 

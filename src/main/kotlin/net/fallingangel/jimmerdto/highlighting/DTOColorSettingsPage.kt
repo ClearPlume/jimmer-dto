@@ -21,6 +21,7 @@ class DTOColorSettingsPage : ColorSettingsPage {
         AttributesDescriptor("Values//Character", DTOSyntaxHighlighter.CHAR),
         AttributesDescriptor("Values//String", DTOSyntaxHighlighter.STRING),
         AttributesDescriptor("Values//Number", DTOSyntaxHighlighter.NUMBER),
+        AttributesDescriptor("Values//Enum", DTOSyntaxHighlighter.ENUM_INSTANCE),
         AttributesDescriptor("Bad value", HighlighterColors.BAD_CHARACTER)
     )
 

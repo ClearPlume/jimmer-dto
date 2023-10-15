@@ -16,20 +16,20 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
 
     override fun getTokenHighlights(tokenType: IElementType): Array<TextAttributesKey> {
         return when (tokenType) {
-            DTOTokenTypes.LINE_COMMENT -> LINE_COMMENT_KEYS
-            DTOTokenTypes.BLOCK_COMMENT -> BLOCK_COMMENT_KEYS
-            DTOTokenTypes.DOC_COMMENT -> DOC_COMMENT_KEYS
+            DTOTokenTypes.LINE_COMMENT -> arrayOf(LINE_COMMENT)
+            DTOTokenTypes.BLOCK_COMMENT -> arrayOf(BLOCK_COMMENT)
+            DTOTokenTypes.DOC_COMMENT -> arrayOf(DOC_COMMENT)
 
-            DTOTypes.AS_KEYWORD, DTOTypes.IMPORT_KEYWORD, DTOTypes.BOOLEAN_CONSTANT, DTOTypes.NULL_CONSTANT -> KEYWORD_KEYS
-            DTOTypes.MODIFIER -> MODIFIER_KEYS
-            DTOTypes.NEGATIVE_PROP -> NEGATIVE_PROP_KEYS
+            DTOTypes.AS_KEYWORD, DTOTypes.IMPORT_KEYWORD, DTOTypes.BOOLEAN_CONSTANT, DTOTypes.NULL_CONSTANT -> arrayOf(KEYWORD)
+            DTOTypes.MODIFIER -> arrayOf(MODIFIER)
+            DTOTypes.NEGATIVE_PROP -> arrayOf(NEGATIVE_PROP)
 
-            DTOTypes.CHAR_CONSTANT -> CHAR_KEYS
-            DTOTypes.STRING_CONSTANT -> STRING_KEYS
-            DTOTypes.INTEGER_CONSTANT, DTOTypes.FLOAT_CONSTANT -> NUMBER_KEYS
+            DTOTypes.CHAR_CONSTANT -> arrayOf(CHAR)
+            DTOTypes.STRING_CONSTANT -> arrayOf(STRING)
+            DTOTypes.INTEGER_CONSTANT, DTOTypes.FLOAT_CONSTANT -> arrayOf(NUMBER)
 
-            TokenType.BAD_CHARACTER -> BAD_CHAR_KEYS
-            else -> EMPTY_KEYS
+            TokenType.BAD_CHARACTER -> arrayOf(HighlighterColors.BAD_CHARACTER)
+            else -> arrayOf()
         }
     }
 
@@ -50,23 +50,9 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
         val MACRO = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_MACRO", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION)
         val NEGATIVE_PROP = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NEGATIVE_PROP", CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES)
         val NAMED_PARAMETER_NAME = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NAMED_PARAMETER_NAME")
+        val ENUM_INSTANCE = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ENUM_INSTANCE", DefaultLanguageHighlighterColors.STATIC_FIELD)
 
         val ERROR = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ERROR")
         val DUPLICATION = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_DUPLICATION")
-
-        private val LINE_COMMENT_KEYS = arrayOf(LINE_COMMENT)
-        private val BLOCK_COMMENT_KEYS = arrayOf(BLOCK_COMMENT)
-        private val DOC_COMMENT_KEYS = arrayOf(DOC_COMMENT)
-
-        private val KEYWORD_KEYS = arrayOf(KEYWORD)
-        private val MODIFIER_KEYS = arrayOf(MODIFIER)
-        private val NEGATIVE_PROP_KEYS = arrayOf(NEGATIVE_PROP)
-
-        private val CHAR_KEYS = arrayOf(CHAR)
-        private val STRING_KEYS = arrayOf(STRING)
-        private val NUMBER_KEYS = arrayOf(NUMBER)
-
-        private val BAD_CHAR_KEYS = arrayOf(HighlighterColors.BAD_CHARACTER)
-        private val EMPTY_KEYS = arrayOf<TextAttributesKey>()
     }
 }
