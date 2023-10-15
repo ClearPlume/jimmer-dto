@@ -35,6 +35,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // 方法提示
         completeFunction()
+
+        // 继承提示
+        completeExtend()
     }
 
     /**
@@ -274,6 +277,20 @@ class DTOCompletionContributor : CompletionContributor() {
                 override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
                     val propArgs = parameters.parent<DTOValue>().parent as DTOPropArgs
                     result.addAllElements(propArgs[StructureType.RelationPropArgs].lookUp())
+                }
+            }
+        )
+    }
+
+    private fun completeExtend() {
+        extend(
+            CompletionType.BASIC,
+            identifier.withParent(DTODtoName::class.java)
+                    .withSuperParent(2, psiElement(DTODtoSupers::class.java)),
+            object : CompletionProvider<CompletionParameters>() {
+                override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+                    val supers = parameters.parent<DTODtoName>().parent as DTODtoSupers
+                    result.addAllElements(supers[StructureType.DtoSupers].lookUp())
                 }
             }
         )

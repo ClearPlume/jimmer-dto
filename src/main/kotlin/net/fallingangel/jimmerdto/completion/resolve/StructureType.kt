@@ -13,4 +13,6 @@ object StructureType {
 
     val PropArgs = PropArgs()
     val RelationPropArgs = RelationPropArgs()
+
+    val DtoSupers = DtoSupers()
 }

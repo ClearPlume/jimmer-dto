@@ -141,6 +141,25 @@ class DTOAnnotator : Annotator {
             o.firstChild.next(DTOTypes.EQUALS).style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
         }
 
+        /**
+         * 为Dto名称或其父级实体上色
+         */
+        override fun visitDtoName(o: DTODtoName) {
+            val parent = o.parent
+            if (parent is DTODtoSupers) {
+                val availableSupers = parent[StructureType.DtoSupers]
+
+                for (superDto in parent.dtoNameList) {
+                    if (parent.dtoNameList.count { it.name == o.name } != 1) {
+                        o.error(DTOSyntaxHighlighter.DUPLICATION)
+                    }
+                    if (o.name !in availableSupers) {
+                        o.error()
+                    }
+                }
+            }
+        }
+
         private fun PsiElement.next(elementType: IElementType): PsiElement {
             return nextLeaf { it.elementType == elementType }!!
         }
