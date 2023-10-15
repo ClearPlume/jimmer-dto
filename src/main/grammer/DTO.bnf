@@ -105,7 +105,7 @@ prop-body ::= annotation* dto-body "*"? {
     pin = 2
 }
 
-enum-body ::= "{" enum-instance-mapping (("," | ";")? enum-instance-mapping)? "}" {
+enum-body ::= "{" enum-instance-mapping (("," | ";")? enum-instance-mapping)* "}" {
     pin = 1
 }
 
