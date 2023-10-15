@@ -94,7 +94,7 @@ original ::= IDENTIFIER | "^"? IDENTIFIER? "$"?
 
 replacement ::= IDENTIFIER
 
-positive-prop ::= annotation* "+"? prop-name prop-args? ("?" | "!")? alias? (prop-body | enum-body)?
+positive-prop ::= annotation* "+"? prop-name prop-args? ("?" | "!")? alias? (enum-body | prop-body)?
 
 prop-name ::= IDENTIFIER
 
@@ -105,11 +105,9 @@ prop-body ::= annotation* dto-body "*"? {
     pin = 2
 }
 
-enum-body ::= "{" enum-instance-mapping (("," | ";")? enum-instance-mapping)* "}" {
-    pin = 1
-}
+enum-body ::= "->" "{" enum-instance-mapping? (("," | ";")? enum-instance-mapping)* "}"
 
-enum-instance-mapping ::= enum-instance "->" enum-instance-value
+enum-instance-mapping ::= enum-instance ":" enum-instance-value
 
 enum-instance ::= IDENTIFIER
 

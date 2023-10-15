@@ -15,4 +15,7 @@ object StructureType {
     val RelationPropArgs = RelationPropArgs()
 
     val DtoSupers = DtoSupers()
+
+    val EnumInstances = EnumInstances()
+    val RelationEnumInstances = RelationEnumInstances()
 }

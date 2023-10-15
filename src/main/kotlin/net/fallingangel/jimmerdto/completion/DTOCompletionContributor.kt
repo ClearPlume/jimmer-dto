@@ -4,7 +4,9 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns.psiElement
+import com.intellij.patterns.StandardPatterns.or
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.TokenType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ProcessingContext
@@ -16,6 +18,7 @@ import net.fallingangel.jimmerdto.util.get
 
 class DTOCompletionContributor : CompletionContributor() {
     private val identifier = psiElement(DTOTypes.IDENTIFIER)
+    private val whitespace = psiElement(TokenType.WHITE_SPACE)
 
     init {
         // 用户属性类型提示
@@ -38,6 +41,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // 继承提示
         completeExtend()
+
+        // 枚举提示
+        completeEnum()
     }
 
     /**
@@ -297,6 +303,60 @@ class DTOCompletionContributor : CompletionContributor() {
                 }
             }
         )
+    }
+
+    /**
+     * 枚举提示
+     */
+    private fun completeEnum() {
+        // DTO
+        extend(
+            CompletionType.BASIC,
+            or(
+                identifier.withParent(DTOEnumInstance::class.java)
+                        .withSuperParent(3, psiElement(DTOEnumBody::class.java))
+                        .withSuperParent(7, psiElement(DTODto::class.java)),
+                whitespace
+                        .withParent(DTOEnumBody::class.java)
+                        .withSuperParent(5, DTODto::class.java)
+            ),
+            object : CompletionProvider<CompletionParameters>() {
+                override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+                    val enumBody = if (parameters.position is PsiWhiteSpace) {
+                        parameters.parent<DTOEnumBody>()
+                    } else {
+                        parameters.position.parent.parent.parent as DTOEnumBody
+                    }
+                    result.addAllElements(enumBody[StructureType.EnumInstances].lookUp())
+                }
+            }
+        )
+        // 关联属性
+        extend(
+            CompletionType.BASIC,
+            or(
+                identifier.withParent(DTOEnumInstance::class.java)
+                        .withSuperParent(3, psiElement(DTOEnumBody::class.java))
+                        .withSuperParent(7, psiElement(DTOPropBody::class.java)),
+                whitespace
+                        .withParent(DTOEnumBody::class.java)
+                        .withSuperParent(5, DTOPropBody::class.java)
+            ),
+            object : CompletionProvider<CompletionParameters>() {
+                override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+                    val enumBody = if (parameters.position is PsiWhiteSpace) {
+                        parameters.parent<DTOEnumBody>()
+                    } else {
+                        parameters.position.parent.parent.parent as DTOEnumBody
+                    }
+                    result.addAllElements(enumBody[StructureType.RelationEnumInstances].lookUp())
+                }
+            }
+        )
+    }
+
+    override fun beforeCompletion(context: CompletionInitializationContext) {
+        context.dummyIdentifier = ""
     }
 
     @JvmName("lookupString")
