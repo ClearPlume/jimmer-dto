@@ -282,6 +282,9 @@ class DTOCompletionContributor : CompletionContributor() {
         )
     }
 
+    /**
+     * Dto继承提示
+     */
     private fun completeExtend() {
         extend(
             CompletionType.BASIC,
@@ -298,7 +301,11 @@ class DTOCompletionContributor : CompletionContributor() {
 
     @JvmName("lookupString")
     private fun List<String>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }): List<LookupElement> {
-        return map { LookupElementBuilder.create(it).customizer() }
+        return map {
+            LookupElementBuilder.create(it)
+                    .withCaseSensitivity(false)
+                    .customizer()
+        }
     }
 
     @JvmName("lookupProperty")
@@ -306,6 +313,7 @@ class DTOCompletionContributor : CompletionContributor() {
         return map {
             LookupElementBuilder.create(it.name)
                     .withTypeText(it.type, true)
+                    .withCaseSensitivity(false)
                     .customizer()
         }
     }
@@ -321,6 +329,7 @@ class DTOCompletionContributor : CompletionContributor() {
                             context.editor.caretModel.moveToOffset(context.tailOffset + it.caretOffset)
                         }
                     }
+                    .withCaseSensitivity(false)
                     .customizer()
         }
     }
