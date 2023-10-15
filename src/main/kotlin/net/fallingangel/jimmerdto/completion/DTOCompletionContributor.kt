@@ -8,10 +8,11 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.TokenType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ProcessingContext
+import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.psi.*
+import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.structure.Property
-import net.fallingangel.jimmerdto.util.properties
-import net.fallingangel.jimmerdto.util.supers
+import net.fallingangel.jimmerdto.util.get
 
 class DTOCompletionContributor : CompletionContributor() {
     private val identifier = psiElement(DTOTypes.IDENTIFIER)
@@ -31,6 +32,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // 宏提示
         completeMacro()
+
+        // 方法提示
+        completeFunction()
     }
 
     /**
@@ -39,8 +43,9 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeUserPropType() {
         extend(
             CompletionType.BASIC,
-            psiElement(DTOTypes.IDENTIFIER)
-                    .afterLeaf(psiElement(DTOTypes.COLON)),
+            identifier.withParent(DTOQualifiedName::class.java)
+                    .withSuperParent(2, DTOTypeDef::class.java)
+                    .withSuperParent(3, DTOUserProp::class.java),
             object : CompletionProvider<CompletionParameters>() {
                 override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
                     result.addAllElements(findUserPropType(parameters.originalFile))
@@ -55,11 +60,9 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeUserPropGenericType() {
         extend(
             CompletionType.BASIC,
-            identifier
-                    .andOr(
-                        identifier.afterLeaf(psiElement(DTOTypes.ANGLE_BRACKET_L)),
-                        identifier.afterLeaf(psiElement(DTOTypes.MODIFIER))
-                    ),
+            identifier.withParent(DTOQualifiedName::class.java)
+                    .withSuperParent(2, DTOTypeDef::class.java)
+                    .withSuperParent(3, DTOGenericArg::class.java),
             object : CompletionProvider<CompletionParameters>() {
                 override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
                     result.addAllElements(findUserPropType(parameters.originalFile, true))
@@ -131,27 +134,45 @@ class DTOCompletionContributor : CompletionContributor() {
      * 正属性提示
      */
     private fun completeProp() {
+        val macros = listOf(
+            LookupInfo(
+                "#allScalars[(Type+)]",
+                "#allScalars",
+                "macro"
+            )
+        ).lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
+        val aliasGroup = listOf(
+            LookupInfo(
+                "as(<original> -> <replacement>) { ... }",
+                "as() {}",
+                "alias-group",
+                -4
+            )
+        ).lookUp { PrioritizedLookupElement.withPriority(bold(), 90.0) }
+        val functions = listOf(
+            LookupInfo("id(<association>)", "id()", "function", -1),
+            LookupInfo("flat(<association>) { ... }", "flat() {}", "function", -4)
+        ).lookUp { PrioritizedLookupElement.withPriority(bold(), 80.0) }
         extend(
             CompletionType.BASIC,
-            identifier.withParent(DTOPropName::class.java),
+            identifier.withParent(DTOPropName::class.java)
+                    .withSuperParent(5, DTOPropBody::class.java),
             object : CompletionProvider<CompletionParameters>() {
                 override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-                    val dtoFile = parameters.originalFile
-                    result.addAllElements(
-                        listOf("id", "flat")
-                                .map { Property(it, "function") }
-                                .lookUp {
-                                    PrioritizedLookupElement.withPriority(bold(), 100.0)
-                                }
-                    )
-                    result.addAllElements(
-                        listOf("as")
-                                .map { Property(it, "alias-group") }
-                                .lookUp {
-                                    PrioritizedLookupElement.withPriority(bold(), 90.0)
-                                }
-                    )
-                    result.addAllElements(dtoFile.virtualFile.properties(dtoFile.project).lookUp())
+                    result.addAllElements(functions + aliasGroup + macros)
+                    result.addAllElements(parameters.parent<DTOPropName>()[StructureType.RelationProperties].lookUp())
+                }
+            }
+        )
+
+        extend(
+            CompletionType.BASIC,
+            identifier.withParent(DTOPropName::class.java)
+                    .withSuperParent(5, DTODto::class.java),
+            object : CompletionProvider<CompletionParameters>() {
+                override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+                    result.addAllElements(functions + aliasGroup + macros)
+                    result.addAllElements(parameters.parent<DTOPropName>()[StructureType.DtoProperties].lookUp())
                 }
             }
         )
@@ -164,11 +185,22 @@ class DTOCompletionContributor : CompletionContributor() {
         extend(
             CompletionType.BASIC,
             identifier.withParent(DTONegativeProp::class.java)
-                    .afterLeafSkipping(psiElement(TokenType.WHITE_SPACE), psiElement(DTOTypes.MINUS)),
+                    .afterLeafSkipping(psiElement(TokenType.WHITE_SPACE), psiElement(DTOTypes.MINUS))
+                    .withSuperParent(4, DTOPropBody::class.java),
             object : CompletionProvider<CompletionParameters>() {
                 override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-                    val dtoFile = parameters.originalFile
-                    result.addAllElements(dtoFile.virtualFile.properties(dtoFile.project).lookUp())
+                    result.addAllElements(parameters.parent<DTONegativeProp>()[StructureType.NegativeRelationProperties].lookUp())
+                }
+            }
+        )
+        extend(
+            CompletionType.BASIC,
+            identifier.withParent(DTONegativeProp::class.java)
+                    .afterLeafSkipping(psiElement(TokenType.WHITE_SPACE), psiElement(DTOTypes.MINUS))
+                    .withSuperParent(4, DTODto::class.java),
+            object : CompletionProvider<CompletionParameters>() {
+                override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+                    result.addAllElements(parameters.parent<DTONegativeProp>()[StructureType.NegativeDtoProperties].lookUp())
                 }
             }
         )
@@ -187,32 +219,96 @@ class DTOCompletionContributor : CompletionContributor() {
                 }
             }
         )
+        // DTO
         extend(
             CompletionType.BASIC,
             identifier.withParent(DTOQualifiedName::class.java)
-                    .withSuperParent(2, psiElement(DTOMacroArgs::class.java)),
+                    .withSuperParent(2, psiElement(DTOMacroArgs::class.java))
+                    .withSuperParent(6, psiElement(DTODto::class.java)),
             object : CompletionProvider<CompletionParameters>() {
                 override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
-                    val dtoFile = parameters.originalFile.virtualFile
-                    val project = parameters.originalFile.project
-
-                    val macroParams = dtoFile.supers(project) + dtoFile.name.substringBeforeLast('.')
-                    result.addAllElements(macroParams.lookUp())
+                    val macroArgs = parameters.parent<DTOQualifiedName>().parent as DTOMacroArgs
+                    result.addAllElements(macroArgs[StructureType.MacroTypes].lookUp())
+                }
+            }
+        )
+        // 关联属性
+        extend(
+            CompletionType.BASIC,
+            identifier.withParent(DTOQualifiedName::class.java)
+                    .withSuperParent(2, psiElement(DTOMacroArgs::class.java))
+                    .withSuperParent(6, psiElement(DTOPropBody::class.java)),
+            object : CompletionProvider<CompletionParameters>() {
+                override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+                    val macroArgs = parameters.parent<DTOQualifiedName>().parent as DTOMacroArgs
+                    result.addAllElements(macroArgs[StructureType.RelationMacroTypes].lookUp())
                 }
             }
         )
     }
 
-    @JvmName("lookUpString")
+    /**
+     * 方法参数提示
+     */
+    private fun completeFunction() {
+        // DTO
+        extend(
+            CompletionType.BASIC,
+            identifier.withParent(DTOValue::class.java)
+                    .withSuperParent(2, psiElement(DTOPropArgs::class.java))
+                    .withSuperParent(6, psiElement(DTODto::class.java)),
+            object : CompletionProvider<CompletionParameters>() {
+                override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+                    val propArgs = parameters.parent<DTOValue>().parent as DTOPropArgs
+                    result.addAllElements(propArgs[StructureType.PropArgs].lookUp())
+                }
+            }
+        )
+        // 关联属性
+        extend(
+            CompletionType.BASIC,
+            identifier.withParent(DTOValue::class.java)
+                    .withSuperParent(2, psiElement(DTOPropArgs::class.java))
+                    .withSuperParent(6, psiElement(DTOPropBody::class.java)),
+            object : CompletionProvider<CompletionParameters>() {
+                override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
+                    val propArgs = parameters.parent<DTOValue>().parent as DTOPropArgs
+                    result.addAllElements(propArgs[StructureType.RelationPropArgs].lookUp())
+                }
+            }
+        )
+    }
+
+    @JvmName("lookupString")
     private fun List<String>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }): List<LookupElement> {
         return map { LookupElementBuilder.create(it).customizer() }
     }
 
+    @JvmName("lookupProperty")
     private fun List<Property>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }): List<LookupElement> {
         return map {
             LookupElementBuilder.create(it.name)
                     .withTypeText(it.type, true)
                     .customizer()
         }
+    }
+
+    @JvmName("lookupInfo")
+    private fun List<LookupInfo>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }): List<LookupElement> {
+        return map {
+            LookupElementBuilder.create(it.insertion)
+                    .withPresentableText(it.presentation)
+                    .withTypeText(it.type, true)
+                    .withInsertHandler { context, _ ->
+                        if (it.caretOffset != 0) {
+                            context.editor.caretModel.moveToOffset(context.tailOffset + it.caretOffset)
+                        }
+                    }
+                    .customizer()
+        }
+    }
+
+    private inline fun <reified T> CompletionParameters.parent(): T {
+        return position.parent as T
     }
 }

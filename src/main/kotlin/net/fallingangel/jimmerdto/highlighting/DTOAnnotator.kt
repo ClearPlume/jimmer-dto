@@ -9,8 +9,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.nextLeaf
+import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.psi.*
-import net.fallingangel.jimmerdto.util.supers
+import net.fallingangel.jimmerdto.util.get
 
 /**
  * 部分代码结构的高亮
@@ -29,12 +30,15 @@ class DTOAnnotator : Annotator {
         }
 
         /**
-         * 为注解上色
+         * 为作为参数的注解上色
          */
         override fun visitNestAnnotation(o: DTONestAnnotation) {
             o.qualifiedName.style(DTOSyntaxHighlighter.ANNOTATION)
         }
 
+        /**
+         * 为宏名称上色
+         */
         override fun visitMacro(o: DTOMacro) {
             val macroName = o.macroName!!
             if (macroName.text == "allScalars") {
@@ -46,13 +50,18 @@ class DTOAnnotator : Annotator {
             }
         }
 
+        /**
+         * 为宏参数上色
+         */
         override fun visitMacroArgs(o: DTOMacroArgs) {
-            val dtoFile = o.containingFile.virtualFile
-            val project = o.project
-            val macroParams = dtoFile.supers(project) + dtoFile.name.substringBeforeLast('.')
+            val macroAvailableParams = if (o.parent.parent.parent.parent is DTODto) {
+                o[StructureType.MacroTypes]
+            } else {
+                o[StructureType.RelationMacroTypes]
+            }
 
             for (macroArg in o.qualifiedNameList) {
-                if (macroArg.text !in macroParams) {
+                if (macroArg.text !in macroAvailableParams) {
                     macroArg.error()
                 }
                 if (o.qualifiedNameList.count { it.text == macroArg.text } != 1) {
@@ -83,11 +92,32 @@ class DTOAnnotator : Annotator {
         override fun visitPositiveProp(o: DTOPositiveProp) {
             // 当前属性为方法
             if (o.propArgs != null) {
+                // 方法名
+                val propArgs = o.propArgs!!
                 if (o.propName.text in arrayOf("id", "flat")) {
                     o.propName.style(DTOSyntaxHighlighter.FUNCTION)
                 } else {
                     o.propName.error()
                 }
+
+                // 方法参数
+                val propAvailableArgs = if (propArgs.parent.parent.parent.parent is DTODto) {
+                    propArgs[StructureType.PropArgs].map { it.name }
+                } else {
+                    propArgs[StructureType.RelationPropArgs].map { it.name }
+                }
+                if (propArgs.value.text !in propAvailableArgs) {
+                    propArgs.value.error()
+                }
+            }
+            // 当前属性为非方法属性
+            if (o.propArgs == null) {
+                val properties = if (o.parent.parent.parent is DTODto) {
+                    o.propName[StructureType.DtoProperties]
+                } else {
+                    o.propName[StructureType.RelationProperties]
+                }
+                properties.find { it.name == o.propName.text } ?: o.propName.error()
             }
         }
 

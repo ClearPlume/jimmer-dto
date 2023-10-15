@@ -6,19 +6,22 @@ package net.fallingangel.jimmerdto.util
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
-import com.intellij.psi.PsiNameIdentifierOwner
+import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.PsiUtil
+import net.fallingangel.jimmerdto.completion.resolve.structure.Structure
 import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
+import net.fallingangel.jimmerdto.structure.JavaNullableType
 import net.fallingangel.jimmerdto.structure.Property
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
+import org.jetbrains.kotlin.types.KotlinType
 import java.nio.file.Paths
 
 /**
@@ -33,6 +36,13 @@ val VirtualFile.isJavaOrKotlin: Boolean
         }
         return name.endsWith(".java")
     }
+
+val PsiElement.virtualFile: VirtualFile
+    get() = containingFile.originalFile.virtualFile
+
+operator fun <S : PsiElement, R, T : Structure<S, R>> S.get(type: T): R {
+    return type.value(this)
+}
 
 fun VirtualFile.psiFile(project: Project): PsiFile? {
     return PsiManager.getInstance(project)
@@ -73,26 +83,31 @@ fun VirtualFile.annotations(project: Project): List<String> {
 /**
  * 获取DTO文件对应实体的属性列表
  */
-fun VirtualFile.properties(project: Project): List<Property> {
+fun VirtualFile.properties(project: Project, propName: String? = null): List<Property> {
     val classFile = entityFile(project) ?: return emptyList()
     val properties = try {
         if (classFile.isJavaOrKotlin) {
-            classFile.psiClass(project)
+            classFile.psiClass(project, propName)
                     ?.methods
                     ?.map { property ->
+                        val annotatedNullable = property.annotations.any { it.qualifiedName?.substringAfterLast('.') in arrayOf("Null", "Nullable") }
+                        val returnType = property.returnType ?: return emptyList()
                         Property(
                             property.name,
-                            property.returnType!!.presentableText,
+                            returnType.presentableText,
+                            annotatedNullable || returnType.nullable,
                             property.annotations.map { it.qualifiedName ?: "" }
                         )
                     }
         } else {
-            classFile.ktClass(project)
+            classFile.ktClass(project, propName)
                     ?.getProperties()
                     ?.map { property ->
+                        val type = property.type()!!
                         Property(
                             property.name!!,
-                            property.type()!!.toString(),
+                            type.toString(),
+                            type.isMarkedNullable,
                             property.annotationEntries.map(KtAnnotationEntry::qualifiedName)
                         )
                     }
@@ -148,18 +163,54 @@ fun VirtualFile.entityFile(project: Project): VirtualFile? {
 
 /**
  * 获取Java类文件中的实体类定义
+ *
+ * @param propName 进一步获取[propName]属性的类型的类定义
  */
-fun VirtualFile.psiClass(project: Project): PsiClass? {
-    return psiFile(project)
-            ?.clazz<PsiClass>()
+fun VirtualFile.psiClass(project: Project, propName: String? = null): PsiClass? {
+    val psiClass = psiFile(project)?.clazz<PsiClass>()
+    return if (propName != null) {
+        val prop = psiClass?.methods?.find { it.name == propName } ?: return null
+        prop.returnType?.clazz()
+    } else {
+        psiClass
+    }
 }
 
 /**
  * 获取Kotlin类文件中的实体类定义
+ *
+ * @param propName 进一步获取[propName]属性的类型的类定义
  */
-fun VirtualFile.ktClass(project: Project): KtClass? {
-    return psiFile(project)
-            ?.clazz<KtClass>()
+fun VirtualFile.ktClass(project: Project, propName: String? = null): KtClass? {
+    val ktClass = psiFile(project)?.clazz<KtClass>()
+    return if (propName != null) {
+        val prop = ktClass?.getProperties()?.find { it.name == propName } ?: return null
+        prop.analyze()[BindingContext.TYPE, prop.typeReference]?.clazz()
+    } else {
+        ktClass
+    }
+}
+
+val PsiType.nullable: Boolean
+    get() = presentableText in JavaNullableType.values().map { it.name }
+
+fun PsiType.clazz(): PsiClass? {
+    val generic = PsiUtil.resolveGenericsClassInType(this)
+    return if (generic.substitutor == PsiSubstitutor.EMPTY) {
+        generic.element
+    } else {
+        val propTypeParameters = generic.element?.typeParameters ?: return null
+        generic.substitutor.substitute(propTypeParameters[0])?.clazz()
+    }
+}
+
+fun KotlinType.clazz(): KtClass? {
+    return if (arguments.isEmpty()) {
+        val typeDescriptor = constructor.declarationDescriptor as? ClassDescriptor ?: return null
+        DescriptorToSourceUtils.getSourceFromDescriptor(typeDescriptor) as? KtClass
+    } else {
+        arguments[0].type.clazz()
+    }
 }
 
 private inline fun <reified T : PsiNameIdentifierOwner> PsiFile.clazz(): T? {

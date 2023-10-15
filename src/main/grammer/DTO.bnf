@@ -98,7 +98,8 @@ positive-prop ::= annotation* "+"? prop-name prop-args? ("?" | "!")? alias? (pro
 
 prop-name ::= IDENTIFIER
 
-prop-args ::= "(" (named-parameter | value) ("," named-parameter)* ")"
+//prop-args ::= "(" (named-parameter | value) ("," named-parameter)* ")"
+prop-args ::= "(" value ")"
 
 prop-body ::= annotation* dto-body "*"? {
     pin = 2
@@ -134,9 +135,9 @@ qualified-name ::= IDENTIFIER ("." IDENTIFIER)*
 enum-value ::= IDENTIFIER ("." IDENTIFIER)+
 
 // parameter
-named-parameter ::= parameter-name "=" value
+//named-parameter ::= parameter-name "=" value
 
-parameter-name ::= IDENTIFIER
+//parameter-name ::= IDENTIFIER
 
 value ::= CHAR_CONSTANT | STRING_CONSTANT |
              INTEGER_CONSTANT | FLOAT_CONSTANT |

@@ -152,6 +152,7 @@
         <completion.contributor language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCompletionContributor"/>
 
         <codeInsight.lineMarkerProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.DTOLineMarkerProvider"/>
+        <codeInsight.inlayProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOInlayHintProvider"/>
 
         <psi.referenceContributor language="JimmerDTO" implementation="net.fallingangel.jimmerdto.reference.DTOReferenceContributor"/>
     </extensions>
