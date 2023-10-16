@@ -10,7 +10,7 @@ abstract class CompletionProvider : CompletionProvider<CompletionParameters>() {
     override fun addCompletions(parameters: CompletionParameters, context: ProcessingContext, result: CompletionResultSet) {
         val document = parameters.editor.document
         val offset = parameters.editor.caretModel.offset
-        val matcherResult = result.withPrefixMatcher(document.getText(TextRange(offset - 1, offset)))
+        val matcherResult = result.withPrefixMatcher(document.getText(TextRange(offset - 1, offset))).caseInsensitive()
         completions(parameters, matcherResult)
     }
 

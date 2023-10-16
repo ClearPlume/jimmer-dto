@@ -385,7 +385,6 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun List<String>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }): List<LookupElement> {
         return map {
             LookupElementBuilder.create(it)
-                    .withCaseSensitivity(false)
                     .customizer()
         }
     }
@@ -395,7 +394,6 @@ class DTOCompletionContributor : CompletionContributor() {
         return map {
             LookupElementBuilder.create(it.name)
                     .withTypeText(it.type, true)
-                    .withCaseSensitivity(false)
                     .customizer()
         }
     }
@@ -411,7 +409,6 @@ class DTOCompletionContributor : CompletionContributor() {
                             context.editor.caretModel.moveToOffset(context.tailOffset + it.caretOffset)
                         }
                     }
-                    .withCaseSensitivity(false)
                     .customizer()
         }
     }
