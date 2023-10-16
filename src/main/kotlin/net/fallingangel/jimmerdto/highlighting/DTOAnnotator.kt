@@ -112,10 +112,11 @@ class DTOAnnotator : Annotator {
             }
             // 当前属性为非方法属性
             if (o.propArgs == null) {
-                val properties = if (o.parent.parent.parent is DTODto) {
-                    o.propName[StructureType.DtoProperties]
+                val dtoBody = o.parent.parent as DTODtoBody
+                val properties = if (dtoBody.parent is DTODto) {
+                    dtoBody[StructureType.DtoProperties]
                 } else {
-                    o.propName[StructureType.RelationProperties]
+                    dtoBody[StructureType.RelationProperties]
                 }
                 properties.find { it.name == o.propName.text } ?: o.propName.error()
             }
