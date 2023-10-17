@@ -277,7 +277,7 @@ class DTOCompletionContributor : CompletionContributor() {
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
                     val propArgs = parameters.parent<DTOValue>().parent as DTOPropArgs
-                    result.addAllElements(propArgs[StructureType.PropArgs].lookUp())
+                    result.addAllElements(propArgs[StructureType.FunctionArgs].lookUp())
                 }
             }
         )
@@ -290,7 +290,7 @@ class DTOCompletionContributor : CompletionContributor() {
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
                     val propArgs = parameters.parent<DTOValue>().parent as DTOPropArgs
-                    result.addAllElements(propArgs[StructureType.RelationPropArgs].lookUp())
+                    result.addAllElements(propArgs[StructureType.RelationFunctionArgs].lookUp())
                 }
             }
         )

@@ -102,9 +102,9 @@ class DTOAnnotator : Annotator {
 
                 // 方法参数
                 val propAvailableArgs = if (propArgs.parent.parent.parent.parent is DTODto) {
-                    propArgs[StructureType.PropArgs].map { it.name }
+                    propArgs[StructureType.FunctionArgs].map { it.name }
                 } else {
-                    propArgs[StructureType.RelationPropArgs].map { it.name }
+                    propArgs[StructureType.RelationFunctionArgs].map { it.name }
                 }
                 if (propArgs.value.text !in propAvailableArgs) {
                     propArgs.value.error()

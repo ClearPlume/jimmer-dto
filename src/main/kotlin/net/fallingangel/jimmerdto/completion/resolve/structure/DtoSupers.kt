@@ -16,10 +16,10 @@ class DtoSupers : Structure<DTODtoSupers, List<String>> {
         val supers = DTOPsiImplUtil.findDTOs(element)
         val currentDto = element.parent as DTODto
 
-        val availableSupers = if (currentDto.modifiedBy(Modifier.INPUT)) {
-            supers.filter { it.modifiedBy(Modifier.INPUT) }
-        } else if (currentDto.modifiedBy(Modifier.INPUT_ONLY)) {
-            supers.filter { it.modifiedBy(Modifier.INPUT_ONLY) }
+        val availableSupers = if (currentDto modifiedBy Modifier.INPUT) {
+            supers.filter { it modifiedBy Modifier.INPUT }
+        } else if (currentDto modifiedBy Modifier.INPUT_ONLY) {
+            supers.filter { it modifiedBy Modifier.INPUT_ONLY }
         } else {
             supers
         }
