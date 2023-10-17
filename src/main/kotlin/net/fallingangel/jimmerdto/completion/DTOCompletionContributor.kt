@@ -4,11 +4,10 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.patterns.PlatformPatterns.psiElement
-import com.intellij.patterns.StandardPatterns.or
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.TokenType
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.elementType
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.structure.LookupInfo
@@ -17,7 +16,6 @@ import net.fallingangel.jimmerdto.util.get
 
 class DTOCompletionContributor : CompletionContributor() {
     private val identifier = psiElement(DTOTypes.IDENTIFIER)
-    private val whitespace = psiElement(TokenType.WHITE_SPACE)
 
     init {
         // 用户属性类型提示
@@ -164,21 +162,13 @@ class DTOCompletionContributor : CompletionContributor() {
         // DTO
         extend(
             CompletionType.BASIC,
-            or(
-                identifier.withParent(DTOPropName::class.java)
-                        .withSuperParent(5, DTODto::class.java),
-                whitespace.withParent(DTODtoBody::class.java)
-                        .withSuperParent(2, DTODto::class.java)
-            ),
+            identifier.withParent(DTOPropName::class.java)
+                    .withSuperParent(5, DTODto::class.java),
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
                     result.addAllElements(functions + aliasGroup + macros)
 
-                    val dtoBody = if (parameters.position is PsiWhiteSpace) {
-                        parameters.parent<DTODtoBody>()
-                    } else {
-                        parameters.position.parent.parent.parent.parent as DTODtoBody
-                    }
+                    val dtoBody = parameters.position.parent.parent.parent.parent as DTODtoBody
                     result.addAllElements(dtoBody[StructureType.DtoProperties].lookUp())
                 }
             }
@@ -187,21 +177,13 @@ class DTOCompletionContributor : CompletionContributor() {
         // 关联属性
         extend(
             CompletionType.BASIC,
-            or(
-                identifier.withParent(DTOPropName::class.java)
-                        .withSuperParent(5, DTOPropBody::class.java),
-                whitespace.withParent(DTODtoBody::class.java)
-                        .withSuperParent(2, DTOPropBody::class.java)
-            ),
+            identifier.withParent(DTOPropName::class.java)
+                    .withSuperParent(5, DTOPropBody::class.java),
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
                     result.addAllElements(functions + aliasGroup + macros)
 
-                    val dtoBody = if (parameters.position is PsiWhiteSpace) {
-                        parameters.parent<DTODtoBody>()
-                    } else {
-                        parameters.position.parent.parent.parent.parent as DTODtoBody
-                    }
+                    val dtoBody = parameters.position.parent.parent.parent.parent as DTODtoBody
                     result.addAllElements(dtoBody[StructureType.RelationProperties].lookUp())
                 }
             }
@@ -335,21 +317,12 @@ class DTOCompletionContributor : CompletionContributor() {
         // DTO
         extend(
             CompletionType.BASIC,
-            or(
-                identifier.withParent(DTOEnumInstance::class.java)
-                        .withSuperParent(3, psiElement(DTOEnumBody::class.java))
-                        .withSuperParent(7, psiElement(DTODto::class.java)),
-                whitespace
-                        .withParent(DTOEnumBody::class.java)
-                        .withSuperParent(5, DTODto::class.java)
-            ),
+            identifier.withParent(DTOEnumInstance::class.java)
+                    .withSuperParent(3, psiElement(DTOEnumBody::class.java))
+                    .withSuperParent(7, psiElement(DTODto::class.java)),
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
-                    val enumBody = if (parameters.position is PsiWhiteSpace) {
-                        parameters.parent<DTOEnumBody>()
-                    } else {
-                        parameters.position.parent.parent.parent as DTOEnumBody
-                    }
+                    val enumBody = parameters.position.parent.parent.parent as DTOEnumBody
                     result.addAllElements(enumBody[StructureType.EnumInstances].lookUp())
                 }
             }
@@ -357,20 +330,12 @@ class DTOCompletionContributor : CompletionContributor() {
         // 关联属性
         extend(
             CompletionType.BASIC,
-            or(
-                identifier.withParent(DTOEnumInstance::class.java)
-                        .withSuperParent(3, psiElement(DTOEnumBody::class.java))
-                        .withSuperParent(7, psiElement(DTOPropBody::class.java)),
-                whitespace.withParent(DTOEnumBody::class.java)
-                        .withSuperParent(5, DTOPropBody::class.java)
-            ),
+            identifier.withParent(DTOEnumInstance::class.java)
+                    .withSuperParent(3, psiElement(DTOEnumBody::class.java))
+                    .withSuperParent(7, psiElement(DTOPropBody::class.java)),
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
-                    val enumBody = if (parameters.position is PsiWhiteSpace) {
-                        parameters.parent<DTOEnumBody>()
-                    } else {
-                        parameters.position.parent.parent.parent as DTOEnumBody
-                    }
+                    val enumBody = parameters.position.parent.parent.parent as DTOEnumBody
                     result.addAllElements(enumBody[StructureType.RelationEnumInstances].lookUp())
                 }
             }
@@ -378,14 +343,22 @@ class DTOCompletionContributor : CompletionContributor() {
     }
 
     override fun beforeCompletion(context: CompletionInitializationContext) {
-        context.dummyIdentifier = ""
+        val element = context.file.findElementAt(context.startOffset) ?: return
+        val parent = element.parent
+        when {
+            parent is DTOEnumInstanceValue -> context.dummyIdentifier = ""
+            parent is DTOEnumInstanceMapping && element.prevSibling.elementType == DTOTypes.COLON -> context.dummyIdentifier = ""
+            parent.parent is DTOMacroArgs -> context.dummyIdentifier = ""
+            parent.parent is DTOPropArgs -> context.dummyIdentifier = ""
+            parent.parent is DTODtoSupers -> context.dummyIdentifier = ""
+            else -> return
+        }
     }
 
     @JvmName("lookupString")
     private fun List<String>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }): List<LookupElement> {
         return map {
-            LookupElementBuilder.create(it)
-                    .customizer()
+            LookupElementBuilder.create(it).customizer()
         }
     }
 
