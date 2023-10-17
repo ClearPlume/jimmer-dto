@@ -41,6 +41,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // 枚举提示
         completeEnum()
+
+        // Dto修饰符提示
+        completeDtoModifier()
     }
 
     /**
@@ -337,6 +340,27 @@ class DTOCompletionContributor : CompletionContributor() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
                     val enumBody = parameters.position.parent.parent.parent as DTOEnumBody
                     result.addAllElements(enumBody[StructureType.RelationEnumInstances].lookUp())
+                }
+            }
+        )
+    }
+
+    /**
+     * Dto修饰符提示
+     */
+    private fun completeDtoModifier() {
+        extend(
+            CompletionType.BASIC,
+            identifier.withParent(DTODtoName::class.java)
+                    .withSuperParent(2, DTODto::class.java)
+                    .withSuperParent(3, DTOFile::class.java),
+            object : CompletionProvider() {
+                override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
+                    result.addAllElements(
+                        parameters.parent<DTODtoName>()[StructureType.DtoModifiers].lookUp {
+                            PrioritizedLookupElement.withPriority(bold(), 100.0)
+                        }
+                    )
                 }
             }
         )
