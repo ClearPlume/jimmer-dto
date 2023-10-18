@@ -12,11 +12,14 @@ import net.fallingangel.jimmerdto.psi.DTOPositiveProp
 interface Structure<S : PsiElement, R> {
     fun value(element: S): R
 
+    val DTOPositiveProp.haveUpperProp: Boolean
+        get() = parent.parent.parent.parent is DTOPositiveProp
+
+    val DTOPositiveProp.upperProp: DTOPositiveProp
+        get() = parent.parent.parent.parent as DTOPositiveProp
+
     private val DTOPositiveProp.name: String?
         get() = propName.text.takeIf { it != CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED }
-
-    private val DTOPositiveProp.upperProp: DTOPositiveProp
-        get() = parent.parent.parent.parent as DTOPositiveProp
 
     fun DTOPositiveProp.propPath(): List<String> {
         if (parent.parent.parent is DTODto) {

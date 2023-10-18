@@ -162,28 +162,15 @@ class DTOCompletionContributor : CompletionContributor() {
             LookupInfo("id(<association>)", "id()", "function", -1),
             LookupInfo("flat(<association>) { ... }", "flat() {}", "function", -4)
         ).lookUp { PrioritizedLookupElement.withPriority(bold(), 80.0) }
-        // DTO
+
         extend(
             CompletionType.BASIC,
             identifier.withParent(DTOPropName::class.java)
-                    .withSuperParent(5, DTODto::class.java),
+                    .withSuperParent(4, DTODtoBody::class.java),
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
                     result.addAllElements(functions + aliasGroup + macros)
                     result.addAllElements(parameters.parent<DTOPropName>()[StructureType.DtoProperties].lookUp())
-                }
-            }
-        )
-
-        // 关联属性
-        extend(
-            CompletionType.BASIC,
-            identifier.withParent(DTOPropName::class.java)
-                    .withSuperParent(5, DTOPropBody::class.java),
-            object : CompletionProvider() {
-                override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
-                    result.addAllElements(functions + aliasGroup + macros)
-                    result.addAllElements(parameters.parent<DTOPropName>()[StructureType.RelationProperties].lookUp())
                 }
             }
         )

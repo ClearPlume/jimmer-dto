@@ -7,7 +7,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
-import net.fallingangel.jimmerdto.psi.DTODto
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOPropName
 import net.fallingangel.jimmerdto.util.get
@@ -40,11 +39,7 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
                     if (element !is DTOPropName) {
                         return true
                     }
-                    val properties = if (element.parent.parent.parent.parent is DTODto) {
-                        element[StructureType.DtoProperties]
-                    } else {
-                        element[StructureType.RelationProperties]
-                    }
+                    val properties = element[StructureType.DtoProperties]
                     val prop = properties.find { it.name == element.text } ?: return false
                     if (prop.nullable) {
                         sink.addInlineElement(

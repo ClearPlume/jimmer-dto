@@ -9,7 +9,6 @@ object StructureType {
     // properties
     val DtoProperties = DtoProperties()
     val NegativeDtoProperties = NegativeDtoProperties()
-    val RelationProperties = RelationProperties()
     val NegativeRelationProperties = NegativeRelationProperties()
 
     // macros
