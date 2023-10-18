@@ -170,9 +170,7 @@ class DTOCompletionContributor : CompletionContributor() {
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
                     result.addAllElements(functions + aliasGroup + macros)
-
-                    val dtoBody = parameters.position.parent.parent.parent.parent as DTODtoBody
-                    result.addAllElements(dtoBody[StructureType.DtoProperties].lookUp())
+                    result.addAllElements(parameters.parent<DTOPropName>()[StructureType.DtoProperties].lookUp())
                 }
             }
         )
@@ -185,9 +183,7 @@ class DTOCompletionContributor : CompletionContributor() {
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
                     result.addAllElements(functions + aliasGroup + macros)
-
-                    val dtoBody = parameters.position.parent.parent.parent.parent as DTODtoBody
-                    result.addAllElements(dtoBody[StructureType.RelationProperties].lookUp())
+                    result.addAllElements(parameters.parent<DTOPropName>()[StructureType.RelationProperties].lookUp())
                 }
             }
         )
@@ -325,8 +321,7 @@ class DTOCompletionContributor : CompletionContributor() {
                     .withSuperParent(7, psiElement(DTODto::class.java)),
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
-                    val enumBody = parameters.position.parent.parent.parent as DTOEnumBody
-                    result.addAllElements(enumBody[StructureType.EnumInstances].lookUp())
+                    result.addAllElements(parameters.parent<DTOEnumInstance>()[StructureType.EnumInstances].lookUp())
                 }
             }
         )
@@ -338,8 +333,7 @@ class DTOCompletionContributor : CompletionContributor() {
                     .withSuperParent(7, psiElement(DTOPropBody::class.java)),
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
-                    val enumBody = parameters.position.parent.parent.parent as DTOEnumBody
-                    result.addAllElements(enumBody[StructureType.RelationEnumInstances].lookUp())
+                    result.addAllElements(parameters.parent<DTOEnumInstance>()[StructureType.RelationEnumInstances].lookUp())
                 }
             }
         )

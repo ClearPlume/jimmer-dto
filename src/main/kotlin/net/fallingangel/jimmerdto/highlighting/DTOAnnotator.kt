@@ -112,11 +112,10 @@ class DTOAnnotator : Annotator {
             }
             // 当前属性为非方法属性
             if (o.propArgs == null) {
-                val dtoBody = o.parent.parent as DTODtoBody
-                val properties = if (dtoBody.parent is DTODto) {
-                    dtoBody[StructureType.DtoProperties]
+                val properties = if (o.parent.parent.parent is DTODto) {
+                    o.propName[StructureType.DtoProperties]
                 } else {
-                    dtoBody[StructureType.RelationProperties]
+                    o.propName[StructureType.RelationProperties]
                 }
                 properties.find { it.name == o.propName.text } ?: o.propName.error()
             }
@@ -166,9 +165,9 @@ class DTOAnnotator : Annotator {
             val valueTypeValid = allInt || allString
 
             val availableEnums = if (enumBody.parent.parent.parent.parent is DTODto) {
-                enumBody[StructureType.EnumInstances]
+                o.enumInstance[StructureType.EnumInstances]
             } else {
-                enumBody[StructureType.RelationEnumInstances]
+                o.enumInstance[StructureType.RelationEnumInstances]
             }
             if (o.enumInstance.text in availableEnums) {
                 o.enumInstance.style(DTOSyntaxHighlighter.ENUM_INSTANCE)
