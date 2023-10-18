@@ -157,7 +157,27 @@ class DTOAnnotator : Annotator {
          * 为枚举映射上色
          */
         override fun visitEnumInstanceMapping(o: DTOEnumInstanceMapping) {
-            o.enumInstance.style(DTOSyntaxHighlighter.ENUM_INSTANCE)
+            val enumBody = o.parent as DTOEnumBody
+            val currentEnums = enumBody.enumInstanceMappingList
+                    .map { it.enumInstance to it.enumInstanceValue }
+                    .associate { it.first.text to it.second!! }
+            val allInt = currentEnums.values.all { it.text.matches(Regex("\\d+")) }
+            val allString = currentEnums.values.all { it.text.matches(Regex("\".+\"")) }
+            val valueTypeValid = allInt || allString
+
+            val availableEnums = if (enumBody.parent.parent.parent.parent is DTODto) {
+                enumBody[StructureType.EnumInstances]
+            } else {
+                enumBody[StructureType.RelationEnumInstances]
+            }
+            if (o.enumInstance.text in availableEnums) {
+                o.enumInstance.style(DTOSyntaxHighlighter.ENUM_INSTANCE)
+            } else {
+                o.enumInstance.error()
+            }
+            if (!valueTypeValid) {
+                o.enumInstanceValue?.error()
+            }
         }
 
         private fun PsiElement.next(elementType: IElementType): PsiElement {
