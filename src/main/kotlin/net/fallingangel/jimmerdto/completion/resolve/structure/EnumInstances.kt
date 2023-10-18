@@ -14,16 +14,16 @@ class EnumInstances : Structure<DTOEnumInstance, List<String>> {
      */
     override fun value(element: DTOEnumInstance): List<String> {
         val project = element.project
-        val propName = (element.parent.parent.parent as DTOPositiveProp).propName.text
+        val prop = element.parent.parent.parent as DTOPositiveProp
         val classFile = element.virtualFile.entityFile(project) ?: return emptyList()
 
         return if (classFile.isJavaOrKotlin) {
-            val psiClass = classFile.psiClass(project, propName) ?: return emptyList()
+            val psiClass = classFile.psiClass(project, prop.propPath()) ?: return emptyList()
             psiClass.fields
                     .filterIsInstance<PsiEnumConstant>()
                     .map { it.name }
         } else {
-            val ktClass = classFile.ktClass(project, propName) ?: return emptyList()
+            val ktClass = classFile.ktClass(project, prop.propPath()) ?: return emptyList()
             ktClass.declarations
                     .filterIsInstance<KtEnumEntry>()
                     .map { it.name!! }

@@ -13,11 +13,11 @@ class RelationMacroTypes : Structure<DTOMacroArgs, List<String>> {
     override fun value(element: DTOMacroArgs): List<String> {
         val project = element.project
         val entityFile = element.virtualFile.entityFile(project) ?: return emptyList()
-        val propName = (element.parent.parent.parent.parent.parent as DTOPositiveProp).propName.text
+        val parentProp = element.parent.parent.parent.parent.parent as DTOPositiveProp
         val propDtoFile = if (entityFile.isJavaOrKotlin) {
-            entityFile.psiClass(project, propName)?.virtualFile ?: return emptyList()
+            entityFile.psiClass(project, parentProp.propPath())?.virtualFile ?: return emptyList()
         } else {
-            entityFile.ktClass(project, propName)?.virtualFile ?: return emptyList()
+            entityFile.ktClass(project, parentProp.propPath())?.virtualFile ?: return emptyList()
         }
         return propDtoFile.supers(project) + propDtoFile.name.substringBeforeLast('.')
     }

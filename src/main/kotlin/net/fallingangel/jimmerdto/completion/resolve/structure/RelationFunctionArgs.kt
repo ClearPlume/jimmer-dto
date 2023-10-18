@@ -14,9 +14,9 @@ class RelationFunctionArgs : Structure<DTOPropArgs, List<Property>> {
      * @return 可用方法参数
      */
     override fun value(element: DTOPropArgs): List<Property> {
-        val propName = (element.parent.parent.parent.parent.parent as DTOPositiveProp).propName.text
+        val parentProp = element.parent.parent.parent.parent.parent as DTOPositiveProp
         return element.virtualFile
-                .properties(element.project, propName)
+                .properties(element.project, parentProp.propPath())
                 .filter { property ->
                     property.annotations
                             .map { annotation ->

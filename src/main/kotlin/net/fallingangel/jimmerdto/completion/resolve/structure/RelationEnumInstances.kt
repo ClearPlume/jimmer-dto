@@ -20,11 +20,10 @@ class RelationEnumInstances : Structure<DTOEnumInstance, List<String>> {
         val enumPropName = enumProp.propName.text
 
         val parentProp = enumProp.parent.parent.parent.parent as DTOPositiveProp
-        val parentPropName = parentProp.propName.text
         val classFile = element.virtualFile.entityFile(project) ?: return emptyList()
 
         return if (classFile.isJavaOrKotlin) {
-            val parentPropPsiClass = classFile.psiClass(project, parentPropName) ?: return emptyList()
+            val parentPropPsiClass = classFile.psiClass(project, parentProp.propPath()) ?: return emptyList()
             parentPropPsiClass.methods
                     .find { it.name == enumPropName }!!
                     .returnType!!
@@ -33,7 +32,7 @@ class RelationEnumInstances : Structure<DTOEnumInstance, List<String>> {
                     .filterIsInstance<PsiEnumConstant>()
                     .map { it.name }
         } else {
-            val parentPropKtClass = classFile.ktClass(project, parentPropName) ?: return emptyList()
+            val parentPropKtClass = classFile.ktClass(project, parentProp.propPath()) ?: return emptyList()
             parentPropKtClass.declarations
                     .filterIsInstance<KtProperty>()
                     .find { it.name == enumPropName }!!

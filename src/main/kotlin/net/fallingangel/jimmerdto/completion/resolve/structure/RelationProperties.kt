@@ -13,7 +13,7 @@ class RelationProperties : Structure<DTOPropName, List<Property>> {
      * @return 获取[element]所在的关联关系属性，并进一步获取到的关联关系对应的实体中的属性列表
      */
     override fun value(element: DTOPropName): List<Property> {
-        val propName = (element.parent.parent.parent.parent.parent as DTOPositiveProp).propName.text
-        return element.virtualFile.properties(element.project, propName)
+        val parentProp = element.parent.parent.parent.parent.parent as DTOPositiveProp
+        return element.virtualFile.properties(element.project, parentProp.propPath())
     }
 }

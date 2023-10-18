@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
@@ -83,11 +84,11 @@ fun VirtualFile.annotations(project: Project): List<String> {
 /**
  * 获取DTO文件对应实体的属性列表
  */
-fun VirtualFile.properties(project: Project, propName: String? = null): List<Property> {
+fun VirtualFile.properties(project: Project, propPath: List<String> = emptyList()): List<Property> {
     val classFile = entityFile(project) ?: return emptyList()
     val properties = try {
         if (classFile.isJavaOrKotlin) {
-            classFile.psiClass(project, propName)
+            classFile.psiClass(project, propPath)
                     ?.methods
                     ?.map { property ->
                         val annotatedNullable = property.annotations.any { it.qualifiedName?.substringAfterLast('.') in arrayOf("Null", "Nullable") }
@@ -100,7 +101,7 @@ fun VirtualFile.properties(project: Project, propName: String? = null): List<Pro
                         )
                     }
         } else {
-            classFile.ktClass(project, propName)
+            classFile.ktClass(project, propPath)
                     ?.getProperties()
                     ?.map { property ->
                         val type = property.type()!!
@@ -164,30 +165,45 @@ fun VirtualFile.entityFile(project: Project): VirtualFile? {
 /**
  * 获取Java类文件中的实体类定义
  *
- * @param propName 进一步获取[propName]属性的类型的类定义
+ * @param propPath 进一步获取[propPath]属性的类型的类定义
  */
-fun VirtualFile.psiClass(project: Project, propName: String? = null): PsiClass? {
+fun VirtualFile.psiClass(project: Project, propPath: List<String> = emptyList()): PsiClass? {
     val psiClass = psiFile(project)?.clazz<PsiClass>()
-    return if (propName != null) {
-        val prop = psiClass?.methods?.find { it.name == propName } ?: return null
-        prop.returnType?.clazz()
+    return if (propPath.isNotEmpty()) {
+        psiClass?.prop(propPath, 0)?.returnType?.clazz()
     } else {
         psiClass
+    }
+}
+
+fun PsiClass.prop(propPath: List<String>, level: Int): PsiMethod? {
+    return if (propPath.lastIndex == level) {
+        methods.find { it.name == propPath.last() }
+    } else {
+        prop(propPath, level + 1)
     }
 }
 
 /**
  * 获取Kotlin类文件中的实体类定义
  *
- * @param propName 进一步获取[propName]属性的类型的类定义
+ * @param propPath 进一步获取[propPath]属性的类型的类定义
  */
-fun VirtualFile.ktClass(project: Project, propName: String? = null): KtClass? {
+fun VirtualFile.ktClass(project: Project, propPath: List<String> = emptyList()): KtClass? {
     val ktClass = psiFile(project)?.clazz<KtClass>()
-    return if (propName != null) {
-        val prop = ktClass?.getProperties()?.find { it.name == propName } ?: return null
+    return if (propPath.isNotEmpty()) {
+        val prop = ktClass?.prop(propPath, 0) ?: return null
         prop.analyze()[BindingContext.TYPE, prop.typeReference]?.clazz()
     } else {
         ktClass
+    }
+}
+
+fun KtClass.prop(propPath: List<String>, level: Int): KtProperty? {
+    return if (propPath.lastIndex == level) {
+        getProperties().find { it.name == propPath.last() }
+    } else {
+        prop(propPath, level + 1)
     }
 }
 
