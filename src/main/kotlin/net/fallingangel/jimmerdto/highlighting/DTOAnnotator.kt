@@ -3,7 +3,6 @@ package net.fallingangel.jimmerdto.highlighting
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
-import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
@@ -54,12 +53,7 @@ class DTOAnnotator : Annotator {
          * 为宏参数上色
          */
         override fun visitMacroArgs(o: DTOMacroArgs) {
-            val macroAvailableParams = if (o.parent.parent.parent.parent is DTODto) {
-                o[StructureType.MacroTypes]
-            } else {
-                o[StructureType.RelationMacroTypes]
-            }
-
+            val macroAvailableParams = o[StructureType.MacroTypes]
             for (macroArg in o.qualifiedNameList) {
                 if (macroArg.text !in macroAvailableParams) {
                     macroArg.error()
@@ -101,24 +95,26 @@ class DTOAnnotator : Annotator {
                 }
 
                 // 方法参数
-                val propAvailableArgs = if (propArgs.parent.parent.parent.parent is DTODto) {
-                    propArgs[StructureType.FunctionArgs].map { it.name }
-                } else {
-                    propArgs[StructureType.RelationFunctionArgs].map { it.name }
-                }
+                val propAvailableArgs = propArgs[StructureType.FunctionArgs].map { it.name }
                 if (propArgs.value.text !in propAvailableArgs) {
                     propArgs.value.error()
                 }
             }
             // 当前属性为非方法属性
             if (o.propArgs == null) {
-                val properties = o.propName[StructureType.DtoProperties]
+                val properties = o.propName[StructureType.PropProperties]
                 properties.find { it.name == o.propName.text } ?: o.propName.error()
             }
         }
 
         override fun visitNegativeProp(o: DTONegativeProp) {
-            o.style(CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES)
+            val properties = o[StructureType.PropNegativeProperties]
+            if (properties.find { it.name == o.identifier?.text } != null) {
+                o.style(DTOSyntaxHighlighter.NOT_USED)
+            } else {
+                o.firstChild.style(DTOSyntaxHighlighter.NOT_USED)
+                o.identifier?.error()
+            }
         }
 
         /**
@@ -153,22 +149,21 @@ class DTOAnnotator : Annotator {
          */
         override fun visitEnumInstanceMapping(o: DTOEnumInstanceMapping) {
             val enumBody = o.parent as DTOEnumBody
-            val currentEnums = enumBody.enumInstanceMappingList
-                    .map { it.enumInstance to it.enumInstanceValue }
-                    .associate { it.first.text to it.second!! }
-            val allInt = currentEnums.values.all { it.text.matches(Regex("\\d+")) }
-            val allString = currentEnums.values.all { it.text.matches(Regex("\".+\"")) }
+            val availableEnums = o.enumInstance[StructureType.EnumValues]
+            val currentEnumNames = enumBody.enumInstanceMappingList.map { it.enumInstance.text }
+            val currentEnumValues = enumBody.enumInstanceMappingList.mapNotNull { it.enumInstanceValue }
+
+            val allInt = currentEnumValues.all { it.text.matches(Regex("\\d+")) }
+            val allString = currentEnumValues.all { it.text.matches(Regex("\".+\"")) }
             val valueTypeValid = allInt || allString
 
-            val availableEnums = if (enumBody.parent.parent.parent.parent is DTODto) {
-                o.enumInstance[StructureType.EnumInstances]
-            } else {
-                o.enumInstance[StructureType.RelationEnumInstances]
-            }
             if (o.enumInstance.text in availableEnums) {
                 o.enumInstance.style(DTOSyntaxHighlighter.ENUM_INSTANCE)
             } else {
                 o.enumInstance.error()
+            }
+            if (currentEnumNames.count { it == o.enumInstance.text } != 1) {
+                o.enumInstance.error(DTOSyntaxHighlighter.DUPLICATION)
             }
             if (!valueTypeValid) {
                 o.enumInstanceValue?.error()

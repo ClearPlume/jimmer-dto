@@ -170,7 +170,7 @@ class DTOCompletionContributor : CompletionContributor() {
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
                     result.addAllElements(functions + aliasGroup + macros)
-                    result.addAllElements(parameters.parent<DTOPropName>()[StructureType.DtoProperties].lookUp())
+                    result.addAllElements(parameters.parent<DTOPropName>()[StructureType.PropProperties].lookUp())
                 }
             }
         )
@@ -180,27 +180,13 @@ class DTOCompletionContributor : CompletionContributor() {
      * 负属性名提示
      */
     private fun completeNegativeProp() {
-        // DTO
         extend(
             CompletionType.BASIC,
             identifier.withParent(DTONegativeProp::class.java)
-                    .afterLeafSkipping(psiElement(TokenType.WHITE_SPACE), psiElement(DTOTypes.MINUS))
-                    .withSuperParent(4, DTODto::class.java),
+                    .afterLeafSkipping(psiElement(TokenType.WHITE_SPACE), psiElement(DTOTypes.MINUS)),
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
-                    result.addAllElements(parameters.parent<DTONegativeProp>()[StructureType.NegativeDtoProperties].lookUp())
-                }
-            }
-        )
-        // 关联属性
-        extend(
-            CompletionType.BASIC,
-            identifier.withParent(DTONegativeProp::class.java)
-                    .afterLeafSkipping(psiElement(TokenType.WHITE_SPACE), psiElement(DTOTypes.MINUS))
-                    .withSuperParent(4, DTOPropBody::class.java),
-            object : CompletionProvider() {
-                override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
-                    result.addAllElements(parameters.parent<DTONegativeProp>()[StructureType.NegativeRelationProperties].lookUp())
+                    result.addAllElements(parameters.parent<DTONegativeProp>()[StructureType.PropNegativeProperties].lookUp())
                 }
             }
         )
@@ -219,29 +205,14 @@ class DTOCompletionContributor : CompletionContributor() {
                 }
             }
         )
-        // DTO
         extend(
             CompletionType.BASIC,
             identifier.withParent(DTOQualifiedName::class.java)
-                    .withSuperParent(2, psiElement(DTOMacroArgs::class.java))
-                    .withSuperParent(6, psiElement(DTODto::class.java)),
+                    .withSuperParent(2, psiElement(DTOMacroArgs::class.java)),
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
                     val macroArgs = parameters.parent<DTOQualifiedName>().parent as DTOMacroArgs
                     result.addAllElements(macroArgs[StructureType.MacroTypes].lookUp())
-                }
-            }
-        )
-        // 关联属性
-        extend(
-            CompletionType.BASIC,
-            identifier.withParent(DTOQualifiedName::class.java)
-                    .withSuperParent(2, psiElement(DTOMacroArgs::class.java))
-                    .withSuperParent(6, psiElement(DTOPropBody::class.java)),
-            object : CompletionProvider() {
-                override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
-                    val macroArgs = parameters.parent<DTOQualifiedName>().parent as DTOMacroArgs
-                    result.addAllElements(macroArgs[StructureType.RelationMacroTypes].lookUp())
                 }
             }
         )
@@ -251,29 +222,14 @@ class DTOCompletionContributor : CompletionContributor() {
      * 方法参数提示
      */
     private fun completeFunction() {
-        // DTO
         extend(
             CompletionType.BASIC,
             identifier.withParent(DTOValue::class.java)
-                    .withSuperParent(2, psiElement(DTOPropArgs::class.java))
-                    .withSuperParent(6, psiElement(DTODto::class.java)),
+                    .withSuperParent(2, psiElement(DTOPropArgs::class.java)),
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
                     val propArgs = parameters.parent<DTOValue>().parent as DTOPropArgs
                     result.addAllElements(propArgs[StructureType.FunctionArgs].lookUp())
-                }
-            }
-        )
-        // 关联属性
-        extend(
-            CompletionType.BASIC,
-            identifier.withParent(DTOValue::class.java)
-                    .withSuperParent(2, psiElement(DTOPropArgs::class.java))
-                    .withSuperParent(6, psiElement(DTOPropBody::class.java)),
-            object : CompletionProvider() {
-                override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
-                    val propArgs = parameters.parent<DTOValue>().parent as DTOPropArgs
-                    result.addAllElements(propArgs[StructureType.RelationFunctionArgs].lookUp())
                 }
             }
         )
@@ -300,27 +256,13 @@ class DTOCompletionContributor : CompletionContributor() {
      * 枚举提示
      */
     private fun completeEnum() {
-        // DTO
         extend(
             CompletionType.BASIC,
             identifier.withParent(DTOEnumInstance::class.java)
-                    .withSuperParent(3, psiElement(DTOEnumBody::class.java))
-                    .withSuperParent(7, psiElement(DTODto::class.java)),
+                    .withSuperParent(3, psiElement(DTOEnumBody::class.java)),
             object : CompletionProvider() {
                 override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
-                    result.addAllElements(parameters.parent<DTOEnumInstance>()[StructureType.EnumInstances].lookUp())
-                }
-            }
-        )
-        // 关联属性
-        extend(
-            CompletionType.BASIC,
-            identifier.withParent(DTOEnumInstance::class.java)
-                    .withSuperParent(3, psiElement(DTOEnumBody::class.java))
-                    .withSuperParent(7, psiElement(DTOPropBody::class.java)),
-            object : CompletionProvider() {
-                override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
-                    result.addAllElements(parameters.parent<DTOEnumInstance>()[StructureType.RelationEnumInstances].lookUp())
+                    result.addAllElements(parameters.parent<DTOEnumInstance>()[StructureType.EnumValues].lookUp())
                 }
             }
         )

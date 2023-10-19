@@ -39,7 +39,7 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
                     if (element !is DTOPropName) {
                         return true
                     }
-                    val properties = element[StructureType.DtoProperties]
+                    val properties = element[StructureType.PropProperties]
                     val prop = properties.find { it.name == element.text } ?: return false
                     if (prop.nullable) {
                         sink.addInlineElement(

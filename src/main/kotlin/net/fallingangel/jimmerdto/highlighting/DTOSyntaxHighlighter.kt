@@ -52,6 +52,7 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
         val NAMED_PARAMETER_NAME = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NAMED_PARAMETER_NAME")
         val ENUM_INSTANCE = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ENUM_INSTANCE", DefaultLanguageHighlighterColors.STATIC_FIELD)
 
+        val NOT_USED = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NOT_USED", CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES)
         val ERROR = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ERROR")
         val DUPLICATION = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_DUPLICATION")
     }
