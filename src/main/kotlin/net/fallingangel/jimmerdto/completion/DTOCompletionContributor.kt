@@ -33,9 +33,6 @@ class DTOCompletionContributor : CompletionContributor() {
         // 宏提示
         completeMacro()
 
-        // 方法提示
-        completeFunction()
-
         // 继承提示
         completeExtend()
 
@@ -44,6 +41,12 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // Dto修饰符提示
         completeDtoModifier()
+
+        // id方法参数提示
+        completeIdFunctionParameter()
+
+        // flat方法参数提示
+        completeFlatFunctionParameter()
     }
 
     /**
@@ -219,23 +222,6 @@ class DTOCompletionContributor : CompletionContributor() {
     }
 
     /**
-     * 方法参数提示
-     */
-    private fun completeFunction() {
-        extend(
-            CompletionType.BASIC,
-            identifier.withParent(DTOValue::class.java)
-                    .withSuperParent(2, psiElement(DTOPropArgs::class.java)),
-            object : CompletionProvider() {
-                override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
-                    val propArgs = parameters.parent<DTOValue>().parent as DTOPropArgs
-                    result.addAllElements(propArgs[StructureType.FunctionArgs].lookUp())
-                }
-            }
-        )
-    }
-
-    /**
      * Dto继承提示
      */
     private fun completeExtend() {
@@ -284,6 +270,52 @@ class DTOCompletionContributor : CompletionContributor() {
                             PrioritizedLookupElement.withPriority(bold(), 100.0)
                         }
                     )
+                }
+            }
+        )
+    }
+
+    /**
+     * id方法参数提示
+     */
+    private fun completeIdFunctionParameter() {
+        completeFunctionParameter("id") { parameters, result ->
+            val propArgs = parameters.parent<DTOValue>().parent as DTOPropArgs
+            result.addAllElements(propArgs[StructureType.FunctionArgs].lookUp())
+        }
+    }
+
+    /**
+     * flat方法参数提示
+     */
+    private fun completeFlatFunctionParameter() {
+        completeFunctionParameter("flat") { parameters, result ->
+            val propArgs = parameters.parent<DTOValue>().parent as DTOPropArgs
+            result.addAllElements(propArgs[StructureType.FunctionArgs].lookUp())
+        }
+    }
+
+    /**
+     * 提示方法参数
+     *
+     * @param name 方法名称
+     * @param provider 方法参数提示
+     */
+    private fun completeFunctionParameter(name: String, provider: (CompletionParameters, CompletionResultSet) -> Unit) {
+        extend(
+            CompletionType.BASIC,
+            identifier.withParent(DTOValue::class.java)
+                    .withSuperParent(
+                        2,
+                        psiElement(DTOPropArgs::class.java)
+                                .afterSiblingSkipping(
+                                    psiElement(TokenType.WHITE_SPACE),
+                                    psiElement(DTOPropName::class.java).withText(name)
+                                )
+                    ),
+            object : CompletionProvider() {
+                override fun completions(parameters: CompletionParameters, result: CompletionResultSet) {
+                    provider(parameters, result)
                 }
             }
         )
