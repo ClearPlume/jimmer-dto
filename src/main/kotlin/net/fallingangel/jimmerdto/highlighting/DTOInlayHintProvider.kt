@@ -8,6 +8,7 @@ import com.intellij.psi.PsiFile
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.psi.DTOPositiveProp
 import net.fallingangel.jimmerdto.psi.DTOPropName
 import net.fallingangel.jimmerdto.util.get
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
@@ -39,15 +40,32 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
                     if (element !is DTOPropName) {
                         return true
                     }
-                    val properties = element[StructureType.PropProperties]
-                    val prop = properties.find { it.name == element.text } ?: return false
-                    if (prop.nullable) {
-                        sink.addInlineElement(
-                            element.endOffset,
-                            true,
-                            factory.roundWithBackgroundAndSmallInset(factory.text("?")),
-                            false
-                        )
+
+                    val elementProp = element.parent as DTOPositiveProp
+                    // 不是方法才走这个逻辑
+                    val propArgs = elementProp.propArgs
+                    if (propArgs == null) {
+                        val properties = element[StructureType.PropProperties]
+                        val prop = properties.find { it.name == element.text } ?: return false
+                        if (prop.nullable) {
+                            sink.addInlineElement(
+                                element.endOffset,
+                                true,
+                                factory.roundWithBackgroundAndSmallInset(factory.text("?")),
+                                false
+                            )
+                        }
+                    } else if (element.text in arrayOf("flat", "id")) {
+                        val properties = element[StructureType.PropProperties]
+                        val prop = properties.find { it.name == propArgs.value.text } ?: return false
+                        if (prop.nullable) {
+                            sink.addInlineElement(
+                                propArgs.value.endOffset,
+                                true,
+                                factory.roundWithBackgroundAndSmallInset(factory.text("?")),
+                                false
+                            )
+                        }
                     }
                     return true
                 }
