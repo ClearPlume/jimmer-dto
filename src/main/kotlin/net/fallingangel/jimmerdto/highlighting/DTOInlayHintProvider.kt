@@ -5,6 +5,7 @@ import com.intellij.lang.Language
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.ui.components.Label
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.psi.DTOFile
@@ -22,8 +23,8 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
     override val previewText: String
         get() = ""
 
-    override fun createConfigurable(settings: NoSettings): ImmediateConfigurable {
-        throw NotImplementedError("No need implementation")
+    override fun createConfigurable(settings: NoSettings) = object : ImmediateConfigurable {
+        override fun createComponent(listener: ChangeListener) = Label("NoSettings")
     }
 
     override fun createSettings() = NoSettings()
