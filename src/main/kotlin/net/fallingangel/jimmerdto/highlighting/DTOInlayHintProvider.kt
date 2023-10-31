@@ -58,14 +58,16 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
                         }
                     } else if (element.text in arrayOf("flat", "id")) {
                         val properties = element[StructureType.PropProperties]
-                        val prop = properties.find { it.name == propArgs.value.text } ?: return false
-                        if (prop.nullable) {
-                            sink.addInlineElement(
-                                propArgs.value.endOffset,
-                                true,
-                                factory.roundWithBackgroundAndSmallInset(factory.text("?")),
-                                false
-                            )
+                        for (arg in propArgs.valueList) {
+                            val prop = properties.find { it.name == arg.text } ?: continue
+                            if (prop.nullable) {
+                                sink.addInlineElement(
+                                    arg.endOffset,
+                                    true,
+                                    factory.roundWithBackgroundAndSmallInset(factory.text("?")),
+                                    false
+                                )
+                            }
                         }
                     }
                     return true

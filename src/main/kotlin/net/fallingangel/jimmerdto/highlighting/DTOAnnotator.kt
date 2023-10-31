@@ -96,8 +96,10 @@ class DTOAnnotator : Annotator {
 
                 // 方法参数
                 val propAvailableArgs = propArgs[StructureType.FunctionArgs].map { it.name }
-                if (propArgs.value.text !in propAvailableArgs) {
-                    propArgs.value.error()
+                propArgs.valueList.forEach {
+                    if (it.text !in propAvailableArgs) {
+                        it.error()
+                    }
                 }
             }
             // 当前属性为非方法属性

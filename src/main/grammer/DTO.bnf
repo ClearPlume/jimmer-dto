@@ -102,8 +102,8 @@ positive-prop ::= annotation* "+"? prop-name prop-args? ("?" | "!")? alias? (enu
 
 prop-name ::= IDENTIFIER
 
-//prop-args ::= "(" (named-parameter | value) ("," named-parameter)* ")"
-prop-args ::= "(" value ")"
+//prop-args ::= "(" (named-parameter | value) ("," (named-parameter | value))* ")"
+prop-args ::= "(" value ("," value)* ")"
 
 prop-body ::= annotation* dto-body "*"? {
     pin = 2
