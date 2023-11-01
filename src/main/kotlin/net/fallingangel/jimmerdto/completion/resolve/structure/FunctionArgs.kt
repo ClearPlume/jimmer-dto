@@ -14,8 +14,8 @@ class FunctionArgs : Structure<DTOPropArgs, List<Property>> {
      */
     override fun value(element: DTOPropArgs): List<Property> {
         val prop = element.parent as DTOPositiveProp
-        val propPath = if (prop.haveUpperProp) {
-            prop.upperProp.propPath()
+        val propPath = if (prop.haveUpper) {
+            prop.upper.propPath()
         } else {
             emptyList()
         }

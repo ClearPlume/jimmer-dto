@@ -2,8 +2,6 @@ package net.fallingangel.jimmerdto.completion.resolve.structure
 
 import net.fallingangel.jimmerdto.psi.DTOMacroArgs
 import net.fallingangel.jimmerdto.util.*
-import net.fallingangel.jimmerdto.util.haveUpperProp
-import net.fallingangel.jimmerdto.util.upperProp
 
 class MacroTypes : Structure<DTOMacroArgs, List<String>> {
     /**
@@ -15,16 +13,16 @@ class MacroTypes : Structure<DTOMacroArgs, List<String>> {
         val project = element.project
         val entityFile = element.virtualFile.entityFile(project) ?: return emptyList()
 
-        val propPath = if (element.parent.haveUpperProp) {
-            element.parent.upperProp.propPath()
+        val propPath = if (element.parent.haveUpper) {
+            element.parent.upper.propPath()
         } else {
             emptyList()
         }
-        val propDtoFile = if (entityFile.isJavaOrKotlin) {
+        val propClassFile = if (entityFile.isJavaOrKotlin) {
             entityFile.psiClass(project, propPath)?.virtualFile ?: return emptyList()
         } else {
             entityFile.ktClass(project, propPath)?.virtualFile ?: return emptyList()
         }
-        return propDtoFile.supers(project) + propDtoFile.name.substringBeforeLast('.')
+        return propClassFile.supers(project) + propClassFile.name.substringBeforeLast('.')
     }
 }

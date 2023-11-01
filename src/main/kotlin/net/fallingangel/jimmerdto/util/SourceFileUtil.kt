@@ -120,18 +120,17 @@ fun VirtualFile.properties(project: Project, propPath: List<String> = emptyList(
 }
 
 /**
- * 获取DTO文件对应实体的基类型列表
+ * 获取实体类文件中实体类的基类型列表
  */
 fun VirtualFile.supers(project: Project): List<String> {
-    val classFile = entityFile(project) ?: return emptyList()
     val supers = try {
-        if (classFile.isJavaOrKotlin) {
-            classFile.psiClass(project)
+        if (isJavaOrKotlin) {
+            psiClass(project)
                     ?.supers
                     ?.map { it.name ?: "" }
                     ?.filter { it != "Object" }
         } else {
-            classFile.ktClass(project)
+            ktClass(project)
                     ?.superTypeListEntries
                     ?.map(KtSuperTypeListEntry::getText)
         }

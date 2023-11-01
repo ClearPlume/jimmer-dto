@@ -11,6 +11,8 @@ import com.intellij.psi.util.nextLeaf
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.util.get
+import net.fallingangel.jimmerdto.util.haveUpper
+import net.fallingangel.jimmerdto.util.upper
 
 /**
  * 部分代码结构的高亮
@@ -84,11 +86,12 @@ class DTOAnnotator : Annotator {
          * 为属性上色
          */
         override fun visitPositiveProp(o: DTOPositiveProp) {
+            val propName = o.propName.text
             // 当前属性为方法
             if (o.propArgs != null) {
                 // 方法名
                 val propArgs = o.propArgs!!
-                if (o.propName.text in arrayOf("id", "flat")) {
+                if (propName in arrayOf("id", "flat")) {
                     o.propName.style(DTOSyntaxHighlighter.FUNCTION)
                 } else {
                     o.propName.error()
@@ -104,8 +107,23 @@ class DTOAnnotator : Annotator {
             }
             // 当前属性为非方法属性
             if (o.propArgs == null) {
-                val properties = o.propName[StructureType.PropProperties]
-                properties.find { it.name == o.propName.text } ?: o.propName.error()
+                val availableProperties = if (o.haveUpper) {
+                    val upper = o.upper
+                    if (upper is DTOAliasGroup) {
+                        upper[StructureType.AsProperties]
+                    } else {
+                        upper as DTOPositiveProp
+                        if (upper.propName.text == "flat") {
+                            val flatArg = upper.propArgs!!.valueList[0]
+                            flatArg[StructureType.FlatProperties]
+                        } else {
+                            o.propName[StructureType.PropProperties]
+                        }
+                    }
+                } else {
+                    o.propName[StructureType.PropProperties]
+                }
+                availableProperties.find { it.name == propName } ?: o.propName.error()
             }
         }
 

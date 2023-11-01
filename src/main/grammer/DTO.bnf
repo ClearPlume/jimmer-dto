@@ -88,7 +88,9 @@ macro-name ::= IDENTIFIER
 
 macro-args ::= "(" qualified-name ("," qualified-name)* ")"
 
-alias-group ::= "as" "(" alias-pattern ")" "{" (macro | positive-prop)* "}"
+alias-group ::= "as" "(" alias-pattern ")" alias-group-body
+
+alias-group-body ::= "{" (macro | positive-prop)* "}"
 
 alias-pattern ::= original "->" replacement {
     pin = 2

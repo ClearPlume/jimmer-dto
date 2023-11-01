@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto.completion.resolve.structure
 
+import com.intellij.codeInsight.completion.CompletionUtilCore
 import net.fallingangel.jimmerdto.psi.DTOPositiveProp
 import net.fallingangel.jimmerdto.psi.DTOPropName
 import net.fallingangel.jimmerdto.structure.Property
@@ -13,8 +14,15 @@ class PropProperties : Structure<DTOPropName, List<Property>> {
      */
     override fun value(element: DTOPropName): List<Property> {
         val prop = element.parent as DTOPositiveProp
-        return if (prop.haveUpperProp) {
-            element.virtualFile.properties(element.project, prop.upperProp.propPath())
+        return if (prop.haveUpper) {
+            element.virtualFile.properties(
+                element.project,
+                if (element.text == CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED) {
+                    prop.propPath()
+                } else {
+                    prop.upper.propPath()
+                }
+            )
         } else {
             element.virtualFile.properties(element.project)
         }

@@ -1,16 +1,16 @@
 package net.fallingangel.jimmerdto.completion.resolve.structure
 
-import net.fallingangel.jimmerdto.psi.DTONegativeProp
+import net.fallingangel.jimmerdto.psi.DTOAliasGroup
 import net.fallingangel.jimmerdto.structure.Property
 import net.fallingangel.jimmerdto.util.*
 
-class PropNegativeProperties : Structure<DTONegativeProp, List<Property>> {
+class AsProperties : Structure<DTOAliasGroup, List<Property>> {
     /**
-     * @param element DTO或关联属性中的负属性元素
+     * @param element DTO或关联属性中的属性元素
      *
-     * @return 属性对应的实体中的所有属性列表
+     * @return as方法所在实体中的所有属性列表
      */
-    override fun value(element: DTONegativeProp): List<Property> {
+    override fun value(element: DTOAliasGroup): List<Property> {
         return if (element.haveUpper) {
             element.virtualFile.properties(element.project, element.upper.propPath())
         } else {
