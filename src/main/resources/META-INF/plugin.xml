@@ -27,6 +27,32 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7 (2023-11-02)</b></p>
+    <ul>
+      <li><b>Bug Fix</b>When prompted for Dto inheritance, the type of user-prop prompt appears</li>
+      <li><b>Feature</b>Dto Modifier Hints</li>
+      <li><b>Feature</b>Dto Inheritance Hints</li>
+      <li><b>Feature</b>Enum-Mapping Hints</li>
+      <li><b>Feature</b>alias-group hints</li>
+      <li><b>Feature</b>Function Hints</li>
+      <li><b>Feature</b>Macro Hints</li>
+      <li><b>Feature</b>Prop Hints</li>
+      <li><b>Feature</b>Negative Prop Hints</li>
+      <li><b>Feature</b>Prop Nullability Flag</li>
+    </ul>
+    <ul>
+      <li><b>修复Bug</b>在提示Dto继承时，出现了用户属性类型的提示</li>
+      <li><b>新特性</b>Dto修饰符提示</li>
+      <li><b>新特性</b>Dto继承提示</li>
+      <li><b>新特性</b>枚举提示</li>
+      <li><b>新特性</b>as组提示</li>
+      <li><b>新特性</b>方法提示</li>
+      <li><b>新特性</b>宏提示</li>
+      <li><b>新特性</b>属性提示</li>
+      <li><b>新特性</b>负属性提示</li>
+      <li><b>新特性</b>属性可空性标识</li>
+    </ul>
+    <hr/>
     <p><b>0.0.6 (2023-09-18)</b></p>
     <ul>
       <li><b>Removal</b>Removed support for 2020.x, 2021.x IDEs</li>
