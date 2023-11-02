@@ -30,6 +30,7 @@
     POWER="^"
     DOLLAR="$"
     ARROW="->"
+    SLASH="/"
     PAREN_L="("
     PAREN_R=")"
     BRACKET_L="["
@@ -100,9 +101,23 @@ original ::= IDENTIFIER | "^"? IDENTIFIER? "$"?
 
 replacement ::= IDENTIFIER
 
-positive-prop ::= annotation* "+"? prop-name prop-args? ("?" | "!")? alias? (enum-body | prop-body)?
+positive-prop ::= annotation* "+"? prop-name prop-flags? prop-args? ("?" | "!")? alias? (enum-body | prop-body)? {
+    pin = 3
+}
 
 prop-name ::= IDENTIFIER
+
+prop-flags ::= "/"? prop-flag* {
+    pin = 1
+}
+
+prop-flag ::= (case-insensitive | prefix | suffix)
+
+case-insensitive ::= "i"
+
+prefix ::= "^"
+
+suffix ::= "$"
 
 //prop-args ::= "(" (named-parameter | value) ("," (named-parameter | value))* ")"
 prop-args ::= "(" value ("," value)* ")"

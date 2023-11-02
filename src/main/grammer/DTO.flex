@@ -69,6 +69,7 @@ FLOAT = \d+\.\d+
     "^"                                                         { return DTOTypes.POWER; }
     "$"                                                         { return DTOTypes.DOLLAR; }
     "->"                                                        { return DTOTypes.ARROW; }
+    "/"                                                         { return DTOTypes.SLASH; }
     "("                                                         { return DTOTypes.PAREN_L; }
     ")"                                                         { return DTOTypes.PAREN_R; }
     "["                                                         { return DTOTypes.BRACKET_L; }
