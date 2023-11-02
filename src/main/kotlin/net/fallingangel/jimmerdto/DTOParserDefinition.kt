@@ -17,7 +17,7 @@ class DTOParserDefinition : ParserDefinition {
 
     override fun createParser(project: Project) = DTOParser()
 
-    override fun getFileNodeType() = FILE
+    override fun getFileNodeType() = Companion.FILE
 
     override fun getCommentTokens() = TokenSet.create(
         DTOTokenTypes.LINE_COMMENT,
@@ -31,8 +31,7 @@ class DTOParserDefinition : ParserDefinition {
 
     override fun createFile(viewProvider: FileViewProvider) = DTOFile(viewProvider)
 
-    @Suppress("CompanionObjectInExtension")
-    companion object {
+    object Companion {
         val FILE = IFileElementType(DTOLanguage.INSTANCE)
     }
 }
