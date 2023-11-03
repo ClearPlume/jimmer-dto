@@ -124,6 +124,14 @@ class DTOCompletionContributor : CompletionContributor() {
                     )
         ) { parameters, result ->
             result.addAllElements(bodyLookups())
+            result.addAllElements(
+                parameters.parent<DTOPropName>()[StructureType.PropFunctions].lookUp {
+                    PrioritizedLookupElement.withPriority(
+                        bold(),
+                        90.0
+                    )
+                }
+            )
             result.addAllElements(parameters.parent<DTOPropName>()[StructureType.PropProperties].lookUp())
         }
     }
@@ -231,8 +239,11 @@ class DTOCompletionContributor : CompletionContributor() {
                         2,
                         psiElement(DTOPropArgs::class.java)
                                 .afterSiblingSkipping(
-                                    psiElement(TokenType.WHITE_SPACE),
-                                    psiElement(DTOPropName::class.java).withText(name)
+                                    or(
+                                        psiElement(TokenType.WHITE_SPACE),
+                                        psiElement(DTOPropFlags::class.java)
+                                    ),
+                                    psiElement(DTOPropName::class.java)
                                 )
                     ),
             provider
@@ -260,6 +271,14 @@ class DTOCompletionContributor : CompletionContributor() {
         ) { parameters, result ->
             val flatArgs = (parameters.parent<DTOPropName>().parent.parent.parent.parent.parent as DTOPositiveProp).propArgs
             result.addAllElements(flatArgs?.valueList?.get(0)?.get(StructureType.FlatProperties)?.lookUp() ?: emptyList())
+            result.addAllElements(
+                parameters.parent<DTOPropName>()[StructureType.PropFunctions].lookUp {
+                    PrioritizedLookupElement.withPriority(
+                        bold(),
+                        90.0
+                    )
+                }
+            )
             result.addAllElements(bodyLookups())
         }
     }
@@ -379,11 +398,7 @@ class DTOCompletionContributor : CompletionContributor() {
                 -4
             )
         ).lookUp { PrioritizedLookupElement.withPriority(bold(), 90.0) }
-        val functions = listOf(
-            LookupInfo("id(<association>)", "id()", "function", -1),
-            LookupInfo("flat(<association>) { ... }", "flat() {}", "function", -4)
-        ).lookUp { PrioritizedLookupElement.withPriority(bold(), 80.0) }
-        return macros + aliasGroup + functions
+        return macros + aliasGroup
     }
 
     @JvmName("lookupString")

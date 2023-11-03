@@ -1,9 +1,10 @@
 package net.fallingangel.jimmerdto.completion.resolve.structure
 
+import net.fallingangel.jimmerdto.enums.Function
+import net.fallingangel.jimmerdto.enums.PredicateFunction
 import net.fallingangel.jimmerdto.psi.DTOPositiveProp
 import net.fallingangel.jimmerdto.psi.DTOPropArgs
 import net.fallingangel.jimmerdto.structure.Property
-import net.fallingangel.jimmerdto.structure.RelationType
 import net.fallingangel.jimmerdto.util.*
 
 class FunctionArgs : Structure<DTOPropArgs, List<Property>> {
@@ -19,16 +20,29 @@ class FunctionArgs : Structure<DTOPropArgs, List<Property>> {
         } else {
             emptyList()
         }
-        return element.virtualFile
-                .properties(element.project, propPath)
-                .filter { property ->
-                    property.annotations
-                            .map { annotation ->
-                                annotation.substringAfterLast('.')
-                            }
-                            .any { annotationName ->
-                                annotationName in RelationType.values().map { it.name }
-                            }
-                }
+        val propName = prop.propName.text
+        val properties = element.virtualFile.properties(element.project, propPath)
+
+        return when (propName) {
+            in Function.values().map { it.expression } -> {
+                properties
+                        .filter { property ->
+                            val function = Function.values().first { it.expression == propName }
+                            function.argType.test(property)
+                        }
+            }
+
+            in PredicateFunction.values().map { it.expression } -> {
+                properties
+                        .filter { property ->
+                            val predicateFunction = PredicateFunction.values().first { it.expression == propName }
+                            predicateFunction.argType.test(property)
+                        }
+            }
+
+            else -> {
+                throw IllegalStateException()
+            }
+        }
     }
 }

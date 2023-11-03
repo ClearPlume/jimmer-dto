@@ -8,7 +8,12 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.nextLeaf
+import com.intellij.psi.util.parentOfType
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
+import net.fallingangel.jimmerdto.enums.Function
+import net.fallingangel.jimmerdto.enums.Modifier
+import net.fallingangel.jimmerdto.enums.PredicateFunction
+import net.fallingangel.jimmerdto.enums.modifiedBy
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.util.get
 import net.fallingangel.jimmerdto.util.haveUpper
@@ -89,42 +94,59 @@ class DTOAnnotator : Annotator {
             val propName = o.propName.text
             // 当前属性为方法
             if (o.propArgs != null) {
-                // 方法名
-                val propArgs = o.propArgs!!
-                if (propName in arrayOf("id", "flat")) {
-                    o.propName.style(DTOSyntaxHighlighter.FUNCTION)
-                } else {
-                    o.propName.error()
-                }
-
-                // 方法参数
-                val propAvailableArgs = propArgs[StructureType.FunctionArgs].map { it.name }
-                propArgs.valueList.forEach {
-                    if (it.text !in propAvailableArgs) {
-                        it.error()
-                    }
-                }
+                visitFunction(o, propName)
             }
             // 当前属性为非方法属性
             if (o.propArgs == null) {
-                val availableProperties = if (o.haveUpper) {
-                    val upper = o.upper
-                    if (upper is DTOAliasGroup) {
-                        upper[StructureType.AsProperties]
-                    } else {
-                        upper as DTOPositiveProp
-                        if (upper.propName.text == "flat") {
-                            val flatArg = upper.propArgs!!.valueList[0]
-                            flatArg[StructureType.FlatProperties]
-                        } else {
-                            o.propName[StructureType.PropProperties]
-                        }
-                    }
-                } else {
-                    o.propName[StructureType.PropProperties]
-                }
-                availableProperties.find { it.name == propName } ?: o.propName.error()
+                visitProp(o, propName)
             }
+        }
+
+        private fun visitFunction(o: DTOPositiveProp, propName: String) {
+            val dto = o.parentOfType<DTODto>() ?: return
+            val availableFunctions = if (dto modifiedBy Modifier.SPECIFICATION) {
+                val functions = Function.values().map { it.expression }
+                val predicateFunctions = PredicateFunction.values().map { it.expression }
+                functions + predicateFunctions
+            } else {
+                Function.values().map { it.expression }
+            }
+
+            // 方法名
+            val propArgs = o.propArgs!!
+            if (propName in availableFunctions) {
+                o.propName.style(DTOSyntaxHighlighter.FUNCTION)
+            } else {
+                o.propName.error()
+            }
+
+            // 方法参数
+            val propAvailableArgs = propArgs[StructureType.FunctionArgs].map { it.name }
+            propArgs.valueList.forEach {
+                if (it.text !in propAvailableArgs) {
+                    it.error()
+                }
+            }
+        }
+
+        private fun visitProp(o: DTOPositiveProp, propName: String) {
+            val availableProperties = if (o.haveUpper) {
+                val upper = o.upper
+                if (upper is DTOAliasGroup) {
+                    upper[StructureType.AsProperties]
+                } else {
+                    upper as DTOPositiveProp
+                    if (upper.propName.text == "flat") {
+                        val flatArg = upper.propArgs!!.valueList[0]
+                        flatArg[StructureType.FlatProperties]
+                    } else {
+                        o.propName[StructureType.PropProperties]
+                    }
+                }
+            } else {
+                o.propName[StructureType.PropProperties]
+            }
+            availableProperties.find { it.name == propName } ?: o.propName.error()
         }
 
         override fun visitNegativeProp(o: DTONegativeProp) {
