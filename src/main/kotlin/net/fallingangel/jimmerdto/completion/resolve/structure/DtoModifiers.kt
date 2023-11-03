@@ -13,15 +13,17 @@ class DtoModifiers : Structure<DTODtoName, List<String>> {
      */
     override fun value(element: DTODtoName): List<String> {
         val dto = element.parent as DTODto
-        val modifiers = mutableListOf("abstract", "input", "input-only", "inputOnly")
-        if (dto modifiedBy Modifier.INPUT || dto modifiedBy Modifier.INPUT_ONLY) {
-            modifiers -= "input"
-            modifiers -= "input-only"
-            modifiers -= "inputOnly"
+        val allModifiers = Modifier.values().toMutableList()
+        val dtoModifiers = dto.dtoModifierList.map { Modifier.valueOf(it.text.uppercase()) }
+
+        if (dto modifiedBy Modifier.INPUT) {
+            allModifiers -= Modifier.SPECIFICATION
         }
-        if (dto modifiedBy Modifier.ABSTRACT) {
-            modifiers -= "abstract"
+        if (dto modifiedBy Modifier.SPECIFICATION) {
+            allModifiers -= Modifier.INPUT
         }
-        return modifiers
+        return allModifiers
+                .filter { it !in dtoModifiers }
+                .map { it.value }
     }
 }

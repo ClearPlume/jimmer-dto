@@ -19,10 +19,10 @@ class DtoSupers : Structure<DTODtoSupers, List<String>> {
 
         val availableSupers = if (currentDto modifiedBy Modifier.INPUT) {
             supers.filter { it modifiedBy Modifier.INPUT }
-        } else if (currentDto modifiedBy Modifier.INPUT_ONLY) {
-            supers.filter { it modifiedBy Modifier.INPUT_ONLY }
-        } else if (currentDto notModifiedBy Modifier.INPUT_ONLY) {
-            supers.filter { it notModifiedBy Modifier.INPUT_ONLY }
+        } else if (currentDto modifiedBy Modifier.SPECIFICATION) {
+            supers.filter { it modifiedBy Modifier.SPECIFICATION }
+        } else if (currentDto notModifiedBy Modifier.UNSAFE) {
+            supers.filter { it notModifiedBy Modifier.UNSAFE }
         } else {
             supers
         }

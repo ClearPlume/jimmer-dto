@@ -26,7 +26,7 @@ COMMENT_CONTENT = ([^*] | \*+ [^/*])*
 BLOCK_COMMENT = "/*"{COMMENT_CONTENT}"*/"
 DOC_COMMENT = "/**"{COMMENT_CONTENT}"*/"
 
-MODIFIER = abstract | input | input-only | inputOnly | out | in
+MODIFIER = input | specification | abstract | unsafe | dynamic | out | in
 BOOLEAN = true | false
 CHAR = '[^']'
 STRING = \"[^\"]*\"
