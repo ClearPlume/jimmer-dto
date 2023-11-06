@@ -9,6 +9,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtil
+import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.completion.resolve.structure.Structure
 import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
 import net.fallingangel.jimmerdto.structure.JavaNullableType
@@ -89,7 +90,7 @@ fun VirtualFile.properties(project: Project, propPath: List<String> = emptyList(
     val properties = try {
         if (classFile.isJavaOrKotlin) {
             classFile.psiClass(project, propPath)
-                    ?.methods
+                    ?.methods()
                     ?.map { property ->
                         val annotatedNullable = property.annotations.any { it.qualifiedName?.substringAfterLast('.') in arrayOf("Null", "Nullable") }
                         val returnType = property.returnType ?: return emptyList()
@@ -102,7 +103,7 @@ fun VirtualFile.properties(project: Project, propPath: List<String> = emptyList(
                     }
         } else {
             classFile.ktClass(project, propPath)
-                    ?.getProperties()
+                    ?.properties()
                     ?.map { property ->
                         val type = property.type()!!
                         Property(
@@ -244,4 +245,32 @@ private val KtAnnotationEntry.qualifiedName: String
         val context = analyze()
         // 获取注解全限定类名
         return context[BindingContext.ANNOTATION, this]?.fqName?.asString() ?: ""
+    }
+
+private fun PsiClass.methods(): List<PsiMethod> {
+    val supers = interfaces
+            .filter { interfaceClass ->
+                interfaceClass.annotations.any {
+                    it.qualifiedName in listOf(Constant.Annotation.ENTITY, Constant.Annotation.MAPPED_SUPERCLASS)
+                }
+            }
+    return methods.toList() + supers.map { it.methods() }.flatten()
+}
+
+private fun KtClass.properties(): List<KtProperty> {
+    val supers = superTypeListEntries
+            .filter { superType ->
+                val context = superType.analyze()
+                val annotations = context[BindingContext.TYPE, superType.typeReference]?.clazz()?.annotationEntries ?: return@filter false
+                annotations.any {
+                    it.qualifiedName in listOf(Constant.Annotation.ENTITY, Constant.Annotation.MAPPED_SUPERCLASS)
+                }
+            }
+    return getProperties() + supers.map(KtSuperTypeListEntry::properties).flatten()
+}
+
+private val KtSuperTypeListEntry.properties: List<KtProperty>
+    get() {
+        val context = analyze()
+        return context[BindingContext.TYPE, typeReference]?.clazz()?.getProperties() ?: emptyList()
     }
