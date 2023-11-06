@@ -27,13 +27,20 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.2 (2023-11-06)</b></p>
+    <ul>
+      <li><b>Bug Fix</b>When getting props in an entity, also get props in the parent entity</li>
+    </ul>
+    <ul>
+      <li><b>修复Bug</b>获取实体中的属性时，也获取父级实体中的属性</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.1 (2023-11-03)</b></p>
     <ul>
       <li><b>Feature</b>Support for predicate methods in spec dto</li>
       <li><b>Feature</b>Modifier adjustments and corresponding adjustments to inheritance</li>
       <li><b>Feature</b>Support for method markers</li>
     </ul>
-    <hr/>
     <ul>
       <li><b>新特性</b>对spec dto中的谓词方法支持</li>
       <li><b>新特性</b>修饰符调整，并对继承做出相应调整</li>
@@ -53,7 +60,6 @@
       <li><b>Feature</b>Negative Prop Hints</li>
       <li><b>Feature</b>Prop Nullability Flag</li>
     </ul>
-    <hr/>
     <ul>
       <li><b>修复Bug</b>在提示Dto继承时，出现了用户属性类型的提示</li>
       <li><b>新特性</b>Dto修饰符提示</li>
