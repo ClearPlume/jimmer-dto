@@ -46,6 +46,7 @@ FLOAT = \d+\.\d+
 
     "import"                                                    { return DTOTypes.IMPORT_KEYWORD; }
     "as"                                                        { return DTOTypes.AS_KEYWORD; }
+    "this"                                                      { return DTOTypes.THIS_KEYWORD; }
     {MODIFIER}                                                  { return DTOTypes.MODIFIER; }
     {BOOLEAN}                                                   { return DTOTypes.BOOLEAN_CONSTANT; }
     "null"                                                      { return DTOTypes.NULL_CONSTANT; }

@@ -60,6 +60,11 @@ class DTOAnnotator : Annotator {
          * 为宏参数上色
          */
         override fun visitMacroArgs(o: DTOMacroArgs) {
+            val thisList = o.macroThisList
+            if (thisList.size > 1) {
+                thisList.forEach { it.error(DTOSyntaxHighlighter.DUPLICATION) }
+            }
+
             val macroAvailableParams = o[StructureType.MacroTypes]
             for (macroArg in o.qualifiedNameList) {
                 if (macroArg.text !in macroAvailableParams) {
@@ -67,6 +72,10 @@ class DTOAnnotator : Annotator {
                 }
                 if (o.qualifiedNameList.count { it.text == macroArg.text } != 1) {
                     macroArg.error(DTOSyntaxHighlighter.DUPLICATION)
+                }
+                if (thisList.isNotEmpty() && macroArg.text == macroAvailableParams.last()) {
+                    macroArg.error(DTOSyntaxHighlighter.DUPLICATION)
+                    thisList[0].error(DTOSyntaxHighlighter.DUPLICATION)
                 }
             }
         }

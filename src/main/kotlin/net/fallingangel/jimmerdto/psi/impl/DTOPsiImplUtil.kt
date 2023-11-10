@@ -7,6 +7,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import net.fallingangel.jimmerdto.psi.DTODto
 import net.fallingangel.jimmerdto.psi.DTODtoName
 import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.psi.DTOQualifiedName
 
 object DTOPsiImplUtil {
     /**
@@ -19,7 +20,7 @@ object DTOPsiImplUtil {
 
     @JvmStatic
     fun getName(element: DTODtoName): String {
-        return element.identifier.text
+        return getNameIdentifier(element).text
     }
 
     @JvmStatic
@@ -30,5 +31,20 @@ object DTOPsiImplUtil {
     @JvmStatic
     fun getNameIdentifier(element: DTODtoName): PsiElement {
         return element.identifier
+    }
+
+    @JvmStatic
+    fun getName(element: DTOQualifiedName): String {
+        return getNameIdentifier(element).text
+    }
+
+    @JvmStatic
+    fun setName(element: DTOQualifiedName, name: String): DTOQualifiedName {
+        TODO("${element.name} $name")
+    }
+
+    @JvmStatic
+    fun getNameIdentifier(element: DTOQualifiedName): PsiElement {
+        return element.qualifiedNamePartList.last()
     }
 }

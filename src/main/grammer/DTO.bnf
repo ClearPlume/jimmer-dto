@@ -42,6 +42,7 @@
 
     IDENTIFIER="regexp:[$A-Za-z_][$\\w]*"
     IMPORT_KEYWORD="import"
+    THIS_KEYWORD="this"
     AS_KEYWORD="as"
 
     BOOLEAN_CONSTANT="regexp:true|false"
@@ -53,13 +54,11 @@
   ]
 }
 
-dto-file ::= import-statement* dto*
+dto-file ::= import* dto*
 
-import-statement ::= "import" IDENTIFIER ("." IDENTIFIER)+ (alias | grouped-types)?
+import ::= "import" qualified-type grouped-types?
 
-grouped-types ::= "." "{" grouped-type ("," grouped-type)* "}"
-
-grouped-type ::= IDENTIFIER alias?
+grouped-types ::= "." "{" qualified-type ("," qualified-type)* "}"
 
 dto ::= annotation* dto-modifier* dto-name dto-supers? dto-body {
     pin = 3
@@ -87,7 +86,9 @@ macro ::= "#" macro-name macro-args? ("?" | "!")? {
 
 macro-name ::= IDENTIFIER
 
-macro-args ::= "(" qualified-name ("," qualified-name)* ")"
+macro-args ::= "(" ( macro-this | qualified-name) ("," ( macro-this | qualified-name))* ")"
+
+macro-this ::= THIS_KEYWORD
 
 alias-group ::= "as" "(" alias-pattern ")" alias-group-body
 
@@ -101,7 +102,7 @@ original ::= IDENTIFIER | "^"? IDENTIFIER? "$"?
 
 replacement ::= IDENTIFIER
 
-positive-prop ::= annotation* "+"? prop-name prop-flags? prop-args? ("?" | "!")? alias? (enum-body | prop-body)? {
+positive-prop ::= annotation* "+"? prop-name prop-flags? prop-args? ("?" | "!")? ("as" prop-alias)? (enum-body | prop-body)? {
     pin = 3
 }
 
@@ -121,6 +122,8 @@ suffix ::= "$"
 
 //prop-args ::= "(" (named-parameter | value) ("," (named-parameter | value))* ")"
 prop-args ::= "(" value ("," value)* ")"
+
+prop-alias ::= IDENTIFIER
 
 prop-body ::= annotation* dto-body "*"? {
     pin = 2
@@ -153,9 +156,21 @@ generic-args ::= "<" generic-arg ("," generic-arg)* ">" {
 generic-arg ::= "*" | MODIFIER? type-def
 
 /// GLOBAL ///
-qualified-name ::= IDENTIFIER ("." IDENTIFIER)* {
+qualified-name ::= qualified-name-part ("." qualified-name-part)* {
+    mixin="net.fallingangel.jimmerdto.psi.impl.DTONamedElementImpl"
+    implements="net.fallingangel.jimmerdto.psi.DTONamedElement"
+    methods=[getNameIdentifier getName setName]
+}
+
+qualified-name-part ::= IDENTIFIER {
     pin = 1
 }
+
+qualified-type ::= qualified-type-name ("as" qualified-type-alias)?
+
+qualified-type-name ::= qualified-name
+
+qualified-type-alias ::= IDENTIFIER
 
 // parameter
 //named-parameter ::= parameter-name "=" value
@@ -170,9 +185,6 @@ value ::= CHAR_CONSTANT | STRING_CONSTANT |
 enum-value ::= IDENTIFIER ("." IDENTIFIER)+
 
 array-value ::= "[" (value ("," value)*)? "]" | "{" (value ("," value)*)? "}"
-
-// alias
-alias ::= "as" IDENTIFIER
 
 // annotation
 annotation ::= annotation-constructor ("(" (annotation-value | annotation-parameter) ("," annotation-parameter)* ")")?

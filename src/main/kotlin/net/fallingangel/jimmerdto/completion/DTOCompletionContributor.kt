@@ -60,8 +60,13 @@ class DTOCompletionContributor : CompletionContributor() {
         val parent = element.parent
         when {
             parent is DTOEnumInstanceValue -> context.dummyIdentifier = ""
-            parent is DTOEnumInstanceMapping && element.prevSibling.elementType == DTOTypes.COLON -> context.dummyIdentifier = ""
-            parent.parent is DTOMacroArgs -> context.dummyIdentifier = ""
+            parent is DTOEnumInstanceMapping
+                    && element.prevSibling.elementType == DTOTypes.COLON -> context.dummyIdentifier = ""
+
+            parent is DTOQualifiedNamePart -> context.dummyIdentifier = ""
+            parent is DTOMacroArgs
+                    || parent.parent is DTOMacroArgs -> context.dummyIdentifier = ""
+
             parent.parent is DTOPropArgs -> context.dummyIdentifier = ""
             parent.parent is DTODtoSupers -> context.dummyIdentifier = ""
             else -> return
@@ -73,9 +78,10 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeUserPropType() {
         complete(
-            identifier.withParent(DTOQualifiedName::class.java)
-                    .withSuperParent(2, DTOTypeDef::class.java)
-                    .withSuperParent(3, DTOUserProp::class.java)
+            identifier.withParent(DTOQualifiedNamePart::class.java)
+                    .withSuperParent(2, psiElement(DTOQualifiedName::class.java))
+                    .withSuperParent(3, DTOTypeDef::class.java)
+                    .withSuperParent(4, DTOUserProp::class.java)
         ) { parameters, result ->
             result.addAllElements(findUserPropType(parameters.originalFile))
         }
@@ -86,9 +92,10 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeUserPropGenericType() {
         complete(
-            identifier.withParent(DTOQualifiedName::class.java)
-                    .withSuperParent(2, DTOTypeDef::class.java)
-                    .withSuperParent(3, DTOGenericArg::class.java)
+            identifier.withParent(DTOQualifiedNamePart::class.java)
+                    .withSuperParent(2, psiElement(DTOQualifiedName::class.java))
+                    .withSuperParent(3, DTOTypeDef::class.java)
+                    .withSuperParent(4, DTOGenericArg::class.java)
         ) { parameters, result ->
             result.addAllElements(findUserPropType(parameters.originalFile, true))
         }
@@ -153,10 +160,19 @@ class DTOCompletionContributor : CompletionContributor() {
             result.addAllElements(listOf("allScalars").lookUp())
         }
         complete(
-            identifier.withParent(DTOQualifiedName::class.java)
-                    .withSuperParent(2, psiElement(DTOMacroArgs::class.java))
+            or(
+                psiElement(DTOTypes.THIS_KEYWORD)
+                        .withParent(DTOMacroArgs::class.java),
+                identifier.withParent(DTOQualifiedNamePart::class.java)
+                        .withSuperParent(2, psiElement(DTOQualifiedName::class.java))
+                        .withSuperParent(3, psiElement(DTOMacroArgs::class.java))
+            )
         ) { parameters, result ->
-            val macroArgs = parameters.parent<DTOQualifiedName>().parent as DTOMacroArgs
+            val macroArgs = if (parameters.position.elementType == DTOTypes.THIS_KEYWORD) {
+                parameters.parent<DTOMacroArgs>()
+            } else {
+                parameters.parent<DTOQualifiedNamePart>().parent.parent as DTOMacroArgs
+            }
             result.addAllElements(macroArgs[StructureType.MacroTypes].lookUp())
         }
     }
@@ -299,6 +315,10 @@ class DTOCompletionContributor : CompletionContributor() {
         )
     }
 
+    override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
+        super.fillCompletionVariants(parameters, result)
+    }
+
     private fun findUserPropType(file: PsiFile, isGeneric: Boolean = false): List<LookupElement> {
         val embeddedTypes = listOf(
             "Boolean",
@@ -338,15 +358,25 @@ class DTOCompletionContributor : CompletionContributor() {
         } else {
             emptyList()
         }
-        val imports = PsiTreeUtil.getChildrenOfTypeAsList(file, DTOImportStatement::class.java)
-        val importedTypes = imports.filter { it.alias == null && it.groupedTypes == null }.map { it.lastChild.text }.lookUp()
-        val importedSingleAliasTypes = imports.filter { it.alias != null }.map { it.alias!!.identifier.text }.lookUp()
+        val imports = PsiTreeUtil.getChildrenOfTypeAsList(file, DTOImport::class.java)
+        val importedTypes = imports
+                .filter { it.qualifiedType.qualifiedTypeAlias == null && it.groupedTypes == null }
+                .map { it.lastChild.text }
+                .lookUp()
+        val importedSingleAliasTypes = imports
+                .filter { it.qualifiedType.qualifiedTypeAlias != null }
+                .map { it.qualifiedType.qualifiedTypeAlias!!.identifier.text }
+                .lookUp()
         val importedGroupedAliasTypes = imports
                 .filter { it.groupedTypes != null }
                 .map {
-                    val groupedTypes = it.groupedTypes!!.groupedTypeList
-                    val alias = groupedTypes.filter { type -> type.alias != null }.map { type -> type.alias!!.identifier.text }
-                    val types = groupedTypes.filter { type -> type.alias == null }.map { type -> type.lastChild.text }
+                    val groupedTypes = it.groupedTypes!!.qualifiedTypeList
+                    val alias = groupedTypes
+                            .filter { type -> type.qualifiedTypeAlias != null }
+                            .map { type -> type.qualifiedTypeAlias!!.identifier.text }
+                    val types = groupedTypes
+                            .filter { type -> type.qualifiedTypeAlias == null }
+                            .map { type -> type.lastChild.text }
                     alias + types
                 }
                 .flatten()
