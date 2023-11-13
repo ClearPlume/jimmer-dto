@@ -27,6 +27,16 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.3 (2023-11-13)</b></p>
+    <ul>
+      <li><b>Feature</b>Support for export and package keywords</li>
+      <li><b>Feature</b>Support for this keyword</li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>对export、package关键字的支持</li>
+      <li><b>新特性</b>对this关键字的支持</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.2 (2023-11-06)</b></p>
     <ul>
       <li><b>Bug Fix</b>When getting props in an entity, also get props in the parent entity</li>
