@@ -41,6 +41,8 @@
     BRACE_R="}"
 
     IDENTIFIER="regexp:[$A-Za-z_][$\\w]*"
+    EXPORT_KEYWORD="export"
+    PACKAGE_KEYWORD="package"
     IMPORT_KEYWORD="import"
     THIS_KEYWORD="this"
     AS_KEYWORD="as"
@@ -54,7 +56,11 @@
   ]
 }
 
-dto-file ::= import* dto*
+dto-file ::= export? import* dto*
+
+export ::= "export" qualified-type ("->" package)?
+
+package ::= "package" qualified-type
 
 import ::= "import" qualified-type grouped-types?
 

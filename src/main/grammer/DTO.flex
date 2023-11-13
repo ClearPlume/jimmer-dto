@@ -44,6 +44,8 @@ FLOAT = \d+\.\d+
 
     "as" " "* "("                                               { yypushback(yylength()); yybegin(ALIAS_PATTERN_ORIGINAL); }
 
+    "export"                                                    { return DTOTypes.EXPORT_KEYWORD; }
+    "package"                                                   { return DTOTypes.PACKAGE_KEYWORD; }
     "import"                                                    { return DTOTypes.IMPORT_KEYWORD; }
     "as"                                                        { return DTOTypes.AS_KEYWORD; }
     "this"                                                      { return DTOTypes.THIS_KEYWORD; }
