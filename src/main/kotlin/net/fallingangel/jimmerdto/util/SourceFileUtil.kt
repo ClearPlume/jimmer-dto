@@ -7,11 +7,14 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.*
+import com.intellij.psi.search.ProjectScope
+import com.intellij.psi.search.searches.AllClassesSearch
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtil
 import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.completion.resolve.structure.Structure
 import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
+import net.fallingangel.jimmerdto.psi.DTOExport
 import net.fallingangel.jimmerdto.structure.JavaNullableType
 import net.fallingangel.jimmerdto.structure.Property
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
@@ -21,6 +24,7 @@ import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.KtSuperTypeListEntry
+import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.types.KotlinType
@@ -146,20 +150,30 @@ fun VirtualFile.supers(project: Project): List<String> {
  */
 fun VirtualFile.entityFile(project: Project): VirtualFile? {
     val psiFile = psiFile(project) ?: return null
-    val sourcePath = sourceRoot(psiFile)?.path ?: return null
+    val export = psiFile.getChildOfType<DTOExport>()
 
-    // sourcePath: src/main/kotlin
-    // path: src/main/dto/net/fallingangel/Book.dto
-    // pathPrefix: src/main/
-    val pathPrefix = sourcePath.commonPrefixWith(path)
-    val isJavaOrKotlin = sourcePath.removePrefix(pathPrefix) == "java"
+    return if (export != null) {
+        val entityName = export.qualifiedType.text
+        AllClassesSearch
+                .search(ProjectScope.getProjectScope(project), project) { it == entityName.substringAfterLast('.') }
+                .find { it.qualifiedName == entityName }
+                ?.virtualFile
+    } else {
+        val sourcePath = sourceRoot(psiFile)?.path ?: return null
 
-    // net/fallingangel/Book.(java|kt)
-    val modelRelativePath = path.removePrefix(pathPrefix)
-            .substringAfter('/')
-            .replaceAfterLast('.', if (isJavaOrKotlin) "java" else "kt")
-    return VirtualFileManager.getInstance()
-            .findFileByNioPath(Paths.get("$sourcePath/$modelRelativePath"))
+        // sourcePath: src/main/kotlin
+        // path: src/main/dto/net/fallingangel/Book.dto
+        // pathPrefix: src/main/
+        val pathPrefix = sourcePath.commonPrefixWith(path)
+        val isJavaOrKotlin = sourcePath.removePrefix(pathPrefix) == "java"
+
+        // net/fallingangel/Book.(java|kt)
+        val modelRelativePath = path.removePrefix(pathPrefix)
+                .substringAfter('/')
+                .replaceAfterLast('.', if (isJavaOrKotlin) "java" else "kt")
+        VirtualFileManager.getInstance()
+                .findFileByNioPath(Paths.get("$sourcePath/$modelRelativePath"))
+    }
 }
 
 /**
