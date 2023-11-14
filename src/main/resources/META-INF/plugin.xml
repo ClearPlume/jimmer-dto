@@ -27,6 +27,14 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.4 (2023-11-14)</b></p>
+    <ul>
+      <li><b>Feature</b>Add substantial support for the export keyword to obtain entity information from the keyword</li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>添加对export关键字的实质性支持，从关键字获取实体信息</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.3 (2023-11-13)</b></p>
     <ul>
       <li><b>Feature</b>Support for export and package keywords</li>
