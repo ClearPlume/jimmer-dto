@@ -27,6 +27,14 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.5 (2023-11-19)</b></p>
+    <ul>
+      <li><b>Bug Fix</b>Fix the problem that when the entity specified by the export keyword has a parent entity, not all of its attributes can be retrieved</li>
+    </ul>
+    <ul>
+      <li><b>修复Bug</b>修复export关键字指定的实体有父级实体时，无法获取其全部属性的问题</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.4 (2023-11-14)</b></p>
     <ul>
       <li><b>Feature</b>Add substantial support for the export keyword to obtain entity information from the keyword</li>
