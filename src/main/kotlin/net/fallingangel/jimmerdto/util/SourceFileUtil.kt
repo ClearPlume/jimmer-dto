@@ -191,7 +191,7 @@ fun VirtualFile.psiClass(project: Project, propPath: List<String> = emptyList())
 }
 
 fun PsiClass.prop(propPath: List<String>, level: Int): PsiMethod? {
-    val prop = methods.find { it.name == propPath[level] }
+    val prop = methods().find { it.name == propPath[level] }
     return if (propPath.lastIndex == level) {
         prop
     } else {
@@ -215,7 +215,7 @@ fun VirtualFile.ktClass(project: Project, propPath: List<String> = emptyList()):
 }
 
 fun KtClass.prop(propPath: List<String>, level: Int): KtProperty? {
-    val property = getProperties().find { it.name == propPath[level] } ?: return null
+    val property = properties().find { it.name == propPath[level] } ?: return null
     return if (propPath.lastIndex == level) {
         property
     } else {
