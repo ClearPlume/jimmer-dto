@@ -29,9 +29,11 @@
     <change-notes><![CDATA[
     <p><b>0.0.7.5 (2023-11-19)</b></p>
     <ul>
+      <li><b>Bug Fix</b>Fix the problem of not being able to get the target class path of a dto file with the export and package keywords specified</li>
       <li><b>Bug Fix</b>Fix the problem that when the entity specified by the export keyword has a parent entity, not all of its attributes can be retrieved</li>
     </ul>
     <ul>
+      <li><b>修复Bug</b>修复无法获取指定了export和package关键字的dto文件目标类路径的问题</li>
       <li><b>修复Bug</b>修复export关键字指定的实体有父级实体时，无法获取其全部属性的问题</li>
     </ul>
     <hr/>
