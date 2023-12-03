@@ -27,6 +27,14 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.6 (2023-12-03)</b></p>
+    <ul>
+      <li><b>Feature</b>Listen for changes to the dto file and delete the generated dto classes after the dto file has been modified</li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>监听dto文件改动事件，dto文件修改后删除其生成的dto类</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.5 (2023-11-19)</b></p>
     <ul>
       <li><b>Bug Fix</b>Fix the problem of not being able to get the target class path of a dto file with the export and package keywords specified</li>
