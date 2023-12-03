@@ -229,5 +229,6 @@
         <codeInsight.inlayProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOInlayHintProvider"/>
 
         <psi.referenceContributor language="JimmerDTO" implementation="net.fallingangel.jimmerdto.reference.DTOReferenceContributor"/>
+        <backgroundPostStartupActivity implementation="net.fallingangel.jimmerdto.service.StartupServices"/>
     </extensions>
 </idea-plugin>
