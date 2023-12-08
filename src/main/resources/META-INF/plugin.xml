@@ -1,5 +1,5 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
-<idea-plugin require-restart="true">
+<idea-plugin require-restart="false">
     <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
     <id>net.fallingangel.jimmer-dto</id>
 
@@ -27,6 +27,14 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.7 (2023-12-08)</b></p>
+    <ul>
+      <li><b>Feature</b>Support 2023.3</li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>适配2023.3</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.6 (2023-12-03)</b></p>
     <ul>
       <li><b>Feature</b>Listen for changes to the dto file and delete the generated dto classes after the dto file has been modified</li>
