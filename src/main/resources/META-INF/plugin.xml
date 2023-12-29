@@ -27,6 +27,14 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.8 (2023-12-29)</b></p>
+    <ul>
+      <li><b>Bug Fix</b>Fixed the problem that deleting the generated dto class after saving the dto file did not take effect when export was specified in the dto file but not the package</li>
+    </ul>
+    <ul>
+      <li><b>修复Bug</b>修正在dto文件中指定了export但没有指定package时，保存dto文件后删除生成的dto类未生效的问题</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.7 (2023-12-08)</b></p>
     <ul>
       <li><b>Feature</b>Support 2023.3</li>

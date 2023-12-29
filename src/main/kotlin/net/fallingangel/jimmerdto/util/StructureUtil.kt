@@ -60,10 +60,11 @@ val DTODto.classFile: VirtualFile?
         val export = virtualFile.psiFile(project)?.getChildOfType<DTOExport>()
         val `package` = export?.`package`
 
-        val dtoPath = if (export != null && `package` != null) {
+        val dtoPath = if (export != null) {
             /* 获取package关键字定义的dto类路径 */
-            // package指定的包名转化为路径
-            `package`.qualifiedType.text.replace('.', '/')
+            val packageDtoPath = `package`?.qualifiedType?.text?.replace('.', '/')
+            /* 若没有指定package，则获取export关键字指定的类路径对应的dto类路径 */
+            packageDtoPath ?: (export.qualifiedType.text.substringBeforeLast('.') + ".dto").replace('.', '/')
         } else {
             /* 获取默认的dto文件生成类路径 */
             // 获取dto根路径
