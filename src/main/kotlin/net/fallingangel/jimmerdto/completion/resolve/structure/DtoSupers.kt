@@ -15,7 +15,7 @@ class DtoSupers : Structure<DTODtoSupers, List<String>> {
      */
     override fun value(element: DTODtoSupers): List<String> {
         val currentDto = element.parent as DTODto
-        val supers = DTOPsiImplUtil.findDTOs(element).filter { it.dtoName.name != currentDto.dtoName.name }
+        val supers = DTOPsiImplUtil.findDTOs(element).filter { it.dtoName.text != currentDto.dtoName.text }
 
         val availableSupers = if (currentDto modifiedBy Modifier.INPUT) {
             supers.filter { it modifiedBy Modifier.INPUT }
@@ -26,6 +26,6 @@ class DtoSupers : Structure<DTODtoSupers, List<String>> {
         } else {
             supers
         }
-        return availableSupers.map { it.dtoName.name }
+        return availableSupers.map { it.dtoName.text }
     }
 }

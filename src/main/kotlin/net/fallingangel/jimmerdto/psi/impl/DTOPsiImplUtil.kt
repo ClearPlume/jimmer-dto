@@ -5,9 +5,8 @@ package net.fallingangel.jimmerdto.psi.impl
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import net.fallingangel.jimmerdto.psi.DTODto
-import net.fallingangel.jimmerdto.psi.DTODtoName
 import net.fallingangel.jimmerdto.psi.DTOFile
-import net.fallingangel.jimmerdto.psi.DTOQualifiedName
+import net.fallingangel.jimmerdto.psi.DTOPositiveProp
 
 object DTOPsiImplUtil {
     /**
@@ -18,33 +17,27 @@ object DTOPsiImplUtil {
         return PsiTreeUtil.getChildrenOfTypeAsList(dtoFile, DTODto::class.java)
     }
 
+    /**
+     * DTOPositiveProp
+     */
     @JvmStatic
-    fun getName(element: DTODtoName): String {
+    fun getName(element: DTOPositiveProp): String {
         return getNameIdentifier(element).text
     }
 
+    /**
+     * DTOPositiveProp
+     */
     @JvmStatic
-    fun setName(element: DTODtoName, name: String): DTODtoName {
-        TODO("${element.name} $name")
+    fun setName(element: DTOPositiveProp, name: String): DTOPositiveProp {
+        TODO("${element.propName.text} $name")
     }
 
+    /**
+     * DTOPositiveProp
+     */
     @JvmStatic
-    fun getNameIdentifier(element: DTODtoName): PsiElement {
-        return element.identifier
-    }
-
-    @JvmStatic
-    fun getName(element: DTOQualifiedName): String {
-        return getNameIdentifier(element).text
-    }
-
-    @JvmStatic
-    fun setName(element: DTOQualifiedName, name: String): DTOQualifiedName {
-        TODO("${element.name} $name")
-    }
-
-    @JvmStatic
-    fun getNameIdentifier(element: DTOQualifiedName): PsiElement {
-        return element.qualifiedNamePartList.last()
+    fun getNameIdentifier(element: DTOPositiveProp): PsiElement {
+        return element.propName
     }
 }

@@ -185,10 +185,10 @@ class DTOAnnotator : Annotator {
                 val availableSupers = parent[StructureType.DtoSupers]
 
                 for (superDto in parent.dtoNameList) {
-                    if (parent.dtoNameList.count { it.name == o.name } != 1) {
+                    if (parent.dtoNameList.count { it.text == o.text } != 1) {
                         o.error(DTOSyntaxHighlighter.DUPLICATION)
                     }
-                    if (o.name !in availableSupers) {
+                    if (o.text !in availableSupers) {
                         o.error()
                     }
                 }

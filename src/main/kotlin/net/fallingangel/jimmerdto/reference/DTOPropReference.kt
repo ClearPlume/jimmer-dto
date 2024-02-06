@@ -7,20 +7,10 @@ import icons.Icons
 import net.fallingangel.jimmerdto.psi.impl.DTOPsiImplUtil
 
 
-class DTOReference(private val element: PsiElement, range: TextRange) : PsiReferenceBase<PsiElement>(element, range), PsiPolyVariantReference {
-    private val name: String
-
-    init {
-        name = element.text.substring(range.startOffset, range.endOffset)
-    }
-
+class DTOPropReference(private val element: PsiElement, range: TextRange) : PsiReferenceBase<PsiElement>(element, range), PsiPolyVariantReference {
     override fun resolve(): PsiElement? {
         val results = multiResolve(false)
-        return if (results.isEmpty()) {
-            null
-        } else {
-            results[0].element
-        }
+        return results.getOrNull(0)?.element
     }
 
     override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
@@ -31,7 +21,7 @@ class DTOReference(private val element: PsiElement, range: TextRange) : PsiRefer
 
     override fun getVariants(): Array<Any> {
         return DTOPsiImplUtil.findDTOs(element)
-                .filter { it.dtoName.name.isNotBlank() }
+                .filter { it.dtoName.text.isNotBlank() }
                 .map {
                     LookupElementBuilder
                             .create(it)

@@ -72,11 +72,7 @@ dto ::= annotation* dto-modifier* dto-name dto-supers? dto-body {
 
 dto-modifier ::= MODIFIER
 
-dto-name ::= IDENTIFIER {
-    mixin="net.fallingangel.jimmerdto.psi.impl.DTONamedElementImpl"
-    implements="net.fallingangel.jimmerdto.psi.DTONamedElement"
-    methods=[getNameIdentifier getName setName]
-}
+dto-name ::= IDENTIFIER
 
 dto-supers ::= ":" dto-name ("," dto-name)* {
     pin = 1
@@ -110,6 +106,9 @@ replacement ::= IDENTIFIER
 
 positive-prop ::= annotation* "+"? prop-name prop-flags? prop-args? ("?" | "!")? ("as" prop-alias)? (enum-body | prop-body)? {
     pin = 3
+    mixin="net.fallingangel.jimmerdto.psi.impl.DTONamedElementImpl"
+    implements="net.fallingangel.jimmerdto.psi.DTONamedElement"
+    methods=[getNameIdentifier getName setName]
 }
 
 prop-name ::= IDENTIFIER
@@ -162,11 +161,7 @@ generic-args ::= "<" generic-arg ("," generic-arg)* ">" {
 generic-arg ::= "*" | MODIFIER? type-def
 
 /// GLOBAL ///
-qualified-name ::= qualified-name-part ("." qualified-name-part)* {
-    mixin="net.fallingangel.jimmerdto.psi.impl.DTONamedElementImpl"
-    implements="net.fallingangel.jimmerdto.psi.DTONamedElement"
-    methods=[getNameIdentifier getName setName]
-}
+qualified-name ::= qualified-name-part ("." qualified-name-part)*
 
 qualified-name-part ::= IDENTIFIER {
     pin = 1
