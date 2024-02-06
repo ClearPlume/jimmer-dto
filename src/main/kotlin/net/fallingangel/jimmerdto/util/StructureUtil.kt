@@ -3,10 +3,7 @@ package net.fallingangel.jimmerdto.util
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiElement
-import net.fallingangel.jimmerdto.psi.DTOAliasGroup
-import net.fallingangel.jimmerdto.psi.DTODto
-import net.fallingangel.jimmerdto.psi.DTOExport
-import net.fallingangel.jimmerdto.psi.DTOPositiveProp
+import net.fallingangel.jimmerdto.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import java.nio.file.Paths
 
@@ -17,7 +14,12 @@ import java.nio.file.Paths
  * 属性级结构：flat方法、as组等
  */
 val <T : PsiElement> T.haveUpper: Boolean
-    get() = parent.parent is DTOAliasGroup || parent.parent.parent.parent is DTOPositiveProp
+    get() {
+        if (this is DTOFile) {
+            return false
+        }
+        return parent.parent is DTOAliasGroup || parent.parent.parent.parent is DTOPositiveProp
+    }
 
 val <T : PsiElement> T.upper: PsiElement
     get() {
@@ -38,10 +40,11 @@ fun <T : PsiElement> T.propPath(): List<String> {
     } else if (this is DTOAliasGroup) {
         emptyList()
     } else {
-        throw UnsupportedOperationException("Only support find path for prop, alias-group")
+        println("Only support find path for prop, currently finding prop for <${this::class.simpleName}>")
+        emptyList()
     }
 
-    if (parent.parent.parent is DTODto) {
+    if (!haveUpper || parent.parent.parent is DTODto) {
         return propName
     }
     return upper.propPath() + propName
