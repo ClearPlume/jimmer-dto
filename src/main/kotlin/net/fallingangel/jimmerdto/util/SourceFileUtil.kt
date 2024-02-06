@@ -286,5 +286,5 @@ private fun KtClass.properties(): List<KtProperty> {
 private val KtSuperTypeListEntry.properties: List<KtProperty>
     get() {
         val context = analyze()
-        return context[BindingContext.TYPE, typeReference]?.clazz()?.getProperties() ?: emptyList()
+        return context[BindingContext.TYPE, typeReference]?.clazz()?.properties() ?: emptyList()
     }
