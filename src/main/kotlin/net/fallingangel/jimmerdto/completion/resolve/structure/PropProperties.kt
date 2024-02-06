@@ -4,7 +4,10 @@ import com.intellij.codeInsight.completion.CompletionUtilCore
 import net.fallingangel.jimmerdto.psi.DTOPositiveProp
 import net.fallingangel.jimmerdto.psi.DTOPropName
 import net.fallingangel.jimmerdto.structure.Property
-import net.fallingangel.jimmerdto.util.*
+import net.fallingangel.jimmerdto.util.haveUpper
+import net.fallingangel.jimmerdto.util.propPath
+import net.fallingangel.jimmerdto.util.properties
+import net.fallingangel.jimmerdto.util.virtualFile
 
 class PropProperties : Structure<DTOPropName, List<Property>> {
     /**
@@ -14,13 +17,14 @@ class PropProperties : Structure<DTOPropName, List<Property>> {
      */
     override fun value(element: DTOPropName): List<Property> {
         val prop = element.parent as DTOPositiveProp
+        val propPath = prop.propPath()
         return if (prop.haveUpper) {
             element.virtualFile.properties(
                 element.project,
-                if (element.text == CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED) {
-                    prop.propPath()
+                if (propPath.last() == CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED) {
+                    propPath - CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED
                 } else {
-                    prop.upper.propPath()
+                    propPath
                 }
             )
         } else {

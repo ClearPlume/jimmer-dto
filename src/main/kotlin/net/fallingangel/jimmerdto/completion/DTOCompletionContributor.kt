@@ -315,10 +315,6 @@ class DTOCompletionContributor : CompletionContributor() {
         )
     }
 
-    override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
-        super.fillCompletionVariants(parameters, result)
-    }
-
     private fun findUserPropType(file: PsiFile, isGeneric: Boolean = false): List<LookupElement> {
         val embeddedTypes = listOf(
             "Boolean",

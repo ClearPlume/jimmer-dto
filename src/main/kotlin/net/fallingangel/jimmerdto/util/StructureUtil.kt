@@ -1,6 +1,5 @@
 package net.fallingangel.jimmerdto.util
 
-import com.intellij.codeInsight.completion.CompletionUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiElement
@@ -10,9 +9,6 @@ import net.fallingangel.jimmerdto.psi.DTOExport
 import net.fallingangel.jimmerdto.psi.DTOPositiveProp
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import java.nio.file.Paths
-
-val DTOPositiveProp.name: String?
-    get() = propName.text.takeIf { it != CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED }
 
 /**
  * 元素是否包含上一层级的属性级结构
@@ -37,7 +33,7 @@ fun <T : PsiElement> T.propPath(): List<String> {
         if (name == "flat") {
             listOf(propArgs!!.valueList[0].text)
         } else {
-            name?.let { listOf(it) } ?: emptyList()
+            listOf(name)
         }
     } else if (this is DTOAliasGroup) {
         emptyList()
