@@ -27,6 +27,14 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.9 (2024-02-06)</b></p>
+    <ul>
+      <li><b>Bug Fix</b>Fixed the problem of not being able to get props in the kotlin entity tree</li>
+    </ul>
+    <ul>
+      <li><b>修复Bug</b>修正无法获取kotlin实体树中属性的问题</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.8 (2023-12-29)</b></p>
     <ul>
       <li><b>Bug Fix</b>Fixed the problem that deleting the generated dto class after saving the dto file did not take effect when export was specified in the dto file but not the package</li>
