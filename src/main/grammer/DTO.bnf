@@ -104,7 +104,7 @@ original ::= IDENTIFIER | "^"? IDENTIFIER? "$"?
 
 replacement ::= IDENTIFIER
 
-positive-prop ::= annotation* "+"? prop-name prop-flags? prop-args? ("?" | "!")? ("as" prop-alias)? (enum-body | prop-body)? {
+positive-prop ::= annotation* "+"? prop-name prop-flags? prop-args? ("?" | "!" | "*")? ("as" prop-alias)? (enum-body | prop-body)? {
     pin = 3
     mixin="net.fallingangel.jimmerdto.psi.impl.DTONamedElementImpl"
     implements="net.fallingangel.jimmerdto.psi.DTONamedElement"
@@ -113,24 +113,20 @@ positive-prop ::= annotation* "+"? prop-name prop-flags? prop-args? ("?" | "!")?
 
 prop-name ::= IDENTIFIER
 
-prop-flags ::= "/"? prop-flag* {
-    pin = 1
-}
-
-prop-flag ::= (case-insensitive | prefix | suffix)
+prop-flags ::= "/" "i$"? case-insensitive? prefix? suffix?
 
 case-insensitive ::= "i"
 
-prefix ::= "^"
+prefix ::= POWER
 
-suffix ::= "$"
+suffix ::= DOLLAR
 
 //prop-args ::= "(" (named-parameter | value) ("," (named-parameter | value))* ")"
 prop-args ::= "(" value ("," value)* ")"
 
 prop-alias ::= IDENTIFIER
 
-prop-body ::= annotation* dto-body "*"? {
+prop-body ::= annotation* dto-body {
     pin = 2
 }
 

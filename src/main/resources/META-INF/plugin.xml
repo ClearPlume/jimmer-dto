@@ -27,6 +27,16 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.10 (2024-02-07)</b></p>
+    <ul>
+      <li><b>Refactor</b>Adjustment of recursive prop</li>
+      <li><b>Bug Fix</b>Fix like function's mishandling of its modifiers</li>
+    </ul>
+    <ul>
+      <li><b>特性调整</b>调整递归属性</li>
+      <li><b>修复Bug</b>修正like函数对其修饰符的不当处理</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.9 (2024-02-06)</b></p>
     <ul>
       <li><b>Bug Fix</b>Fixed the problem of not being able to get props in the kotlin entity tree</li>
