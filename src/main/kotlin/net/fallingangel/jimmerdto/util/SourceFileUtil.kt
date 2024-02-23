@@ -261,7 +261,7 @@ private val KtAnnotationEntry.qualifiedName: String
         return context[BindingContext.ANNOTATION, this]?.fqName?.asString() ?: ""
     }
 
-private fun PsiClass.methods(): List<PsiMethod> {
+fun PsiClass.methods(): List<PsiMethod> {
     val supers = interfaces
             .filter { interfaceClass ->
                 interfaceClass.annotations.any {
@@ -271,7 +271,7 @@ private fun PsiClass.methods(): List<PsiMethod> {
     return methods.toList() + supers.map { it.methods() }.flatten()
 }
 
-private fun KtClass.properties(): List<KtProperty> {
+fun KtClass.properties(): List<KtProperty> {
     val supers = superTypeListEntries
             .filter { superType ->
                 val context = superType.analyze()

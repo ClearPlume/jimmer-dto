@@ -1,33 +1,25 @@
 package net.fallingangel.jimmerdto.reference
 
-import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.*
-import icons.Icons
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiReferenceBase
+import net.fallingangel.jimmerdto.psi.DTOPositiveProp
 import net.fallingangel.jimmerdto.psi.impl.DTOPsiImplUtil
+import net.fallingangel.jimmerdto.util.*
 
 
-class DTOPropReference(private val element: PsiElement, range: TextRange) : PsiReferenceBase<PsiElement>(element, range), PsiPolyVariantReference {
+class DTOPropReference(private val element: PsiElement, range: TextRange) : PsiReferenceBase<PsiElement>(element, range) {
     override fun resolve(): PsiElement? {
-        val results = multiResolve(false)
-        return results.getOrNull(0)?.element
-    }
-
-    override fun multiResolve(incompleteCode: Boolean): Array<ResolveResult> {
-        return DTOPsiImplUtil.findDTOs(element)
-                .map { PsiElementResolveResult(it) }
-                .toTypedArray()
-    }
-
-    override fun getVariants(): Array<Any> {
-        return DTOPsiImplUtil.findDTOs(element)
-                .filter { it.dtoName.text.isNotBlank() }
-                .map {
-                    LookupElementBuilder
-                            .create(it)
-                            .withIcon(Icons.icon_16)
-                            .withTypeText(it.containingFile.name)
-                }
-                .toTypedArray()
+        element as DTOPositiveProp
+        val propName = element.name
+        println("resolving reference: $propName")
+        val entityFile = element.virtualFile.entityFile(element.project) ?: throw IllegalStateException()
+        return if (entityFile.isJavaOrKotlin) {
+            val clazz = DTOPsiImplUtil.findPsiClass(element)
+            clazz.methods().find { it.name == propName }?.originalElement
+        } else {
+            val clazz = DTOPsiImplUtil.findKtClass(element)
+            clazz.properties().find { it.name == propName }?.originalElement
+        }
     }
 }

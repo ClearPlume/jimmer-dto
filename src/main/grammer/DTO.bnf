@@ -106,8 +106,8 @@ replacement ::= IDENTIFIER
 
 positive-prop ::= annotation* "+"? prop-name prop-flags? prop-args? ("?" | "!" | "*")? ("as" prop-alias)? (enum-body | prop-body)? {
     pin = 3
-    mixin="net.fallingangel.jimmerdto.psi.impl.DTONamedElementImpl"
-    implements="net.fallingangel.jimmerdto.psi.DTONamedElement"
+    implements="net.fallingangel.jimmerdto.psi.DTOElement"
+    mixin="net.fallingangel.jimmerdto.psi.impl.DTOElementImpl"
     methods=[getNameIdentifier getName setName]
 }
 
