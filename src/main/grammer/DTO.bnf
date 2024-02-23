@@ -113,13 +113,7 @@ positive-prop ::= annotation* "+"? prop-name prop-flags? prop-args? ("?" | "!" |
 
 prop-name ::= IDENTIFIER
 
-prop-flags ::= "/" "i$"? case-insensitive? prefix? suffix?
-
-case-insensitive ::= "i"
-
-prefix ::= POWER
-
-suffix ::= DOLLAR
+prop-flags ::= "/" "i$"? "i"? POWER? DOLLAR?
 
 //prop-args ::= "(" (named-parameter | value) ("," (named-parameter | value))* ")"
 prop-args ::= "(" value ("," value)* ")"
