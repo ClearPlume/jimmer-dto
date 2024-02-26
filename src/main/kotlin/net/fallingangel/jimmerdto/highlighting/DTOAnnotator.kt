@@ -149,11 +149,11 @@ class DTOAnnotator : Annotator {
                         val flatArg = upper.propArgs!!.valueList[0]
                         flatArg[StructureType.FlatProperties]
                     } else {
-                        o.propName[StructureType.PropProperties]
+                        o[StructureType.PropProperties]
                     }
                 }
             } else {
-                o.propName[StructureType.PropProperties]
+                o[StructureType.PropProperties]
             }
             availableProperties.find { it.name == propName } ?: o.propName.error()
         }

@@ -107,6 +107,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeProp() {
         complete(
             identifier.withParent(DTOPropName::class.java)
+                    .withSuperParent(2, DTOPositiveProp::class.java)
                     .withSuperParent(4, DTODtoBody::class.java)
                     .andOr(
                         identifier.withSuperParent(5, psiElement(DTODto::class.java)),
@@ -128,15 +129,16 @@ class DTOCompletionContributor : CompletionContributor() {
                     )
         ) { parameters, result ->
             result.addAllElements(bodyLookups())
+            val propName = parameters.parent<DTOPropName>()
             result.addAllElements(
-                parameters.parent<DTOPropName>()[StructureType.PropFunctions].lookUp {
+                propName[StructureType.PropFunctions].lookUp {
                     PrioritizedLookupElement.withPriority(
                         bold(),
                         90.0
                     )
                 }
             )
-            result.addAllElements(parameters.parent<DTOPropName>()[StructureType.PropProperties].lookUp())
+            result.addAllElements(propName.parent<DTOPositiveProp>()[StructureType.PropProperties].lookUp())
         }
     }
 
