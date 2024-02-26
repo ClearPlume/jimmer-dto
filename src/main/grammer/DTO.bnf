@@ -134,11 +134,11 @@ enum-instance ::= IDENTIFIER
 
 enum-instance-value ::= (INTEGER_CONSTANT | STRING_CONSTANT)
 
-negative-prop ::= "-" IDENTIFIER {
+negative-prop ::= "-" prop-name {
     pin = 1
 }
 
-user-prop ::= annotation* IDENTIFIER ":" type-def {
+user-prop ::= annotation* prop-name ":" type-def {
     pin = 3
 }
 

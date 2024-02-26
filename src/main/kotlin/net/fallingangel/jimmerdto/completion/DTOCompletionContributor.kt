@@ -145,10 +145,12 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeNegativeProp() {
         complete(
-            identifier.withParent(DTONegativeProp::class.java)
+            identifier.withParent(DTOPropName::class.java)
+                    .withSuperParent(2, DTONegativeProp::class.java)
                     .afterLeafSkipping(psiElement(TokenType.WHITE_SPACE), psiElement(DTOTypes.MINUS))
         ) { parameters, result ->
-            result.addAllElements(parameters.parent<DTONegativeProp>()[StructureType.PropNegativeProperties].lookUp())
+            val propName = parameters.parent<DTOPropName>()
+            result.addAllElements(propName.parent<DTONegativeProp>()[StructureType.PropNegativeProperties].lookUp())
         }
     }
 
@@ -436,5 +438,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
     private inline fun <reified T> CompletionParameters.parent(): T {
         return position.parent as T
+    }
+
+    private inline fun <reified T> PsiElement.parent(): T {
+        return parent as T
     }
 }

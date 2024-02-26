@@ -9,6 +9,7 @@ import com.intellij.ui.components.Label
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.psi.DTONegativeProp
 import net.fallingangel.jimmerdto.psi.DTOPositiveProp
 import net.fallingangel.jimmerdto.psi.DTOPropName
 import net.fallingangel.jimmerdto.util.get
@@ -42,6 +43,10 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
                         return true
                     }
 
+                    if (element.parent is DTONegativeProp) {
+                        return false
+                    }
+
                     val elementProp = element.parent as DTOPositiveProp
                     // 不是方法才走这个逻辑
                     val propArgs = elementProp.propArgs
@@ -70,7 +75,7 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
                             }
                         }
                     }
-                    return true
+                    return false
                 }
             }
         }
