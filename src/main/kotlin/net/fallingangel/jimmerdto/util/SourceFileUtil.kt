@@ -12,7 +12,6 @@ import com.intellij.psi.search.searches.AllClassesSearch
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtil
 import net.fallingangel.jimmerdto.Constant
-import net.fallingangel.jimmerdto.completion.resolve.structure.Structure
 import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
 import net.fallingangel.jimmerdto.psi.DTOExport
 import net.fallingangel.jimmerdto.structure.JavaNullableType
@@ -43,16 +42,8 @@ val VirtualFile.isJavaOrKotlin: Boolean
         return name.endsWith(".java")
     }
 
-val PsiElement.virtualFile: VirtualFile
-    get() = containingFile.originalFile.virtualFile
-
-operator fun <S : PsiElement, R, T : Structure<S, R>> S.get(type: T): R {
-    return type.value(this)
-}
-
 fun VirtualFile.psiFile(project: Project): PsiFile? {
-    return PsiManager.getInstance(project)
-            .findFile(this)
+    return PsiManager.getInstance(project).findFile(this)
 }
 
 /**

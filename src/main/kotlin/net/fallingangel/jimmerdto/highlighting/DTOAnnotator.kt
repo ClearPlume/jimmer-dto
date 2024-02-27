@@ -160,11 +160,11 @@ class DTOAnnotator : Annotator {
 
         override fun visitNegativeProp(o: DTONegativeProp) {
             val properties = o[StructureType.PropNegativeProperties]
-            if (properties.find { it.name == o.propName?.text } != null) {
+            if (properties.find { it.name == o.propName.text } != null) {
                 o.style(DTOSyntaxHighlighter.NOT_USED)
             } else {
                 o.firstChild.style(DTOSyntaxHighlighter.NOT_USED)
-                o.propName?.error()
+                o.propName.error()
             }
         }
 

@@ -27,7 +27,7 @@ class StartupServices : StartupActivity.Background {
                             if (type is DTOFileType) {
                                 PsiTreeUtil.getChildrenOfTypeAsList(dtoFile.psiFile(project), DTODto::class.java)
                                         .forEach dto@{ dto ->
-                                            val dtoClassFile = dto.classFile ?: return@dto
+                                            val dtoClassFile = dto.classFile() ?: return@dto
                                             WriteCommandAction.runWriteCommandAction(project) {
                                                 dtoClassFile.delete(this@StartupServices)
                                             }

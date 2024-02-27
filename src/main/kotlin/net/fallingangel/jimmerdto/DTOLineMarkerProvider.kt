@@ -24,7 +24,7 @@ class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
             val dtoName = dto.dtoName.text
 
             if (dto notModifiedBy Modifier.ABSTRACT) {
-                val dtoClassFile = dto.classFile ?: return
+                val dtoClassFile = dto.classFile() ?: return
                 val nameIdentifier = dtoClassFile.nameIdentifier(project) ?: return
                 result.add(
                     NavigationGutterIconBuilder.create(Icons.icon_16)

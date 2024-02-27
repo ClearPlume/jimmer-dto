@@ -44,7 +44,10 @@ tasks {
         targetCompatibility = "11"
     }
     withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "11"
+        kotlinOptions {
+            jvmTarget = "11"
+            freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
+        }
     }
 
     patchPluginXml {

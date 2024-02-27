@@ -16,6 +16,7 @@ import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.structure.Property
 import net.fallingangel.jimmerdto.util.get
+import net.fallingangel.jimmerdto.util.parent
 
 class DTOCompletionContributor : CompletionContributor() {
     private val identifier = psiElement(DTOTypes.IDENTIFIER)
@@ -440,9 +441,5 @@ class DTOCompletionContributor : CompletionContributor() {
 
     private inline fun <reified T> CompletionParameters.parent(): T {
         return position.parent as T
-    }
-
-    private inline fun <reified T> PsiElement.parent(): T {
-        return parent as T
     }
 }
