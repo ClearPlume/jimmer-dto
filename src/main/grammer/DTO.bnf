@@ -12,7 +12,7 @@
   elementTypeClass="net.fallingangel.jimmerdto.psi.DTOElementType"
   tokenTypeClass="net.fallingangel.jimmerdto.psi.DTOTokenType"
 
-  psiImplUtilClass="net.fallingangel.jimmerdto.psi.impl.DTOPsiImplUtil"
+  psiImplUtilClass="net.fallingangel.jimmerdto.util.DTOPsiUtil"
 
   tokens=[
     COMMA=","
@@ -107,6 +107,7 @@ replacement ::= IDENTIFIER
 positive-prop ::= annotation* "+"? prop-name prop-flags? prop-args? ("?" | "!" | "*")? ("as" prop-alias)? (enum-body | prop-body)? {
     pin = 3
     implements="net.fallingangel.jimmerdto.psi.mixin.DTOSingleProp"
+    mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTOSinglePropImpl"
 }
 
 prop-name ::= IDENTIFIER
@@ -135,6 +136,7 @@ enum-instance-value ::= (INTEGER_CONSTANT | STRING_CONSTANT)
 negative-prop ::= "-" prop-name {
     pin = 2
     implements="net.fallingangel.jimmerdto.psi.mixin.DTOSingleProp"
+    mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTOSinglePropImpl"
 }
 
 user-prop ::= annotation* prop-name ":" type-def {

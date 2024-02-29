@@ -5,7 +5,7 @@ import net.fallingangel.jimmerdto.enums.modifiedBy
 import net.fallingangel.jimmerdto.enums.notModifiedBy
 import net.fallingangel.jimmerdto.psi.DTODto
 import net.fallingangel.jimmerdto.psi.DTODtoSupers
-import net.fallingangel.jimmerdto.psi.impl.DTOPsiImplUtil
+import net.fallingangel.jimmerdto.util.DTOPsiUtil
 
 class DtoSupers : Structure<DTODtoSupers, List<String>> {
     /**
@@ -15,7 +15,7 @@ class DtoSupers : Structure<DTODtoSupers, List<String>> {
      */
     override fun value(element: DTODtoSupers): List<String> {
         val currentDto = element.parent as DTODto
-        val supers = DTOPsiImplUtil.findDTOs(element).filter { it.dtoName.text != currentDto.dtoName.text }
+        val supers = DTOPsiUtil.findDTOs(element).filter { it.dtoName.text != currentDto.dtoName.text }
 
         val availableSupers = if (currentDto modifiedBy Modifier.INPUT) {
             supers.filter { it modifiedBy Modifier.INPUT }

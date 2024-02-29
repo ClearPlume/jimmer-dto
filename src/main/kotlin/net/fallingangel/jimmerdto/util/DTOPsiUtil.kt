@@ -1,13 +1,13 @@
 @file:JvmName("DTOPsiImplUtil")
 
-package net.fallingangel.jimmerdto.psi.impl
+package net.fallingangel.jimmerdto.util
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import net.fallingangel.jimmerdto.psi.DTODto
 import net.fallingangel.jimmerdto.psi.DTOFile
 
-object DTOPsiImplUtil {
+object DTOPsiUtil {
     /**
      * 获取element元素所在dto文件中的所有DTO定义
      */
