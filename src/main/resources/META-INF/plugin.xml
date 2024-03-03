@@ -27,6 +27,14 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.11 (2024-03-03)</b></p>
+    <ul>
+      <li><b>Feature</b>Export package prompt</li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>export导包提示</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.10 (2024-02-07)</b></p>
     <ul>
       <li><b>Refactor</b>Adjustment of recursive prop</li>
