@@ -3,20 +3,30 @@ package net.fallingangel.jimmerdto.completion
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
+import com.intellij.icons.AllIcons
+import com.intellij.ide.highlighter.JavaFileType
+import com.intellij.lang.jvm.JvmModifier
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns.or
 import com.intellij.patterns.PlatformPatterns.psiElement
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.TokenType
+import com.intellij.psi.*
+import com.intellij.psi.search.FileTypeIndex
+import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
+import com.intellij.psi.util.prevLeafs
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.structure.Property
 import net.fallingangel.jimmerdto.util.get
+import net.fallingangel.jimmerdto.util.isFile
+import net.fallingangel.jimmerdto.util.isJavaOrKotlinSource
 import net.fallingangel.jimmerdto.util.parent
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.KotlinIcons
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.jetbrains.kotlin.psi.KtFile
 
 class DTOCompletionContributor : CompletionContributor() {
     private val identifier = psiElement(DTOTypes.IDENTIFIER)
@@ -54,6 +64,12 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // Flat方法体提示
         completeFlatBody()
+
+        // Export关键字提示
+        completeExportKeyword()
+
+        // Export包提示
+        completeExportPackage()
     }
 
     override fun beforeCompletion(context: CompletionInitializationContext) {
@@ -64,7 +80,6 @@ class DTOCompletionContributor : CompletionContributor() {
             parent is DTOEnumInstanceMapping
                     && element.prevSibling.elementType == DTOTypes.COLON -> context.dummyIdentifier = ""
 
-            parent is DTOQualifiedNamePart -> context.dummyIdentifier = ""
             parent is DTOMacroArgs
                     || parent.parent is DTOMacroArgs -> context.dummyIdentifier = ""
 
@@ -79,13 +94,14 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeUserPropType() {
         complete(
+            { parameters, result ->
+                result.addAllElements(findUserPropType(parameters.originalFile))
+            },
             identifier.withParent(DTOQualifiedNamePart::class.java)
                     .withSuperParent(2, psiElement(DTOQualifiedName::class.java))
                     .withSuperParent(3, DTOTypeDef::class.java)
                     .withSuperParent(4, DTOUserProp::class.java)
-        ) { parameters, result ->
-            result.addAllElements(findUserPropType(parameters.originalFile))
-        }
+        )
     }
 
     /**
@@ -93,13 +109,14 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeUserPropGenericType() {
         complete(
+            { parameters, result ->
+                result.addAllElements(findUserPropType(parameters.originalFile, true))
+            },
             identifier.withParent(DTOQualifiedNamePart::class.java)
                     .withSuperParent(2, psiElement(DTOQualifiedName::class.java))
                     .withSuperParent(3, DTOTypeDef::class.java)
                     .withSuperParent(4, DTOGenericArg::class.java)
-        ) { parameters, result ->
-            result.addAllElements(findUserPropType(parameters.originalFile, true))
-        }
+        )
     }
 
     /**
@@ -107,6 +124,19 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeProp() {
         complete(
+            { parameters, result ->
+                result.addAllElements(bodyLookups())
+                val propName = parameters.parent<DTOPropName>()
+                result.addAllElements(
+                    propName[StructureType.PropFunctions].lookUp {
+                        PrioritizedLookupElement.withPriority(
+                            bold(),
+                            90.0
+                        )
+                    }
+                )
+                result.addAllElements(propName.parent<DTOPositiveProp>()[StructureType.PropProperties].lookUp())
+            },
             identifier.withParent(DTOPropName::class.java)
                     .withSuperParent(2, DTOPositiveProp::class.java)
                     .withSuperParent(4, DTODtoBody::class.java)
@@ -128,19 +158,7 @@ class DTOCompletionContributor : CompletionContributor() {
                                     )
                         )
                     )
-        ) { parameters, result ->
-            result.addAllElements(bodyLookups())
-            val propName = parameters.parent<DTOPropName>()
-            result.addAllElements(
-                propName[StructureType.PropFunctions].lookUp {
-                    PrioritizedLookupElement.withPriority(
-                        bold(),
-                        90.0
-                    )
-                }
-            )
-            result.addAllElements(propName.parent<DTOPositiveProp>()[StructureType.PropProperties].lookUp())
-        }
+        )
     }
 
     /**
@@ -148,23 +166,32 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeNegativeProp() {
         complete(
+            { parameters, result ->
+                val propName = parameters.parent<DTOPropName>()
+                result.addAllElements(propName.parent<DTONegativeProp>()[StructureType.PropNegativeProperties].lookUp())
+            },
             identifier.withParent(DTOPropName::class.java)
                     .withSuperParent(2, DTONegativeProp::class.java)
                     .afterLeafSkipping(psiElement(TokenType.WHITE_SPACE), psiElement(DTOTypes.MINUS))
-        ) { parameters, result ->
-            val propName = parameters.parent<DTOPropName>()
-            result.addAllElements(propName.parent<DTONegativeProp>()[StructureType.PropNegativeProperties].lookUp())
-        }
+        )
     }
 
     /**
      * 宏提示
      */
     private fun completeMacro() {
-        complete(identifier.withParent(DTOMacroName::class.java)) { _, result ->
+        complete({ _, result ->
             result.addAllElements(listOf("allScalars").lookUp())
-        }
+        }, identifier.withParent(DTOMacroName::class.java))
         complete(
+            { parameters, result ->
+                val macroArgs = if (parameters.position.elementType == DTOTypes.THIS_KEYWORD) {
+                    parameters.parent<DTOMacroArgs>()
+                } else {
+                    parameters.parent<DTOQualifiedNamePart>().parent.parent as DTOMacroArgs
+                }
+                result.addAllElements(macroArgs[StructureType.MacroTypes].lookUp())
+            },
             or(
                 psiElement(DTOTypes.THIS_KEYWORD)
                         .withParent(DTOMacroArgs::class.java),
@@ -172,14 +199,7 @@ class DTOCompletionContributor : CompletionContributor() {
                         .withSuperParent(2, psiElement(DTOQualifiedName::class.java))
                         .withSuperParent(3, psiElement(DTOMacroArgs::class.java))
             )
-        ) { parameters, result ->
-            val macroArgs = if (parameters.position.elementType == DTOTypes.THIS_KEYWORD) {
-                parameters.parent<DTOMacroArgs>()
-            } else {
-                parameters.parent<DTOQualifiedNamePart>().parent.parent as DTOMacroArgs
-            }
-            result.addAllElements(macroArgs[StructureType.MacroTypes].lookUp())
-        }
+        )
     }
 
     /**
@@ -187,12 +207,13 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeExtend() {
         complete(
+            { parameters, result ->
+                val supers = parameters.parent<DTODtoName>().parent as DTODtoSupers
+                result.addAllElements(supers[StructureType.DtoSupers].lookUp())
+            },
             identifier.withParent(DTODtoName::class.java)
                     .withSuperParent(2, psiElement(DTODtoSupers::class.java))
-        ) { parameters, result ->
-            val supers = parameters.parent<DTODtoName>().parent as DTODtoSupers
-            result.addAllElements(supers[StructureType.DtoSupers].lookUp())
-        }
+        )
     }
 
     /**
@@ -200,11 +221,12 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeEnum() {
         complete(
+            { parameters, result ->
+                result.addAllElements(parameters.parent<DTOEnumInstance>()[StructureType.EnumValues].lookUp())
+            },
             identifier.withParent(DTOEnumInstance::class.java)
                     .withSuperParent(3, psiElement(DTOEnumBody::class.java))
-        ) { parameters, result ->
-            result.addAllElements(parameters.parent<DTOEnumInstance>()[StructureType.EnumValues].lookUp())
-        }
+        )
     }
 
     /**
@@ -212,16 +234,17 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeDtoModifier() {
         complete(
+            { parameters, result ->
+                result.addAllElements(
+                    parameters.parent<DTODtoName>()[StructureType.DtoModifiers].lookUp {
+                        PrioritizedLookupElement.withPriority(bold(), 100.0)
+                    }
+                )
+            },
             identifier.withParent(DTODtoName::class.java)
                     .withSuperParent(2, DTODto::class.java)
                     .withSuperParent(3, DTOFile::class.java)
-        ) { parameters, result ->
-            result.addAllElements(
-                parameters.parent<DTODtoName>()[StructureType.DtoModifiers].lookUp {
-                    PrioritizedLookupElement.withPriority(bold(), 100.0)
-                }
-            )
-        }
+        )
     }
 
     /**
@@ -229,6 +252,10 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeFunctionParameter() {
         complete(
+            { parameters, result ->
+                val propArgs = parameters.parent<DTOValue>().parent as DTOPropArgs
+                result.addAllElements(propArgs[StructureType.FunctionArgs].lookUp())
+            },
             identifier.withParent(DTOValue::class.java)
                     .withSuperParent(
                         2,
@@ -241,10 +268,7 @@ class DTOCompletionContributor : CompletionContributor() {
                                     psiElement(DTOPropName::class.java)
                                 )
                     )
-        ) { parameters, result ->
-            val propArgs = parameters.parent<DTOValue>().parent as DTOPropArgs
-            result.addAllElements(propArgs[StructureType.FunctionArgs].lookUp())
-        }
+        )
     }
 
     /**
@@ -252,6 +276,19 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeFlatBody() {
         complete(
+            { parameters, result ->
+                val flatArgs = (parameters.parent<DTOPropName>().parent.parent.parent.parent.parent as DTOPositiveProp).propArgs
+                result.addAllElements(flatArgs?.valueList?.get(0)?.get(StructureType.FlatProperties)?.lookUp() ?: emptyList())
+                result.addAllElements(
+                    parameters.parent<DTOPropName>()[StructureType.PropFunctions].lookUp {
+                        PrioritizedLookupElement.withPriority(
+                            bold(),
+                            90.0
+                        )
+                    }
+                )
+                result.addAllElements(bodyLookups())
+            },
             identifier.withParent(DTOPropName::class.java)
                     .withSuperParent(
                         5,
@@ -265,19 +302,7 @@ class DTOCompletionContributor : CompletionContributor() {
                                     psiElement(DTOPropName::class.java).withText("flat")
                                 )
                     )
-        ) { parameters, result ->
-            val flatArgs = (parameters.parent<DTOPropName>().parent.parent.parent.parent.parent as DTOPositiveProp).propArgs
-            result.addAllElements(flatArgs?.valueList?.get(0)?.get(StructureType.FlatProperties)?.lookUp() ?: emptyList())
-            result.addAllElements(
-                parameters.parent<DTOPropName>()[StructureType.PropFunctions].lookUp {
-                    PrioritizedLookupElement.withPriority(
-                        bold(),
-                        90.0
-                    )
-                }
-            )
-            result.addAllElements(bodyLookups())
-        }
+        )
     }
 
     /**
@@ -285,21 +310,135 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeAsBody() {
         complete(
+            { parameters, result ->
+                val macros = listOf(
+                    LookupInfo(
+                        "#allScalars[(Type+)]",
+                        "#allScalars",
+                        "macro"
+                    )
+                ).lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
+                result.addAllElements(macros)
+
+                val aliasGroup = parameters.parent<DTOPropName>().parent.parent.parent as DTOAliasGroup
+                result.addAllElements(aliasGroup[StructureType.AsProperties].lookUp())
+            },
             identifier.withParent(DTOPropName::class.java)
                     .withSuperParent(4, psiElement(DTOAliasGroup::class.java))
-        ) { parameters, result ->
-            val macros = listOf(
-                LookupInfo(
-                    "#allScalars[(Type+)]",
-                    "#allScalars",
-                    "macro"
-                )
-            ).lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
-            result.addAllElements(macros)
+        )
+    }
 
-            val aliasGroup = parameters.parent<DTOPropName>().parent.parent.parent as DTOAliasGroup
-            result.addAllElements(aliasGroup[StructureType.AsProperties].lookUp())
-        }
+    /**
+     * Export关键字提示
+     */
+    private fun completeExportKeyword() {
+        complete(
+            { _, result ->
+                result.addAllElements(
+                    listOf("export").lookUp {
+                        PrioritizedLookupElement.withPriority(bold(), 100.0)
+                    }
+                )
+            },
+            identifier.atStartOf(psiElement(DTOFile::class.java))
+        )
+    }
+
+
+    /**
+     * Export包提示
+     */
+    private fun completeExportPackage() {
+        complete(
+            { parameters, result ->
+                val export = parameters.position.parent.parent.parent.parent.parent<DTOExport>()
+                val project = export.project
+                val projectScope = ProjectScope.getProjectScope(project)
+
+                val exportedPackage = parameters.position.parent.prevLeafs
+                        .takeWhile { it.elementType != DTOTypes.EXPORT_KEYWORD }
+                        .filter { it.parent.elementType == DTOTypes.QUALIFIED_NAME_PART }
+                        .map { it.text }
+                        .toList()
+                        .reversed()
+                val packagePartNum = exportedPackage.size
+                val curPackage = exportedPackage.joinToString(".")
+
+                val allPackages = if (export.isJavaOrKotlinSource) {
+                    FileTypeIndex.getFiles(JavaFileType.INSTANCE, projectScope)
+                            .asSequence()
+                            .filter { it.isFile }
+                            .mapNotNull { it.toPsiFile(project) as? PsiJavaFile }
+                            .map { it.packageName }
+                            .distinct()
+                            .map { it.split('.') }
+                            .toList()
+                            .filter { it.size >= packagePartNum }
+                            .filter { it.joinToString(".").startsWith(curPackage) }
+                } else {
+                    FileTypeIndex.getFiles(KotlinFileType.INSTANCE, projectScope)
+                            .asSequence()
+                            .filter { it.isFile }
+                            .mapNotNull { (it.toPsiFile(project) as? KtFile)?.packageDirective?.fqName }
+                            .filterNot { it.isRoot }
+                            .map { it.asString() }
+                            .distinct()
+                            .map { it.split('.') }
+                            .toList()
+                            .filter { it.size >= packagePartNum }
+                            .filter { it.joinToString(".").startsWith(curPackage) }
+                }
+                val curPackageClasses = if (curPackage.isNotBlank()) {
+                    JavaPsiFacade.getInstance(project).findPackage(curPackage)?.classes?.toList() ?: emptyList()
+                } else {
+                    emptyList()
+                }
+                val availablePackages = if (curPackage.isNotBlank()) {
+                    allPackages.filterNot { it.size == packagePartNum }.map { it[packagePartNum] }.distinct()
+                } else {
+                    allPackages.map { it[packagePartNum] }.distinct()
+                }
+
+                val classes = curPackageClasses
+                        .map {
+                            @Suppress("UnstableApiUsage")
+                            LookupElementBuilder.create(it.name!!)
+                                    .withIcon(
+                                        if (export.isJavaOrKotlinSource) {
+                                            when {
+                                                it.isInterface -> AllIcons.Nodes.Interface
+                                                it.isRecord -> AllIcons.Nodes.Record
+                                                it.isAnnotationType -> AllIcons.Nodes.Annotationtype
+                                                it.isEnum -> AllIcons.Nodes.Enum
+
+                                                else -> if (it.hasModifier(JvmModifier.ABSTRACT)) {
+                                                    AllIcons.Nodes.AbstractClass
+                                                } else {
+                                                    AllIcons.Nodes.Class
+                                                }
+                                            }
+                                        } else {
+                                            when {
+                                                it.isInterface -> KotlinIcons.INTERFACE
+                                                it.isAnnotationType -> KotlinIcons.ANNOTATION
+                                                it.isEnum -> KotlinIcons.ENUM
+
+                                                else -> if (it.hasModifier(JvmModifier.ABSTRACT)) {
+                                                    KotlinIcons.ABSTRACT_CLASS
+                                                } else {
+                                                    KotlinIcons.CLASS
+                                                }
+                                            }
+                                        }
+                                    )
+                                    .withTypeText("(${it.qualifiedName!!.substringBeforeLast('.')})", true)
+                        }
+                val packages = availablePackages.map { LookupElementBuilder.create(it).withIcon(AllIcons.Nodes.Package) }
+                result.addAllElements(classes + packages)
+            },
+            identifier.withParent(DTOQualifiedNamePart::class.java)
+                    .withSuperParent(5, DTOExport::class.java)
+        )
     }
 
     /**
@@ -308,7 +447,7 @@ class DTOCompletionContributor : CompletionContributor() {
      * @param place 元素位置表达式
      * @param provider 内容提示
      */
-    private fun complete(place: ElementPattern<PsiElement>, provider: (CompletionParameters, CompletionResultSet) -> Unit) {
+    private fun complete(provider: (CompletionParameters, CompletionResultSet) -> Unit, place: ElementPattern<PsiElement>) {
         extend(
             CompletionType.BASIC,
             place,

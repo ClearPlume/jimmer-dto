@@ -1,23 +1,30 @@
 package net.fallingangel.jimmerdto.highlighting
 
+import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.editor.colors.TextAttributesKey
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiJavaFile
+import com.intellij.psi.search.FileTypeIndex
+import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.nextLeaf
 import com.intellij.psi.util.parentOfType
+import com.intellij.psi.util.prevLeafs
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PredicateFunction
 import net.fallingangel.jimmerdto.enums.modifiedBy
 import net.fallingangel.jimmerdto.psi.*
-import net.fallingangel.jimmerdto.util.get
-import net.fallingangel.jimmerdto.util.haveUpper
-import net.fallingangel.jimmerdto.util.upper
+import net.fallingangel.jimmerdto.util.*
+import org.jetbrains.kotlin.idea.KotlinFileType
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.jetbrains.kotlin.psi.KtFile
 
 /**
  * 部分代码结构的高亮
@@ -218,6 +225,62 @@ class DTOAnnotator : Annotator {
             }
             if (!valueTypeValid) {
                 o.enumInstanceValue?.error()
+            }
+        }
+
+        /**
+         * 为全限定类名的部分上色
+         */
+        override fun visitQualifiedNamePart(o: DTOQualifiedNamePart) {
+            val project = o.project
+            val projectScope = ProjectScope.getProjectScope(project)
+            val exportedPackage = o.prevLeafs
+                    .takeWhile { it.elementType != DTOTypes.EXPORT_KEYWORD }
+                    .filter { it.parent.elementType == DTOTypes.QUALIFIED_NAME_PART }
+                    .map { it.text }
+                    .toList()
+                    .reversed()
+            val packagePartNum = exportedPackage.size
+            val curPackage = exportedPackage.joinToString(".")
+
+            val allPackages = if (o.isJavaOrKotlinSource) {
+                FileTypeIndex.getFiles(JavaFileType.INSTANCE, projectScope)
+                        .asSequence()
+                        .filter { it.isFile }
+                        .mapNotNull { it.toPsiFile(project) as? PsiJavaFile }
+                        .map { it.packageName }
+                        .distinct()
+                        .map { it.split('.') }
+                        .toList()
+                        .filter { it.size >= packagePartNum }
+                        .filter { it.joinToString(".").startsWith(curPackage) }
+            } else {
+                FileTypeIndex.getFiles(KotlinFileType.INSTANCE, projectScope)
+                        .asSequence()
+                        .filter { it.isFile }
+                        .mapNotNull { (it.toPsiFile(project) as? KtFile)?.packageDirective?.fqName }
+                        .filterNot { it.isRoot }
+                        .map { it.asString() }
+                        .distinct()
+                        .map { it.split('.') }
+                        .toList()
+                        .filter { it.size >= packagePartNum }
+                        .filter { it.joinToString(".").startsWith(curPackage) }
+            }
+
+            val curPackageClasses = if (curPackage.isNotBlank()) {
+                JavaPsiFacade.getInstance(project).findPackage(curPackage)?.classes?.map { it.name!! } ?: emptyList()
+            } else {
+                emptyList()
+            }
+            val availablePackages = if (curPackage.isNotBlank()) {
+                allPackages.filterNot { it.size == packagePartNum }.map { it[packagePartNum] }.distinct()
+            } else {
+                allPackages.map { it[packagePartNum] }.distinct()
+            }
+
+            if (o.text !in (curPackageClasses + availablePackages)) {
+                o.error()
             }
         }
 
