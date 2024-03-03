@@ -13,7 +13,7 @@ import net.fallingangel.jimmerdto.psi.DTOTypes
 import net.fallingangel.jimmerdto.util.classFile
 import net.fallingangel.jimmerdto.util.nameIdentifier
 import net.fallingangel.jimmerdto.util.open
-import net.fallingangel.jimmerdto.util.psiFile
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
 
 class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
     override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<*>>) {
@@ -28,7 +28,7 @@ class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
                 val nameIdentifier = dtoClassFile.nameIdentifier(project) ?: return
                 result.add(
                     NavigationGutterIconBuilder.create(Icons.icon_16)
-                            .setTargets(dtoClassFile.psiFile(project))
+                            .setTargets(dtoClassFile.toPsiFile(project))
                             .setTooltipText("Jump to generated class [$dtoName]")
                             .createLineMarkerInfo(element) { _, _ -> dtoClassFile.open(project, nameIdentifier.textOffset) }
                 )

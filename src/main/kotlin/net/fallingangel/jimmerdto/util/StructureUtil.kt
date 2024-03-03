@@ -7,6 +7,7 @@ import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.completion.resolve.structure.Structure
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.psi.mixin.DTOSingleProp
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import java.nio.file.Paths
@@ -80,7 +81,7 @@ fun DTODto.classFile(): VirtualFile? {
     // 获取GenerateSource源码路径
     val generateRoot = generateRoot(this) ?: return null
     val fileManager = VirtualFileManager.getInstance()
-    val export = virtualFile.psiFile(project)?.getChildOfType<DTOExport>()
+    val export = virtualFile.toPsiFile(project)?.getChildOfType<DTOExport>()
     val `package` = export?.`package`
 
     val dtoPath = if (export != null) {

@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import net.fallingangel.jimmerdto.util.*
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.idea.refactoring.memberInfo.qualifiedClassNameForRendering
 
 class CreateJimmerDtoFile : AnAction() {
@@ -17,7 +18,7 @@ class CreateJimmerDtoFile : AnAction() {
         val entityName = qualifiedEntityName.substringAfterLast('.')
         val dtoFileName = "$entityPackage/$entityName.dto"
 
-        val dtoRoot = entityFile.psiFile(project)?.originalElement?.let { dtoRoot(it) } ?: return
+        val dtoRoot = entityFile.toPsiFile(project)?.originalElement?.let { dtoRoot(it) } ?: return
         val dtoFile = dtoRoot.findFile(dtoFileName)
 
         if (dtoFile != null) {

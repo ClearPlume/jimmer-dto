@@ -18,6 +18,7 @@ import net.fallingangel.jimmerdto.structure.JavaNullableType
 import net.fallingangel.jimmerdto.structure.Property
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
@@ -41,10 +42,6 @@ val VirtualFile.isJavaOrKotlin: Boolean
         }
         return name.endsWith(".java")
     }
-
-fun VirtualFile.psiFile(project: Project): PsiFile? {
-    return PsiManager.getInstance(project).findFile(this)
-}
 
 /**
  * 获取类文件中的类名Element
@@ -140,7 +137,7 @@ fun VirtualFile.supers(project: Project): List<String> {
  * 获取DTO文件对应的实体文件
  */
 fun VirtualFile.entityFile(project: Project): VirtualFile? {
-    val psiFile = psiFile(project) ?: return null
+    val psiFile = toPsiFile(project) ?: return null
     val export = psiFile.getChildOfType<DTOExport>()
 
     return if (export != null) {
@@ -173,7 +170,7 @@ fun VirtualFile.entityFile(project: Project): VirtualFile? {
  * @param propPath 进一步获取[propPath]属性的类型的类定义
  */
 fun VirtualFile.psiClass(project: Project, propPath: List<String> = emptyList()): PsiClass? {
-    val psiClass = psiFile(project)?.clazz<PsiClass>()
+    val psiClass = toPsiFile(project)?.clazz<PsiClass>()
     return if (propPath.isNotEmpty()) {
         psiClass?.prop(propPath, 0)?.returnType?.clazz()
     } else {
@@ -196,7 +193,7 @@ fun PsiClass.prop(propPath: List<String>, level: Int): PsiMethod? {
  * @param propPath 进一步获取[propPath]属性的类型的类定义
  */
 fun VirtualFile.ktClass(project: Project, propPath: List<String> = emptyList()): KtClass? {
-    val ktClass = psiFile(project)?.clazz<KtClass>()
+    val ktClass = toPsiFile(project)?.clazz<KtClass>()
     return if (propPath.isNotEmpty()) {
         val prop = ktClass?.prop(propPath, 0) ?: return null
         prop.analyze()[BindingContext.TYPE, prop.typeReference]?.clazz()

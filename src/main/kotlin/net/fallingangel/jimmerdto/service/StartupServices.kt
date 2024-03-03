@@ -10,7 +10,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import net.fallingangel.jimmerdto.DTOFileType
 import net.fallingangel.jimmerdto.psi.DTODto
 import net.fallingangel.jimmerdto.util.classFile
-import net.fallingangel.jimmerdto.util.psiFile
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
 
 class StartupServices : StartupActivity.Background {
     override fun runActivity(project: Project) {
@@ -25,7 +25,7 @@ class StartupServices : StartupActivity.Background {
                             val type = dtoFile.fileType
 
                             if (type is DTOFileType) {
-                                PsiTreeUtil.getChildrenOfTypeAsList(dtoFile.psiFile(project), DTODto::class.java)
+                                PsiTreeUtil.getChildrenOfTypeAsList(dtoFile.toPsiFile(project), DTODto::class.java)
                                         .forEach dto@{ dto ->
                                             val dtoClassFile = dto.classFile() ?: return@dto
                                             WriteCommandAction.runWriteCommandAction(project) {
