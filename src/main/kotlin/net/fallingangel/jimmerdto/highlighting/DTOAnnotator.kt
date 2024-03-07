@@ -232,6 +232,10 @@ class DTOAnnotator : Annotator {
          * 为全限定类名的部分上色
          */
         override fun visitQualifiedNamePart(o: DTOQualifiedNamePart) {
+            if (o.haveParent<DTOPackage>() || !o.haveParent<DTOExport>()) {
+                return
+            }
+
             val project = o.project
             val projectScope = ProjectScope.getProjectScope(project)
             val exportedPackage = o.prevLeafs

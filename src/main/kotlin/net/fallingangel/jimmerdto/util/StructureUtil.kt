@@ -4,6 +4,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.parentOfType
 import net.fallingangel.jimmerdto.completion.resolve.structure.Structure
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.psi.mixin.DTOSingleProp
@@ -37,6 +38,8 @@ val PsiElement.upper: PsiElement
 
 val PsiElement.virtualFile: VirtualFile
     get() = containingFile.originalFile.virtualFile
+
+inline fun <reified T : PsiElement> PsiElement.haveParent() = parentOfType<T>() != null
 
 fun <T : DTOSingleProp> T.psiClass(): PsiClass {
     val entityFile = virtualFile.entityFile(project) ?: throw IllegalStateException()
