@@ -47,7 +47,7 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
                         return false
                     }
 
-                    val elementProp = element.parent as DTOPositiveProp
+                    val elementProp = element.parent as? DTOPositiveProp ?: return false
                     // 不是方法才走这个逻辑
                     val propArgs = elementProp.propArgs
                     if (propArgs == null) {

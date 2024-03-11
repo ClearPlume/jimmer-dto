@@ -27,6 +27,14 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.13 (2024-03-11)</b></p>
+    <ul>
+      <li><b>Bug Fix</b>Fix the red flag caused by incomplete superior judgment condition for PropName in InlayHint.</li>
+    </ul>
+    <ul>
+      <li><b>修复Bug</b>修复InlayHint中对PropName的上级判断条件不全导致的报红</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.12 (2024-03-07)</b></p>
     <ul>
       <li><b>Bug Fix</b>Fix various red flags caused by incorrect handling of fully qualified names.</li>
