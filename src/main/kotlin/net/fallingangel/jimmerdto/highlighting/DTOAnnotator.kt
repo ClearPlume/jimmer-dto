@@ -4,7 +4,6 @@ import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.editor.colors.TextAttributesKey
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.elementType
@@ -15,7 +14,7 @@ import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.*
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.psi.*
-import net.fallingangel.jimmerdto.service.PsiPackageService
+import net.fallingangel.jimmerdto.service.PsiCacheService
 import net.fallingangel.jimmerdto.util.*
 
 /**
@@ -230,7 +229,7 @@ class DTOAnnotator : Annotator {
 
             val project = o.project
             val language = o.language()
-            val psiPackageService = PsiPackageService(project)
+            val psiCacheService = PsiCacheService(project)
 
             val exportedPackage = o.prevLeafs
                     .takeWhile { it.elementType != DTOTypes.EXPORT_KEYWORD }
@@ -242,14 +241,13 @@ class DTOAnnotator : Annotator {
             val curPackage = exportedPackage.joinToString(".")
 
             val allPackages = when (language) {
-                Language.Java -> psiPackageService.javaPackages()
-                Language.Kotlin -> psiPackageService.kotlinPackages()
+                Language.Java -> psiCacheService.javaPackages
+                Language.Kotlin -> psiCacheService.kotlinPackages
             }.filter { it.joinToString(".").startsWith(curPackage) && it.size >= packagePartNum }
 
-            val curPackageClasses = if (curPackage.isNotBlank()) {
-                JavaPsiFacade.getInstance(project).findPackage(curPackage)?.classes?.map { it.name!! } ?: emptyList()
-            } else {
-                emptyList()
+            val curPackageClasses = when (language) {
+                Language.Java -> psiCacheService.javaEntitiesByPackage(curPackage).map { it.name!! }
+                Language.Kotlin -> psiCacheService.kotlinEntitiesByPackage(curPackage).map { it.name!! }
             }
             val availablePackages = if (curPackage.isNotBlank()) {
                 allPackages.filterNot { it.size == packagePartNum }.map { it[packagePartNum] }.distinct()

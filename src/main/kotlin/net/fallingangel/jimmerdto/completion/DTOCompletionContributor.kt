@@ -4,11 +4,9 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
-import com.intellij.lang.jvm.JvmModifier
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns.or
 import com.intellij.patterns.PlatformPatterns.psiElement
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.TokenType
@@ -18,13 +16,10 @@ import com.intellij.psi.util.prevLeafs
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.Language
 import net.fallingangel.jimmerdto.psi.*
-import net.fallingangel.jimmerdto.service.PsiPackageService
+import net.fallingangel.jimmerdto.service.PsiCacheService
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.structure.Property
-import net.fallingangel.jimmerdto.util.get
-import net.fallingangel.jimmerdto.util.language
-import net.fallingangel.jimmerdto.util.parent
-import org.jetbrains.kotlin.idea.KotlinIcons
+import net.fallingangel.jimmerdto.util.*
 
 class DTOCompletionContributor : CompletionContributor() {
     private val identifier = psiElement(DTOTypes.IDENTIFIER)
@@ -352,7 +347,7 @@ class DTOCompletionContributor : CompletionContributor() {
                 val export = parameters.position.parent.parent.parent.parent.parent<DTOExport>()
                 val project = export.project
                 val language = export.language()
-                val psiPackageService = PsiPackageService(project)
+                val psiCacheService = PsiCacheService(project)
 
                 val exportedPackage = parameters.position.parent.prevLeafs
                         .takeWhile { it.elementType != DTOTypes.EXPORT_KEYWORD }
@@ -364,60 +359,37 @@ class DTOCompletionContributor : CompletionContributor() {
                 val curPackage = exportedPackage.joinToString(".")
 
                 val allPackages = when (language) {
-                    Language.Java -> psiPackageService.javaPackages()
-                    Language.Kotlin -> psiPackageService.kotlinPackages()
+                    Language.Java -> psiCacheService.javaPackages
+                    Language.Kotlin -> psiCacheService.kotlinPackages
                 }.filter { it.joinToString(".").startsWith(curPackage) && it.size >= packagePartNum }
-                val curPackageClasses = if (curPackage.isNotBlank()) {
-                    JavaPsiFacade.getInstance(project).findPackage(curPackage)?.classes?.toList() ?: emptyList()
-                } else {
-                    emptyList()
+
+                val curPackageClasses = when (language) {
+                    Language.Java -> {
+                        psiCacheService.javaEntitiesByPackage(curPackage)
+                                .map {
+                                    LookupElementBuilder.create(it.name!!)
+                                            .withIcon(it.icon)
+                                            .withTypeText("(${it.qualifiedName!!.substringBeforeLast('.')})", true)
+                                }
+                    }
+
+                    Language.Kotlin -> {
+                        psiCacheService.kotlinEntitiesByPackage(curPackage)
+                                .map {
+                                    LookupElementBuilder.create(it.name!!)
+                                            .withIcon(it.icon)
+                                            .withTypeText("(${it.qualifiedName.substringBeforeLast('.')})", true)
+                                }
+                    }
                 }
+
                 val availablePackages = if (curPackage.isNotBlank()) {
                     allPackages.filterNot { it.size == packagePartNum }.map { it[packagePartNum] }.distinct()
                 } else {
                     allPackages.map { it[packagePartNum] }.distinct()
-                }
+                }.map { LookupElementBuilder.create(it).withIcon(AllIcons.Nodes.Package) }
 
-                val classes = curPackageClasses
-                        .map {
-                            @Suppress("UnstableApiUsage")
-                            LookupElementBuilder.create(it.name!!)
-                                    .withIcon(
-                                        when (export.language()) {
-                                            Language.Java -> {
-                                                when {
-                                                    it.isInterface -> AllIcons.Nodes.Interface
-                                                    it.isRecord -> AllIcons.Nodes.Record
-                                                    it.isAnnotationType -> AllIcons.Nodes.Annotationtype
-                                                    it.isEnum -> AllIcons.Nodes.Enum
-
-                                                    else -> if (it.hasModifier(JvmModifier.ABSTRACT)) {
-                                                        AllIcons.Nodes.AbstractClass
-                                                    } else {
-                                                        AllIcons.Nodes.Class
-                                                    }
-                                                }
-                                            }
-
-                                            Language.Kotlin -> {
-                                                when {
-                                                    it.isInterface -> KotlinIcons.INTERFACE
-                                                    it.isAnnotationType -> KotlinIcons.ANNOTATION
-                                                    it.isEnum -> KotlinIcons.ENUM
-
-                                                    else -> if (it.hasModifier(JvmModifier.ABSTRACT)) {
-                                                        KotlinIcons.ABSTRACT_CLASS
-                                                    } else {
-                                                        KotlinIcons.CLASS
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    )
-                                    .withTypeText("(${it.qualifiedName!!.substringBeforeLast('.')})", true)
-                        }
-                val packages = availablePackages.map { LookupElementBuilder.create(it).withIcon(AllIcons.Nodes.Package) }
-                result.addAllElements(classes + packages)
+                result.addAllElements(curPackageClasses + availablePackages)
             },
             identifier.withParent(DTOQualifiedNamePart::class.java)
                     .withSuperParent(5, DTOExport::class.java)
