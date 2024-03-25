@@ -27,6 +27,16 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.14 (2024-03-11)</b></p>
+    <ul>
+      <li><b>Removal</b>Due to the existence of 'export', this feature 'CreateOrJumpToJimmerDtoFile' is no longer useful and will be removed in 0.0.8.</li>
+      <li><b>Refactor</b>Use caching to reduce performance overhead when parsing entities, packages</li>
+    </ul>
+    <ul>
+      <li><b>计划移除</b>由于『export』的存在，功能『CreateOrJumpToJimmerDtoFile』已经没有实际意义，将于0.0.8移除</li>
+      <li><b>特性调整</b>使用缓存，减少解析实体、包时的性能耗费</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.13 (2024-03-11)</b></p>
     <ul>
       <li><b>Bug Fix</b>Fix the red flag caused by incomplete superior judgment condition for PropName in InlayHint.</li>
