@@ -2,6 +2,7 @@ package net.fallingangel.jimmerdto.completion.resolve.structure
 
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiEnumConstant
+import net.fallingangel.jimmerdto.enums.Language
 import net.fallingangel.jimmerdto.psi.DTOEnumInstance
 import net.fallingangel.jimmerdto.psi.DTOPositiveProp
 import net.fallingangel.jimmerdto.util.*
@@ -19,10 +20,14 @@ class EnumValues : Structure<DTOEnumInstance, List<String>> {
         val enumProp = element.parent.parent.parent as DTOPositiveProp
         val classFile = element.virtualFile.entityFile(project) ?: return emptyList()
 
-        return if (classFile.isJavaOrKotlin) {
-            classFile.psiClass(project, enumProp.propPath())?.enums ?: return emptyList()
-        } else {
-            classFile.ktClass(project, enumProp.propPath())?.enums ?: return emptyList()
+        return when (classFile.language) {
+            Language.Java -> {
+                classFile.psiClass(project, enumProp.propPath())?.enums ?: return emptyList()
+            }
+
+            Language.Kotlin -> {
+                classFile.ktClass(project, enumProp.propPath())?.enums ?: return emptyList()
+            }
         }
     }
 

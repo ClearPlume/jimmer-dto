@@ -2,6 +2,7 @@ package net.fallingangel.jimmerdto
 
 import com.intellij.navigation.DirectNavigationProvider
 import com.intellij.psi.PsiElement
+import net.fallingangel.jimmerdto.enums.Language
 import net.fallingangel.jimmerdto.psi.DTOPositiveProp
 import net.fallingangel.jimmerdto.psi.DTOPropName
 import net.fallingangel.jimmerdto.psi.DTOValue
@@ -40,12 +41,16 @@ class DTONavigationProvider : DirectNavigationProvider {
 
     private fun navigating(prop: DTOSingleProp, propName: String): PsiElement? {
         val entityFile = prop.virtualFile.entityFile(prop.project) ?: throw IllegalStateException()
-        return if (entityFile.isJavaOrKotlin) {
-            val clazz = prop.psiClass()
-            clazz.methods().find { it.name == propName }
-        } else {
-            val clazz = prop.ktClass()
-            clazz.properties().find { it.name == propName }
+        return when (entityFile.language) {
+            Language.Java -> {
+                val clazz = prop.psiClass()
+                clazz.methods().find { it.name == propName }
+            }
+
+            Language.Kotlin -> {
+                val clazz = prop.ktClass()
+                clazz.properties().find { it.name == propName }
+            }
         }
     }
 }

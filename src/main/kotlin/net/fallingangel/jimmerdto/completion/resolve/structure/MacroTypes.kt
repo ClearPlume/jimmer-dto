@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto.completion.resolve.structure
 
+import net.fallingangel.jimmerdto.enums.Language
 import net.fallingangel.jimmerdto.psi.DTOMacroArgs
 import net.fallingangel.jimmerdto.util.*
 
@@ -18,10 +19,14 @@ class MacroTypes : Structure<DTOMacroArgs, List<String>> {
         } else {
             emptyList()
         }
-        val propClassFile = if (entityFile.isJavaOrKotlin) {
-            entityFile.psiClass(project, propPath)?.virtualFile ?: return emptyList()
-        } else {
-            entityFile.ktClass(project, propPath)?.virtualFile ?: return emptyList()
+        val propClassFile = when (entityFile.language) {
+            Language.Java -> {
+                entityFile.psiClass(project, propPath)?.virtualFile ?: return emptyList()
+            }
+
+            Language.Kotlin -> {
+                entityFile.ktClass(project, propPath)?.virtualFile ?: return emptyList()
+            }
         }
         return propClassFile.supers(project) + "this" + propClassFile.name.substringBeforeLast('.')
     }

@@ -1,21 +1,35 @@
 package net.fallingangel.jimmerdto.util
 
+import com.intellij.facet.FacetManager
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiElement
+import net.fallingangel.jimmerdto.enums.Language
+import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
 import org.jetbrains.jps.model.java.JavaSourceRootType
+import org.jetbrains.kotlin.idea.facet.KotlinFacetType
+import org.jetbrains.kotlin.idea.util.projectStructure.module
 
-val PsiElement.isJavaOrKotlinSource: Boolean
+val Module.language: Language
     get() {
-        val sourceRoot = sourceRoot(this)!!.path
-        return if ("src/main/java" in sourceRoot) {
-            true
-        } else if ("src/main/kotlin" in sourceRoot) {
-            false
-        } else {
-            throw IllegalStateException("Cannot determine source type is Java or Kotlin: $sourceRoot")
+        val facetManager = FacetManager.getInstance(this)
+        if (facetManager.getFacetByType(KotlinFacetType.TYPE_ID) != null) {
+            return Language.Kotlin
+        }
+        return Language.Java
+    }
+
+fun PsiElement.language(): Language = module!!.language
+
+val VirtualFile.language: Language
+    get() {
+        return when (val fileType = extension) {
+            "java" -> Language.Java
+            "kt" -> Language.Kotlin
+            else -> throw IllegalFileFormatException(fileType ?: "<no-type>")
         }
     }
 

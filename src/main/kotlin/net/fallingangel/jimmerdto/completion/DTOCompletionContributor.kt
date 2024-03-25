@@ -4,29 +4,27 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
-import com.intellij.ide.highlighter.JavaFileType
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns.or
 import com.intellij.patterns.PlatformPatterns.psiElement
-import com.intellij.psi.*
-import com.intellij.psi.search.FileTypeIndex
-import com.intellij.psi.search.ProjectScope
+import com.intellij.psi.JavaPsiFacade
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.TokenType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.prevLeafs
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
+import net.fallingangel.jimmerdto.enums.Language
 import net.fallingangel.jimmerdto.psi.*
+import net.fallingangel.jimmerdto.service.PsiPackageService
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.structure.Property
 import net.fallingangel.jimmerdto.util.get
-import net.fallingangel.jimmerdto.util.isFile
-import net.fallingangel.jimmerdto.util.isJavaOrKotlinSource
+import net.fallingangel.jimmerdto.util.language
 import net.fallingangel.jimmerdto.util.parent
-import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.KotlinIcons
-import org.jetbrains.kotlin.idea.core.util.toPsiFile
-import org.jetbrains.kotlin.psi.KtFile
 
 class DTOCompletionContributor : CompletionContributor() {
     private val identifier = psiElement(DTOTypes.IDENTIFIER)
@@ -353,7 +351,8 @@ class DTOCompletionContributor : CompletionContributor() {
             { parameters, result ->
                 val export = parameters.position.parent.parent.parent.parent.parent<DTOExport>()
                 val project = export.project
-                val projectScope = ProjectScope.getProjectScope(project)
+                val language = export.language()
+                val psiPackageService = PsiPackageService(project)
 
                 val exportedPackage = parameters.position.parent.prevLeafs
                         .takeWhile { it.elementType != DTOTypes.EXPORT_KEYWORD }
@@ -364,30 +363,10 @@ class DTOCompletionContributor : CompletionContributor() {
                 val packagePartNum = exportedPackage.size
                 val curPackage = exportedPackage.joinToString(".")
 
-                val allPackages = if (export.isJavaOrKotlinSource) {
-                    FileTypeIndex.getFiles(JavaFileType.INSTANCE, projectScope)
-                            .asSequence()
-                            .filter { it.isFile }
-                            .mapNotNull { it.toPsiFile(project) as? PsiJavaFile }
-                            .map { it.packageName }
-                            .distinct()
-                            .map { it.split('.') }
-                            .toList()
-                            .filter { it.size >= packagePartNum }
-                            .filter { it.joinToString(".").startsWith(curPackage) }
-                } else {
-                    FileTypeIndex.getFiles(KotlinFileType.INSTANCE, projectScope)
-                            .asSequence()
-                            .filter { it.isFile }
-                            .mapNotNull { (it.toPsiFile(project) as? KtFile)?.packageDirective?.fqName }
-                            .filterNot { it.isRoot }
-                            .map { it.asString() }
-                            .distinct()
-                            .map { it.split('.') }
-                            .toList()
-                            .filter { it.size >= packagePartNum }
-                            .filter { it.joinToString(".").startsWith(curPackage) }
-                }
+                val allPackages = when (language) {
+                    Language.Java -> psiPackageService.javaPackages()
+                    Language.Kotlin -> psiPackageService.kotlinPackages()
+                }.filter { it.joinToString(".").startsWith(curPackage) && it.size >= packagePartNum }
                 val curPackageClasses = if (curPackage.isNotBlank()) {
                     JavaPsiFacade.getInstance(project).findPackage(curPackage)?.classes?.toList() ?: emptyList()
                 } else {
@@ -404,29 +383,33 @@ class DTOCompletionContributor : CompletionContributor() {
                             @Suppress("UnstableApiUsage")
                             LookupElementBuilder.create(it.name!!)
                                     .withIcon(
-                                        if (export.isJavaOrKotlinSource) {
-                                            when {
-                                                it.isInterface -> AllIcons.Nodes.Interface
-                                                it.isRecord -> AllIcons.Nodes.Record
-                                                it.isAnnotationType -> AllIcons.Nodes.Annotationtype
-                                                it.isEnum -> AllIcons.Nodes.Enum
+                                        when (export.language()) {
+                                            Language.Java -> {
+                                                when {
+                                                    it.isInterface -> AllIcons.Nodes.Interface
+                                                    it.isRecord -> AllIcons.Nodes.Record
+                                                    it.isAnnotationType -> AllIcons.Nodes.Annotationtype
+                                                    it.isEnum -> AllIcons.Nodes.Enum
 
-                                                else -> if (it.hasModifier(JvmModifier.ABSTRACT)) {
-                                                    AllIcons.Nodes.AbstractClass
-                                                } else {
-                                                    AllIcons.Nodes.Class
+                                                    else -> if (it.hasModifier(JvmModifier.ABSTRACT)) {
+                                                        AllIcons.Nodes.AbstractClass
+                                                    } else {
+                                                        AllIcons.Nodes.Class
+                                                    }
                                                 }
                                             }
-                                        } else {
-                                            when {
-                                                it.isInterface -> KotlinIcons.INTERFACE
-                                                it.isAnnotationType -> KotlinIcons.ANNOTATION
-                                                it.isEnum -> KotlinIcons.ENUM
 
-                                                else -> if (it.hasModifier(JvmModifier.ABSTRACT)) {
-                                                    KotlinIcons.ABSTRACT_CLASS
-                                                } else {
-                                                    KotlinIcons.CLASS
+                                            Language.Kotlin -> {
+                                                when {
+                                                    it.isInterface -> KotlinIcons.INTERFACE
+                                                    it.isAnnotationType -> KotlinIcons.ANNOTATION
+                                                    it.isEnum -> KotlinIcons.ENUM
+
+                                                    else -> if (it.hasModifier(JvmModifier.ABSTRACT)) {
+                                                        KotlinIcons.ABSTRACT_CLASS
+                                                    } else {
+                                                        KotlinIcons.CLASS
+                                                    }
                                                 }
                                             }
                                         }

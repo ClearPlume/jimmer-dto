@@ -12,6 +12,7 @@ import com.intellij.psi.search.searches.AllClassesSearch
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtil
 import net.fallingangel.jimmerdto.Constant
+import net.fallingangel.jimmerdto.enums.Language
 import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
 import net.fallingangel.jimmerdto.psi.DTOExport
 import net.fallingangel.jimmerdto.structure.JavaNullableType
@@ -31,27 +32,18 @@ import org.jetbrains.kotlin.types.KotlinType
 import java.nio.file.Paths
 
 /**
- * true if this file is a java file,
- * false if this file is a kotlin file
- */
-val VirtualFile.isJavaOrKotlin: Boolean
-    get() {
-        val fileType = name.substringAfterLast('.')
-        if (fileType !in arrayOf("java", "kt")) {
-            throw IllegalFileFormatException(fileType)
-        }
-        return name.endsWith(".java")
-    }
-
-/**
  * 获取类文件中的类名Element
  */
 fun VirtualFile.nameIdentifier(project: Project): PsiNameIdentifierOwner? {
     return try {
-        if (isJavaOrKotlin) {
-            psiClass(project)
-        } else {
-            ktClass(project)
+        when (language) {
+            Language.Java -> {
+                psiClass(project)
+            }
+
+            Language.Kotlin -> {
+                ktClass(project)
+            }
         }
     } catch (e: IllegalFileFormatException) {
         null
@@ -63,10 +55,14 @@ fun VirtualFile.nameIdentifier(project: Project): PsiNameIdentifierOwner? {
  */
 fun VirtualFile.annotations(project: Project): List<String> {
     val annotations = try {
-        if (isJavaOrKotlin) {
-            psiClass(project)?.annotations?.map { it.qualifiedName ?: "" }
-        } else {
-            ktClass(project)?.annotationEntries?.map(KtAnnotationEntry::qualifiedName)
+        when (language) {
+            Language.Java -> {
+                psiClass(project)?.annotations?.map { it.qualifiedName ?: "" }
+            }
+
+            Language.Kotlin -> {
+                ktClass(project)?.annotationEntries?.map(KtAnnotationEntry::qualifiedName)
+            }
         }
     } catch (e: IllegalFileFormatException) {
         emptyList()
@@ -80,31 +76,36 @@ fun VirtualFile.annotations(project: Project): List<String> {
 fun VirtualFile.properties(project: Project, propPath: List<String> = emptyList()): List<Property> {
     val classFile = entityFile(project) ?: return emptyList()
     val properties = try {
-        if (classFile.isJavaOrKotlin) {
-            classFile.psiClass(project, propPath)
-                    ?.methods()
-                    ?.map { property ->
-                        val annotatedNullable = property.annotations.any { it.qualifiedName?.substringAfterLast('.') in arrayOf("Null", "Nullable") }
-                        val returnType = property.returnType ?: return emptyList()
-                        Property(
-                            property.name,
-                            returnType.presentableText,
-                            annotatedNullable || returnType.nullable,
-                            property.annotations.map { it.qualifiedName ?: "" }
-                        )
-                    }
-        } else {
-            classFile.ktClass(project, propPath)
-                    ?.properties()
-                    ?.map { property ->
-                        val type = property.type()!!
-                        Property(
-                            property.name!!,
-                            type.toString(),
-                            type.isMarkedNullable,
-                            property.annotationEntries.map(KtAnnotationEntry::qualifiedName)
-                        )
-                    }
+        when (classFile.language) {
+            Language.Java -> {
+                classFile.psiClass(project, propPath)
+                        ?.methods()
+                        ?.map { property ->
+                            val annotatedNullable =
+                                property.annotations.any { it.qualifiedName?.substringAfterLast('.') in arrayOf("Null", "Nullable") }
+                            val returnType = property.returnType ?: return emptyList()
+                            Property(
+                                property.name,
+                                returnType.presentableText,
+                                annotatedNullable || returnType.nullable,
+                                property.annotations.map { it.qualifiedName ?: "" }
+                            )
+                        }
+            }
+
+            Language.Kotlin -> {
+                classFile.ktClass(project, propPath)
+                        ?.properties()
+                        ?.map { property ->
+                            val type = property.type()!!
+                            Property(
+                                property.name!!,
+                                type.toString(),
+                                type.isMarkedNullable,
+                                property.annotationEntries.map(KtAnnotationEntry::qualifiedName)
+                            )
+                        }
+            }
         }
     } catch (e: IllegalFileFormatException) {
         null
@@ -117,15 +118,19 @@ fun VirtualFile.properties(project: Project, propPath: List<String> = emptyList(
  */
 fun VirtualFile.supers(project: Project): List<String> {
     val supers = try {
-        if (isJavaOrKotlin) {
-            psiClass(project)
-                    ?.supers
-                    ?.map { it.name ?: "" }
-                    ?.filter { it != "Object" }
-        } else {
-            ktClass(project)
-                    ?.superTypeListEntries
-                    ?.map(KtSuperTypeListEntry::getText)
+        when (language) {
+            Language.Java -> {
+                psiClass(project)
+                        ?.supers
+                        ?.map { it.name ?: "" }
+                        ?.filter { it != "Object" }
+            }
+
+            Language.Kotlin -> {
+                ktClass(project)
+                        ?.superTypeListEntries
+                        ?.map(KtSuperTypeListEntry::getText)
+            }
         }
     } catch (e: IllegalFileFormatException) {
         null
