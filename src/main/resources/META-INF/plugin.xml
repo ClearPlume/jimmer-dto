@@ -307,5 +307,7 @@
         <codeInsight.inlayProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOInlayHintProvider"/>
 
         <backgroundPostStartupActivity implementation="net.fallingangel.jimmerdto.service.StartupServices"/>
+
+        <notificationGroup id="JimmerDTO Notification Group" displayType="BALLOON"/>
     </extensions>
 </idea-plugin>
