@@ -40,9 +40,6 @@ class DTOCompletionContributor : CompletionContributor() {
         // 宏提示
         completeMacro()
 
-        // 继承提示
-        completeExtend()
-
         // 枚举提示
         completeEnum()
 
@@ -77,7 +74,6 @@ class DTOCompletionContributor : CompletionContributor() {
                     || parent.parent is DTOMacroArgs -> context.dummyIdentifier = ""
 
             parent.parent is DTOPropArgs -> context.dummyIdentifier = ""
-            parent.parent is DTODtoSupers -> context.dummyIdentifier = ""
             else -> return
         }
     }
@@ -192,20 +188,6 @@ class DTOCompletionContributor : CompletionContributor() {
                         .withSuperParent(2, psiElement(DTOQualifiedName::class.java))
                         .withSuperParent(3, psiElement(DTOMacroArgs::class.java))
             )
-        )
-    }
-
-    /**
-     * Dto继承提示
-     */
-    private fun completeExtend() {
-        complete(
-            { parameters, result ->
-                val supers = parameters.parent<DTODtoName>().parent as DTODtoSupers
-                result.addAllElements(supers[StructureType.DtoSupers].lookUp())
-            },
-            identifier.withParent(DTODtoName::class.java)
-                    .withSuperParent(2, psiElement(DTODtoSupers::class.java))
         )
     }
 

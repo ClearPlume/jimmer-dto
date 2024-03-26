@@ -66,17 +66,13 @@ import ::= "import" qualified-type grouped-types?
 
 grouped-types ::= "." "{" qualified-type ("," qualified-type)* "}"
 
-dto ::= annotation* dto-modifier* dto-name dto-supers? dto-body {
+dto ::= annotation* dto-modifier* dto-name dto-body {
     pin = 3
 }
 
 dto-modifier ::= MODIFIER
 
 dto-name ::= IDENTIFIER
-
-dto-supers ::= ":" dto-name ("," dto-name)* {
-    pin = 1
-}
 
 dto-body ::= "{" explicit-prop* "}"
 

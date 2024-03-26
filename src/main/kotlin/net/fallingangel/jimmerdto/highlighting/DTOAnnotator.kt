@@ -175,25 +175,6 @@ class DTOAnnotator : Annotator {
         }
 
         /**
-         * 为Dto名称或其父级实体上色
-         */
-        override fun visitDtoName(o: DTODtoName) {
-            val parent = o.parent
-            if (parent is DTODtoSupers) {
-                val availableSupers = parent[StructureType.DtoSupers]
-
-                for (superDto in parent.dtoNameList) {
-                    if (parent.dtoNameList.count { it.text == o.text } != 1) {
-                        o.error(DTOSyntaxHighlighter.DUPLICATION)
-                    }
-                    if (o.text !in availableSupers) {
-                        o.error()
-                    }
-                }
-            }
-        }
-
-        /**
          * 为枚举映射上色
          */
         override fun visitEnumInstanceMapping(o: DTOEnumInstanceMapping) {
