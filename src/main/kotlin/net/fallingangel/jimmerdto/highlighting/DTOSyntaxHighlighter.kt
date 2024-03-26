@@ -25,6 +25,8 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
             DTOTypes.EXPORT_KEYWORD,
             DTOTypes.PACKAGE_KEYWORD,
             DTOTypes.IMPORT_KEYWORD,
+            DTOTypes.CLASS_KEYWORD,
+            DTOTypes.IMPLEMENTS_KEYWORD,
             DTOTypes.BOOLEAN_CONSTANT,
             DTOTypes.NULL_CONSTANT -> arrayOf(KEYWORD)
 

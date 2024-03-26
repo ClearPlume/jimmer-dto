@@ -48,6 +48,7 @@
     THIS_KEYWORD="this"
     AS_KEYWORD="as"
     CLASS_KEYWORD="class"
+    IMPLEMENTS_KEYWORD="implements"
 
     BOOLEAN_CONSTANT="regexp:true|false"
     NULL_CONSTANT="null"
@@ -68,7 +69,7 @@ import ::= "import" qualified-type grouped-types?
 
 grouped-types ::= "." "{" qualified-type ("," qualified-type)* "}"
 
-dto ::= annotation* dto-modifier* dto-name dto-body {
+dto ::= annotation* dto-modifier* dto-name interfaces? dto-body {
     pin = 3
 }
 
@@ -102,7 +103,7 @@ original ::= IDENTIFIER | "^"? IDENTIFIER? "$"?
 
 replacement ::= IDENTIFIER
 
-positive-prop ::= annotation* "+"? prop-name prop-flags? prop-args? ("?" | "!" | "*")? ("as" prop-alias)? (enum-body | prop-body)? {
+positive-prop ::= annotation* "+"? prop-name prop-flags? prop-args? ("?" | "!" | "*")? ("as" prop-alias)? interfaces? (enum-body | prop-body)? {
     pin = 3
     implements="net.fallingangel.jimmerdto.psi.mixin.DTOSingleProp"
     mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTOSinglePropImpl"
@@ -141,8 +142,6 @@ user-prop ::= annotation* prop-name ":" type-def {
     pin = 3
 }
 
-type-def ::= qualified-name generic-args? "?"?
-
 generic-args ::= "<" generic-arg ("," generic-arg)* ">" {
     pin = 1
 }
@@ -174,7 +173,7 @@ value ::= CHAR_CONSTANT | STRING_CONSTANT |
 
 enum-value ::= IDENTIFIER ("." IDENTIFIER)+
 
-class-value ::= qualified-name ("." | "::") "class"
+class-value ::= qualified-name "?"? ("." | "::") "class"
 
 array-value ::= "[" (value ("," value)*)? "]" | "{" (value ("," value)*)? "}"
 
@@ -194,3 +193,7 @@ annotation-value ::= CHAR_CONSTANT | STRING_CONSTANT |
              annotation | nest-annotation | class-value | enum-value | annotation-array-value
 
 annotation-array-value ::= "[" (annotation-value ("," annotation-value)*)? "]" | "{" (annotation-value ("," annotation-value)*)? "}"
+
+type-def ::= qualified-name generic-args? "?"?
+
+interfaces ::= "implements" type-def ("," type-def)*
