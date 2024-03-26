@@ -31,6 +31,7 @@
     DOLLAR="$"
     ARROW="->"
     SLASH="/"
+    CLASS_REFERENCE="::"
     PAREN_L="("
     PAREN_R=")"
     BRACKET_L="["
@@ -46,6 +47,7 @@
     IMPORT_KEYWORD="import"
     THIS_KEYWORD="this"
     AS_KEYWORD="as"
+    CLASS_KEYWORD="class"
 
     BOOLEAN_CONSTANT="regexp:true|false"
     NULL_CONSTANT="null"
@@ -168,9 +170,11 @@ qualified-type-alias ::= IDENTIFIER
 value ::= CHAR_CONSTANT | STRING_CONSTANT |
              INTEGER_CONSTANT | FLOAT_CONSTANT |
              BOOLEAN_CONSTANT | NULL_CONSTANT |
-             enum-value | IDENTIFIER | array-value
+             class-value | enum-value | IDENTIFIER | array-value
 
 enum-value ::= IDENTIFIER ("." IDENTIFIER)+
+
+class-value ::= qualified-name ("." | "::") "class"
 
 array-value ::= "[" (value ("," value)*)? "]" | "{" (value ("," value)*)? "}"
 
@@ -187,6 +191,6 @@ annotation-parameter ::= IDENTIFIER "=" annotation-value
 annotation-value ::= CHAR_CONSTANT | STRING_CONSTANT |
              INTEGER_CONSTANT | FLOAT_CONSTANT |
              BOOLEAN_CONSTANT | NULL_CONSTANT |
-             annotation | nest-annotation | enum-value | annotation-array-value
+             annotation | nest-annotation | class-value | enum-value | annotation-array-value
 
 annotation-array-value ::= "[" (annotation-value ("," annotation-value)*)? "]" | "{" (annotation-value ("," annotation-value)*)? "}"

@@ -49,6 +49,7 @@ FLOAT = \d+\.\d+
     "import"                                                    { return DTOTypes.IMPORT_KEYWORD; }
     "as"                                                        { return DTOTypes.AS_KEYWORD; }
     "this"                                                      { return DTOTypes.THIS_KEYWORD; }
+    "class"                                                     { return DTOTypes.CLASS_KEYWORD; }
     {MODIFIER}                                                  { return DTOTypes.MODIFIER; }
     {BOOLEAN}                                                   { return DTOTypes.BOOLEAN_CONSTANT; }
     "null"                                                      { return DTOTypes.NULL_CONSTANT; }
@@ -73,6 +74,7 @@ FLOAT = \d+\.\d+
     "$"                                                         { return DTOTypes.DOLLAR; }
     "->"                                                        { return DTOTypes.ARROW; }
     "/"                                                         { return DTOTypes.SLASH; }
+    "::"                                                        { return DTOTypes.CLASS_REFERENCE; }
     "("                                                         { return DTOTypes.PAREN_L; }
     ")"                                                         { return DTOTypes.PAREN_R; }
     "["                                                         { return DTOTypes.BRACKET_L; }
