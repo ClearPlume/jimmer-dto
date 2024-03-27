@@ -8,7 +8,6 @@ import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.TokenType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.prevLeafs
@@ -22,6 +21,7 @@ import net.fallingangel.jimmerdto.util.*
 
 class DTOCompletionContributor : CompletionContributor() {
     private val identifier = psiElement(DTOTypes.IDENTIFIER)
+    private val whitespace = psiElement().whitespace()
 
     init {
         // 用户属性类型提示
@@ -56,6 +56,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // Export关键字提示
         completeExportKeyword()
+
+        // Import关键字提示
+        completeImportKeyword()
 
         // Export包提示
         completeExportPackage()
@@ -137,7 +140,7 @@ class DTOCompletionContributor : CompletionContributor() {
                                         psiElement(DTOPropBody::class.java)
                                                 .afterSiblingSkipping(
                                                     or(
-                                                        psiElement(TokenType.WHITE_SPACE),
+                                                        whitespace,
                                                         psiElement(DTOAnnotation::class.java),
                                                         psiElement(DTOPropArgs::class.java)
                                                     ),
@@ -160,7 +163,7 @@ class DTOCompletionContributor : CompletionContributor() {
             },
             identifier.withParent(DTOPropName::class.java)
                     .withSuperParent(2, DTONegativeProp::class.java)
-                    .afterLeafSkipping(psiElement(TokenType.WHITE_SPACE), psiElement(DTOTypes.MINUS))
+                    .afterLeafSkipping(whitespace, psiElement(DTOTypes.MINUS))
         )
     }
 
@@ -236,7 +239,7 @@ class DTOCompletionContributor : CompletionContributor() {
                         psiElement(DTOPropArgs::class.java)
                                 .afterSiblingSkipping(
                                     or(
-                                        psiElement(TokenType.WHITE_SPACE),
+                                        whitespace,
                                         psiElement(DTOPropFlags::class.java)
                                     ),
                                     psiElement(DTOPropName::class.java)
@@ -269,7 +272,7 @@ class DTOCompletionContributor : CompletionContributor() {
                         psiElement(DTOPropBody::class.java)
                                 .afterSiblingSkipping(
                                     or(
-                                        psiElement(TokenType.WHITE_SPACE),
+                                        whitespace,
                                         psiElement(DTOAnnotation::class.java),
                                         psiElement(DTOPropArgs::class.java)
                                     ),
@@ -319,6 +322,33 @@ class DTOCompletionContributor : CompletionContributor() {
         )
     }
 
+    /**
+     * Import关键字提示
+     */
+    private fun completeImportKeyword() {
+        val dto = identifier.withSuperParent(2, DTODto::class.java)
+        complete(
+            { _, result ->
+                result.addAllElements(
+                    listOf("import").lookUp {
+                        PrioritizedLookupElement.withPriority(bold(), 100.0)
+                    }
+                )
+            },
+            dto.inFile(
+                psiFile(DTOFile::class.java).withFirstChildSkipping(
+                    or(
+                        whitespace,
+                        psiElement(DTOImport::class.java),
+                        psiElement(DTOExport::class.java)
+                    ),
+                    psiElement(DTODto::class.java)
+                            .withChild(psiElement(DTODtoName::class.java))
+                            .withText(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
+                )
+            )
+        )
+    }
 
     /**
      * Export包提示
