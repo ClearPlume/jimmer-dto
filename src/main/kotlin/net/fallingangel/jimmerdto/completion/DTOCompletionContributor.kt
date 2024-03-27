@@ -5,8 +5,7 @@ import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.patterns.ElementPattern
-import com.intellij.patterns.PlatformPatterns.or
-import com.intellij.patterns.PlatformPatterns.psiElement
+import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.TokenType
@@ -315,7 +314,8 @@ class DTOCompletionContributor : CompletionContributor() {
                     }
                 )
             },
-            identifier.atStartOf(psiElement(DTOFile::class.java))
+            identifier.withSuperParent(2, DTODto::class.java)
+                    .inFile(psiFile(DTOFile::class.java).withFirstNonWhitespaceChild(psiElement(DTODto::class.java)))
         )
     }
 
