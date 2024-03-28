@@ -27,7 +27,19 @@
   ]]></description>
 
     <change-notes><![CDATA[
-    <p><b>0.0.7.14 (2024-03-11)</b></p>
+    <p><b>0.0.7.15 (2024-03-28)</b></p>
+    <ul>
+      <li><b>新特性</b>Interface Support - Preliminary</li>
+      <li><b>新特性</b>KClass Syntax Support</li>
+      <li><b>新特性</b>The "export" and "import" prompts.</li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>接口支持 - 初步</li>
+      <li><b>新特性</b>KClass语法支持</li>
+      <li><b>新特性</b>『export』『import』提示</li>
+    </ul>
+    <hr/>
+    <p><b>0.0.7.14 (2024-03-26)</b></p>
     <ul>
       <li><b>Removal</b>Due to the existence of 'export', this feature 'CreateOrJumpToJimmerDtoFile' is no longer useful and will be removed in 0.0.8.</li>
       <li><b>Refactor</b>Use caching to reduce performance overhead when parsing entities, packages</li>
