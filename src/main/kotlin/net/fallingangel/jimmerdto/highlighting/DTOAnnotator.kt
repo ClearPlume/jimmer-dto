@@ -4,6 +4,8 @@ import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.editor.colors.TextAttributesKey
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.elementType
@@ -11,10 +13,11 @@ import com.intellij.psi.util.nextLeaf
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.prevLeafs
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
-import net.fallingangel.jimmerdto.enums.*
 import net.fallingangel.jimmerdto.enums.Function
+import net.fallingangel.jimmerdto.enums.Modifier
+import net.fallingangel.jimmerdto.enums.PredicateFunction
+import net.fallingangel.jimmerdto.enums.modifiedBy
 import net.fallingangel.jimmerdto.psi.*
-import net.fallingangel.jimmerdto.service.PsiCacheService
 import net.fallingangel.jimmerdto.util.*
 
 /**
@@ -204,40 +207,34 @@ class DTOAnnotator : Annotator {
          * 为全限定类名的部分上色
          */
         override fun visitQualifiedNamePart(o: DTOQualifiedNamePart) {
-            if (o.haveParent<DTOPackage>() || !o.haveParent<DTOExport>()) {
+            if (o.haveParent<DTOPackage>() || (!o.haveParent<DTOExport>() && !o.haveParent<DTOImport>())) {
                 return
             }
 
-            val project = o.project
-            val language = o.language()
-            val psiCacheService = PsiCacheService(project)
+            when (o.parent.parent.parent.parent) {
+                is DTOExport -> o.visitPackage(DTOTypes.EXPORT_KEYWORD, Project::allEntities)
+                is DTOImport -> o.visitPackage(DTOTypes.IMPORT_KEYWORD, Project::allClasses)
+            }
+        }
 
-            val exportedPackage = o.prevLeafs
-                    .takeWhile { it.elementType != DTOTypes.EXPORT_KEYWORD }
+        private fun DTOQualifiedNamePart.visitPackage(statementKeyword: IElementType, classes: Project.(String) -> List<PsiClass>) {
+            val exportedPackage = prevLeafs
+                    .takeWhile { it.elementType != statementKeyword }
                     .filter { it.parent.elementType == DTOTypes.QUALIFIED_NAME_PART }
                     .map { it.text }
                     .toList()
                     .reversed()
-            val packagePartNum = exportedPackage.size
             val curPackage = exportedPackage.joinToString(".")
+            val curPackageClasses = project.classes(curPackage).map { it.name!! }
+            val availablePackages = project.allPackages(curPackage).map { it.name!! }
 
-            val allPackages = when (language) {
-                Language.Java -> psiCacheService.javaPackages
-                Language.Kotlin -> psiCacheService.kotlinPackages
-            }.filter { it.joinToString(".").startsWith(curPackage) && it.size >= packagePartNum }
-
-            val curPackageClasses = when (language) {
-                Language.Java -> psiCacheService.javaEntitiesByPackage(curPackage).map { it.name!! }
-                Language.Kotlin -> psiCacheService.kotlinEntitiesByPackage(curPackage).map { it.name!! }
-            }
-            val availablePackages = if (curPackage.isNotBlank()) {
-                allPackages.filterNot { it.size == packagePartNum }.map { it[packagePartNum] }.distinct()
-            } else {
-                allPackages.map { it[packagePartNum] }.distinct()
+            if (text !in (curPackageClasses + availablePackages)) {
+                error()
             }
 
-            if (o.text !in (curPackageClasses + availablePackages)) {
-                o.error()
+            // 包不能被导入
+            if (nextSibling == null && text !in curPackageClasses) {
+                error()
             }
         }
 

@@ -4,17 +4,20 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.project.Project
 import com.intellij.patterns.ElementPattern
+import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.PlatformPatterns.*
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.prevLeafs
+import com.intellij.util.ProcessingContext
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
-import net.fallingangel.jimmerdto.enums.Language
 import net.fallingangel.jimmerdto.psi.*
-import net.fallingangel.jimmerdto.service.PsiCacheService
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.structure.Property
 import net.fallingangel.jimmerdto.util.*
@@ -62,6 +65,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // Export包提示
         completeExportPackage()
+
+        // Import包提示
+        completeImportPackage()
     }
 
     override fun beforeCompletion(context: CompletionInitializationContext) {
@@ -342,9 +348,18 @@ class DTOCompletionContributor : CompletionContributor() {
                         psiElement(DTOImport::class.java),
                         psiElement(DTOExport::class.java)
                     ),
-                    psiElement(DTODto::class.java)
-                            .withChild(psiElement(DTODtoName::class.java))
-                            .withText(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED)
+                    or(
+                        psiElement(DTODto::class.java)
+                                .withChild(psiElement(DTODtoName::class.java))
+                                .withText(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED),
+                        psiElement(DTODto::class.java)
+                                .withChild(psiElement(DTODtoName::class.java))
+                                .withText(string().with(object : PatternCondition<String>("atStart") {
+                                    override fun accepts(str: String, context: ProcessingContext): Boolean {
+                                        return "import".startsWith(str.substringBefore(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED))
+                                    }
+                                }))
+                    )
                 )
             )
         )
@@ -354,57 +369,62 @@ class DTOCompletionContributor : CompletionContributor() {
      * Export包提示
      */
     private fun completeExportPackage() {
+        completePackage<DTOExport>(
+            identifier.withParent(DTOQualifiedNamePart::class.java)
+                    .withSuperParent(5, DTOExport::class.java),
+            DTOTypes.EXPORT_KEYWORD,
+            Project::allEntities
+        )
+    }
+
+    /**
+     * Import包提示
+     */
+    private fun completeImportPackage() {
+        completePackage<DTOImport>(
+            identifier.withParent(DTOQualifiedNamePart::class.java)
+                    .withSuperParent(5, DTOImport::class.java),
+            DTOTypes.IMPORT_KEYWORD,
+            Project::allClasses
+        )
+    }
+
+    /**
+     * 包提示
+     */
+    private inline fun <reified Statement : PsiElement> completePackage(
+        place: ElementPattern<PsiElement>,
+        statementKeyword: IElementType,
+        crossinline classes: Project.(String) -> List<PsiClass>
+    ) {
         complete(
             { parameters, result ->
-                val export = parameters.position.parent.parent.parent.parent.parent<DTOExport>()
-                val project = export.project
-                val language = export.language()
-                val psiCacheService = PsiCacheService(project)
+                val parent = parameters.position.parent.parent.parent.parent.parent<Statement>()
+                val project = parent.project
 
-                val exportedPackage = parameters.position.parent.prevLeafs
-                        .takeWhile { it.elementType != DTOTypes.EXPORT_KEYWORD }
+                val typedPackage = parameters.position.parent.prevLeafs
+                        .takeWhile { it.elementType != statementKeyword }
                         .filter { it.parent.elementType == DTOTypes.QUALIFIED_NAME_PART }
                         .map { it.text }
                         .toList()
                         .reversed()
-                val packagePartNum = exportedPackage.size
-                val curPackage = exportedPackage.joinToString(".")
+                val curPackage = typedPackage.joinToString(".")
+                val curPackageClasses = project.classes(curPackage)
+                        .map {
+                            LookupElementBuilder.create(it.name!!)
+                                    .withIcon(it.icon)
+                                    .withTypeText("(${it.qualifiedName!!.substringBeforeLast('.')})", true)
+                        }
 
-                val allPackages = when (language) {
-                    Language.Java -> psiCacheService.javaPackages
-                    Language.Kotlin -> psiCacheService.kotlinPackages
-                }.filter { it.joinToString(".").startsWith(curPackage) && it.size >= packagePartNum }
-
-                val curPackageClasses = when (language) {
-                    Language.Java -> {
-                        psiCacheService.javaEntitiesByPackage(curPackage)
-                                .map {
-                                    LookupElementBuilder.create(it.name!!)
-                                            .withIcon(it.icon)
-                                            .withTypeText("(${it.qualifiedName!!.substringBeforeLast('.')})", true)
-                                }
-                    }
-
-                    Language.Kotlin -> {
-                        psiCacheService.kotlinEntitiesByPackage(curPackage)
-                                .map {
-                                    LookupElementBuilder.create(it.name!!)
-                                            .withIcon(it.icon)
-                                            .withTypeText("(${it.qualifiedName.substringBeforeLast('.')})", true)
-                                }
-                    }
-                }
-
-                val availablePackages = if (curPackage.isNotBlank()) {
-                    allPackages.filterNot { it.size == packagePartNum }.map { it[packagePartNum] }.distinct()
-                } else {
-                    allPackages.map { it[packagePartNum] }.distinct()
-                }.map { LookupElementBuilder.create(it).withIcon(AllIcons.Nodes.Package) }
+                val availablePackages = project.allPackages(curPackage)
+                        .map {
+                            LookupElementBuilder.create(it.name!!)
+                                    .withIcon(AllIcons.Nodes.Package)
+                        }
 
                 result.addAllElements(curPackageClasses + availablePackages)
             },
-            identifier.withParent(DTOQualifiedNamePart::class.java)
-                    .withSuperParent(5, DTOExport::class.java)
+            place
         )
     }
 
