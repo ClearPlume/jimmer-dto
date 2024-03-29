@@ -10,6 +10,7 @@ import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
@@ -22,7 +23,8 @@ import net.fallingangel.jimmerdto.util.*
 
 class DTOCompletionContributor : CompletionContributor() {
     private val identifier = psiElement(DTOTypes.IDENTIFIER)
-    private val whitespace = psiElement().whitespace()
+    private val whitespace = psiElement(TokenType.WHITE_SPACE)
+    private val error = psiElement(TokenType.ERROR_ELEMENT)
 
     init {
         // 用户属性类型提示
@@ -66,6 +68,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // Import包提示
         completeImportPackage()
+
+        // Class关键字提示
+        completeClassKeyword()
     }
 
     override fun beforeCompletion(context: CompletionInitializationContext) {
@@ -419,6 +424,29 @@ class DTOCompletionContributor : CompletionContributor() {
                 result.addAllElements(curPackageClasses + availablePackages)
             },
             place
+        )
+    }
+
+    private fun completeClassKeyword() {
+        complete(
+            { _, result ->
+                result.addAllElements(
+                    listOf("class").lookUp {
+                        PrioritizedLookupElement.withPriority(bold(), 100.0)
+                    }
+                )
+            },
+            or(
+                identifier.withParent(DTOEnumValue::class.java),
+                identifier.withParent(error.afterSiblingSkipping(whitespace, psiElement(DTOTypes.CLASS_REFERENCE))),
+                identifier.withParent(psiFile(DTOFile::class.java))
+                        .afterSiblingSkipping(
+                            whitespace, or(
+                                psiElement(DTOTypes.CLASS_REFERENCE),
+                                psiElement(DTOTypes.DOT)
+                            )
+                        )
+            )
         )
     }
 

@@ -173,7 +173,9 @@ value ::= CHAR_CONSTANT | STRING_CONSTANT |
 
 enum-value ::= IDENTIFIER ("." IDENTIFIER)+
 
-class-value ::= qualified-name "?"? ("." | "::") "class"
+class-value ::= qualified-name "?"? ("." | "::") "class" {
+    pin = 3
+}
 
 array-value ::= "[" (value ("," value)*)? "]" | "{" (value ("," value)*)? "}"
 
