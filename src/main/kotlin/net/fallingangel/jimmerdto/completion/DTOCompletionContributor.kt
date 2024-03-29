@@ -6,7 +6,6 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.Project
 import com.intellij.patterns.ElementPattern
-import com.intellij.patterns.PatternCondition
 import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
@@ -15,7 +14,6 @@ import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.prevLeafs
-import com.intellij.util.ProcessingContext
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.structure.LookupInfo
@@ -354,11 +352,7 @@ class DTOCompletionContributor : CompletionContributor() {
                                 .withText(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED),
                         psiElement(DTODto::class.java)
                                 .withChild(psiElement(DTODtoName::class.java))
-                                .withText(string().with(object : PatternCondition<String>("atStart") {
-                                    override fun accepts(str: String, context: ProcessingContext): Boolean {
-                                        return "import".startsWith(str.substringBefore(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED))
-                                    }
-                                }))
+                                .withText(string().atStart("import"))
                     )
                 )
             )

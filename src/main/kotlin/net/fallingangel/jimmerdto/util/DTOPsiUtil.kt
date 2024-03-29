@@ -1,16 +1,16 @@
 package net.fallingangel.jimmerdto.util
 
+import com.intellij.codeInsight.completion.CompletionUtilCore
 import com.intellij.icons.AllIcons
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.project.Project
-import com.intellij.patterns.ElementPattern
-import com.intellij.patterns.PsiElementPattern
-import com.intellij.patterns.StandardPatterns
+import com.intellij.patterns.*
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiPackage
+import com.intellij.util.ProcessingContext
 import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
@@ -20,19 +20,6 @@ import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import javax.swing.Icon
 
 object DTOPsiUtil
-
-fun Project.allClasses(`package`: String = ""): List<PsiClass> {
-    val classes = JavaPsiFacade.getInstance(this).findPackage(`package`)?.classes ?: emptyArray()
-    return classes.filter { it !is KtLightClass || (it.kotlinOrigin != null) }
-}
-
-fun Project.allEntities(`package`: String = ""): List<PsiClass> {
-    return allClasses(`package`).filter { it.isInterface && it.hasAnnotation(Constant.Annotation.ENTITY) }
-}
-
-fun Project.allPackages(`package`: String): List<PsiPackage> {
-    return JavaPsiFacade.getInstance(this).findPackage(`package`)?.subPackages?.toList() ?: emptyList()
-}
 
 @Suppress("UnstableApiUsage")
 val PsiClass.icon: Icon
@@ -73,6 +60,19 @@ val KtLightClass.icon: Icon
         }
     }
 
+fun Project.allClasses(`package`: String = ""): List<PsiClass> {
+    val classes = JavaPsiFacade.getInstance(this).findPackage(`package`)?.classes ?: emptyArray()
+    return classes.filter { it !is KtLightClass || (it.kotlinOrigin != null) }
+}
+
+fun Project.allEntities(`package`: String = ""): List<PsiClass> {
+    return allClasses(`package`).filter { it.isInterface && it.hasAnnotation(Constant.Annotation.ENTITY) }
+}
+
+fun Project.allPackages(`package`: String): List<PsiPackage> {
+    return JavaPsiFacade.getInstance(this).findPackage(`package`)?.subPackages?.toList() ?: emptyList()
+}
+
 fun <T, Self, Skip, Pattern> PsiElementPattern<T, Self>.withFirstChildSkipping(
     skip: ElementPattern<Skip>,
     pattern: ElementPattern<Pattern>
@@ -88,4 +88,12 @@ fun <T, Self, Skip, Pattern> PsiElementPattern<T, Self>.withFirstChildSkipping(
                     StandardPatterns.collection(PsiElement::class.java).first(pattern)
                 )
     )
+}
+
+fun StringPattern.atStart(start: String): StringPattern {
+    return with(object : PatternCondition<String>("atStart") {
+        override fun accepts(str: String, context: ProcessingContext): Boolean {
+            return start.startsWith(str.substringBefore(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED))
+        }
+    })
 }
