@@ -71,6 +71,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // Class关键字提示
         completeClassKeyword()
+
+        // Implements关键字提示
+        completeImplementsKeyword()
     }
 
     override fun beforeCompletion(context: CompletionInitializationContext) {
@@ -445,6 +448,44 @@ class DTOCompletionContributor : CompletionContributor() {
                                 psiElement(DTOTypes.CLASS_REFERENCE),
                                 psiElement(DTOTypes.DOT)
                             )
+                        )
+            )
+        )
+    }
+
+    /**
+     * Implements关键字提示
+     */
+    private fun completeImplementsKeyword() {
+        complete(
+            { _, result ->
+                result.addAllElements(
+                    listOf("implements").lookUp {
+                        PrioritizedLookupElement.withPriority(bold(), 100.0)
+                    }
+                )
+            },
+            or(
+                identifier.withParent(DTODtoName::class.java)
+                        .withSuperParent(
+                            2,
+                            psiElement(DTODto::class.java).afterSiblingSkipping(whitespace, psiElement(DTODto::class.java))
+                        ),
+                identifier.withParent(DTOPropName::class.java)
+                        .withSuperParent(
+                            3,
+                            psiElement(DTOExplicitProp::class.java)
+                                    .afterSiblingSkipping(
+                                        whitespace,
+                                        psiElement(DTOExplicitProp::class.java)
+                                                .withFirstNonWhitespaceChild(
+                                                    psiElement(DTOPositiveProp::class.java)
+                                                            .andNot(
+                                                                psiElement(DTOPositiveProp::class.java)
+                                                                        .withChild(psiElement(DTOPropArgs::class.java))
+                                                            )
+                                                )
+                                    )
                         )
             )
         )

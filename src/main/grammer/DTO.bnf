@@ -198,4 +198,6 @@ annotation-array-value ::= "[" (annotation-value ("," annotation-value)*)? "]" |
 
 type-def ::= qualified-name generic-args? "?"?
 
-interfaces ::= "implements" type-def ("," type-def)*
+interfaces ::= "implements" type-def ("," type-def)* {
+    pin = 1
+}
