@@ -17,6 +17,8 @@ import com.intellij.psi.util.elementType
 import com.intellij.psi.util.prevLeafs
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.psi.*
+import net.fallingangel.jimmerdto.structure.BasicType
+import net.fallingangel.jimmerdto.structure.GenericType
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.structure.Property
 import net.fallingangel.jimmerdto.util.*
@@ -302,9 +304,10 @@ class DTOCompletionContributor : CompletionContributor() {
             { parameters, result ->
                 val macros = listOf(
                     LookupInfo(
-                        "#allScalars[(Type+)]",
                         "#allScalars",
-                        "macro"
+                        "(Type+)",
+                        "macro",
+                        "#allScalars"
                     )
                 ).lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
                 result.addAllElements(macros)
@@ -510,39 +513,9 @@ class DTOCompletionContributor : CompletionContributor() {
     }
 
     private fun findUserPropType(file: PsiFile, isGeneric: Boolean = false): List<LookupElement> {
-        val embeddedTypes = listOf(
-            "Boolean",
-            "Boolean?",
-            "Char",
-            "Char?",
-            "String",
-            "String?",
-            "Byte",
-            "Byte?",
-            "Short",
-            "Short?",
-            "Int",
-            "Int?",
-            "Float",
-            "Float?",
-            "Double",
-            "Double?",
-            "Long",
-            "Long?",
-            "Any",
-            "Any?",
-            "Array<>",
-            "List<>",
-            "MutableList<>",
-            "Collection<>",
-            "MutableCollection<>",
-            "Iterable<>",
-            "MutableIterable<>",
-            "Set<>",
-            "MutableSet<>",
-            "Map<>",
-            "MutableMap<>"
-        ).lookUp()
+        val basicTypes = BasicType.types().lookUp()
+        val genericTypes = GenericType.types().lookUp()
+
         val genericModifiers = if (isGeneric) {
             listOf("out", "in").lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
         } else {
@@ -551,7 +524,7 @@ class DTOCompletionContributor : CompletionContributor() {
         val imports = PsiTreeUtil.getChildrenOfTypeAsList(file, DTOImport::class.java)
         val importedTypes = imports
                 .filter { it.qualifiedType.qualifiedTypeAlias == null && it.groupedTypes == null }
-                .map { it.lastChild.text }
+                .map { it.qualifiedType.qualifiedTypeName.qualifiedName.qualifiedNamePartList.last().text }
                 .lookUp()
         val importedSingleAliasTypes = imports
                 .filter { it.qualifiedType.qualifiedTypeAlias != null }
@@ -571,7 +544,8 @@ class DTOCompletionContributor : CompletionContributor() {
                 }
                 .flatten()
                 .lookUp()
-        return embeddedTypes +
+        return basicTypes +
+                genericTypes +
                 genericModifiers +
                 importedTypes +
                 importedSingleAliasTypes +
@@ -581,16 +555,18 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun bodyLookups(): List<LookupElement> {
         val macros = listOf(
             LookupInfo(
-                "#allScalars[(Type+)]",
                 "#allScalars",
-                "macro"
+                "(Type+)",
+                "macro",
+                "#allScalars"
             )
         ).lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
         val aliasGroup = listOf(
             LookupInfo(
-                "as(<original> -> <replacement>) { ... }",
-                "as() {}",
+                "as",
+                "(<original> -> <replacement>) { ... }",
                 "alias-group",
+                "as() {}",
                 -4
             )
         ).lookUp { PrioritizedLookupElement.withPriority(bold(), 90.0) }
@@ -618,6 +594,7 @@ class DTOCompletionContributor : CompletionContributor() {
         return map {
             LookupElementBuilder.create(it.insertion)
                     .withPresentableText(it.presentation)
+                    .withTailText(it.tail, true)
                     .withTypeText(it.type, true)
                     .withInsertHandler { context, _ ->
                         if (it.caretOffset != 0) {
