@@ -27,11 +27,23 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.16 (2024-04-04)</b></p>
+    <ul>
+      <li><b>Feature</b>Support for 2024.1, <b>Support for 2022.1 will be removed when 2024.2 is released</b></li>
+      <li><b>Feature</b>Optimize user attribute type prompts</li>
+      <li><b>Feature</b>Class, Implements Keyword Hints</li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>支持2024.1, <b>2022.1的支持将在2024.2发布时移除</b></li>
+      <li><b>新特性</b>优化用户属性类型提示</li>
+      <li><b>新特性</b>class、implements关键字提示</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.15 (2024-03-28)</b></p>
     <ul>
-      <li><b>新特性</b>Interface Support - Preliminary</li>
-      <li><b>新特性</b>KClass Syntax Support</li>
-      <li><b>新特性</b>The "export" and "import" prompts.</li>
+      <li><b>Feature</b>Interface Support - Preliminary</li>
+      <li><b>Feature</b>KClass Syntax Support</li>
+      <li><b>Feature</b>The "export" and "import" prompts</li>
     </ul>
     <ul>
       <li><b>新特性</b>接口支持 - 初步</li>

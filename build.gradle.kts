@@ -7,10 +7,10 @@ plugins {
 }
 
 group = "net.fallingangel"
-version = "0.0.7.15"
+version = "0.0.7.16"
 
 val sinceVersion by extra("221.5080.210")
-val untilVersion by extra("233.*")
+val untilVersion by extra("241.*")
 
 val certificateChainValue: String = findProperty("certificateChainValue") as String
 val privateKeyValue: String = findProperty("privateKeyValue") as String
