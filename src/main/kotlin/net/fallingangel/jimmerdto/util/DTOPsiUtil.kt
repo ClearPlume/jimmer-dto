@@ -12,7 +12,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiPackage
 import com.intellij.util.ProcessingContext
 import net.fallingangel.jimmerdto.Constant
+import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
+import net.fallingangel.jimmerdto.psi.DTODto
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -97,3 +99,9 @@ fun StringPattern.atStart(start: String): StringPattern {
         }
     })
 }
+
+infix fun DTODto.modifiedBy(modifier: Modifier): Boolean {
+    return modifier.value in this.dtoModifierList.map { it.text }
+}
+
+infix fun DTODto.notModifiedBy(modifier: Modifier) = !modifiedBy(modifier)

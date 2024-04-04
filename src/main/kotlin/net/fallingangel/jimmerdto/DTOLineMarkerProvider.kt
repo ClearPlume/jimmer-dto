@@ -7,7 +7,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
 import icons.Icons
 import net.fallingangel.jimmerdto.enums.Modifier
-import net.fallingangel.jimmerdto.enums.notModifiedBy
+import net.fallingangel.jimmerdto.util.notModifiedBy
 import net.fallingangel.jimmerdto.psi.DTODto
 import net.fallingangel.jimmerdto.psi.DTOTypes
 import net.fallingangel.jimmerdto.util.classFile

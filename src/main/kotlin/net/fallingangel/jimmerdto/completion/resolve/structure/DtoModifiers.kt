@@ -1,7 +1,7 @@
 package net.fallingangel.jimmerdto.completion.resolve.structure
 
 import net.fallingangel.jimmerdto.enums.Modifier
-import net.fallingangel.jimmerdto.enums.modifiedBy
+import net.fallingangel.jimmerdto.util.modifiedBy
 import net.fallingangel.jimmerdto.psi.DTODto
 import net.fallingangel.jimmerdto.psi.DTODtoName
 
