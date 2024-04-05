@@ -27,9 +27,18 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.17 (2024-04-05)</b></p>
+    <ul>
+      <li><b>Feature</b>New InsertEntityProp in the Alt-Insert menu, which can quickly insert entity props and ignore the current existing props</b></li>
+      <li><b>Bug Fix</b>Spec methods like and notLike can't prompt for empty string attributes</li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>Alt-Insert菜单中新增InsertEntityProp，可快捷插入实体属性，忽略当前已有属性</li>
+      <li><b>修复Bug</b>spec方法like和notLike无法提示空字符串属性</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.16 (2024-04-04)</b></p>
     <ul>
-      <li><b>Feature</b>Support for 2024.1, <b>Support for 2022.1 will be removed when 2024.2 is released</b></li>
       <li><b>Feature</b>Optimize user attribute type prompts</li>
       <li><b>Feature</b>Class, Implements Keyword Hints</li>
     </ul>
