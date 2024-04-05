@@ -2,7 +2,7 @@ package net.fallingangel.jimmerdto.completion.resolve.structure
 
 import com.intellij.psi.util.parentOfType
 import net.fallingangel.jimmerdto.enums.Modifier
-import net.fallingangel.jimmerdto.enums.PredicateFunction
+import net.fallingangel.jimmerdto.enums.SpecFunction
 import net.fallingangel.jimmerdto.psi.DTODto
 import net.fallingangel.jimmerdto.psi.DTOPropName
 import net.fallingangel.jimmerdto.structure.LookupInfo
@@ -20,8 +20,8 @@ class PropFunctions : Structure<DTOPropName, List<LookupInfo>> {
             LookupInfo("id", "(<association>)", "function", "id()", -1),
             LookupInfo("flat", "(<association>) { ... }", "function", "flat() {}", -4)
         )
-        val predicateFunctions = if (dto modifiedBy Modifier.SPECIFICATION) {
-            PredicateFunction.values()
+        val specFunctions = if (dto modifiedBy Modifier.SPECIFICATION) {
+            SpecFunction.values()
                     .map {
                         with(it) {
                             val argPresentation = if (whetherMultiArg) {
@@ -41,6 +41,6 @@ class PropFunctions : Structure<DTOPropName, List<LookupInfo>> {
         } else {
             emptyList()
         }
-        return functions + predicateFunctions
+        return functions + specFunctions
     }
 }

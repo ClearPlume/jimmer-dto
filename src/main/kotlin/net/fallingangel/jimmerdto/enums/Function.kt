@@ -1,6 +1,9 @@
 package net.fallingangel.jimmerdto.enums
 
+import net.fallingangel.jimmerdto.structure.ArgType
+import net.fallingangel.jimmerdto.structure.ArgType.Association
+
 enum class Function(val expression: String, val argType: ArgType) {
-    Id("id", ArgType.Association),
-    Flat("flat", ArgType.Association)
+    Id("id", Association),
+    Flat("flat", Association)
 }

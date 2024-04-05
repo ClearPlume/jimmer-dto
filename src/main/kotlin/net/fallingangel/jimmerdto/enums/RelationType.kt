@@ -8,8 +8,8 @@ enum class RelationType(val whetherList: Boolean) {
     ManyToManyView(true);
 
     companion object {
-        fun singles() = values().filterNot { it.whetherList }
-
-        fun lists() = values().filterNot { it.whetherList }
+        val all by lazy { values().map { it.name } }
+        val singles by lazy { values().filterNot { it.whetherList }.map { it.name } }
+        val lists by lazy { values().filter { it.whetherList }.map { it.name } }
     }
 }

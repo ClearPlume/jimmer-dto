@@ -1,7 +1,7 @@
 package net.fallingangel.jimmerdto.completion.resolve.structure
 
 import net.fallingangel.jimmerdto.enums.Function
-import net.fallingangel.jimmerdto.enums.PredicateFunction
+import net.fallingangel.jimmerdto.enums.SpecFunction
 import net.fallingangel.jimmerdto.psi.DTOPositiveProp
 import net.fallingangel.jimmerdto.psi.DTOPropArgs
 import net.fallingangel.jimmerdto.structure.Property
@@ -32,11 +32,11 @@ class FunctionArgs : Structure<DTOPropArgs, List<Property>> {
                         }
             }
 
-            in PredicateFunction.values().map { it.expression } -> {
+            in SpecFunction.values().map { it.expression } -> {
                 properties
                         .filter { property ->
-                            val predicateFunction = PredicateFunction.values().first { it.expression == propName }
-                            predicateFunction.argType.test(property)
+                            val specFunction = SpecFunction.values().first { it.expression == propName }
+                            specFunction.argType.test(property)
                         }
             }
 
