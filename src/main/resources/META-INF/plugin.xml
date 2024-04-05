@@ -296,6 +296,13 @@
             <reference ref="JimmerDTOEntityPopupMenu"/>
             <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="WeighingNewGroup"/>
         </group>
+
+        <action id="InsertEntityPropsToDto"
+                class="net.fallingangel.jimmerdto.action.InsertEntityPropAction"
+                text="Insert Entity Props To Here"
+                description="Insert all props from the associated entity to current cursor position.">
+            <add-to-group group-id="GenerateGroup" anchor="first"/>
+        </action>
     </actions>
 
     <!-- Extension points defined by the plugin.

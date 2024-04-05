@@ -4,6 +4,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.parentOfType
 import net.fallingangel.jimmerdto.completion.resolve.structure.Structure
 import net.fallingangel.jimmerdto.psi.*
@@ -12,6 +13,16 @@ import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import java.nio.file.Paths
+
+val PsiWhiteSpace.haveUpper: Boolean
+    get() = parent is DTOAliasGroup || parent.parent.parent is DTOPositiveProp
+
+val PsiWhiteSpace.upper: PsiElement
+    get() = if (parent is DTOAliasGroup) {
+        parent
+    } else {
+        parent.parent.parent
+    }
 
 /**
  * 元素是否包含上一层级的属性级结构
@@ -28,12 +39,10 @@ val PsiElement.haveUpper: Boolean
     }
 
 val PsiElement.upper: PsiElement
-    get() {
-        return if (parent.parent is DTOAliasGroup) {
-            parent.parent
-        } else {
-            parent.parent.parent.parent
-        }
+    get() = if (parent.parent is DTOAliasGroup) {
+        parent.parent
+    } else {
+        parent.parent.parent.parent
     }
 
 val PsiElement.virtualFile: VirtualFile
