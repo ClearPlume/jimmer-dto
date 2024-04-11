@@ -412,7 +412,7 @@ class DTOCompletionContributor : CompletionContributor() {
                         .filter { it.parent.elementType == DTOTypes.QUALIFIED_NAME_PART }
                         .map { it.text }
                         .toList()
-                        .reversed()
+                        .asReversed()
                 val curPackage = typedPackage.joinToString(".")
                 val curPackageClasses = project.classes(curPackage)
                         .map {

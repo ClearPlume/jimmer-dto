@@ -16,7 +16,6 @@ import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.SpecFunction
-import net.fallingangel.jimmerdto.util.modifiedBy
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.util.*
 
@@ -94,6 +93,12 @@ class DTOAnnotator : Annotator {
             val original = o.aliasPattern.original
             if (original.firstChild.text == "^" && original.lastChild.text.last() == '$') {
                 original.error()
+            }
+
+            // replacement
+            val replacement = o.aliasPattern.replacement
+            if (replacement?.stringConstant != null) {
+                replacement.error()
             }
         }
 
@@ -223,7 +228,7 @@ class DTOAnnotator : Annotator {
                     .filter { it.parent.elementType == DTOTypes.QUALIFIED_NAME_PART }
                     .map { it.text }
                     .toList()
-                    .reversed()
+                    .asReversed()
             val curPackage = exportedPackage.joinToString(".")
             val curPackageClasses = project.classes(curPackage).map { it.name!! }
             val availablePackages = project.allPackages(curPackage).map { it.name!! }
