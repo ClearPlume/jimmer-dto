@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto.highlighting
 
+import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
@@ -12,6 +13,7 @@ import com.intellij.psi.util.elementType
 import com.intellij.psi.util.nextLeaf
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.prevLeafs
+import net.fallingangel.jimmerdto.psi.fix.ConvertStringToReplacement
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
@@ -96,9 +98,15 @@ class DTOAnnotator : Annotator {
             }
 
             // replacement
-            val replacement = o.aliasPattern.replacement
-            if (replacement?.stringConstant != null) {
-                replacement.error()
+            val stringConstant = o.aliasPattern.replacement?.stringConstant
+            if (stringConstant != null) {
+                stringConstant.error()
+
+                holder.newAnnotation(HighlightSeverity.ERROR, "Unlike the usual case, string literals are not needed here")
+                        .range(stringConstant)
+                        .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
+                        .withFix(ConvertStringToReplacement(stringConstant))
+                        .create()
             }
         }
 
