@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto.highlighting
 
+import com.intellij.codeInsight.intention.impl.BaseIntentionAction
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
@@ -98,32 +99,23 @@ class DTOAnnotator : Annotator {
             val dollar = original.aliasDollar
 
             if (power != null && dollar != null) {
-                power.error()
-                holder.newAnnotation(HighlightSeverity.ERROR, "Power and Dollar cannot both appear in the original section of AliasGroup")
-                        .range(power)
-                        .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
-                        .withFix(RemoveElementAction("`^`", power))
-                        .create()
+                power.error(
+                    "Power and Dollar cannot both appear in the original section of AliasGroup",
+                    RemoveElementAction("^", power)
+                )
 
-                dollar.error()
-                holder.newAnnotation(HighlightSeverity.ERROR, "Power and Dollar cannot both appear in the original section of AliasGroup")
-                        .range(dollar)
-                        .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
-                        .withFix(RemoveElementAction("`$`", dollar))
-                        .create()
+                dollar.error(
+                    "Power and Dollar cannot both appear in the original section of AliasGroup",
+                    RemoveElementAction("$", dollar)
+                )
             }
 
             // replacement
             val stringConstant = o.aliasPattern.replacement?.stringConstant
-            if (stringConstant != null) {
-                stringConstant.error()
-
-                holder.newAnnotation(HighlightSeverity.ERROR, "Unlike the usual case, string literals are not needed here")
-                        .range(stringConstant)
-                        .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
-                        .withFix(ConvertStringToReplacement(stringConstant))
-                        .create()
-            }
+            stringConstant?.error(
+                "Unlike the usual case, string literals are not needed here",
+                ConvertStringToReplacement(stringConstant)
+            )
         }
 
         /**
@@ -267,6 +259,25 @@ class DTOAnnotator : Annotator {
             }
         }
 
+        /**
+         * Dto修饰符上色
+         */
+        override fun visitModifier(o: DTOModifier) {
+            val parent = o.parent
+            if (parent is DTODto) {
+                val currentModifiers = parent.modifierList.toModifier()
+                val modifier = o.text
+
+                if (currentModifiers.count { it.name.lowercase() == modifier } != 1) {
+                    o.error(
+                        "Duplicated modifier `$modifier`",
+                        RemoveElementAction(modifier, o),
+                        DTOSyntaxHighlighter.DUPLICATION
+                    )
+                }
+            }
+        }
+
         private fun PsiElement.next(elementType: IElementType): PsiElement {
             return nextLeaf { it.elementType == elementType }!!
         }
@@ -279,6 +290,38 @@ class DTOAnnotator : Annotator {
             holder.newSilentAnnotation(severity)
                     .range(this)
                     .textAttributes(style)
+                    .create()
+        }
+
+        // private fun PsiElement.warning(style: TextAttributesKey, message: String? = null, fix: BaseIntentionAction? = null) {
+        //     if (message == null || fix == null) {
+        //         annotator(style, HighlightSeverity.WARNING)
+        //     } else {
+        //         fix(style, HighlightSeverity.WARNING, ProblemHighlightType.WARNING, message, fix)
+        //     }
+        // }
+
+        private fun PsiElement.error(
+            message: String,
+            fix: BaseIntentionAction,
+            style: TextAttributesKey = DTOSyntaxHighlighter.ERROR,
+            highlightType: ProblemHighlightType = ProblemHighlightType.GENERIC_ERROR
+        ) {
+            fix(style, HighlightSeverity.ERROR, highlightType, message, fix)
+        }
+
+        private fun PsiElement.fix(
+            style: TextAttributesKey,
+            severity: HighlightSeverity,
+            highlightType: ProblemHighlightType,
+            message: String,
+            fix: BaseIntentionAction
+        ) {
+            holder.newAnnotation(severity, message)
+                    .range(this)
+                    .textAttributes(style)
+                    .highlightType(highlightType)
+                    .withFix(fix)
                     .create()
         }
     }

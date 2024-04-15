@@ -8,9 +8,9 @@ import com.intellij.psi.PsiFile
 import net.fallingangel.jimmerdto.psi.DTOFile
 
 class RemoveElementAction(private val name: String, private val element: PsiElement) : BaseIntentionAction() {
-    override fun getFamilyName() = "Remove $name"
+    override fun getFamilyName() = "Remove `$name`"
 
-    override fun getText() = "Remove $name"
+    override fun getText() = "Remove `$name`"
 
     override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean {
         if (editor == null || file == null) {
