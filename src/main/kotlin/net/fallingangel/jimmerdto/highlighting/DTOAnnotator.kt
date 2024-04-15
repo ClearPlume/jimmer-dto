@@ -13,12 +13,13 @@ import com.intellij.psi.util.elementType
 import com.intellij.psi.util.nextLeaf
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.prevLeafs
-import net.fallingangel.jimmerdto.psi.fix.ConvertStringToReplacement
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.SpecFunction
 import net.fallingangel.jimmerdto.psi.*
+import net.fallingangel.jimmerdto.psi.fix.ConvertStringToReplacement
+import net.fallingangel.jimmerdto.psi.fix.RemoveElementAction
 import net.fallingangel.jimmerdto.util.*
 
 /**
@@ -93,8 +94,23 @@ class DTOAnnotator : Annotator {
 
             // original
             val original = o.aliasPattern.original
-            if (original.firstChild.text == "^" && original.lastChild.text.last() == '$') {
-                original.error()
+            val power = original.aliasPower
+            val dollar = original.aliasDollar
+
+            if (power != null && dollar != null) {
+                power.error()
+                holder.newAnnotation(HighlightSeverity.ERROR, "Power and Dollar cannot both appear in the original section of AliasGroup")
+                        .range(power)
+                        .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
+                        .withFix(RemoveElementAction("`^`", power))
+                        .create()
+
+                dollar.error()
+                holder.newAnnotation(HighlightSeverity.ERROR, "Power and Dollar cannot both appear in the original section of AliasGroup")
+                        .range(dollar)
+                        .highlightType(ProblemHighlightType.GENERIC_ERROR_OR_WARNING)
+                        .withFix(RemoveElementAction("`$`", dollar))
+                        .create()
             }
 
             // replacement

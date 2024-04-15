@@ -99,7 +99,11 @@ alias-pattern ::= original "->" replacement? {
     pin = 2
 }
 
-original ::= IDENTIFIER | "^"? IDENTIFIER? "$"?
+original ::= alias-power? IDENTIFIER? alias-dollar?
+
+alias-power ::= POWER
+
+alias-dollar ::= DOLLAR
 
 replacement ::= STRING_CONSTANT | IDENTIFIER
 

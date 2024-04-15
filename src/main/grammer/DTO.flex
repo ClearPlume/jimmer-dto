@@ -33,72 +33,77 @@ STRING = \"[^\"]*\"
 INTEGER = \d+
 FLOAT = \d+\.\d+
 
-%state ALIAS_PATTERN_ORIGINAL
+%s ALIAS_GROUP
+%x ORIGINAL
 
 %%
 
 <YYINITIAL> {
-    {DOC_COMMENT}                                               { return DTOTokenTypes.DOC_COMMENT; }
-    {BLOCK_COMMENT}                                             { return DTOTokenTypes.BLOCK_COMMENT; }
-    {LINE_COMMENT}                                              { return DTOTokenTypes.LINE_COMMENT; }
+    {DOC_COMMENT}                    { return DTOTokenTypes.DOC_COMMENT; }
+    {BLOCK_COMMENT}                  { return DTOTokenTypes.BLOCK_COMMENT; }
+    {LINE_COMMENT}                   { return DTOTokenTypes.LINE_COMMENT; }
 
-    "as" " "* "("                                               { yypushback(yylength()); yybegin(ALIAS_PATTERN_ORIGINAL); }
+    "as" " "* "("                    { yypushback(yylength()); yybegin(ALIAS_GROUP); }
 
-    "export"                                                    { return DTOTypes.EXPORT_KEYWORD; }
-    "package"                                                   { return DTOTypes.PACKAGE_KEYWORD; }
-    "import"                                                    { return DTOTypes.IMPORT_KEYWORD; }
-    "as"                                                        { return DTOTypes.AS_KEYWORD; }
-    "this"                                                      { return DTOTypes.THIS_KEYWORD; }
-    "class"                                                     { return DTOTypes.CLASS_KEYWORD; }
-    "implements"                                                { return DTOTypes.IMPLEMENTS_KEYWORD; }
-    {MODIFIER}                                                  { return DTOTypes.MODIFIER; }
-    {BOOLEAN}                                                   { return DTOTypes.BOOLEAN_CONSTANT; }
-    "null"                                                      { return DTOTypes.NULL_CONSTANT; }
-    {CHAR}                                                      { return DTOTypes.CHAR_CONSTANT; }
-    {STRING}                                                    { return DTOTypes.STRING_CONSTANT; }
-    {INTEGER}                                                   { return DTOTypes.INTEGER_CONSTANT; }
-    {FLOAT}                                                     { return DTOTypes.FLOAT_CONSTANT; }
+    "export"                         { return DTOTypes.EXPORT_KEYWORD; }
+    "package"                        { return DTOTypes.PACKAGE_KEYWORD; }
+    "import"                         { return DTOTypes.IMPORT_KEYWORD; }
+    "as"                             { return DTOTypes.AS_KEYWORD; }
+    "this"                           { return DTOTypes.THIS_KEYWORD; }
+    "class"                          { return DTOTypes.CLASS_KEYWORD; }
+    "implements"                     { return DTOTypes.IMPLEMENTS_KEYWORD; }
+    {MODIFIER}                       { return DTOTypes.MODIFIER; }
+    {BOOLEAN}                        { return DTOTypes.BOOLEAN_CONSTANT; }
+    "null"                           { return DTOTypes.NULL_CONSTANT; }
+    {CHAR}                           { return DTOTypes.CHAR_CONSTANT; }
+    {STRING}                         { return DTOTypes.STRING_CONSTANT; }
+    {INTEGER}                        { return DTOTypes.INTEGER_CONSTANT; }
+    {FLOAT}                          { return DTOTypes.FLOAT_CONSTANT; }
 
-    ","                                                         { return DTOTypes.COMMA; }
-    "."                                                         { return DTOTypes.DOT; }
-    "@"                                                         { return DTOTypes.AT; }
-    "="                                                         { return DTOTypes.EQUALS; }
-    ":"                                                         { return DTOTypes.COLON; }
-    ";"                                                         { return DTOTypes.SEMICOLON; }
-    "#"                                                         { return DTOTypes.HASH; }
-    "+"                                                         { return DTOTypes.PLUS; }
-    "-"                                                         { return DTOTypes.MINUS; }
-    "?"                                                         { return DTOTypes.OPTIONAL; }
-    "!"                                                         { return DTOTypes.REQUIRED; }
-    "*"                                                         { return DTOTypes.ASTERISK; }
-    "^"                                                         { return DTOTypes.POWER; }
-    "$"                                                         { return DTOTypes.DOLLAR; }
-    "->"                                                        { return DTOTypes.ARROW; }
-    "/"                                                         { return DTOTypes.SLASH; }
-    "::"                                                        { return DTOTypes.CLASS_REFERENCE; }
-    "("                                                         { return DTOTypes.PAREN_L; }
-    ")"                                                         { return DTOTypes.PAREN_R; }
-    "["                                                         { return DTOTypes.BRACKET_L; }
-    "]"                                                         { return DTOTypes.BRACKET_R; }
-    "<"                                                         { return DTOTypes.ANGLE_BRACKET_L; }
-    ">"                                                         { return DTOTypes.ANGLE_BRACKET_R; }
-    "{"                                                         { return DTOTypes.BRACE_L; }
-    "}"                                                         { return DTOTypes.BRACE_R; }
+    ","                              { return DTOTypes.COMMA; }
+    "."                              { return DTOTypes.DOT; }
+    "@"                              { return DTOTypes.AT; }
+    "="                              { return DTOTypes.EQUALS; }
+    ":"                              { return DTOTypes.COLON; }
+    ";"                              { return DTOTypes.SEMICOLON; }
+    "#"                              { return DTOTypes.HASH; }
+    "+"                              { return DTOTypes.PLUS; }
+    "-"                              { return DTOTypes.MINUS; }
+    "?"                              { return DTOTypes.OPTIONAL; }
+    "!"                              { return DTOTypes.REQUIRED; }
+    "*"                              { return DTOTypes.ASTERISK; }
+    "^"                              { return DTOTypes.POWER; }
+    "$"                              { return DTOTypes.DOLLAR; }
+    "->"                             { return DTOTypes.ARROW; }
+    "/"                              { return DTOTypes.SLASH; }
+    "::"                             { return DTOTypes.CLASS_REFERENCE; }
+    "("                              { return DTOTypes.PAREN_L; }
+    ")"                              { return DTOTypes.PAREN_R; }
+    "["                              { return DTOTypes.BRACKET_L; }
+    "]"                              { return DTOTypes.BRACKET_R; }
+    "<"                              { return DTOTypes.ANGLE_BRACKET_L; }
+    ">"                              { return DTOTypes.ANGLE_BRACKET_R; }
+    "{"                              { return DTOTypes.BRACE_L; }
+    "}"                              { return DTOTypes.BRACE_R; }
 
-    {IDENTIFIER}                                                { return DTOTypes.IDENTIFIER; }
-    ({CRLF}|{WHITE_SPACE})+                                     { return TokenType.WHITE_SPACE; }
+    {IDENTIFIER}                     { return DTOTypes.IDENTIFIER; }
+    ({CRLF}|{WHITE_SPACE})+          { return TokenType.WHITE_SPACE; }
 
-    [^]                                                         { return TokenType.BAD_CHARACTER; }
+    [^]                              { return TokenType.BAD_CHARACTER; }
 }
 
-<ALIAS_PATTERN_ORIGINAL> {
-    "as"                                                        { return DTOTypes.AS_KEYWORD; }
-    ({CRLF}|{WHITE_SPACE})+                                     { return TokenType.WHITE_SPACE; }
-    "("                                                         { return DTOTypes.PAREN_L; }
-    "^"                                                         { return DTOTypes.POWER; }
-    "$"                                                         { return DTOTypes.DOLLAR; }
-    {IDENTIFIER}                                                { return DTOTypes.IDENTIFIER; }
-    "->"                                                        { yybegin(YYINITIAL); return DTOTypes.ARROW; }
-    ")"                                                         { return DTOTypes.PAREN_R; }
-    "{"                                                         { yypushback(1); yybegin(YYINITIAL); }
+<ALIAS_GROUP> {
+    "as" " "* "("                    { yypushback(yylength() - 2); return DTOTypes.AS_KEYWORD; }
+    "("                              { yypushback(1); yybegin(ORIGINAL); }
+    "->"                             { yypushback(2); yybegin(YYINITIAL); }
+}
+
+<ORIGINAL> {
+    "("                              { return DTOTypes.PAREN_L; }
+    ({CRLF}|{WHITE_SPACE})+          { return TokenType.WHITE_SPACE; }
+    "^"                              { return DTOTypes.POWER; }
+    [A-Za-z_]\w* "$"                 { yypushback(1); return DTOTypes.IDENTIFIER; }
+    [A-Za-z_]\w*                     { return DTOTypes.IDENTIFIER; }
+    "$"                              { return DTOTypes.DOLLAR; }
+    "->"                             { yypushback(2); yybegin(ALIAS_GROUP); }
 }
