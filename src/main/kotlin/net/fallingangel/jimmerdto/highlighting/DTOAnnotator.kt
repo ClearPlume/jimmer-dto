@@ -203,7 +203,10 @@ class DTOAnnotator : Annotator {
          */
         override fun visitEnumInstanceMapping(o: DTOEnumInstanceMapping) {
             val enumBody = o.parent as DTOEnumBody
-            val availableEnums = o.enumInstance[StructureType.EnumValues]
+            val enumInstance = o.enumInstance
+            val enumMappingName = enumInstance.text
+
+            val availableEnums = enumInstance[StructureType.EnumValues]
             val currentEnumNames = enumBody.enumInstanceMappingList.map { it.enumInstance.text }
             val currentEnumValues = enumBody.enumInstanceMappingList.mapNotNull { it.enumInstanceValue }
 
@@ -211,13 +214,17 @@ class DTOAnnotator : Annotator {
             val allString = currentEnumValues.all { it.text.matches(Regex("\".+\"")) }
             val valueTypeValid = allInt || allString
 
-            if (o.enumInstance.text in availableEnums) {
-                o.enumInstance.style(DTOSyntaxHighlighter.ENUM_INSTANCE)
+            if (enumMappingName in availableEnums) {
+                enumInstance.style(DTOSyntaxHighlighter.ENUM_INSTANCE)
             } else {
-                o.enumInstance.error()
+                enumInstance.error()
             }
-            if (currentEnumNames.count { it == o.enumInstance.text } != 1) {
-                o.enumInstance.error(DTOSyntaxHighlighter.DUPLICATION)
+            if (currentEnumNames.count { it == enumMappingName } != 1) {
+                enumInstance.error(
+                    "Duplicated enum mapping `$enumMappingName`",
+                    RemoveElementAction(enumMappingName, o),
+                    DTOSyntaxHighlighter.DUPLICATION
+                )
             }
             if (!valueTypeValid) {
                 o.enumInstanceValue?.error()
