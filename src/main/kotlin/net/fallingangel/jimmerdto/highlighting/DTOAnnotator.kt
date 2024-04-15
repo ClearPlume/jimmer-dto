@@ -143,7 +143,7 @@ class DTOAnnotator : Annotator {
 
         private fun visitFunction(o: DTOPositiveProp, propName: String) {
             val dto = o.parentOfType<DTODto>() ?: return
-            val availableFunctions = if (dto modifiedBy Modifier.SPECIFICATION) {
+            val availableFunctions = if (dto modifiedBy Modifier.Specification) {
                 val functions = Function.values().map { it.expression }
                 val specFunctions = SpecFunction.values().map { it.expression }
                 functions + specFunctions

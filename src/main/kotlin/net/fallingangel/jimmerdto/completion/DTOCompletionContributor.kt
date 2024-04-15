@@ -16,6 +16,7 @@ import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.prevLeafs
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
+import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.structure.BasicType
 import net.fallingangel.jimmerdto.structure.GenericType
@@ -49,6 +50,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // Dto修饰符提示
         completeDtoModifier()
+
+        // 正属性修饰符提示
+        completePositivePropModifier()
 
         // AliasGroup方法体提示
         completeAsBody()
@@ -235,6 +239,48 @@ class DTOCompletionContributor : CompletionContributor() {
             identifier.withParent(DTODtoName::class.java)
                     .withSuperParent(2, DTODto::class.java)
                     .withSuperParent(3, DTOFile::class.java)
+        )
+    }
+
+    /**
+     * 正属性修饰符提示
+     */
+    private fun completePositivePropModifier() {
+        complete(
+            { _, result ->
+                result.addAllElements(
+                    Modifier.values().filter { it.level == Modifier.Level.Both }.map { it.name.lowercase() }.lookUp {
+                        PrioritizedLookupElement.withPriority(bold(), 100.0)
+                    }
+                )
+            },
+            and(
+                identifier.withParent(DTOPropName::class.java)
+                        .withSuperParent(
+                            3,
+                            psiElement(DTOExplicitProp::class.java)
+                                    .afterSiblingSkipping(
+                                        whitespace,
+                                        psiElement(DTOExplicitProp::class.java)
+                                                .withFirstNonWhitespaceChild(
+                                                    psiElement(DTOPositiveProp::class.java)
+                                                            .andNot(
+                                                                psiElement(DTOPositiveProp::class.java)
+                                                                        .withChild(psiElement(DTOPropArgs::class.java))
+                                                            )
+                                                )
+                                    )
+                        ),
+                identifier.withParent(
+                    not(
+                        psiElement(DTOPropName::class.java)
+                                .afterSiblingSkipping(
+                                    whitespace,
+                                    psiElement(DTOModifier::class.java)
+                                )
+                    )
+                )
+            )
         )
     }
 

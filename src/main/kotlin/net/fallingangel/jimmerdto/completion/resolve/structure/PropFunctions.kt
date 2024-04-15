@@ -20,7 +20,7 @@ class PropFunctions : Structure<DTOPropName, List<LookupInfo>> {
             LookupInfo("id", "(<association>)", "function", "id()", -1),
             LookupInfo("flat", "(<association>) { ... }", "function", "flat() {}", -4)
         )
-        val specFunctions = if (dto modifiedBy Modifier.SPECIFICATION) {
+        val specFunctions = if (dto modifiedBy Modifier.Specification) {
             SpecFunction.values()
                     .map {
                         with(it) {

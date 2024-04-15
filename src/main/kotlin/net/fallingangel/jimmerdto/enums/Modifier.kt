@@ -1,5 +1,16 @@
 package net.fallingangel.jimmerdto.enums
 
-enum class Modifier(val value: String) {
-    INPUT("input"), SPECIFICATION("specification"), ABSTRACT("abstract"), UNSAFE("unsafe"), DYNAMIC("dynamic")
+enum class Modifier(val level: Level) {
+    Input(Level.Dto),
+    Specification(Level.Dto),
+    Abstract(Level.Dto),
+    Unsafe(Level.Dto),
+    Fixed(Level.Both),
+    Static(Level.Both),
+    Dynamic(Level.Both),
+    Fuzzy(Level.Both);
+
+    enum class Level {
+        Both, Dto, Prop
+    }
 }

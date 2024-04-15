@@ -69,11 +69,9 @@ import ::= "import" qualified-type grouped-types?
 
 grouped-types ::= "." "{" qualified-type ("," qualified-type)* "}"
 
-dto ::= annotation* dto-modifier* dto-name interfaces? dto-body {
+dto ::= annotation* modifier* dto-name interfaces? dto-body {
     pin = 3
 }
-
-dto-modifier ::= MODIFIER
 
 dto-name ::= IDENTIFIER
 
@@ -107,8 +105,8 @@ alias-dollar ::= DOLLAR
 
 replacement ::= STRING_CONSTANT | IDENTIFIER
 
-positive-prop ::= annotation* "+"? prop-name prop-flags? prop-args? ("?" | "!" | "*")? ("as" prop-alias)? interfaces? (enum-body | prop-body)? {
-    pin = 3
+positive-prop ::= annotation* "+"? modifier? prop-name prop-flags? prop-args? ("?" | "!" | "*")? ("as" prop-alias)? interfaces? (enum-body | prop-body)? {
+    pin = 4
     implements="net.fallingangel.jimmerdto.psi.mixin.DTOSingleProp"
     mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTOSinglePropImpl"
 }
@@ -150,9 +148,11 @@ generic-args ::= "<" generic-arg ("," generic-arg)* ">" {
     pin = 1
 }
 
-generic-arg ::= "*" | MODIFIER? type-def
+generic-arg ::= "*" | modifier? type-def
 
 /// GLOBAL ///
+modifier ::= "input" | "specification" | "abstract" | "unsafe" | "fixed" | "static" | "dynamic" | "fuzzy"
+
 qualified-name ::= qualified-name-part ("." qualified-name-part)*
 
 qualified-name-part ::= IDENTIFIER {

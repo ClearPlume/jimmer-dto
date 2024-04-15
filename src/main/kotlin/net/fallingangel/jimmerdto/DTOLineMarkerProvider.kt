@@ -23,7 +23,7 @@ class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
             val dto = element.parent.parent as? DTODto ?: return
             val dtoName = dto.dtoName.text
 
-            if (dto notModifiedBy Modifier.ABSTRACT) {
+            if (dto notModifiedBy Modifier.Abstract) {
                 val dtoClassFile = dto.classFile() ?: return
                 val nameIdentifier = dtoClassFile.nameIdentifier(project) ?: return
                 result.add(

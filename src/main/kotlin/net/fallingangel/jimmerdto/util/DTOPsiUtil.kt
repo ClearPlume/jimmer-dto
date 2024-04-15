@@ -15,6 +15,7 @@ import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.psi.DTODto
+import net.fallingangel.jimmerdto.psi.DTOModifier
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -100,8 +101,12 @@ fun StringPattern.atStart(start: String): StringPattern {
     })
 }
 
+fun DTOModifier.toModifier() = Modifier.valueOf(text.replaceFirstChar { it.titlecase() })
+
+fun List<DTOModifier>.toModifier() = map(DTOModifier::toModifier)
+
 infix fun DTODto.modifiedBy(modifier: Modifier): Boolean {
-    return modifier.value in this.dtoModifierList.map { it.text }
+    return modifier in this.modifierList.toModifier()
 }
 
 infix fun DTODto.notModifiedBy(modifier: Modifier) = !modifiedBy(modifier)
