@@ -3,7 +3,6 @@ package net.fallingangel.jimmerdto.enums
 enum class Modifier(val level: Level) {
     Input(Level.Dto),
     Specification(Level.Dto),
-    Abstract(Level.Dto),
     Unsafe(Level.Dto),
     Fixed(Level.Both),
     Static(Level.Both),

@@ -6,8 +6,6 @@ import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
 import icons.Icons
-import net.fallingangel.jimmerdto.enums.Modifier
-import net.fallingangel.jimmerdto.util.notModifiedBy
 import net.fallingangel.jimmerdto.psi.DTODto
 import net.fallingangel.jimmerdto.psi.DTOTypes
 import net.fallingangel.jimmerdto.util.classFile
@@ -23,16 +21,14 @@ class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
             val dto = element.parent.parent as? DTODto ?: return
             val dtoName = dto.dtoName.text
 
-            if (dto notModifiedBy Modifier.Abstract) {
-                val dtoClassFile = dto.classFile() ?: return
-                val nameIdentifier = dtoClassFile.nameIdentifier(project) ?: return
-                result.add(
-                    NavigationGutterIconBuilder.create(Icons.icon_16)
-                            .setTargets(dtoClassFile.toPsiFile(project))
-                            .setTooltipText("Jump to generated class [$dtoName]")
-                            .createLineMarkerInfo(element) { _, _ -> dtoClassFile.open(project, nameIdentifier.textOffset) }
-                )
-            }
+            val dtoClassFile = dto.classFile() ?: return
+            val nameIdentifier = dtoClassFile.nameIdentifier(project) ?: return
+            result.add(
+                NavigationGutterIconBuilder.create(Icons.icon_16)
+                        .setTargets(dtoClassFile.toPsiFile(project))
+                        .setTooltipText("Jump to generated class [$dtoName]")
+                        .createLineMarkerInfo(element) { _, _ -> dtoClassFile.open(project, nameIdentifier.textOffset) }
+            )
         }
     }
 }
