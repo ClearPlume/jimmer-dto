@@ -1,6 +1,9 @@
 package net.fallingangel.jimmerdto.util
 
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.module.ModuleUtil
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
@@ -45,4 +48,11 @@ fun root(element: PsiElement): List<VirtualFile> {
                 .getSourceRoots(JavaSourceRootType.SOURCE)
     }
     return roots
+}
+
+fun Project.notification(content: String, type: NotificationType = NotificationType.INFORMATION) {
+    NotificationGroupManager.getInstance()
+            .getNotificationGroup("JimmerDTO Notification Group")
+            .createNotification(content, type)
+            .notify(this)
 }
