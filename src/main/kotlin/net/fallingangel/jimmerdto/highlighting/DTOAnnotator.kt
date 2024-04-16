@@ -20,7 +20,8 @@ import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.SpecFunction
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.psi.fix.ConvertStringToReplacement
-import net.fallingangel.jimmerdto.psi.fix.RemoveElementAction
+import net.fallingangel.jimmerdto.psi.fix.GenerateMissedEnumMappings
+import net.fallingangel.jimmerdto.psi.fix.RemoveElement
 import net.fallingangel.jimmerdto.util.*
 
 /**
@@ -101,19 +102,19 @@ class DTOAnnotator : Annotator {
             if (power != null && dollar != null) {
                 power.error(
                     "Power and Dollar cannot both appear in the original section of AliasGroup",
-                    RemoveElementAction("^", power)
+                    RemoveElement("^", power)
                 )
 
                 dollar.error(
                     "Power and Dollar cannot both appear in the original section of AliasGroup",
-                    RemoveElementAction("$", dollar)
+                    RemoveElement("$", dollar)
                 )
             }
 
             // replacement
             val stringConstant = o.aliasPattern.replacement?.stringConstant
             stringConstant?.error(
-                "Unlike the usual case, string literals are not needed here",
+                "Unlike the usual case, string literals are not allowed here",
                 ConvertStringToReplacement(stringConstant)
             )
         }
@@ -130,6 +131,10 @@ class DTOAnnotator : Annotator {
             // 当前属性为非方法属性
             if (o.propArgs == null) {
                 visitProp(o, propName)
+            }
+            // 当前属性为枚举映射属性
+            if (o.enumBody != null) {
+                visitEnumMappingProp(o, propName)
             }
         }
 
@@ -180,6 +185,29 @@ class DTOAnnotator : Annotator {
             availableProperties.find { it.name == propName } ?: o.propName.error()
         }
 
+        private fun visitEnumMappingProp(o: DTOPositiveProp, propName: String) {
+            val enumBody = o.enumBody!!
+            val enumInstance = enumBody.enumInstanceMappingList[0].enumInstance
+
+            val availableEnums = enumInstance[StructureType.EnumValues]
+            val currentEnumNames = enumBody.enumInstanceMappingList.map { it.enumInstance.text }
+
+            // 是否已经完成所有枚举值的映射
+            val missedMappings = availableEnums.filter { it !in currentEnumNames }
+            if (missedMappings.isNotEmpty()) {
+                o.error(
+                    if (missedMappings.size == 1) {
+                        val noMappedEnum = missedMappings.first()
+                        "The mapping for `$noMappedEnum` is not defined"
+                    } else {
+                        val allNoMappedEnum = missedMappings.joinToString()
+                        "The mappings for `$allNoMappedEnum` are not defined"
+                    },
+                    GenerateMissedEnumMappings(propName, missedMappings, enumBody)
+                )
+            }
+        }
+
         override fun visitNegativeProp(o: DTONegativeProp) {
             val properties = o[StructureType.PropNegativeProperties]
             if (properties.find { it.name == o.propName.text } != null) {
@@ -202,9 +230,10 @@ class DTOAnnotator : Annotator {
          * 为枚举映射上色
          */
         override fun visitEnumInstanceMapping(o: DTOEnumInstanceMapping) {
-            val enumBody = o.parent as DTOEnumBody
+            val enumBody = o.parent<DTOEnumBody>()
             val enumInstance = o.enumInstance
             val enumMappingName = enumInstance.text
+            val enumMappingValue = o.enumInstanceValue
 
             val availableEnums = enumInstance[StructureType.EnumValues]
             val currentEnumNames = enumBody.enumInstanceMappingList.map { it.enumInstance.text }
@@ -214,20 +243,37 @@ class DTOAnnotator : Annotator {
             val allString = currentEnumValues.all { it.text.matches(Regex("\".+\"")) }
             val valueTypeValid = allInt || allString
 
+            // 枚举映射是否存在于对应枚举中
             if (enumMappingName in availableEnums) {
                 enumInstance.style(DTOSyntaxHighlighter.ENUM_INSTANCE)
             } else {
-                enumInstance.error()
+                enumInstance.error(
+                    "Illegal enum mapping `$enumMappingName`",
+                    RemoveElement(enumMappingName, o)
+                )
             }
+            // 枚举映射是否重复定义
             if (currentEnumNames.count { it == enumMappingName } != 1) {
                 enumInstance.error(
                     "Duplicated enum mapping `$enumMappingName`",
-                    RemoveElementAction(enumMappingName, o),
+                    RemoveElement(enumMappingName, o),
                     DTOSyntaxHighlighter.DUPLICATION
                 )
             }
+            // 枚举映射中的值是否重复定义
+            if (enumMappingValue?.let { currentEnumValues.count { it.text == enumMappingValue.text } != 1 } == true) {
+                enumMappingValue.error(
+                    "Illegal value of enum mapping `$enumMappingName`, its duplicated",
+                    RemoveElement(enumMappingValue.text, enumMappingValue),
+                    DTOSyntaxHighlighter.DUPLICATION
+                )
+            }
+            // 枚举映射值是否同一类型
             if (!valueTypeValid) {
-                o.enumInstanceValue?.error()
+                enumMappingValue?.error(
+                    "Illegal value of enum mapping `$enumMappingName`. Integer value and String value cannot be mixed",
+                    RemoveElement(enumMappingValue.text, enumMappingValue)
+                )
             }
         }
 
@@ -278,7 +324,7 @@ class DTOAnnotator : Annotator {
                 if (currentModifiers.count { it.name.lowercase() == modifier } != 1) {
                     o.error(
                         "Duplicated modifier `$modifier`",
-                        RemoveElementAction(modifier, o),
+                        RemoveElement(modifier, o),
                         DTOSyntaxHighlighter.DUPLICATION
                     )
                 }

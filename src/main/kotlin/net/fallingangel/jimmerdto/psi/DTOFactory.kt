@@ -84,3 +84,21 @@ fun Project.createAliasGroup(
 fun Project.createAliasGroupReplacement(replacement: String = ""): PsiElement? {
     return createAliasGroup("^ -> $replacement").aliasPattern.replacement?.identifier
 }
+
+fun Project.createEnumMappingProp(name: String, mappings: List<String>): DTOPositiveProp {
+    val mapping = mappings.joinToString(System.lineSeparator())
+    val enumMapping = """$name -> {
+        |   $mapping
+        |}
+    """.trimMargin()
+    return createDTO("Dummy", positiveProps = listOf(enumMapping))
+            .dtoBody!!
+            .explicitPropList[0]
+            .positiveProp!!
+}
+
+fun Project.createEnumMappings(mappings: List<String>): List<DTOEnumInstanceMapping> {
+    return createEnumMappingProp("dummy", mappings)
+            .enumBody!!
+            .enumInstanceMappingList
+}
