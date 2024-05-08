@@ -27,6 +27,14 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.20 (2024-05-08)</b></p>
+    <ul>
+      <li><b>Bug Fix</b>Adjust lexical rules to avoid conflicts between modifiers and property names</li>
+    </ul>
+    <ul>
+      <li><b>修复Bug</b>调整词法规则，避开修饰符和属性名的冲突</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.19 (2024-04-16)</b></p>
     <ul>
       <li><b>Feature</b>InputDTO modifier done</li>
@@ -59,6 +67,7 @@
     <hr/>
     <p><b>0.0.7.16 (2024-04-04)</b></p>
     <ul>
+      <li><b>Feature</b>Support for 2024.1, <b>Support for 2022.1 will be removed when 2024.2 is released</b></li>
       <li><b>Feature</b>Optimize user attribute type prompts</li>
       <li><b>Feature</b>Class, Implements Keyword Hints</li>
     </ul>
