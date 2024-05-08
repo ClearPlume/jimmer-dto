@@ -12,10 +12,10 @@ version = "0.0.7.19"
 val sinceVersion by extra("221.5080.210")
 val untilVersion by extra("241.*")
 
-val certificateChainValue: String = findProperty("certificateChainValue") as String
-val privateKeyValue: String = findProperty("privateKeyValue") as String
-val passwordValue: String = findProperty("passwordValue") as String
-val tokenValue: String = findProperty("tokenValue") as String
+val certificateChainValue = findProperty("certificateChainValue") as String?
+val privateKeyValue = findProperty("privateKeyValue") as String?
+val passwordValue = findProperty("passwordValue") as String?
+val tokenValue = findProperty("tokenValue") as String?
 
 sourceSets["main"].java.srcDir("src/main/gen")
 
