@@ -14,8 +14,10 @@ import net.fallingangel.jimmerdto.psi.DTOTokenTypes;
 %unicode
 %function advance
 %type IElementType
-%eof{
-%eof}
+
+%{
+    int braceLevel = 0;
+%}
 
 CRLF=\R
 WHITE_SPACE=[\ \n\t\f]
@@ -52,7 +54,13 @@ FLOAT = \d+\.\d+
     "this"                           { return DTOTypes.THIS_KEYWORD; }
     "class"                          { return DTOTypes.CLASS_KEYWORD; }
     "implements"                     { return DTOTypes.IMPLEMENTS_KEYWORD; }
-    {MODIFIER}                       { return DTOTypes.MODIFIER; }
+    {MODIFIER}                       {
+        if (braceLevel > 0) {
+            return DTOTypes.IDENTIFIER;
+        } else {
+            return DTOTypes.MODIFIER;
+        }
+    }
     {BOOLEAN}                        { return DTOTypes.BOOLEAN_CONSTANT; }
     "null"                           { return DTOTypes.NULL_CONSTANT; }
     {CHAR}                           { return DTOTypes.CHAR_CONSTANT; }
@@ -83,8 +91,8 @@ FLOAT = \d+\.\d+
     "]"                              { return DTOTypes.BRACKET_R; }
     "<"                              { return DTOTypes.ANGLE_BRACKET_L; }
     ">"                              { return DTOTypes.ANGLE_BRACKET_R; }
-    "{"                              { return DTOTypes.BRACE_L; }
-    "}"                              { return DTOTypes.BRACE_R; }
+    "{"                              { braceLevel++; return DTOTypes.BRACE_L; }
+    "}"                              { braceLevel--; return DTOTypes.BRACE_R; }
 
     {IDENTIFIER}                     { return DTOTypes.IDENTIFIER; }
     ({CRLF}|{WHITE_SPACE})+          { return TokenType.WHITE_SPACE; }
