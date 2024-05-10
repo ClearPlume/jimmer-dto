@@ -9,10 +9,8 @@ import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.prevLeafs
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
@@ -104,7 +102,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeUserPropType() {
         complete(
             { parameters, result ->
-                result.addAllElements(findUserPropType(parameters.originalFile))
+                result.addAllElements(findUserPropType(parameters.originalFile as DTOFile))
             },
             identifier.withParent(DTOQualifiedNamePart::class.java)
                     .withSuperParent(2, psiElement(DTOQualifiedName::class.java))
@@ -119,7 +117,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeUserPropGenericType() {
         complete(
             { parameters, result ->
-                result.addAllElements(findUserPropType(parameters.originalFile, true))
+                result.addAllElements(findUserPropType(parameters.originalFile as DTOFile, true))
             },
             identifier.withParent(DTOQualifiedNamePart::class.java)
                     .withSuperParent(2, psiElement(DTOQualifiedName::class.java))
@@ -558,7 +556,7 @@ class DTOCompletionContributor : CompletionContributor() {
         )
     }
 
-    private fun findUserPropType(file: PsiFile, isGeneric: Boolean = false): List<LookupElement> {
+    private fun findUserPropType(file: DTOFile, isGeneric: Boolean = false): List<LookupElement> {
         val basicTypes = BasicType.types().lookUp()
         val genericTypes = GenericType.types().lookUp()
 
@@ -567,35 +565,11 @@ class DTOCompletionContributor : CompletionContributor() {
         } else {
             emptyList()
         }
-        val imports = PsiTreeUtil.getChildrenOfTypeAsList(file, DTOImport::class.java)
-        val importedTypes = imports
-                .filter { it.qualifiedType.qualifiedTypeAlias == null && it.groupedTypes == null }
-                .map { it.qualifiedType.qualifiedTypeName.qualifiedName.qualifiedNamePartList.last().text }
-                .lookUp()
-        val importedSingleAliasTypes = imports
-                .filter { it.qualifiedType.qualifiedTypeAlias != null }
-                .map { it.qualifiedType.qualifiedTypeAlias!!.identifier.text }
-                .lookUp()
-        val importedGroupedAliasTypes = imports
-                .filter { it.groupedTypes != null }
-                .map {
-                    val groupedTypes = it.groupedTypes!!.qualifiedTypeList
-                    val alias = groupedTypes
-                            .filter { type -> type.qualifiedTypeAlias != null }
-                            .map { type -> type.qualifiedTypeAlias!!.identifier.text }
-                    val types = groupedTypes
-                            .filter { type -> type.qualifiedTypeAlias == null }
-                            .map { type -> type.lastChild.text }
-                    alias + types
-                }
-                .flatten()
-                .lookUp()
+        val imports = file[StructureType.DTOFileImports].lookUp()
         return basicTypes +
                 genericTypes +
                 genericModifiers +
-                importedTypes +
-                importedSingleAliasTypes +
-                importedGroupedAliasTypes
+                imports
     }
 
     private fun bodyLookups(): List<LookupElement> {

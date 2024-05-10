@@ -18,6 +18,17 @@ fun Project.createDTOFile(content: String = ""): DTOFile {
 }
 
 /**
+ * 创建导入指定全限定类名的[DTOImport]实例
+ *
+ * @param qualifiedName 全限定类名
+ *
+ * @return [DTOImport]实例
+ */
+fun Project.createImport(qualifiedName: String): DTOImport {
+    return createDTOFile("import $qualifiedName").getChildOfType()!!
+}
+
+/**
  * 以指定名称创建[DTODto]实例
  *
  * @param name Dto名称

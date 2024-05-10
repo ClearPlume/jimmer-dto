@@ -13,6 +13,8 @@ abstract class BaseFix : BaseIntentionAction() {
         if (editor == null || file == null) {
             return false
         }
-        return file is DTOFile
+        return file is DTOFile && isAvailable()
     }
+
+    open fun isAvailable() = true
 }

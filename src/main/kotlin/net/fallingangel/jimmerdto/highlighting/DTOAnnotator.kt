@@ -21,6 +21,7 @@ import net.fallingangel.jimmerdto.enums.SpecFunction
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.psi.fix.ConvertStringToReplacement
 import net.fallingangel.jimmerdto.psi.fix.GenerateMissedEnumMappings
+import net.fallingangel.jimmerdto.psi.fix.ImportClass
 import net.fallingangel.jimmerdto.psi.fix.RemoveElement
 import net.fallingangel.jimmerdto.util.*
 
@@ -205,6 +206,26 @@ class DTOAnnotator : Annotator {
                     },
                     GenerateMissedEnumMappings(propName, missedMappings, enumBody)
                 )
+            }
+        }
+
+        /**
+         * 为类型定义提供未导入提示
+         */
+        override fun visitTypeDef(o: DTOTypeDef) {
+            if (o.haveParent<DTOUserProp>()) {
+                visitUserPropType(o)
+            }
+        }
+
+        private fun visitUserPropType(o: DTOTypeDef) {
+            val dtoFile = o.parentOfType<DTOFile>() ?: return
+            val imports = dtoFile[StructureType.DTOFileImports]
+            val preludes = dtoFile[StructureType.DTOPreludeTypes]
+
+            val userPropType = o.qualifiedName.text
+            if (userPropType !in imports + preludes) {
+                o.qualifiedName.error("Unresolved reference: $userPropType", ImportClass(o.qualifiedName))
             }
         }
 
