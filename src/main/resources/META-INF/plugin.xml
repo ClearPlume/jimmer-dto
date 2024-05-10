@@ -27,6 +27,14 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.21 (2024-05-10)</b></p>
+    <ul>
+      <li><b>Feature</b>Type import popup for user-prop</li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>user-prop类型导入弹出窗口</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.20 (2024-05-08)</b></p>
     <ul>
       <li><b>Bug Fix</b>Adjust lexical rules to avoid conflicts between modifiers and property names</li>
