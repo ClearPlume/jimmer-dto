@@ -10,6 +10,7 @@ import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.TokenType
+import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.prevLeafs
@@ -559,6 +560,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun findUserPropType(file: DTOFile, isGeneric: Boolean = false): List<LookupElement> {
         val basicTypes = BasicType.types().lookUp()
         val genericTypes = GenericType.types().lookUp()
+        val classes = PsiShortNamesCache.getInstance(file.project).allClassNames.toList().lookUp()
 
         val genericModifiers = if (isGeneric) {
             listOf("out", "in").lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
@@ -569,7 +571,8 @@ class DTOCompletionContributor : CompletionContributor() {
         return basicTypes +
                 genericTypes +
                 genericModifiers +
-                imports
+                imports +
+                classes
     }
 
     private fun bodyLookups(): List<LookupElement> {
