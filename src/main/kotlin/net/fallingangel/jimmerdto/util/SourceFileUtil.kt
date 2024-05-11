@@ -120,22 +120,27 @@ fun VirtualFile.supers(project: Project): List<String> {
     val supers = try {
         when (language) {
             Language.Java -> {
-                psiClass(project)
-                        ?.supers
+                psiClass(project)?.supers()
                         ?.map { it.name ?: "" }
                         ?.filter { it != "Object" }
             }
 
             Language.Kotlin -> {
-                ktClass(project)
-                        ?.superTypeListEntries
-                        ?.map(KtSuperTypeListEntry::getText)
+                ktClass(project)?.supers()?.mapNotNull(KtClass::getName)
             }
         }
     } catch (e: IllegalFileFormatException) {
         null
     }
     return supers ?: emptyList()
+}
+
+fun PsiClass.supers(): List<PsiClass> {
+    return supers.toList() + supers.map { it.supers.toList() }.flatten()
+}
+
+fun KtClass.supers(): List<KtClass> {
+    return supers + supers.map { it.supers }.flatten()
 }
 
 /**
@@ -280,4 +285,13 @@ private val KtSuperTypeListEntry.properties: List<KtProperty>
     get() {
         val context = analyze()
         return context[BindingContext.TYPE, typeReference]?.clazz()?.properties() ?: emptyList()
+    }
+
+private val KtClass.supers: List<KtClass>
+    get() {
+        return superTypeListEntries
+                .mapNotNull {
+                    val context = analyze()
+                    context[BindingContext.TYPE, it.typeReference]?.clazz()
+                }
     }
