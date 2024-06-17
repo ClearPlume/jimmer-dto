@@ -1,0 +1,5 @@
+export net.fallingangel.jimmerdto.entity.Book
+
+SimpleBook {
+    <caret>
+}

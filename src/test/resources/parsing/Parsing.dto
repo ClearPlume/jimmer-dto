@@ -1,0 +1,8 @@
+export net.fallingangel.jimmerdto.entity.Book
+
+SimpleBook {
+    id
+    name
+    edition
+    price
+}

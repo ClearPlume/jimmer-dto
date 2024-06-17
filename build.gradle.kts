@@ -11,6 +11,7 @@ version = "0.0.7.21"
 
 val sinceVersion by extra("221.5080.210")
 val untilVersion by extra("241.*")
+val jimmerVersion by extra("0.8.134")
 
 val certificateChainValue = findProperty("certificateChainValue") as String?
 val privateKeyValue = findProperty("privateKeyValue") as String?
@@ -21,6 +22,10 @@ sourceSets["main"].java.srcDir("src/main/gen")
 
 repositories {
     mavenCentral()
+}
+
+dependencies {
+    testCompileOnly("org.babyfish.jimmer:jimmer-sql-kotlin:$jimmerVersion")
 }
 
 // Configure Gradle IntelliJ Plugin
@@ -48,6 +53,10 @@ tasks {
             jvmTarget = "11"
             freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
         }
+    }
+
+    test {
+        systemProperty("idea.home.path", intellij.sandboxDir.get())
     }
 
     patchPluginXml {
