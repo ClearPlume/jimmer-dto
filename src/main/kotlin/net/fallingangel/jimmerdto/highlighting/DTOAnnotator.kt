@@ -19,10 +19,7 @@ import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.SpecFunction
 import net.fallingangel.jimmerdto.psi.*
-import net.fallingangel.jimmerdto.psi.fix.ConvertStringToReplacement
-import net.fallingangel.jimmerdto.psi.fix.GenerateMissedEnumMappings
-import net.fallingangel.jimmerdto.psi.fix.ImportClass
-import net.fallingangel.jimmerdto.psi.fix.RemoveElement
+import net.fallingangel.jimmerdto.psi.fix.*
 import net.fallingangel.jimmerdto.util.*
 
 /**
@@ -210,7 +207,18 @@ class DTOAnnotator : Annotator {
         }
 
         /**
-         * 为类型定义提供未导入提示
+         * 为用户属性上色
+         */
+        override fun visitUserProp(o: DTOUserProp) {
+            val propName = o.propName
+            val entityProperties = o[StructureType.UserPropProperties]
+            entityProperties.find { propName.text == it.name }?.let {
+                propName.error("Do not allow duplicate user attribute and entity attribute names", RenameElement(propName))
+            }
+        }
+
+        /**
+         * 为类型定义上色
          */
         override fun visitTypeDef(o: DTOTypeDef) {
             if (o.haveParent<DTOUserProp>()) {

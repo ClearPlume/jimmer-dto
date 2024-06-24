@@ -7,6 +7,8 @@ import com.intellij.psi.PsiFile
 import net.fallingangel.jimmerdto.psi.DTOFile
 
 abstract class BaseFix : BaseIntentionAction() {
+    override fun startInWriteAction() = false
+
     override fun getFamilyName() = "JimmerDTO fix action"
 
     override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean {

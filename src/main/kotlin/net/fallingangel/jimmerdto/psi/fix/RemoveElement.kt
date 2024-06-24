@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto.psi.fix
 
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
@@ -9,6 +10,8 @@ class RemoveElement(private val name: String, private val element: PsiElement) :
     override fun getText() = "Remove `$name`"
 
     override fun invoke(project: Project, editor: Editor, file: PsiFile) {
-        element.parent.node.removeChild(element.node)
+        WriteCommandAction.runWriteCommandAction(project) {
+            element.parent.node.removeChild(element.node)
+        }
     }
 }

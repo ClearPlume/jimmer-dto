@@ -6,40 +6,14 @@ import com.intellij.psi.PsiFileFactory
 import net.fallingangel.jimmerdto.DTOLanguage
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 
-/**
- * 以指定内容创建[DTOFile]实例
- *
- * @param content DTO文件内容
- *
- * @return [DTOFile]实例
- */
 fun Project.createDTOFile(content: String = ""): DTOFile {
     return PsiFileFactory.getInstance(this).createFileFromText(DTOLanguage.INSTANCE, content) as DTOFile
 }
 
-/**
- * 创建导入指定全限定类名的[DTOImport]实例
- *
- * @param qualifiedName 全限定类名
- *
- * @return [DTOImport]实例
- */
 fun Project.createImport(qualifiedName: String): DTOImport {
     return createDTOFile("import $qualifiedName").getChildOfType()!!
 }
 
-/**
- * 以指定名称创建[DTODto]实例
- *
- * @param name Dto名称
- * @param userProps Dto元素
- * @param macros Dto元素
- * @param aliasGroups Dto元素
- * @param positiveProps Dto元素
- * @param negativeProps Dto元素
- *
- * @return [DTODto]实例
- */
 fun Project.createDTO(
     name: String,
     implements: List<String> = emptyList(),
@@ -113,3 +87,12 @@ fun Project.createEnumMappings(mappings: List<String>): List<DTOEnumInstanceMapp
             .enumBody!!
             .enumInstanceMappingList
 }
+
+fun Project.createUserProp(name: String, type: String): DTOUserProp {
+    return createDTO("Dummy", userProps = listOf("$name: $type"))
+            .dtoBody!!
+            .explicitPropList[0]
+            .userProp!!
+}
+
+fun Project.createUserPropName(name: String) = createUserProp(name, "String").propName
