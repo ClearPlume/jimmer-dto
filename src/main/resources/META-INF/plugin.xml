@@ -27,6 +27,14 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.22 (2024-06-26)</b></p>
+    <ul>
+      <li><b>Feature</b>Error message when user-prop name and entity property name are duplicated and tips for fixing it</li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>user-prop名称和实体属性名称重复时的错误提示及修正提示</li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.21 (2024-05-10)</b></p>
     <ul>
       <li><b>Feature</b>Type import popup for user-prop</li>
