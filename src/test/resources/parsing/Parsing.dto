@@ -1,8 +1,21 @@
 export net.fallingangel.jimmerdto.entity.Book
 
-SimpleBook {
-    id
+BookDTO {
+    id as bookId
     name
     edition
     price
+
+    id(authors) as authorIds
+    #allScalars(BaseEntity, this)
+
+    flat(store) {
+        id as storeId
+
+        as(^ -> store) {
+            name
+            website
+            createdTime
+        }
+    }
 }
