@@ -121,12 +121,15 @@ fun VirtualFile.supers(project: Project): List<String> {
         when (language) {
             Language.Java -> {
                 psiClass(project)?.supers()
-                        ?.map { it.name ?: "" }
+                        ?.filter { it.hasAnnotation(Constant.Annotation.ENTITY, Constant.Annotation.MAPPED_SUPERCLASS) }
+                        ?.mapNotNull { it.name }
                         ?.filter { it != "Object" }
             }
 
             Language.Kotlin -> {
-                ktClass(project)?.supers()?.mapNotNull(KtClass::getName)
+                ktClass(project)?.supers()
+                        ?.filter { it.hasAnnotation(Constant.Annotation.ENTITY, Constant.Annotation.MAPPED_SUPERCLASS) }
+                        ?.mapNotNull(KtClass::getName)
             }
         }
     } catch (e: IllegalFileFormatException) {
@@ -281,6 +284,10 @@ fun KtClass.properties(): List<KtProperty> {
     return getProperties() + supers.map(KtSuperTypeListEntry::properties).flatten()
 }
 
+fun PsiClass.hasAnnotation(vararg annotations: String) = annotations.any { hasAnnotation(it) }
+
+fun KtClass.hasAnnotation(vararg annotations: String) = annotations.any { annotationEntries.map(KtAnnotationEntry::qualifiedName).contains(it) }
+
 private val KtSuperTypeListEntry.properties: List<KtProperty>
     get() {
         val context = analyze()
@@ -291,7 +298,7 @@ private val KtClass.supers: List<KtClass>
     get() {
         return superTypeListEntries
                 .mapNotNull {
-                    val context = analyze()
+                    val context = it.analyze()
                     context[BindingContext.TYPE, it.typeReference]?.clazz()
                 }
     }

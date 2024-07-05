@@ -69,11 +69,11 @@ class DTOAnnotator : Annotator {
             }
 
             val macroAvailableParams = o[StructureType.MacroTypes]
-            for (macroArg in o.qualifiedNameList) {
+            for (macroArg in o.qualifiedNamePartList) {
                 if (macroArg.text !in macroAvailableParams) {
                     macroArg.error()
                 }
-                if (o.qualifiedNameList.count { it.text == macroArg.text } != 1) {
+                if (o.qualifiedNamePartList.count { it.text == macroArg.text } != 1) {
                     macroArg.error(DTOSyntaxHighlighter.DUPLICATION)
                 }
                 if (thisList.isNotEmpty() && macroArg.text == macroAvailableParams.last()) {

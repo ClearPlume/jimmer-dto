@@ -8,7 +8,7 @@ import java.time.LocalDateTime
  * see CommonEntityDraftInterceptor
  */
 @MappedSuperclass
-interface BaseEntity {
+interface BaseEntity : Test {
     @get:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     val createdTime: LocalDateTime
 

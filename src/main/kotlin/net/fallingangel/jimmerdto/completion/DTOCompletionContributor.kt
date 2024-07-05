@@ -188,24 +188,34 @@ class DTOCompletionContributor : CompletionContributor() {
      * 宏提示
      */
     private fun completeMacro() {
-        complete({ _, result ->
-            result.addAllElements(listOf("allScalars").lookUp())
-        }, identifier.withParent(DTOMacroName::class.java))
+        complete(
+            { _, result ->
+                result.addAllElements(listOf("allScalars").lookUp())
+            },
+            or(
+                identifier.withParent(
+                    psiElement(DTOMacroName::class.java)
+                            .afterLeafSkipping(whitespace, psiElement(DTOTypes.HASH))
+                ),
+                identifier.withParent(psiElement(DTOFile::class.java))
+                        .afterLeafSkipping(whitespace, psiElement(DTOTypes.HASH))
+            )
+        )
         complete(
             { parameters, result ->
                 val macroArgs = if (parameters.position.elementType == DTOTypes.THIS_KEYWORD) {
-                    parameters.parent<DTOMacroArgs>()
+                    parameters.position.parent.parent<DTOMacroArgs>()
                 } else {
-                    parameters.parent<DTOQualifiedNamePart>().parent.parent as DTOMacroArgs
+                    parameters.parent<DTOQualifiedNamePart>().parent as DTOMacroArgs
                 }
                 result.addAllElements(macroArgs[StructureType.MacroTypes].lookUp())
             },
             or(
                 psiElement(DTOTypes.THIS_KEYWORD)
-                        .withParent(DTOMacroArgs::class.java),
+                        .withParent(DTOMacroThis::class.java)
+                        .withSuperParent(2, DTOMacroArgs::class.java),
                 identifier.withParent(DTOQualifiedNamePart::class.java)
-                        .withSuperParent(2, psiElement(DTOQualifiedName::class.java))
-                        .withSuperParent(3, psiElement(DTOMacroArgs::class.java))
+                        .withSuperParent(2, psiElement(DTOMacroArgs::class.java))
             )
         )
     }
@@ -492,7 +502,8 @@ class DTOCompletionContributor : CompletionContributor() {
                 identifier.withParent(error.afterSiblingSkipping(whitespace, psiElement(DTOTypes.CLASS_REFERENCE))),
                 identifier.withParent(psiFile(DTOFile::class.java))
                         .afterSiblingSkipping(
-                            whitespace, or(
+                            whitespace,
+                            or(
                                 psiElement(DTOTypes.CLASS_REFERENCE),
                                 psiElement(DTOTypes.DOT)
                             )

@@ -85,7 +85,7 @@ macro ::= "#" macro-name macro-args? ("?" | "!")? {
 
 macro-name ::= IDENTIFIER
 
-macro-args ::= "(" ( macro-this | qualified-name) ("," ( macro-this | qualified-name))* ")"
+macro-args ::= "(" ( macro-this | qualified-name-part) ("," ( macro-this | qualified-name-part))* ")"
 
 macro-this ::= THIS_KEYWORD
 
@@ -155,9 +155,7 @@ modifier ::= "input" | "specification" | "abstract" | "unsafe" | "fixed" | "stat
 
 qualified-name ::= qualified-name-part ("." qualified-name-part)*
 
-qualified-name-part ::= IDENTIFIER {
-    pin = 1
-}
+qualified-name-part ::= IDENTIFIER
 
 qualified-type ::= qualified-type-name ("as" qualified-type-alias)?
 
