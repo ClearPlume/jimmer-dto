@@ -64,21 +64,28 @@ class DTOAnnotator : Annotator {
          */
         override fun visitMacroArgs(o: DTOMacroArgs) {
             val thisList = o.macroThisList
+            // 若出现超过一个<this>，即为重复
             if (thisList.size > 1) {
-                thisList.forEach { it.error(DTOSyntaxHighlighter.DUPLICATION) }
+                thisList.forEach { it.error("Only one `this` is allowed", RemoveElement("this", it), DTOSyntaxHighlighter.DUPLICATION) }
             }
 
+            // 宏可用参数，<this>一定是最后一个
             val macroAvailableParams = o[StructureType.MacroTypes]
             for (macroArg in o.qualifiedNamePartList) {
+                // 当前元素不在宏可用参数中，即为非法
                 if (macroArg.text !in macroAvailableParams) {
-                    macroArg.error()
+                    macroArg.error(
+                        "Available parameters: [${macroAvailableParams.joinToString(", ")}]",
+                        RemoveElement(macroArg.text, macroArg)
+                    )
                 }
+                // 当前元素在参数列表中出现过一次以上，即为重复
                 if (o.qualifiedNamePartList.count { it.text == macroArg.text } != 1) {
-                    macroArg.error(DTOSyntaxHighlighter.DUPLICATION)
-                }
-                if (thisList.isNotEmpty() && macroArg.text == macroAvailableParams.last()) {
-                    macroArg.error(DTOSyntaxHighlighter.DUPLICATION)
-                    thisList[0].error(DTOSyntaxHighlighter.DUPLICATION)
+                    macroArg.error(
+                        "Each parameter is only allowed to appear once",
+                        RemoveElement(macroArg.text, macroArg),
+                        DTOSyntaxHighlighter.DUPLICATION
+                    )
                 }
             }
         }
