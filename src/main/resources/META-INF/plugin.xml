@@ -27,6 +27,18 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.23 (2024-08-11)</b></p>
+    <ul>
+      <li><b>Feature</b>Support for 2024.2, Removal of 2022.1, <b>Support for 2022.2 will be removed when 2024.3 is released</b></li>
+      <li><b>Refactor</b>Reorganize the logic of macro prompts to fix the problem that the macro parameter prompts would fail in some cases</li>
+      <li><b>Feature</b>Macro Parameter Quick Fix Tips</li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>支持2024.2, 移除2022.1, <b>2022.2的支持将在2024.3发布时移除</b></li>
+      <li><b>特性调整</b>重整宏提示逻辑，修复有些情况下宏参数提示会失效的问题</b></li>
+      <li><b>新特性</b>宏参数快速修复提示</b></li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.22 (2024-06-26)</b></p>
     <ul>
       <li><b>Feature</b>Error message when user-prop name and entity property name are duplicated and tips for fixing it</li>

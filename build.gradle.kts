@@ -7,11 +7,11 @@ plugins {
 }
 
 group = "net.fallingangel"
-version = "0.0.7.22"
+version = "0.0.7.23"
 
-val sinceVersion by extra("221.5080.210")
-val untilVersion by extra("241.*")
-val jimmerVersion by extra("0.8.134")
+val sinceVersion by extra("222.3345.118")
+val untilVersion by extra("242.*")
+val jimmerVersion by extra("0.8.150")
 
 val certificateChainValue = findProperty("certificateChainValue") as String?
 val privateKeyValue = findProperty("privateKeyValue") as String?
@@ -32,7 +32,7 @@ dependencies {
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
     pluginName.set("JimmerDTO")
-    version.set("2022.1")
+    version.set("2022.2")
     type.set("IC") // Target IDE Platform
     plugins.set(
         listOf(
