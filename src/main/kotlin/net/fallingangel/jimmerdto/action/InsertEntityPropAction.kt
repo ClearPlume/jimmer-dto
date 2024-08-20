@@ -1,6 +1,7 @@
 package net.fallingangel.jimmerdto.action
 
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -119,4 +120,6 @@ class InsertEntityPropAction : AnAction() {
 
         e.presentation.isVisible = true
     }
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
