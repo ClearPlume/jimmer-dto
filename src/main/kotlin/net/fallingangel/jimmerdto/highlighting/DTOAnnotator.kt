@@ -187,7 +187,7 @@ class DTOAnnotator : Annotator {
             } else {
                 o[StructureType.PropProperties]
             }
-            availableProperties.find { it.name == propName } ?: o.propName.error()
+            availableProperties.find { it.name == propName } ?: o.propName.error("`$propName` does not exist in the entity")
         }
 
         private fun visitEnumMappingProp(o: DTOPositiveProp, propName: String) {
@@ -402,7 +402,7 @@ class DTOAnnotator : Annotator {
 
         private fun PsiElement.error(
             message: String,
-            fix: BaseIntentionAction,
+            fix: BaseIntentionAction? = null,
             style: TextAttributesKey = DTOSyntaxHighlighter.ERROR,
             highlightType: ProblemHighlightType = ProblemHighlightType.GENERIC_ERROR
         ) {
@@ -414,14 +414,15 @@ class DTOAnnotator : Annotator {
             severity: HighlightSeverity,
             highlightType: ProblemHighlightType,
             message: String,
-            fix: BaseIntentionAction
+            fix: BaseIntentionAction? = null
         ) {
-            holder.newAnnotation(severity, message)
+            val annotationBuilder = holder.newAnnotation(severity, message)
+            annotationBuilder
                     .range(this)
                     .textAttributes(style)
                     .highlightType(highlightType)
-                    .withFix(fix)
-                    .create()
+            fix?.let { annotationBuilder.withFix(fix) }
+            annotationBuilder.create()
         }
     }
 }
