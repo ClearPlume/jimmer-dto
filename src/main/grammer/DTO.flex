@@ -35,7 +35,7 @@ STRING = \"[^\"]*\"
 INTEGER = \d+
 FLOAT = \d+\.\d+
 
-%s ALIAS_GROUP
+%s ALIAS_GROUP PROP_FUNCTION
 %x ALIAS_GROUP_ORIGINAL
 
 %%
@@ -46,6 +46,7 @@ FLOAT = \d+\.\d+
     {LINE_COMMENT}                   { return DTOTokenTypes.LINE_COMMENT; }
 
     "as" " "* "("                    { yypushback(yylength()); yybegin(ALIAS_GROUP); }
+    "null" " "* "("                  { yypushback(yylength()); yybegin(PROP_FUNCTION); }
 
     "export"                         { return DTOTypes.EXPORT_KEYWORD; }
     "package"                        { return DTOTypes.PACKAGE_KEYWORD; }
@@ -114,4 +115,11 @@ FLOAT = \d+\.\d+
     [A-Za-z_]\w*                     { return DTOTypes.IDENTIFIER; }
     "$"                              { return DTOTypes.DOLLAR; }
     "->"                             { yypushback(2); yybegin(ALIAS_GROUP); }
+}
+
+<PROP_FUNCTION> {
+    "null"                           { return DTOTypes.IDENTIFIER; }
+    {IDENTIFIER}                     { return DTOTypes.IDENTIFIER; }
+    "("                              { return DTOTypes.PAREN_L; }
+    ")"                              { yybegin(YYINITIAL); return DTOTypes.PAREN_R; }
 }
