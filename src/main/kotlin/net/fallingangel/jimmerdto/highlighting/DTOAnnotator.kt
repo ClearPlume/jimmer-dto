@@ -187,7 +187,13 @@ class DTOAnnotator : Annotator {
             } else {
                 o[StructureType.PropProperties]
             }
-            availableProperties.find { it.name == propName } ?: o.propName.error("`$propName` does not exist in the entity")
+            val prop = availableProperties.find { it.name == propName } ?: let {
+                o.propName.error("Prop `$propName` does not exist in the entity")
+                return
+            }
+            if (prop.whetherAssociated && o.propBody == null) {
+                o.propName.error("Prop `$propName` must have child body")
+            }
         }
 
         private fun visitEnumMappingProp(o: DTOPositiveProp, propName: String) {
