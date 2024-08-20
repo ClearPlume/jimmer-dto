@@ -36,7 +36,7 @@ INTEGER = \d+
 FLOAT = \d+\.\d+
 
 %s ALIAS_GROUP
-%x ORIGINAL
+%x ALIAS_GROUP_ORIGINAL
 
 %%
 
@@ -102,11 +102,11 @@ FLOAT = \d+\.\d+
 
 <ALIAS_GROUP> {
     "as" " "* "("                    { yypushback(yylength() - 2); return DTOTypes.AS_KEYWORD; }
-    "("                              { yypushback(1); yybegin(ORIGINAL); }
+    "("                              { yypushback(1); yybegin(ALIAS_GROUP_ORIGINAL); }
     "->"                             { yypushback(2); yybegin(YYINITIAL); }
 }
 
-<ORIGINAL> {
+<ALIAS_GROUP_ORIGINAL> {
     "("                              { return DTOTypes.PAREN_L; }
     ({CRLF}|{WHITE_SPACE})+          { return TokenType.WHITE_SPACE; }
     "^"                              { return DTOTypes.POWER; }
