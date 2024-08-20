@@ -220,7 +220,7 @@ class DTOAnnotator : Annotator {
             val propName = o.propName
             val entityProperties = o[StructureType.UserPropProperties]
             entityProperties.find { propName.text == it.name }?.let {
-                propName.error("Do not allow duplicate user attribute and entity attribute names", RenameElement(propName))
+                propName.error("It is prohibited for user-prop and entity prop to have the same name", RenameElement(propName))
             }
         }
 
