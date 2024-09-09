@@ -5,10 +5,8 @@ package net.fallingangel.jimmerdto.util
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
-import com.intellij.psi.search.searches.AllClassesSearch
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtil
 import net.fallingangel.jimmerdto.Constant
@@ -29,7 +27,6 @@ import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.types.KotlinType
-import java.nio.file.Paths
 
 /**
  * 获取类文件中的类名Element
@@ -153,28 +150,26 @@ fun VirtualFile.entityFile(project: Project): VirtualFile? {
     val psiFile = toPsiFile(project) ?: return null
     val export = psiFile.getChildOfType<DTOExport>()
 
-    return if (export != null) {
-        val entityName = export.qualifiedType.text
-        AllClassesSearch
-                .search(ProjectScope.getProjectScope(project), project) { it == entityName.substringAfterLast('.') }
-                .find { it.qualifiedName == entityName }
-                ?.virtualFile
+    val entityName = if (export != null) {
+        export.qualifiedType.text
     } else {
+        // sourcePath: src/main/kotlin
         val sourcePath = sourceRoot(psiFile)?.path ?: return null
 
-        // sourcePath: src/main/kotlin
         // path: src/main/dto/net/fallingangel/Book.dto
         // pathPrefix: src/main/
         val pathPrefix = sourcePath.commonPrefixWith(path)
-        val isJavaOrKotlin = sourcePath.removePrefix(pathPrefix) == "java"
 
-        // net/fallingangel/Book.(java|kt)
-        val modelRelativePath = path.removePrefix(pathPrefix)
+        // net.fallingangel.Book
+        path.removePrefix(pathPrefix)
+                // 移除『src/main』
                 .substringAfter('/')
-                .replaceAfterLast('.', if (isJavaOrKotlin) "java" else "kt")
-        VirtualFileManager.getInstance()
-                .findFileByNioPath(Paths.get("$sourcePath/$modelRelativePath"))
+                // 移除文件后缀
+                .substringBefore('.')
+                .replace('/', '.')
     }
+
+    return JavaPsiFacade.getInstance(project).findClass(entityName, ProjectScope.getProjectScope(project))?.virtualFile
 }
 
 /**
