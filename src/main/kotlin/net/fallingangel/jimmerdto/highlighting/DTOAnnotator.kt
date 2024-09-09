@@ -260,6 +260,9 @@ class DTOAnnotator : Annotator {
             }
         }
 
+        /**
+         * 为负属性上色
+         */
         override fun visitNegativeProp(o: DTONegativeProp) {
             val properties = o[StructureType.PropNegativeProperties]
             if (properties.find { it.name == o.propName.text } != null) {
@@ -355,12 +358,18 @@ class DTOAnnotator : Annotator {
             val availablePackages = project.allPackages(curPackage).map { it.name!! }
 
             if (text !in (curPackageClasses + availablePackages)) {
-                error()
+                error("Unresolved reference: $text", RenameElement(this))
+                return
             }
 
             // 包不能被导入
             if (nextSibling == null && text !in curPackageClasses) {
-                error()
+                val packageAction = if (statementKeyword == DTOTypes.EXPORT_KEYWORD) {
+                    "exported"
+                } else {
+                    "imported"
+                }
+                error("Packages cannot be $packageAction")
             }
         }
 
