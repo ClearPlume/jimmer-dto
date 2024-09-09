@@ -191,7 +191,7 @@ class DTOAnnotator : Annotator {
                 o.propName.error("Prop `$propName` does not exist in the entity")
                 return
             }
-            if (prop.whetherAssociated && o.propBody == null) {
+            if (prop.whetherAssociated && o.propBody == null && o.lastChild.elementType != DTOTypes.ASTERISK) {
                 o.propName.error("Prop `$propName` must have child body")
             }
         }
