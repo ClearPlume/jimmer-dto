@@ -27,6 +27,16 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.25 (2024-09-09)</b></p>
+    <ul>
+      <li><b>Refactor</b>Error message prompts are improved</li>
+      <li><b>Issue</b>#16, #19</b></li>
+    </ul>
+    <ul>
+      <li><b>特性调整</b>完善错误信息提示</b></li>
+      <li><b>Issue</b>#16, #19</b></li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.24 (2024-08-20)</b></p>
     <ul>
       <li><b>Refactor</b>Error message prompts are improved</li>
