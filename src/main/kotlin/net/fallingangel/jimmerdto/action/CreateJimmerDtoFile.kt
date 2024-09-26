@@ -1,6 +1,7 @@
 package net.fallingangel.jimmerdto.action
 
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
@@ -47,4 +48,6 @@ class CreateJimmerDtoFile : AnAction() {
         val annotations = selectedFile.annotations(event.project!!)
         event.presentation.isVisible = "org.babyfish.jimmer.sql.Entity" in annotations
     }
+
+    override fun getActionUpdateThread() = ActionUpdateThread.BGT
 }
