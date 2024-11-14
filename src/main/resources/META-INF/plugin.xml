@@ -27,6 +27,14 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.27 (2024-11-14)</b></p>
+    <ul>
+      <li><b>Feature</b>Support for 2024.3, Removal of 2022.2, <b>Support for 2022.3 will be removed when 2024.4 is released</b></li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>支持2024.3, 移除2022.2, <b>2022.3的支持将在2024.4发布时移除</b></li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.26 (2024-09-26)</b></p>
     <ul>
       <li><b>Issue</b>#21</b></li>
