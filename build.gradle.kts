@@ -7,10 +7,10 @@ plugins {
 }
 
 group = "net.fallingangel"
-version = "0.0.7.26"
+version = "0.0.7.27"
 
-val sinceVersion by extra("222.3345.118")
-val untilVersion by extra("242.*")
+val sinceVersion by extra("223.7571.182")
+val untilVersion by extra("243.*")
 val jimmerVersion by extra("0.8.150")
 
 val certificateChainValue = findProperty("certificateChainValue") as String?
@@ -32,7 +32,7 @@ dependencies {
 // Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
 intellij {
     pluginName.set("JimmerDTO")
-    version.set("2022.2")
+    version.set("2022.3")
     type.set("IC") // Target IDE Platform
     plugins.set(
         listOf(
@@ -45,12 +45,12 @@ intellij {
 tasks {
     // Set the JVM compatibility versions
     withType<JavaCompile> {
-        sourceCompatibility = "11"
-        targetCompatibility = "11"
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
     }
     withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "11"
+            jvmTarget = "17"
             freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
         }
     }
