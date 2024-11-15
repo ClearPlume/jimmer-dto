@@ -49,7 +49,7 @@ class DTOAnnotator : Annotator {
          * 为宏名称上色
          */
         override fun visitMacro(o: DTOMacro) {
-            val macroName = o.macroName!!
+            val macroName = o.macroName ?: return
             if (macroName.text == "allScalars") {
                 o.firstChild.style(DTOSyntaxHighlighter.MACRO)
                 macroName.style(DTOSyntaxHighlighter.MACRO)
@@ -154,7 +154,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 方法名
-            val propArgs = o.propArgs!!
+            val propArgs = o.propArgs ?: return
             if (propName in availableFunctions) {
                 o.propName.style(DTOSyntaxHighlighter.FUNCTION)
             } else {
@@ -178,7 +178,7 @@ class DTOAnnotator : Annotator {
                 } else {
                     upper as DTOPositiveProp
                     if (upper.propName.text == "flat") {
-                        val flatArg = upper.propArgs!!.valueList[0]
+                        val flatArg = upper.propArgs?.valueList?.get(0) ?: return
                         flatArg[StructureType.FlatProperties]
                     } else {
                         o[StructureType.PropProperties]
@@ -197,7 +197,7 @@ class DTOAnnotator : Annotator {
         }
 
         private fun visitEnumMappingProp(o: DTOPositiveProp, propName: String) {
-            val enumBody = o.enumBody!!
+            val enumBody = o.enumBody ?: return
             val enumInstance = enumBody.enumInstanceMappingList[0].enumInstance
 
             val availableEnums = enumInstance[StructureType.EnumValues]
