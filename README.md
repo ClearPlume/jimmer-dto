@@ -4,7 +4,7 @@
 
 ## Introduction
 
-The plugin developed for [IntelliJ IDEA](https://www.jetbrains.com/idea/) provides support for the [JimmerDTO](https://babyfish-ct.github.io/jimmer-doc/zh/docs/object/view/dto-language) language of [Jimmer](https://github.com/babyfish-ct/jimmer).
+The plugin developed for [IntelliJ IDEA](https://www.jetbrains.com/idea/) provides support for the [JimmerDTO](https://babyfish-ct.github.io/jimmer-doc/docs/object/view/dto-language/) language of [Jimmer](https://github.com/babyfish-ct/jimmer).
 
 Currently, it supports the following features:
 
