@@ -4,7 +4,7 @@
 
 ## 项目简介
 
-插件为 [IntelliJ IDEA](https://www.jetbrains.com/idea/) 提供了 [Jimmer](https://github.com/babyfish-ct/jimmer) 的 [JimmerDTO](https://babyfish-ct.github.io/jimmer/zh/docs/object/view/dto-language) 转换语言的支持。
+插件为 [IntelliJ IDEA](https://www.jetbrains.com/idea/) 提供了 [Jimmer](https://github.com/babyfish-ct/jimmer) 的 [JimmerDTO](https://babyfish-ct.github.io/jimmer-doc/zh/docs/object/view/dto-language) 转换语言的支持。
 
 目前，它支持如下功能:
 
