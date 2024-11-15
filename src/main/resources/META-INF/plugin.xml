@@ -27,6 +27,14 @@
   ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.28 (2024-11-15)</b></p>
+    <ul>
+      <li><b>Issue</b>#23</b></li>
+    </ul>
+    <ul>
+      <li><b>Issue</b>#23</b></li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.27 (2024-11-14)</b></p>
     <ul>
       <li><b>Feature</b>Support for 2024.3, Removal of 2022.2, <b>Support for 2022.3 will be removed when 2024.4 is released</b></li>
