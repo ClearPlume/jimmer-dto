@@ -4,6 +4,7 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 src/main/gen/
+.intellijPlatform/
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
