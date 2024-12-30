@@ -440,5 +440,7 @@
         <backgroundPostStartupActivity implementation="net.fallingangel.jimmerdto.service.StartupServices"/>
 
         <notificationGroup id="JimmerDTO Notification Group" displayType="BALLOON"/>
+
+        <fileBasedIndex implementation="net.fallingangel.jimmerdto.util.AnnotationClassIndex"/>
     </extensions>
 </idea-plugin>

@@ -10,7 +10,9 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiPackage
+import com.intellij.psi.search.ProjectScope
 import com.intellij.util.ProcessingContext
+import com.intellij.util.indexing.FileBasedIndex
 import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
@@ -63,13 +65,35 @@ val KtLightClass.icon: Icon
         }
     }
 
-fun Project.allClasses(`package`: String = ""): List<PsiClass> {
-    val classes = JavaPsiFacade.getInstance(this).findPackage(`package`)?.classes ?: emptyArray()
+/**
+ * @param `package` null等同于空字符串
+ */
+fun Project.allClasses(`package`: String? = ""): List<PsiClass> {
+    val classes = JavaPsiFacade.getInstance(this).findPackage(`package` ?: "")?.classes ?: emptyArray()
     return classes.filter { it !is KtLightClass || (it.kotlinOrigin != null) }
 }
 
-fun Project.allEntities(`package`: String = ""): List<PsiClass> {
-    return allClasses(`package`).filter { it.isInterface && it.hasAnnotation(Constant.Annotation.ENTITY) }
+/**
+ * @param `package` null为获取所有包下所有类
+ */
+fun Project.allAnnotations(`package`: String? = ""): List<PsiClass> {
+    return if (`package` == null) {
+        val psiFacade = JavaPsiFacade.getInstance(this)
+        val scope = ProjectScope.getAllScope(this)
+
+        FileBasedIndex.getInstance()
+                .getAllKeys(ANNOTATION_CLASS_INDEX, this)
+                .mapNotNull { psiFacade.findClass(it, scope) }
+    } else {
+        JavaPsiFacade.getInstance(this).findPackage(`package`)?.classes?.filter { it.isAnnotationType } ?: emptyList()
+    }
+}
+
+/**
+ * @param `package` null等同于空字符串
+ */
+fun Project.allEntities(`package`: String? = ""): List<PsiClass> {
+    return allClasses(`package` ?: "").filter { it.isInterface && it.hasAnnotation(Constant.Annotation.ENTITY) }
 }
 
 fun Project.allPackages(`package`: String): List<PsiPackage> {

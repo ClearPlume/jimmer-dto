@@ -4,6 +4,7 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns.*
@@ -79,6 +80,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // Implements关键字提示
         completeImplementsKeyword()
+
+        // 注解提示
+        completeAnnotation()
     }
 
     override fun beforeCompletion(context: CompletionInitializationContext) {
@@ -429,7 +433,7 @@ class DTOCompletionContributor : CompletionContributor() {
      * Export包提示
      */
     private fun completeExportPackage() {
-        completePackage<DTOExport>(
+        completePackage(
             identifier.withParent(DTOQualifiedNamePart::class.java)
                     .withSuperParent(5, DTOExport::class.java),
             DTOTypes.EXPORT_KEYWORD,
@@ -441,7 +445,7 @@ class DTOCompletionContributor : CompletionContributor() {
      * Import包提示
      */
     private fun completeImportPackage() {
-        completePackage<DTOImport>(
+        completePackage(
             identifier.withParent(DTOQualifiedNamePart::class.java)
                     .withSuperParent(5, DTOImport::class.java),
             DTOTypes.IMPORT_KEYWORD,
@@ -450,18 +454,42 @@ class DTOCompletionContributor : CompletionContributor() {
     }
 
     /**
-     * 包提示
+     * 注解提示
      */
-    private inline fun <reified Statement : PsiElement> completePackage(
+    private fun completeAnnotation() {
+        completePackage(
+            or(
+                identifier.withParent(DTOQualifiedNamePart::class.java)
+                        .withSuperParent(4, DTOAnnotation::class.java),
+                identifier.withParent(DTOFile::class.java)
+                        .afterLeafSkipping(
+                            or(
+                                psiElement(DTOTypes.DOT),
+                                identifier,
+                            ),
+                            psiElement(DTOTypes.AT),
+                        ),
+            ),
+            DTOTypes.AT,
+            Project::allAnnotations,
+            true,
+        )
+    }
+
+    /**
+     * 包和类提示
+     *
+     * @param classAvailableBeforeFirstDot 类提示是否在全限定类名中的第一段可用
+     */
+    private inline fun completePackage(
         place: ElementPattern<PsiElement>,
         statementKeyword: IElementType,
-        crossinline classes: Project.(String) -> List<PsiClass>
+        crossinline classes: Project.(String?) -> List<PsiClass>,
+        classAvailableBeforeFirstDot: Boolean = false,
     ) {
         complete(
             { parameters, result ->
-                val parent = parameters.position.parent.parent.parent.parent.parent<Statement>()
-                val project = parent.project
-
+                val project = parameters.position.project
                 val typedPackage = parameters.position.parent.prevLeafs
                         .takeWhile { it.elementType != statementKeyword }
                         .filter { it.parent.elementType == DTOTypes.QUALIFIED_NAME_PART }
@@ -469,12 +497,11 @@ class DTOCompletionContributor : CompletionContributor() {
                         .toList()
                         .asReversed()
                 val curPackage = typedPackage.joinToString(".")
-                val curPackageClasses = project.classes(curPackage)
-                        .map {
-                            LookupElementBuilder.create(it.name!!)
-                                    .withIcon(it.icon)
-                                    .withTypeText("(${it.qualifiedName!!.substringBeforeLast('.')})", true)
-                        }
+                val curPackageClasses = if (typedPackage.isEmpty() && classAvailableBeforeFirstDot) {
+                    project.classes(null).lookUp()
+                } else {
+                    project.classes(curPackage).lookUp()
+                }
 
                 val availablePackages = project.allPackages(curPackage)
                         .map {
@@ -621,6 +648,45 @@ class DTOCompletionContributor : CompletionContributor() {
                     .withTypeText(it.type, true)
                     .customizer()
         }
+    }
+
+    @JvmName("lookupPsiClass")
+    private fun List<PsiClass>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }) = map {
+        val qualifiedName = it.qualifiedName!!
+        val name = it.name!!
+        LookupElementBuilder.create(qualifiedName, name)
+                .withIcon(it.icon)
+                .withTypeText("(${qualifiedName.substringBeforeLast('.')})", true)
+                .withInsertHandler { context, _ ->
+                    WriteCommandAction.runWriteCommandAction(context.project) {
+                        val file = context.file as DTOFile
+                        val export = file.findChildByClass(DTOExport::class.java)
+                        val imports = file.findChildrenByClass(DTOImport::class.java)
+                        val importedSameName = imports.any { i -> i.qualifiedType.text.substringAfterLast('.') == name }
+                        val import = imports.find { i -> i.qualifiedType.text == qualifiedName }
+
+                        if (importedSameName) {
+                            if (import == null) {
+                                val annotationName = file.findElementAt(context.startOffset)?.parent?.parent ?: return@runWriteCommandAction
+                                val newAnnotationName = context.project.createAnnotation(qualifiedName).annotationConstructor.qualifiedName
+                                annotationName.parent.node.replaceChild(annotationName.node, newAnnotationName.node)
+                            }
+                        } else {
+                            if (import == null) {
+                                if (imports.isEmpty()) {
+                                    if (export == null) {
+                                        file.node.addLeaf(TokenType.WHITE_SPACE, "import $qualifiedName\n\n", file.node.firstChildNode)
+                                    } else {
+                                        file.node.addLeaf(DTOTypes.IMPORT, "\n\nimport $qualifiedName", export.node.treeNext)
+                                    }
+                                } else {
+                                    file.node.addLeaf(DTOTypes.IMPORT, "\nimport $qualifiedName", imports.last().node.treeNext)
+                                }
+                            }
+                        }
+                    }
+                }
+                .customizer()
     }
 
     @JvmName("lookupInfo")
