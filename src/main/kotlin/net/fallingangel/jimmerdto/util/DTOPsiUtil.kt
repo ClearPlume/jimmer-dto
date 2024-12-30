@@ -28,9 +28,9 @@ object DTOPsiUtil
 val PsiClass.icon: Icon
     get() = when (language) {
         is JavaLanguage -> when {
+            isAnnotationType -> AllIcons.Nodes.Annotationtype
             isInterface -> AllIcons.Nodes.Interface
             isRecord -> AllIcons.Nodes.Record
-            isAnnotationType -> AllIcons.Nodes.Annotationtype
             isEnum -> AllIcons.Nodes.Enum
 
             else -> if (hasModifier(JvmModifier.ABSTRACT)) {
@@ -51,8 +51,8 @@ val KtLightClass.icon: Icon
         KotlinIcons.OBJECT
     } else {
         when {
-            isInterface -> KotlinIcons.INTERFACE
             isAnnotationType -> KotlinIcons.ANNOTATION
+            isInterface -> KotlinIcons.INTERFACE
             isEnum -> KotlinIcons.ENUM
 
             else -> if (hasModifier(JvmModifier.ABSTRACT)) {
