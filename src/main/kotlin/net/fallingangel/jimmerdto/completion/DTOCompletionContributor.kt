@@ -26,7 +26,6 @@ import net.fallingangel.jimmerdto.util.*
 
 class DTOCompletionContributor : CompletionContributor() {
     private val identifier = psiElement(DTOTypes.IDENTIFIER)
-    private val whitespace = psiElement(TokenType.WHITE_SPACE)
     private val error = psiElement(TokenType.ERROR_ELEMENT)
 
     init {
@@ -161,7 +160,6 @@ class DTOCompletionContributor : CompletionContributor() {
                                         psiElement(DTOPropBody::class.java)
                                                 .afterSiblingSkipping(
                                                     or(
-                                                        whitespace,
                                                         psiElement(DTOAnnotation::class.java),
                                                         psiElement(DTOPropArgs::class.java)
                                                     ),
@@ -184,7 +182,7 @@ class DTOCompletionContributor : CompletionContributor() {
             },
             identifier.withParent(DTOPropName::class.java)
                     .withSuperParent(2, DTONegativeProp::class.java)
-                    .afterLeafSkipping(whitespace, psiElement(DTOTypes.MINUS))
+                    .afterLeaf(psiElement(DTOTypes.MINUS))
         )
     }
 
@@ -199,10 +197,10 @@ class DTOCompletionContributor : CompletionContributor() {
             or(
                 identifier.withParent(
                     psiElement(DTOMacroName::class.java)
-                            .afterLeafSkipping(whitespace, psiElement(DTOTypes.HASH))
+                            .afterLeaf(psiElement(DTOTypes.HASH))
                 ),
-                identifier.withParent(psiElement(DTOFile::class.java))
-                        .afterLeafSkipping(whitespace, psiElement(DTOTypes.HASH))
+                identifier.withParent(DTOFile::class.java)
+                        .afterLeaf(psiElement(DTOTypes.HASH))
             )
         )
         complete(
@@ -262,9 +260,12 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { _, result ->
                 result.addAllElements(
-                    Modifier.values().filter { it.level == Modifier.Level.Both }.map { it.name.lowercase() }.lookUp {
-                        PrioritizedLookupElement.withPriority(bold(), 100.0)
-                    }
+                    Modifier.values()
+                            .filter { it.level == Modifier.Level.Both }
+                            .map { it.name.lowercase() }
+                            .lookUp {
+                                PrioritizedLookupElement.withPriority(bold(), 100.0)
+                            }
                 )
             },
             and(
@@ -272,8 +273,7 @@ class DTOCompletionContributor : CompletionContributor() {
                         .withSuperParent(
                             3,
                             psiElement(DTOExplicitProp::class.java)
-                                    .afterSiblingSkipping(
-                                        whitespace,
+                                    .afterSibling(
                                         psiElement(DTOExplicitProp::class.java)
                                                 .withFirstNonWhitespaceChild(
                                                     psiElement(DTOPositiveProp::class.java)
@@ -286,11 +286,7 @@ class DTOCompletionContributor : CompletionContributor() {
                         ),
                 identifier.withParent(
                     not(
-                        psiElement(DTOPropName::class.java)
-                                .afterSiblingSkipping(
-                                    whitespace,
-                                    psiElement(DTOModifier::class.java)
-                                )
+                        psiElement(DTOPropName::class.java).afterSibling(psiElement(DTOModifier::class.java))
                     )
                 )
             )
@@ -311,10 +307,7 @@ class DTOCompletionContributor : CompletionContributor() {
                         2,
                         psiElement(DTOPropArgs::class.java)
                                 .afterSiblingSkipping(
-                                    or(
-                                        whitespace,
-                                        psiElement(DTOPropFlags::class.java)
-                                    ),
+                                    psiElement(DTOPropFlags::class.java),
                                     psiElement(DTOPropName::class.java)
                                 )
                     )
@@ -345,11 +338,10 @@ class DTOCompletionContributor : CompletionContributor() {
                         psiElement(DTOPropBody::class.java)
                                 .afterSiblingSkipping(
                                     or(
-                                        whitespace,
                                         psiElement(DTOAnnotation::class.java),
-                                        psiElement(DTOPropArgs::class.java)
+                                        psiElement(DTOPropArgs::class.java),
                                     ),
-                                    psiElement(DTOPropName::class.java).withText("flat")
+                                    psiElement(DTOPropName::class.java).withText("flat"),
                                 )
                     )
         )
@@ -412,9 +404,8 @@ class DTOCompletionContributor : CompletionContributor() {
             dto.inFile(
                 psiFile(DTOFile::class.java).withFirstChildSkipping(
                     or(
-                        whitespace,
                         psiElement(DTOImport::class.java),
-                        psiElement(DTOExport::class.java)
+                        psiElement(DTOExport::class.java),
                     ),
                     or(
                         psiElement(DTODto::class.java)
@@ -422,7 +413,7 @@ class DTOCompletionContributor : CompletionContributor() {
                                 .withText(CompletionUtilCore.DUMMY_IDENTIFIER_TRIMMED),
                         psiElement(DTODto::class.java)
                                 .withChild(psiElement(DTODtoName::class.java))
-                                .withText(string().atStart("import"))
+                                .withText(string().atStart("import")),
                     )
                 )
             )
@@ -526,10 +517,9 @@ class DTOCompletionContributor : CompletionContributor() {
             },
             or(
                 identifier.withParent(DTOEnumValue::class.java),
-                identifier.withParent(error.afterSiblingSkipping(whitespace, psiElement(DTOTypes.CLASS_REFERENCE))),
-                identifier.withParent(psiFile(DTOFile::class.java))
-                        .afterSiblingSkipping(
-                            whitespace,
+                identifier.withParent(error.afterSibling(psiElement(DTOTypes.CLASS_REFERENCE))),
+                identifier.withParent(DTOFile::class.java)
+                        .afterSibling(
                             or(
                                 psiElement(DTOTypes.CLASS_REFERENCE),
                                 psiElement(DTOTypes.DOT)
@@ -555,14 +545,16 @@ class DTOCompletionContributor : CompletionContributor() {
                 identifier.withParent(DTODtoName::class.java)
                         .withSuperParent(
                             2,
-                            psiElement(DTODto::class.java).afterSiblingSkipping(whitespace, psiElement(DTODto::class.java))
+                            psiElement(DTODto::class.java).afterSiblingSkipping(
+                                psiElement(TokenType.WHITE_SPACE),
+                                psiElement(DTODto::class.java),
+                            )
                         ),
                 identifier.withParent(DTOPropName::class.java)
                         .withSuperParent(
                             3,
                             psiElement(DTOExplicitProp::class.java)
-                                    .afterSiblingSkipping(
-                                        whitespace,
+                                    .afterSibling(
                                         psiElement(DTOExplicitProp::class.java)
                                                 .withFirstNonWhitespaceChild(
                                                     psiElement(DTOPositiveProp::class.java)
