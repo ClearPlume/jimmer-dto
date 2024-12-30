@@ -17,12 +17,20 @@
     ]]></description>
 
     <change-notes><![CDATA[
-    <p><b>0.0.7.28 (2024-11-15)</b></p>
+    <p><b>0.0.7.29 (2024-12-30)</b></p>
     <ul>
-      <li><b>Issue</b>#23</b></li>
+      <li><b>Feature</b>Annotation import basically complete</li>
     </ul>
     <ul>
-      <li><b>Issue</b>#23</b></li>
+      <li><b>新特性</b>注解导入基本完成</b></li>
+    </ul>
+    <hr/>
+    <p><b>0.0.7.28 (2024-11-15)</b></p>
+    <ul>
+      <li><b>Issue</b><b>#23</b></li>
+    </ul>
+    <ul>
+      <li><b>Issue</b><b>#23</b></li>
     </ul>
     <hr/>
     <p><b>0.0.7.27 (2024-11-14)</b></p>
