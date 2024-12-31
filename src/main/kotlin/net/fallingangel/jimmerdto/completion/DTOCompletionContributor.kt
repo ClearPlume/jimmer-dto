@@ -515,8 +515,9 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeAnnotationParam() {
         complete(
-            { _, result ->
-                result.addAllElements(listOf("annoParam").lookUp())
+            { parameters, result ->
+                val annotation = parameters.position.parent.parent<DTOAnnotation>()
+                result.addAllElements(annotation[StructureType.AnnotationParameters].lookUp())
             },
             identifier.withParent(
                 psiElement(DTOAnnotationParameter::class.java)

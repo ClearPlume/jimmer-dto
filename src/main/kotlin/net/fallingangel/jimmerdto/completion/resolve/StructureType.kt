@@ -16,4 +16,5 @@ object StructureType {
     val DTOFileImports = DTOFileImports()
     val DTOPreludeTypes = DTOPreludeTypes()
     val DTOFileDtos = DTOFileDtos()
+    val AnnotationParameters = AnnotationParameters()
 }
