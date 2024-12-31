@@ -182,14 +182,22 @@ class-value ::= qualified-name "?"? ("." | "::") "class" {
 array-value ::= "[" (value ("," value)*)? "]" | "{" (value ("," value)*)? "}"
 
 // annotation
-annotation ::= annotation-constructor ("(" (annotation-value | annotation-parameter) ("," annotation-parameter)* ")")?
+annotation ::= annotation-constructor ("(" (annotation-value | annotation-parameter) ("," annotation-parameter)* ")")? {
+    pin = 1
+}
 
-annotation-constructor ::= "@" qualified-name
+annotation-constructor ::= "@" qualified-name {
+    pin = 1
+}
 
-nest-annotation ::= qualified-name "(" ((annotation-value | annotation-parameter) ("," annotation-parameter)*)? ")"
+nest-annotation ::= qualified-name "(" ((annotation-value | annotation-parameter) ("," annotation-parameter)*)? ")" {
+    pin = 2
+}
 
 // annotation parameter
-annotation-parameter ::= IDENTIFIER "=" annotation-value
+annotation-parameter ::= IDENTIFIER "=" annotation-value {
+    pin = 1
+}
 
 annotation-value ::= CHAR_CONSTANT | STRING_CONSTANT |
              INTEGER_CONSTANT | FLOAT_CONSTANT |

@@ -26,6 +26,7 @@ import net.fallingangel.jimmerdto.util.*
 
 class DTOCompletionContributor : CompletionContributor() {
     private val identifier = psiElement(DTOTypes.IDENTIFIER)
+    private val whitespace = psiElement(TokenType.WHITE_SPACE)
     private val error = psiElement(TokenType.ERROR_ELEMENT)
 
     init {
@@ -74,14 +75,17 @@ class DTOCompletionContributor : CompletionContributor() {
         // Import包提示
         completeImportPackage()
 
+        // 注解提示
+        completeAnnotation()
+
+        // 注解参数提示
+        completeAnnotationParam()
+
         // Class关键字提示
         completeClassKeyword()
 
         // Implements关键字提示
         completeImplementsKeyword()
-
-        // 注解提示
-        completeAnnotation()
     }
 
     override fun beforeCompletion(context: CompletionInitializationContext) {
@@ -506,6 +510,28 @@ class DTOCompletionContributor : CompletionContributor() {
         )
     }
 
+    /**
+     * 注解参数提示
+     */
+    private fun completeAnnotationParam() {
+        complete(
+            { _, result ->
+                result.addAllElements(listOf("annoParam").lookUp())
+            },
+            identifier.withParent(
+                psiElement(DTOAnnotationParameter::class.java)
+                        .afterSiblingSkipping(
+                            or(
+                                psiElement(DTOTypes.PAREN_L),
+                                psiElement(DTOAnnotationValue::class.java),
+                                psiElement(DTOAnnotationParameter::class.java),
+                            ),
+                            psiElement(DTOAnnotationConstructor::class.java),
+                        ),
+            ),
+        )
+    }
+
     private fun completeClassKeyword() {
         complete(
             { _, result ->
@@ -546,7 +572,7 @@ class DTOCompletionContributor : CompletionContributor() {
                         .withSuperParent(
                             2,
                             psiElement(DTODto::class.java).afterSiblingSkipping(
-                                psiElement(TokenType.WHITE_SPACE),
+                                whitespace,
                                 psiElement(DTODto::class.java),
                             )
                         ),
@@ -661,7 +687,7 @@ class DTOCompletionContributor : CompletionContributor() {
                             if (import == null) {
                                 val annotationName = file.findElementAt(context.startOffset)?.parent?.parent ?: return@runWriteCommandAction
                                 val newAnnotationName = context.project.createAnnotation(qualifiedName).annotationConstructor.qualifiedName
-                                annotationName.parent.node.replaceChild(annotationName.node, newAnnotationName.node)
+                                annotationName.parent.node.replaceChild(annotationName.node, newAnnotationName!!.node)
                             }
                         } else {
                             if (import == null) {
