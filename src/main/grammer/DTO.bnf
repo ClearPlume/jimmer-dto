@@ -186,11 +186,15 @@ annotation ::= annotation-constructor ("(" (annotation-value | annotation-parame
     pin = 1
 }
 
-annotation-constructor ::= "@" qualified-name {
+annotation-constructor ::= "@" annotation-name {
     pin = 1
 }
 
-nest-annotation ::= qualified-name "(" ((annotation-value | annotation-parameter) ("," annotation-parameter)*)? ")" {
+annotation-name ::= IDENTIFIER ("." IDENTIFIER)* {
+    pin = 1
+}
+
+nest-annotation ::= annotation-name "(" ((annotation-value | annotation-parameter) ("," annotation-parameter)*)? ")" {
     pin = 2
 }
 

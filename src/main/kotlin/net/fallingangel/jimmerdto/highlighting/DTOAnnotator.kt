@@ -42,7 +42,7 @@ class DTOAnnotator : Annotator {
          * 为作为参数的注解上色
          */
         override fun visitNestAnnotation(o: DTONestAnnotation) {
-            o.qualifiedName.style(DTOSyntaxHighlighter.ANNOTATION)
+            o.annotationName.style(DTOSyntaxHighlighter.ANNOTATION)
         }
 
         /**

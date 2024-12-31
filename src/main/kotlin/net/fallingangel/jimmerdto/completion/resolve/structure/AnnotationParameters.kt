@@ -14,17 +14,17 @@ class AnnotationParameters : Structure<DTOAnnotation, List<String>> {
      */
     override fun value(element: DTOAnnotation): List<String> {
         val project = element.project
-        val name = element.annotationConstructor.qualifiedName?.qualifiedNamePartList ?: throw IllegalStateException()
+        val name = element.annotationConstructor.annotationName?.text?.split(".") ?: throw IllegalStateException()
 
         val clazz = if (name.size == 1) {
             val imports = PsiTreeUtil.findChildrenOfType(element.containingFile, DTOImport::class.java)
-            val import = imports.find { it.qualifiedType.qualifiedTypeName.qualifiedName.qualifiedNamePartList.last().text == name.first().text }
+            val import = imports.find { it.qualifiedType.qualifiedTypeName.qualifiedName.qualifiedNamePartList.last().text == name.first() }
             import ?: throw IllegalStateException()
             import.qualifiedType.text
         } else {
             name.joinToString(".")
         }
         val annotation = JavaPsiFacade.getInstance(project).findClass(clazz, ProjectScope.getAllScope(project)) ?: throw IllegalStateException()
-        return annotation.allMethods.map { it.name }
+        return annotation.methods.map { it.name }
     }
 }
