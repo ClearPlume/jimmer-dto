@@ -17,6 +17,14 @@
     ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.30 (2025-01-01)</b></p>
+    <ul>
+      <li><b>Feature</b>Nested annotation import basically complete</li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>嵌套注解提示基本完成</b></li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.29 (2024-12-30)</b></p>
     <ul>
       <li><b>Feature</b>Annotation import basically complete</li>
