@@ -15,10 +15,11 @@ import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
 import net.fallingangel.jimmerdto.psi.DTOExport
 import net.fallingangel.jimmerdto.structure.JavaNullableType
 import net.fallingangel.jimmerdto.structure.Property
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
-import org.jetbrains.kotlin.nj2k.postProcessing.type
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtProperty
@@ -94,7 +95,7 @@ fun VirtualFile.properties(project: Project, propPath: List<String> = emptyList(
                 classFile.ktClass(project, propPath)
                         ?.properties()
                         ?.map { property ->
-                            val type = property.type()!!
+                            val type = (property.resolveToDescriptorIfAny() as? CallableDescriptor)?.returnType!!
                             Property(
                                 property.name!!,
                                 type.toString(),
