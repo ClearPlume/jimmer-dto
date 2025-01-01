@@ -229,7 +229,17 @@ fun PsiType.clazz(): PsiClass? {
         generic.element
     } else {
         val propTypeParameters = generic.element?.typeParameters ?: return null
-        generic.substitutor.substitute(propTypeParameters[0])?.clazz()
+        val genericType = generic.substitutor.substitute(propTypeParameters[0]) ?: return null
+
+        if (genericType is PsiWildcardType) {
+            if (genericType.isBounded) {
+                genericType.clazz()
+            } else {
+                generic.element
+            }
+        } else {
+            genericType.clazz()
+        }
     }
 }
 
