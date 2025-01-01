@@ -109,6 +109,9 @@ class DTOCompletionContributor : CompletionContributor() {
             parent.parent is DTOPropArgs -> context.dummyIdentifier = ""
 
             parent is DTOAnnotationArrayValue -> context.dummyIdentifier += "()"
+            parent is DTOAnnotationName && parent.parent is DTOAnnotationConstructor && parent.parent.parent is DTOAnnotation -> {
+                context.dummyIdentifier = CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED
+            }
 
             else -> return
         }
@@ -523,12 +526,21 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 val project = parameters.position.project
-                val typedPackage = parameters.position.parent.prevLeafs
-                        .takeWhile { it.elementType != statementKeyword }
-                        .filter { it.parent.elementType == DTOTypes.QUALIFIED_NAME_PART }
-                        .map { it.text }
-                        .toList()
-                        .asReversed()
+                val typedPackage = if (parameters.position.parent is DTOAnnotationName) {
+                    parameters.position.prevLeafs
+                            .takeWhile { it.elementType != statementKeyword }
+                            .map(PsiElement::getText)
+                            .filter { it != "." }
+                            .toList()
+                            .asReversed()
+                } else {
+                    parameters.position.parent.prevLeafs
+                            .takeWhile { it.elementType != statementKeyword }
+                            .filter { it.parent.elementType == DTOTypes.QUALIFIED_NAME_PART }
+                            .map(PsiElement::getText)
+                            .toList()
+                            .asReversed()
+                }
                 val curPackage = typedPackage.joinToString(".")
                 val curPackageClasses = if (typedPackage.isEmpty() && classAvailableBeforeFirstDot) {
                     project.classes(null).lookUp()
