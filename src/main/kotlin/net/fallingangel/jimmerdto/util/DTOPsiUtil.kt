@@ -11,12 +11,15 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiPackage
 import com.intellij.psi.search.ProjectScope
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.ProcessingContext
 import com.intellij.util.indexing.FileBasedIndex
 import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
+import net.fallingangel.jimmerdto.psi.DTOAnnotationName
 import net.fallingangel.jimmerdto.psi.DTODto
+import net.fallingangel.jimmerdto.psi.DTOImport
 import net.fallingangel.jimmerdto.psi.DTOModifier
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons
@@ -98,6 +101,22 @@ fun Project.allEntities(`package`: String? = ""): List<PsiClass> {
 
 fun Project.allPackages(`package`: String): List<PsiPackage> {
     return JavaPsiFacade.getInstance(this).findPackage(`package`)?.subPackages?.toList() ?: emptyList()
+}
+
+/**
+ * 获取注解BNF元素对应的PsiClass实例
+ */
+fun DTOAnnotationName.psiClass(): PsiClass {
+    val name = text?.split(".") ?: throw IllegalStateException()
+    val clazz = if (name.size == 1) {
+        val imports = PsiTreeUtil.findChildrenOfType(containingFile, DTOImport::class.java)
+        val import = imports.find { it.qualifiedType.qualifiedTypeName.qualifiedName.qualifiedNamePartList.last().text == name.first() }
+        import ?: throw IllegalStateException()
+        import.qualifiedType.text
+    } else {
+        name.joinToString(".")
+    }
+    return JavaPsiFacade.getInstance(project).findClass(clazz, ProjectScope.getAllScope(project)) ?: throw IllegalStateException()
 }
 
 fun <T, Self, Skip, Pattern> PsiElementPattern<T, Self>.withFirstChildSkipping(
