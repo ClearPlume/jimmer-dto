@@ -418,8 +418,9 @@ class DTOCompletionContributor : CompletionContributor() {
             dto.inFile(
                 psiFile(DTOFile::class.java).withFirstChildSkipping(
                     or(
-                        psiElement(DTOImport::class.java),
                         psiElement(DTOExport::class.java),
+                        whitespace,
+                        psiElement(DTOImport::class.java),
                     ),
                     or(
                         psiElement(DTODto::class.java)
