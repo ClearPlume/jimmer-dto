@@ -17,4 +17,5 @@ object StructureType {
     val DTOPreludeTypes = DTOPreludeTypes()
     val DTOFileDtos = DTOFileDtos()
     val AnnotationParameters = AnnotationParameters()
+    val NestAnnotationParameters = NestAnnotationParameters()
 }

@@ -194,8 +194,8 @@ annotation-name ::= IDENTIFIER ("." IDENTIFIER)* {
     pin = 1
 }
 
-nest-annotation ::= annotation-name "(" ((annotation-value | annotation-parameter) ("," annotation-parameter)*)? ")" {
-    pin = 2
+nest-annotation ::= "@"? annotation-name "(" ((annotation-value | annotation-parameter) ("," annotation-parameter)*)? ")" {
+    pin = 3
 }
 
 // annotation parameter
@@ -206,7 +206,7 @@ annotation-parameter ::= IDENTIFIER "=" annotation-value {
 annotation-value ::= CHAR_CONSTANT | STRING_CONSTANT |
              INTEGER_CONSTANT | FLOAT_CONSTANT |
              BOOLEAN_CONSTANT | NULL_CONSTANT |
-             annotation | nest-annotation | class-value | enum-value | annotation-array-value
+             nest-annotation | annotation | class-value | enum-value | annotation-array-value
 
 annotation-array-value ::= "[" (annotation-value ("," annotation-value)*)? "]" | "{" (annotation-value ("," annotation-value)*)? "}"
 

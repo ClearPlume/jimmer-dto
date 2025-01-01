@@ -10,6 +10,7 @@ import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiMethod
 import com.intellij.psi.TokenType
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.tree.IElementType
@@ -78,8 +79,14 @@ class DTOCompletionContributor : CompletionContributor() {
         // 注解提示
         completeAnnotation()
 
+        // 嵌套注解提示
+        completeNestAnnotation()
+
         // 注解参数提示
         completeAnnotationParam()
+
+        // 嵌套注解参数提示
+        completeNestAnnotationParam()
 
         // Class关键字提示
         completeClassKeyword()
@@ -100,6 +107,9 @@ class DTOCompletionContributor : CompletionContributor() {
                     || parent.parent is DTOMacroArgs -> context.dummyIdentifier = ""
 
             parent.parent is DTOPropArgs -> context.dummyIdentifier = ""
+
+            parent is DTOAnnotationArrayValue -> context.dummyIdentifier += "()"
+
             else -> return
         }
     }
@@ -454,8 +464,8 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeAnnotation() {
         completePackage(
             or(
-                identifier.withParent(DTOQualifiedNamePart::class.java)
-                        .withSuperParent(4, DTOAnnotation::class.java),
+                identifier.withParent(DTOAnnotationName::class.java)
+                        .withSuperParent(3, DTOAnnotation::class.java),
                 identifier.withParent(DTOFile::class.java)
                         .afterLeafSkipping(
                             or(
@@ -468,6 +478,33 @@ class DTOCompletionContributor : CompletionContributor() {
             DTOTypes.AT,
             Project::allAnnotations,
             true,
+        )
+    }
+
+    /**
+     * 嵌套注解提示
+     */
+    private fun completeNestAnnotation() {
+        complete(
+            { parameters, result ->
+                val nestAnnotation = parameters.position.parent.parent<DTONestAnnotation>()
+                val nestAnnotationParam = nestAnnotation.parent.parent.parent.parent<DTOAnnotationParameter>()
+                val annotation = nestAnnotationParam.parent<DTOAnnotation>()
+                val annotationClass = annotation.annotationConstructor.annotationName!!.psiClass()
+
+                result.addAllElements(
+                    annotationClass.methods
+                            .filter { it.name == nestAnnotationParam.identifier.text }
+                            .mapNotNull { it.returnType }
+                            .mapNotNull { it.clazz() }
+                            .filter(PsiClass::isAnnotationType)
+                            .lookUp()
+                )
+            },
+            or(
+                psiElement().withParent(DTOAnnotationArrayValue::class.java),
+                identifier.withParent(psiElement(DTOAnnotationName::class.java).withParent(DTONestAnnotation::class.java)),
+            ),
         )
     }
 
@@ -528,6 +565,28 @@ class DTOCompletionContributor : CompletionContributor() {
                                 psiElement(DTOAnnotationParameter::class.java),
                             ),
                             psiElement(DTOAnnotationConstructor::class.java),
+                        ),
+            ),
+        )
+    }
+
+    /**
+     * 嵌套注解参数提示
+     */
+    private fun completeNestAnnotationParam() {
+        complete(
+            { parameters, result ->
+                val nestAnnotation = parameters.position.parent.parent<DTONestAnnotation>()
+                result.addAllElements(nestAnnotation[StructureType.NestAnnotationParameters].lookUp())
+            },
+            identifier.withParent(
+                psiElement(DTOAnnotationParameter::class.java)
+                        .withParent(
+                            psiElement(DTONestAnnotation::class.java)
+                                    .withParent(
+                                        psiElement(DTOAnnotationValue::class.java)
+                                                .withParent(DTOAnnotationArrayValue::class.java)
+                                    ),
                         ),
             ),
         )
@@ -705,6 +764,14 @@ class DTOCompletionContributor : CompletionContributor() {
                         }
                     }
                 }
+                .customizer()
+    }
+
+    @JvmName("lookupPsiMethod")
+    private fun List<PsiMethod>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }) = map {
+        LookupElementBuilder.create(it.name)
+                .withIcon(AllIcons.Nodes.Property)
+                .withTypeText(it.returnType?.canonicalText, true)
                 .customizer()
     }
 
