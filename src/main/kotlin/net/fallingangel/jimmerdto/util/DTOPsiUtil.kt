@@ -110,7 +110,7 @@ fun DTOAnnotationName.psiClass(): PsiClass {
     val name = text?.split(".") ?: throw IllegalStateException()
     val clazz = if (name.size == 1) {
         val imports = PsiTreeUtil.findChildrenOfType(containingFile, DTOImport::class.java)
-        val import = imports.find { it.qualifiedType.qualifiedTypeName.qualifiedName.qualifiedNamePartList.last().text == name.first() }
+        val import = imports.find { it.qualifiedType.qualifiedName.qualifiedNamePartList.last().text == name.first() }
         import ?: throw IllegalStateException()
         import.qualifiedType.text
     } else {

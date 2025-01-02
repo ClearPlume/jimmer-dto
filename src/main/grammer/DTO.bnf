@@ -157,9 +157,7 @@ qualified-name ::= qualified-name-part ("." qualified-name-part)*
 
 qualified-name-part ::= IDENTIFIER
 
-qualified-type ::= qualified-type-name ("as" qualified-type-alias)?
-
-qualified-type-name ::= qualified-name
+qualified-type ::= qualified-name ("as" qualified-type-alias)?
 
 qualified-type-alias ::= IDENTIFIER
 

@@ -14,7 +14,7 @@ class DTOFileImports : Structure<DTOFile, List<String>> {
         val imports = PsiTreeUtil.getChildrenOfTypeAsList(element, DTOImport::class.java)
         val importedTypes = imports
                 .filter { it.qualifiedType.qualifiedTypeAlias == null && it.groupedTypes == null }
-                .map { it.qualifiedType.qualifiedTypeName.qualifiedName.qualifiedNamePartList.last().text }
+                .map { it.qualifiedType.qualifiedName.qualifiedNamePartList.last().text }
         val importedSingleAliasTypes = imports
                 .filter { it.qualifiedType.qualifiedTypeAlias != null }
                 .map { it.qualifiedType.qualifiedTypeAlias!!.identifier.text }
