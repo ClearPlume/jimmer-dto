@@ -75,9 +75,10 @@ dto ::= annotation* modifier* dto-name interfaces? dto-body {
 
 dto-name ::= IDENTIFIER
 
-dto-body ::= "{" explicit-prop* "}"
-
-explicit-prop ::= (user-prop | macro | positive-prop | alias-group | negative-prop) ("," | ";")?
+dto-body ::=
+"{"
+    (user-prop | macro | positive-prop | alias-group | negative-prop) (("," | ";")? (user-prop | macro | positive-prop | alias-group | negative-prop) ("," | ";")?)*
+"}"
 
 macro ::= "#" macro-name macro-args? ("?" | "!")? {
     pin = 1

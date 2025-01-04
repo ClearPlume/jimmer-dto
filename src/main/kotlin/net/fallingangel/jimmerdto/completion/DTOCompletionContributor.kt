@@ -288,24 +288,20 @@ class DTOCompletionContributor : CompletionContributor() {
             and(
                 identifier.withParent(DTOPropName::class.java)
                         .withSuperParent(
-                            3,
-                            psiElement(DTOExplicitProp::class.java)
-                                    .afterSibling(
-                                        psiElement(DTOExplicitProp::class.java)
-                                                .withFirstNonWhitespaceChild(
-                                                    psiElement(DTOPositiveProp::class.java)
-                                                            .andNot(
-                                                                psiElement(DTOPositiveProp::class.java)
-                                                                        .withChild(psiElement(DTOPropArgs::class.java))
-                                                            )
-                                                )
+                            2,
+                            psiElement(DTOPositiveProp::class.java)
+                                    .beforeLeaf(
+                                        identifier.withSuperParent(
+                                            2,
+                                            psiElement(DTOPositiveProp::class.java),
+                                        )
                                     )
                         ),
                 identifier.withParent(
                     not(
                         psiElement(DTOPropName::class.java).afterSibling(psiElement(DTOModifier::class.java))
                     )
-                )
+                ),
             )
         )
     }
@@ -651,16 +647,13 @@ class DTOCompletionContributor : CompletionContributor() {
                         ),
                 identifier.withParent(DTOPropName::class.java)
                         .withSuperParent(
-                            3,
-                            psiElement(DTOExplicitProp::class.java)
+                            2,
+                            psiElement(DTOPositiveProp::class.java)
                                     .afterSibling(
-                                        psiElement(DTOExplicitProp::class.java)
-                                                .withFirstNonWhitespaceChild(
+                                        psiElement(DTOPositiveProp::class.java)
+                                                .andNot(
                                                     psiElement(DTOPositiveProp::class.java)
-                                                            .andNot(
-                                                                psiElement(DTOPositiveProp::class.java)
-                                                                        .withChild(psiElement(DTOPropArgs::class.java))
-                                                            )
+                                                            .withChild(psiElement(DTOPropArgs::class.java))
                                                 )
                                     )
                         )

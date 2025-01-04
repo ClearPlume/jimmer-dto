@@ -32,14 +32,13 @@ class InsertEntityPropAction : AnAction() {
 
         val body = space.parentOfType<DTODtoBody>() ?: return
 
-        val negativeProps = body.explicitPropList.mapNotNull { it.negativeProp }.map { it.propName.text }
-        val positiveProps = body.explicitPropList.mapNotNull { it.positiveProp }.map { it.propName.text }
-        val functionProps = body.explicitPropList
-                .mapNotNull { it.positiveProp?.propArgs }
+        val negativeProps = body.negativePropList.map { it.propName.text }
+        val positiveProps = body.positivePropList.map { it.propName.text }
+        val functionProps = body.positivePropList
+                .mapNotNull { it.propArgs }
                 .map { it.valueList.map { value -> value.text } }
                 .flatten()
-        val aliasProps = body.explicitPropList
-                .mapNotNull { it.aliasGroup }
+        val aliasProps = body.aliasGroupList
                 .map {
                     it.aliasGroupBody
                             .positivePropList

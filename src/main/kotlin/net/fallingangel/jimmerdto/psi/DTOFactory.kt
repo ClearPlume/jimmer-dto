@@ -59,8 +59,7 @@ fun Project.createAliasGroup(
         |}""".trimMargin()
     return createDTO("Dummy", aliasGroups = listOf(aliasGroup))
             .dtoBody!!
-            .explicitPropList[0]
-            .aliasGroup!!
+            .aliasGroupList[0]!!
 }
 
 /**
@@ -78,8 +77,7 @@ fun Project.createEnumMappingProp(name: String, mappings: List<String>): DTOPosi
     """.trimMargin()
     return createDTO("Dummy", positiveProps = listOf(enumMapping))
             .dtoBody!!
-            .explicitPropList[0]
-            .positiveProp!!
+            .positivePropList[0]!!
 }
 
 fun Project.createEnumMappings(mappings: List<String>): List<DTOEnumInstanceMapping> {
@@ -91,8 +89,7 @@ fun Project.createEnumMappings(mappings: List<String>): List<DTOEnumInstanceMapp
 fun Project.createUserProp(name: String, type: String): DTOUserProp {
     return createDTO("Dummy", userProps = listOf("$name: $type"))
             .dtoBody!!
-            .explicitPropList[0]
-            .userProp!!
+            .userPropList[0]!!
 }
 
 fun Project.createUserPropName(name: String) = createUserProp(name, "String").propName
@@ -103,7 +100,6 @@ fun Project.createAnnotation(name: String): DTOAnnotation {
     """.trimIndent()
     return createDTO("Dummy", positiveProps = listOf(prop))
             .dtoBody!!
-            .explicitPropList[0]
-            .positiveProp!!
+            .positivePropList[0]!!
             .annotationList[0]
 }
