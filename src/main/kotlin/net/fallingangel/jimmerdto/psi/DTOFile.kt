@@ -5,7 +5,7 @@ import com.intellij.psi.FileViewProvider
 import net.fallingangel.jimmerdto.DTOFileType
 import net.fallingangel.jimmerdto.DTOLanguage
 
-class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLanguage.INSTANCE) {
+class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLanguage) {
     override fun getFileType() = DTOFileType.INSTANCE
 
     override fun toString() = "JimmerDTO File"

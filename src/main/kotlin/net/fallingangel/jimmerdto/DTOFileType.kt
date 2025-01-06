@@ -3,7 +3,7 @@ package net.fallingangel.jimmerdto
 import com.intellij.openapi.fileTypes.LanguageFileType
 import icons.Icons
 
-class DTOFileType : LanguageFileType(DTOLanguage.INSTANCE) {
+class DTOFileType : LanguageFileType(DTOLanguage) {
     override fun getName() = Constant.NAME
 
     override fun getDescription() = "Jimmer框架的DTO转换语言"

@@ -7,7 +7,7 @@ import net.fallingangel.jimmerdto.DTOLanguage
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 
 fun Project.createDTOFile(content: String = ""): DTOFile {
-    return PsiFileFactory.getInstance(this).createFileFromText(DTOLanguage.INSTANCE, content) as DTOFile
+    return PsiFileFactory.getInstance(this).createFileFromText(DTOLanguage, content) as DTOFile
 }
 
 fun Project.createImport(qualifiedName: String): DTOImport {

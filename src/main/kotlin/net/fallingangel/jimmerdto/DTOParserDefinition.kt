@@ -32,6 +32,6 @@ class DTOParserDefinition : ParserDefinition {
     override fun createFile(viewProvider: FileViewProvider) = DTOFile(viewProvider)
 
     object Companion {
-        val FILE = IFileElementType(DTOLanguage.INSTANCE)
+        val FILE = IFileElementType(DTOLanguage)
     }
 }

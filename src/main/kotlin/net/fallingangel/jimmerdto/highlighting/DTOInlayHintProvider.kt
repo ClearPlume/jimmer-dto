@@ -30,7 +30,7 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
 
     override fun createSettings() = NoSettings()
 
-    override fun isLanguageSupported(language: Language) = language == DTOLanguage.INSTANCE
+    override fun isLanguageSupported(language: Language) = language == DTOLanguage
 
     override fun getCollectorFor(file: PsiFile, editor: Editor, settings: NoSettings, sink: InlayHintsSink): InlayHintsCollector? {
         if (file is DTOFile) {
