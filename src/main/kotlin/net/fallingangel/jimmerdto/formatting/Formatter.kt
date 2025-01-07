@@ -22,6 +22,7 @@ class Formatter : FormattingModelBuilder {
                 .around(braceSet).spaces(0)
                 .between(BRACE_L, BRACE_R).spaces(0)
                 .around(MODIFIER).spaces(1)
+                .around(IMPLEMENTS_KEYWORD).spaces(1)
                 .after(EXPORT).emptyLine(1)
                 .around(EXPORT_KEYWORD).spaces(1)
                 .between(IMPORT, IMPORT).emptyLine(0)
