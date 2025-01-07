@@ -12,17 +12,16 @@ class Formatter : FormattingModelBuilder {
         val braceSet = TokenSet.create(PAREN_L, PAREN_R, BRACKET_L, BRACKET_R, ANGLE_BRACKET_L, ANGLE_BRACKET_R)
 
         val spacingBuilder = SpacingBuilder(styleSettings, DTOLanguage)
-                // 基本公有元素
                 .around(COMMA, 0, 1)
                 .after(AT).spaces(0)
                 .after(HASH).spaces(0)
                 .around(EQUALS).spaces(1)
+                .afterInside(MINUS, NEGATIVE_PROP).spaces(0)
+                .around(MINUS).spaces(1)
                 .around(DOT).spaces(0)
                 .around(braceSet).spaces(0)
                 .between(BRACE_L, BRACE_R).spaces(0)
                 .around(MODIFIER).spaces(1)
-
-                // 具体元素
                 .after(EXPORT).emptyLine(1)
                 .around(EXPORT_KEYWORD).spaces(1)
                 .between(IMPORT, IMPORT).emptyLine(0)
