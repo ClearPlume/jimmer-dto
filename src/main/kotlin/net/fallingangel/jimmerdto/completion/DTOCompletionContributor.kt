@@ -525,6 +525,7 @@ class DTOCompletionContributor : CompletionContributor() {
                 val typedPackage = if (parameters.position.parent is DTOAnnotationName) {
                     parameters.position.prevLeafs
                             .takeWhile { it.elementType != statementKeyword }
+                            .filter { it.elementType != TokenType.WHITE_SPACE }
                             .map(PsiElement::getText)
                             .filter { it != "." }
                             .toList()
@@ -532,6 +533,7 @@ class DTOCompletionContributor : CompletionContributor() {
                 } else {
                     parameters.position.parent.prevLeafs
                             .takeWhile { it.elementType != statementKeyword }
+                            .filter { it.elementType != TokenType.WHITE_SPACE }
                             .filter { it.parent.elementType == DTOTypes.QUALIFIED_NAME_PART }
                             .map(PsiElement::getText)
                             .toList()
@@ -746,8 +748,8 @@ class DTOCompletionContributor : CompletionContributor() {
                         val file = context.file as DTOFile
                         val export = file.findChildByClass(DTOExport::class.java)
                         val imports = file.findChildrenByClass(DTOImport::class.java)
-                        val importedSameName = imports.any { i -> i.qualifiedType.text.substringAfterLast('.') == name }
-                        val import = imports.find { i -> i.qualifiedType.text == qualifiedName }
+                        val importedSameName = imports.any { i -> i.qualified.substringAfterLast('.') == name }
+                        val import = imports.find { i -> i.qualified == qualifiedName }
 
                         if (importedSameName) {
                             if (import == null) {

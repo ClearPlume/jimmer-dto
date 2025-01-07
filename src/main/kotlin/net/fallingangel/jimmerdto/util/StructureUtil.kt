@@ -5,6 +5,8 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiWhiteSpace
+import com.intellij.psi.TokenType
+import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import net.fallingangel.jimmerdto.completion.resolve.structure.Structure
 import net.fallingangel.jimmerdto.psi.*
@@ -47,6 +49,16 @@ val PsiElement.upper: PsiElement
 
 val PsiElement.virtualFile: VirtualFile
     get() = containingFile.originalFile.virtualFile
+
+val DTOExport.qualified: String
+    get() = qualifiedType.qualifiedName.qualifiedNamePartList
+            .filter { it.elementType != TokenType.WHITE_SPACE }
+            .joinToString(".", transform = PsiElement::getText)
+
+val DTOImport.qualified: String
+    get() = qualifiedType.qualifiedName.qualifiedNamePartList
+            .filter { it.elementType != TokenType.WHITE_SPACE }
+            .joinToString(".", transform = PsiElement::getText)
 
 inline fun <reified T : PsiElement> PsiElement.haveParent() = parentOfType<T>() != null
 
@@ -100,7 +112,7 @@ fun DTODto.classFile(): VirtualFile? {
         /* 获取package关键字定义的dto类路径 */
         val packageDtoPath = `package`?.qualifiedType?.text?.replace('.', '/')
         /* 若没有指定package，则获取export关键字指定的类路径对应的dto类路径 */
-        packageDtoPath ?: (export.qualifiedType.text.substringBeforeLast('.') + ".dto").replace('.', '/')
+        packageDtoPath ?: (export.qualified.substringBeforeLast('.') + ".dto").replace('.', '/')
     } else {
         /* 获取默认的dto文件生成类路径 */
         // 获取dto根路径

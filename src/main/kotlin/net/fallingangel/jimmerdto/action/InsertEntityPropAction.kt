@@ -56,7 +56,7 @@ class InsertEntityPropAction : AnAction() {
         }
 
         val entityName = if (export != null) {
-            export.qualifiedType.text
+            export.qualified
         } else {
             val dtoRoot = dtoRoot(dtoFile)?.path ?: return
             val dtoPath = dtoFile.virtualFile.parent.path

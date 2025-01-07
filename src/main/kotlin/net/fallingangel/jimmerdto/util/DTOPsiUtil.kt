@@ -112,7 +112,7 @@ fun DTOAnnotationName.psiClass(): PsiClass {
         val imports = PsiTreeUtil.findChildrenOfType(containingFile, DTOImport::class.java)
         val import = imports.find { it.qualifiedType.qualifiedName.qualifiedNamePartList.last().text == name.first() }
         import ?: throw IllegalStateException()
-        import.qualifiedType.text
+        import.qualified
     } else {
         name.joinToString(".")
     }
@@ -151,5 +151,3 @@ fun List<DTOModifier>.toModifier() = map(DTOModifier::toModifier)
 infix fun DTODto.modifiedBy(modifier: Modifier): Boolean {
     return modifier in this.modifierList.toModifier()
 }
-
-infix fun DTODto.notModifiedBy(modifier: Modifier) = !modifiedBy(modifier)

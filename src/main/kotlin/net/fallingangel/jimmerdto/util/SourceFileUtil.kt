@@ -152,7 +152,7 @@ fun VirtualFile.entityFile(project: Project): VirtualFile? {
     val export = psiFile.getChildOfType<DTOExport>()
 
     val entityName = if (export != null) {
-        export.qualifiedType.text
+        export.qualified
     } else {
         // sourcePath: src/main/kotlin
         val sourcePath = sourceRoot(psiFile)?.path ?: return null
