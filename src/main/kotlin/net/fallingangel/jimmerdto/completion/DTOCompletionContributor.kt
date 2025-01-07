@@ -753,7 +753,7 @@ class DTOCompletionContributor : CompletionContributor() {
 
                         if (importedSameName) {
                             if (import == null) {
-                                val annotationName = file.findElementAt(context.startOffset)?.parent?.parent ?: return@runWriteCommandAction
+                                val annotationName = file.findElementAt(context.startOffset)?.parent ?: return@runWriteCommandAction
                                 val newAnnotationName = context.project.createAnnotation(qualifiedName).annotationConstructor.annotationName
                                 annotationName.parent.node.replaceChild(annotationName.node, newAnnotationName!!.node)
                             }
