@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "net.fallingangel"
-version = "0.0.7.30"
+version = "0.0.7.31"
 
 val sinceVersion by extra("2022.3")
 val untilVersion by extra("2024.3")
