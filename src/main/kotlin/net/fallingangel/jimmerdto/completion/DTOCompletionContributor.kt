@@ -440,7 +440,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeExportPackage() {
         completePackage(
             identifier.withParent(DTOQualifiedNamePart::class.java)
-                    .withSuperParent(5, DTOExport::class.java),
+                    .withSuperParent(4, DTOExport::class.java),
             DTOTypes.EXPORT_KEYWORD,
             Project::allEntities
         )
@@ -452,7 +452,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeImportPackage() {
         completePackage(
             identifier.withParent(DTOQualifiedNamePart::class.java)
-                    .withSuperParent(5, DTOImport::class.java),
+                    .withSuperParent(4, DTOImport::class.java),
             DTOTypes.IMPORT_KEYWORD,
             Project::allClasses
         )
