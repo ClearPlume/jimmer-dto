@@ -46,6 +46,19 @@ intellijPlatform {
         id = "net.fallingangel.jimmer-dto"
         name = "JimmerDTO"
 
+        description = """
+            <h3>English:</h3>
+            <ul>
+              <li>Provide syntax support for the DTO language of the Jimmer framework</li>
+              <li>Provide legality check for hard-coded strings of Jimmer entity interfaces, supporting Java and Kotlin</li>
+            </ul>
+            <h3>中文：</h3>
+            <ul>
+              <li>为Jimmer框架的DTO语言提供语法支持</li>
+              <li>为Jimmer实体接口的硬编码字符串提供合法检测，支持Java、Kotlin</li>
+            </ul>
+        """.trimIndent()
+
         vendor {
             name = "the_FallenAngel"
             email = "the.fallenangel.965@gmail.com"

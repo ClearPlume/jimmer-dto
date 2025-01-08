@@ -1,21 +1,75 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin require-restart="false">
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
+    <depends>org.jetbrains.kotlin</depends>
+
+    <actions>
+        <group id="JimmerDTOEntityPopupMenu">
+            <separator/>
+        </group>
+
+        <action id="CreateOrJumpToJimmerDtoFile" class="net.fallingangel.jimmerdto.action.CreateJimmerDtoFile" text="JimmerDto File"
+                description="Create new JimmerDTO file or jump to it if exists" icon="Icons.icon_16">
+            <add-to-group group-id="JimmerDTOEntityPopupMenu"/>
+        </action>
+
+        <group id="JimmerDTOEntityPopupMenuWrapper">
+            <reference ref="JimmerDTOEntityPopupMenu"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="WeighingNewGroup"/>
+        </group>
+
+        <action id="InsertEntityPropsToDto"
+                class="net.fallingangel.jimmerdto.action.InsertEntityPropAction"
+                text="Insert Entity Props To Here"
+                description="Insert all props from the associated entity to current cursor position.">
+            <add-to-group group-id="GenerateGroup" anchor="first"/>
+        </action>
+    </actions>
+
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType
+                name="JimmerDTO"
+                implementationClass="net.fallingangel.jimmerdto.DTOFileType"
+                fieldName="INSTANCE"
+                language="JimmerDTO"
+                extensions="dto"
+        />
+
+        <lang.parserDefinition
+                language="JimmerDTO"
+                implementationClass="net.fallingangel.jimmerdto.DTOParserDefinition"
+        />
+        <lang.syntaxHighlighterFactory
+                language="JimmerDTO"
+                implementationClass="net.fallingangel.jimmerdto.highlighting.DTOSyntaxHighlighterFactory"/>
+        <lang.formatter language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.formatting.Formatter"/>
+
+        <colorSettingsPage implementation="net.fallingangel.jimmerdto.highlighting.DTOColorSettingsPage"/>
+        <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>
+        <additionalTextAttributes scheme="Default" file="colorSchemas/default.xml"/>
+
+        <lang.braceMatcher language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOBraceMatcher"/>
+        <lang.commenter language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCommenter"/>
+        <!--suppress PluginXmlValidity-->
+        <lang.directNavigationProvider implementation="net.fallingangel.jimmerdto.DTONavigationProvider"/>
+        <completion.contributor language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCompletionContributor"/>
+
+        <codeInsight.lineMarkerProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.DTOLineMarkerProvider"/>
+        <codeInsight.inlayProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOInlayHintProvider"/>
+
+        <notificationGroup id="JimmerDTO Notification Group" displayType="BALLOON"/>
+
+        <fileBasedIndex implementation="net.fallingangel.jimmerdto.util.AnnotationClassIndex"/>
+    </extensions>
+
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
-    <description><![CDATA[
-    <h3>English:</h3>
-    <ul>
-      <li>Provide syntax support for the DTO language of the Jimmer framework</li>
-      <li>Provide legality check for hard-coded strings of Jimmer entity interfaces, supporting Java and Kotlin</li>
-    </ul>
-    <h3>中文：</h3>
-    <ul>
-      <li>为Jimmer框架的DTO语言提供语法支持</li>
-      <li>为Jimmer实体接口的硬编码字符串提供合法检测，支持Java、Kotlin</li>
-    </ul>
-    ]]></description>
-
     <change-notes><![CDATA[
     <p><b>0.0.7.32 (2025-01-08)</b></p>
     <ul>
@@ -409,71 +463,4 @@
       <li>提供了基本的语法高亮</li>
     </ul>
     ]]></change-notes>
-
-    <!-- Product and plugin compatibility requirements.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
-    <depends>com.intellij.modules.platform</depends>
-    <depends>com.intellij.java</depends>
-    <depends>org.jetbrains.kotlin</depends>
-
-    <actions>
-        <group id="JimmerDTOEntityPopupMenu">
-            <separator/>
-        </group>
-
-        <action id="CreateOrJumpToJimmerDtoFile" class="net.fallingangel.jimmerdto.action.CreateJimmerDtoFile" text="JimmerDto File"
-                description="Create new JimmerDTO file or jump to it if exists" icon="Icons.icon_16">
-            <add-to-group group-id="JimmerDTOEntityPopupMenu"/>
-        </action>
-
-        <group id="JimmerDTOEntityPopupMenuWrapper">
-            <reference ref="JimmerDTOEntityPopupMenu"/>
-            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="WeighingNewGroup"/>
-        </group>
-
-        <action id="InsertEntityPropsToDto"
-                class="net.fallingangel.jimmerdto.action.InsertEntityPropAction"
-                text="Insert Entity Props To Here"
-                description="Insert all props from the associated entity to current cursor position.">
-            <add-to-group group-id="GenerateGroup" anchor="first"/>
-        </action>
-    </actions>
-
-    <!-- Extension points defined by the plugin.
-         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
-    <extensions defaultExtensionNs="com.intellij">
-        <fileType
-                name="JimmerDTO"
-                implementationClass="net.fallingangel.jimmerdto.DTOFileType"
-                fieldName="INSTANCE"
-                language="JimmerDTO"
-                extensions="dto"
-        />
-
-        <lang.parserDefinition
-                language="JimmerDTO"
-                implementationClass="net.fallingangel.jimmerdto.DTOParserDefinition"
-        />
-        <lang.syntaxHighlighterFactory
-                language="JimmerDTO"
-                implementationClass="net.fallingangel.jimmerdto.highlighting.DTOSyntaxHighlighterFactory"/>
-        <lang.formatter language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.formatting.Formatter"/>
-
-        <colorSettingsPage implementation="net.fallingangel.jimmerdto.highlighting.DTOColorSettingsPage"/>
-        <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>
-        <additionalTextAttributes scheme="Default" file="colorSchemas/default.xml"/>
-
-        <lang.braceMatcher language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOBraceMatcher"/>
-        <lang.commenter language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCommenter"/>
-        <!--suppress PluginXmlValidity-->
-        <lang.directNavigationProvider implementation="net.fallingangel.jimmerdto.DTONavigationProvider"/>
-        <completion.contributor language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCompletionContributor"/>
-
-        <codeInsight.lineMarkerProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.DTOLineMarkerProvider"/>
-        <codeInsight.inlayProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOInlayHintProvider"/>
-
-        <notificationGroup id="JimmerDTO Notification Group" displayType="BALLOON"/>
-
-        <fileBasedIndex implementation="net.fallingangel.jimmerdto.util.AnnotationClassIndex"/>
-    </extensions>
 </idea-plugin>
