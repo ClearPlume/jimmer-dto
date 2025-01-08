@@ -17,6 +17,14 @@
     ]]></description>
 
     <change-notes><![CDATA[
+    <p><b>0.0.7.32 (2025-01-08)</b></p>
+    <ul>
+      <li><b>Feature</b>Formatting of some language structures is supplemented</li>
+    </ul>
+    <ul>
+      <li><b>新特性</b>补充部分语言结构的格式化</b></li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.31 (2025-01-07)</b></p>
     <ul>
       <li><b>Feature</b>Code formatting basically complete</li>
