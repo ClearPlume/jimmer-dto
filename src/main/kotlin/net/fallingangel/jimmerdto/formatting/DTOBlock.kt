@@ -14,12 +14,13 @@ class DTOBlock(
     alignment: Alignment?
 ) : AbstractBlock(node, wrap, alignment) {
     private val braces = TokenSet.create(BRACE_L, BRACE_R)
+    private val parents = TokenSet.create(DTO_BODY, ALIAS_GROUP_BODY)
 
     override fun getIndent(): Indent? {
         if (node.treeParent == null) {
             return Indent.getNoneIndent()
         }
-        if (node.treeParent.elementType == DTO_BODY && node.elementType !in braces) {
+        if (node.treeParent.elementType in parents && node.elementType !in braces) {
             return Indent.getNormalIndent()
         }
         return Indent.getNoneIndent()
@@ -32,7 +33,7 @@ class DTOBlock(
     override fun isLeaf() = myNode.firstChildNode == null
 
     override fun buildChildren(): List<DTOBlock> {
-        val whetherParent = node.elementType == DTO_BODY
+        val whetherParent = node.elementType in parents
         return generateSequence(myNode::getFirstChildNode, ASTNode::getTreeNext)
                 .filter { it.elementType != TokenType.WHITE_SPACE }
                 .map {
