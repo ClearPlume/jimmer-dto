@@ -13,6 +13,7 @@ class Formatter : FormattingModelBuilder {
         val parents = TokenSet.create(DTO_BODY, ALIAS_GROUP_BODY)
 
         val spacingBuilder = SpacingBuilder(styleSettings, DTOLanguage)
+                // common
                 .around(COMMA, 0, 1)
                 .after(AT).spaces(0)
                 .after(HASH).spaces(0)
@@ -22,13 +23,20 @@ class Formatter : FormattingModelBuilder {
                 .around(DOT).spaces(0)
                 .betweenInside(PAREN_R, ALIAS_GROUP_BODY, ALIAS_GROUP).spaces(1)
                 .around(braces).spaces(0)
+
+                // package in export
+                .afterInside(QUALIFIED_TYPE, EXPORT).emptyLine(0)
                 .around(ARROW).spaces(1)
+
                 .between(BRACE_L, BRACE_R).spaces(0)
                 .around(MODIFIER).spaces(1)
                 .around(IMPLEMENTS_KEYWORD).spaces(1)
+                .around(AS_KEYWORD).spaces(1)
 
+                // psi elements
                 .after(EXPORT).emptyLine(1)
                 .around(EXPORT_KEYWORD).spaces(1)
+                .after(PACKAGE_KEYWORD).spaces(1)
                 .between(IMPORT, IMPORT).emptyLine(0)
                 .around(IMPORT_KEYWORD).spaces(1)
                 .between(IMPORT, DTO).emptyLine(1)

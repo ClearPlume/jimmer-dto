@@ -17,10 +17,14 @@ class DTOBlock(
     private val parents = TokenSet.create(DTO_BODY, ALIAS_GROUP_BODY)
 
     override fun getIndent(): Indent? {
-        if (node.treeParent == null) {
-            return Indent.getNoneIndent()
+        if (node.treeParent?.elementType in parents && node.elementType !in braces) {
+            return Indent.getNormalIndent()
         }
-        if (node.treeParent.elementType in parents && node.elementType !in braces) {
+        if (
+            node.treeParent?.elementType == EXPORT &&
+            (node.treePrev?.elementType == TokenType.WHITE_SPACE && node.treePrev?.treePrev?.elementType == QUALIFIED_TYPE ||
+                    node.treePrev?.elementType == QUALIFIED_TYPE)
+        ) {
             return Indent.getNormalIndent()
         }
         return Indent.getNoneIndent()
@@ -33,17 +37,9 @@ class DTOBlock(
     override fun isLeaf() = myNode.firstChildNode == null
 
     override fun buildChildren(): List<DTOBlock> {
-        val whetherParent = node.elementType in parents
         return generateSequence(myNode::getFirstChildNode, ASTNode::getTreeNext)
                 .filter { it.elementType != TokenType.WHITE_SPACE }
-                .map {
-                    DTOBlock(
-                        spacingBuilder,
-                        it,
-                        wrap,
-                        if (whetherParent && it.elementType !in braces) Alignment.createAlignment() else null
-                    )
-                }
+                .map { DTOBlock(spacingBuilder, it, wrap, null) }
                 .toList()
     }
 }
