@@ -102,7 +102,8 @@ FLOAT = \d+\.\d+
 }
 
 <ALIAS_GROUP> {
-    "as" " "* "("                    { yypushback(yylength() - 2); return DTOTypes.AS_KEYWORD; }
+    "as" ({CRLF}|{WHITE_SPACE})* "(" { yypushback(yylength() - 2); return DTOTypes.AS_KEYWORD; }
+    ({CRLF}|{WHITE_SPACE})+          { return TokenType.WHITE_SPACE; }
     "("                              { yypushback(1); yybegin(ALIAS_GROUP_ORIGINAL); }
     "->"                             { yypushback(2); yybegin(YYINITIAL); }
 }
