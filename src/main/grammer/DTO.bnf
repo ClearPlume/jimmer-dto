@@ -152,7 +152,7 @@ generic-args ::= "<" generic-arg ("," generic-arg)* ">" {
 generic-arg ::= "*" | modifier? type-def
 
 /// GLOBAL ///
-modifier ::= "input" | "specification" | "abstract" | "unsafe" | "fixed" | "static" | "dynamic" | "fuzzy"
+modifier ::= "input" | "specification" | "abstract" | "unsafe" | "dynamic" | "fixed" | "static" | "fuzzy"| "out" | "in"
 
 qualified-name ::= qualified-name-part ("." qualified-name-part)*
 
