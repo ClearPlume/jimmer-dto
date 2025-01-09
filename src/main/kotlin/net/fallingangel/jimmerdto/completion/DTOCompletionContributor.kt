@@ -167,11 +167,11 @@ class DTOCompletionContributor : CompletionContributor() {
             },
             identifier.withParent(DTOPropName::class.java)
                     .withSuperParent(2, DTOPositiveProp::class.java)
-                    .withSuperParent(4, DTODtoBody::class.java)
+                    .withSuperParent(3, DTODtoBody::class.java)
                     .andOr(
-                        identifier.withSuperParent(5, psiElement(DTODto::class.java)),
+                        identifier.withSuperParent(4, psiElement(DTODto::class.java)),
                         identifier.withSuperParent(
-                            5,
+                            4,
                             psiElement(DTOPropBody::class.java)
                                     .andNot(
                                         psiElement(DTOPropBody::class.java)
@@ -333,7 +333,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeFlatBody() {
         complete(
             { parameters, result ->
-                val flatArgs = (parameters.parent<DTOPropName>().parent.parent.parent.parent.parent as DTOPositiveProp).propArgs
+                val flatArgs = (parameters.parent<DTOPropName>().parent.parent.parent.parent as DTOPositiveProp).propArgs
                 result.addAllElements(flatArgs?.valueList?.get(0)?.get(StructureType.FlatProperties)?.lookUp() ?: emptyList())
                 result.addAllElements(
                     parameters.parent<DTOPropName>()[StructureType.PropFunctions].lookUp {
@@ -347,7 +347,7 @@ class DTOCompletionContributor : CompletionContributor() {
             },
             identifier.withParent(DTOPropName::class.java)
                     .withSuperParent(
-                        5,
+                        4,
                         psiElement(DTOPropBody::class.java)
                                 .afterSiblingSkipping(
                                     or(

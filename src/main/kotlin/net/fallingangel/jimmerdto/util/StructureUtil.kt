@@ -44,7 +44,7 @@ val PsiElement.upper: PsiElement
     get() = if (parent.parent is DTOAliasGroup) {
         parent.parent
     } else {
-        parent.parent.parent.parent
+        parent.parent.parent
     }
 
 val PsiElement.virtualFile: VirtualFile
