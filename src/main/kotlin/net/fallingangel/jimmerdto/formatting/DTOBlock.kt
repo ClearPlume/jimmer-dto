@@ -42,4 +42,11 @@ class DTOBlock(
                 .map { DTOBlock(spacingBuilder, it, wrap, null) }
                 .toList()
     }
+
+    override fun getChildIndent(): Indent? {
+        if (node.elementType in parents && node.elementType !in braces) {
+            return Indent.getNormalIndent()
+        }
+        return Indent.getNoneIndent()
+    }
 }
