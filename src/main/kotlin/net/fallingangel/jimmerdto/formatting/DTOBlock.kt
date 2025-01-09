@@ -44,7 +44,7 @@ class DTOBlock(
     }
 
     override fun getChildIndent(): Indent? {
-        if (node.elementType in parents && node.elementType !in braces) {
+        if (node.elementType in parents) {
             return Indent.getNormalIndent()
         }
         return Indent.getNoneIndent()
