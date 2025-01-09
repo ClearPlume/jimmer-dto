@@ -71,6 +71,14 @@
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <change-notes><![CDATA[
+    <p><b>0.0.7.33 (2025-01-09)</b></p>
+    <ul>
+      <li><b>Issue</b><b>#25</b>, <b>#26</b></li>
+    </ul>
+    <ul>
+      <li><b>Issue</b><b>#25</b>, <b>#26</b></li>
+    </ul>
+    <hr/>
     <p><b>0.0.7.32 (2025-01-08)</b></p>
     <ul>
       <li><b>Feature</b>Formatting of some language structures is supplemented</li>
