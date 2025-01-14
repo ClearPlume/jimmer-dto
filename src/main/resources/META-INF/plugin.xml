@@ -48,6 +48,7 @@
                 language="JimmerDTO"
                 implementationClass="net.fallingangel.jimmerdto.highlighting.DTOSyntaxHighlighterFactory"/>
         <lang.formatter language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.formatting.Formatter"/>
+        <lang.foldingBuilder language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOFoldingBuilder"/>
 
         <colorSettingsPage implementation="net.fallingangel.jimmerdto.highlighting.DTOColorSettingsPage"/>
         <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>
