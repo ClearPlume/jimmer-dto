@@ -1,12 +1,23 @@
 # Changelog
 
+## [0.0.7.34] - 2025-01-14
+
+### Added
+
+* Support for folding child content within curly braces
+
+### Fixed
+
+* Issue [#27](https://github.com/ClearPlume/jimmer-dto/issues/27): 修正as组在2024.3.1.1版本上的解析错误
+* 修正specification中，null方法解析错误
+
 ## [0.0.7.33] - 2025-01-09
 
 ### Fixed
 
-* Issue [#27](https://github.com/ClearPlume/jimmer-dto/issues/27)
-* Issue [#26](https://github.com/ClearPlume/jimmer-dto/issues/26)
-* Issue [#24](https://github.com/ClearPlume/jimmer-dto/issues/24)
+* Issue [#26](https://github.com/ClearPlume/jimmer-dto/issues/26): 修正回车后错误的缩进层级
+* Issue [#25](https://github.com/ClearPlume/jimmer-dto/issues/25): 修正BNF结构变动导致的正属性、flat方法体中没有属性提示
+* Issue [#24](https://github.com/ClearPlume/jimmer-dto/issues/24): 修正重命名组中，as后无法跟空白的问题
 
 ## [0.0.7.32] - 2025-01-08
 
