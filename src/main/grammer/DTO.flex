@@ -35,87 +35,68 @@ STRING = \"[^\"]*\"
 INTEGER = \d+
 FLOAT = \d+\.\d+
 
-%s ALIAS_GROUP PROP_FUNCTION
-%x ALIAS_GROUP_ORIGINAL
+%s PROP_FUNCTION
 
 %%
 
 <YYINITIAL> {
-    {DOC_COMMENT}                    { return DTOTokenTypes.DOC_COMMENT; }
-    {BLOCK_COMMENT}                  { return DTOTokenTypes.BLOCK_COMMENT; }
-    {LINE_COMMENT}                   { return DTOTokenTypes.LINE_COMMENT; }
+    {DOC_COMMENT}                                           { return DTOTokenTypes.DOC_COMMENT; }
+    {BLOCK_COMMENT}                                         { return DTOTokenTypes.BLOCK_COMMENT; }
+    {LINE_COMMENT}                                          { return DTOTokenTypes.LINE_COMMENT; }
 
-    "as" " "* "("                    { yypushback(yylength()); yybegin(ALIAS_GROUP); }
-    "null" " "* "("                  { yypushback(yylength()); yybegin(PROP_FUNCTION); }
+    "null" " "* "("                                         { yypushback(yylength()); yybegin(PROP_FUNCTION); }
 
-    "export"                         { return DTOTypes.EXPORT_KEYWORD; }
-    "package"                        { return DTOTypes.PACKAGE_KEYWORD; }
-    "import"                         { return DTOTypes.IMPORT_KEYWORD; }
-    "as"                             { return DTOTypes.AS_KEYWORD; }
-    "this"                           { return DTOTypes.THIS_KEYWORD; }
-    "class"                          { return DTOTypes.CLASS_KEYWORD; }
-    "implements"                     { return DTOTypes.IMPLEMENTS_KEYWORD; }
-    {MODIFIER}                       {
+    "export"                                                { return DTOTypes.EXPORT_KEYWORD; }
+    "package"                                               { return DTOTypes.PACKAGE_KEYWORD; }
+    "import"                                                { return DTOTypes.IMPORT_KEYWORD; }
+    "as"                                                    { return DTOTypes.AS_KEYWORD; }
+    "this"                                                  { return DTOTypes.THIS_KEYWORD; }
+    "class"                                                 { return DTOTypes.CLASS_KEYWORD; }
+    "implements"                                            { return DTOTypes.IMPLEMENTS_KEYWORD; }
+    {MODIFIER}                                              {
         if (braceLevel > 0) {
             return DTOTypes.IDENTIFIER;
         } else {
             return DTOTypes.MODIFIER;
         }
     }
-    {BOOLEAN}                        { return DTOTypes.BOOLEAN_CONSTANT; }
-    "null"                           { return DTOTypes.NULL_CONSTANT; }
-    {CHAR}                           { return DTOTypes.CHAR_CONSTANT; }
-    {STRING}                         { return DTOTypes.STRING_CONSTANT; }
-    {INTEGER}                        { return DTOTypes.INTEGER_CONSTANT; }
-    {FLOAT}                          { return DTOTypes.FLOAT_CONSTANT; }
+    {BOOLEAN}                                               { return DTOTypes.BOOLEAN_CONSTANT; }
+    "null"                                                  { return DTOTypes.NULL_CONSTANT; }
+    {CHAR}                                                  { return DTOTypes.CHAR_CONSTANT; }
+    {STRING}                                                { return DTOTypes.STRING_CONSTANT; }
+    {INTEGER}                                               { return DTOTypes.INTEGER_CONSTANT; }
+    {FLOAT}                                                 { return DTOTypes.FLOAT_CONSTANT; }
 
-    ","                              { return DTOTypes.COMMA; }
-    "."                              { return DTOTypes.DOT; }
-    "@"                              { return DTOTypes.AT; }
-    "="                              { return DTOTypes.EQUALS; }
-    ":"                              { return DTOTypes.COLON; }
-    ";"                              { return DTOTypes.SEMICOLON; }
-    "#"                              { return DTOTypes.HASH; }
-    "+"                              { return DTOTypes.PLUS; }
-    "-"                              { return DTOTypes.MINUS; }
-    "?"                              { return DTOTypes.OPTIONAL; }
-    "!"                              { return DTOTypes.REQUIRED; }
-    "*"                              { return DTOTypes.ASTERISK; }
-    "^"                              { return DTOTypes.POWER; }
-    "$"                              { return DTOTypes.DOLLAR; }
-    "->"                             { return DTOTypes.ARROW; }
-    "/"                              { return DTOTypes.SLASH; }
-    "::"                             { return DTOTypes.CLASS_REFERENCE; }
-    "("                              { return DTOTypes.PAREN_L; }
-    ")"                              { return DTOTypes.PAREN_R; }
-    "["                              { return DTOTypes.BRACKET_L; }
-    "]"                              { return DTOTypes.BRACKET_R; }
-    "<"                              { return DTOTypes.ANGLE_BRACKET_L; }
-    ">"                              { return DTOTypes.ANGLE_BRACKET_R; }
-    "{"                              { braceLevel++; return DTOTypes.BRACE_L; }
-    "}"                              { braceLevel--; return DTOTypes.BRACE_R; }
+    ","                                                     { return DTOTypes.COMMA; }
+    "."                                                     { return DTOTypes.DOT; }
+    "@"                                                     { return DTOTypes.AT; }
+    "="                                                     { return DTOTypes.EQUALS; }
+    ":"                                                     { return DTOTypes.COLON; }
+    ";"                                                     { return DTOTypes.SEMICOLON; }
+    "#"                                                     { return DTOTypes.HASH; }
+    "+"                                                     { return DTOTypes.PLUS; }
+    "-"                                                     { return DTOTypes.MINUS; }
+    "?"                                                     { return DTOTypes.OPTIONAL; }
+    "!"                                                     { return DTOTypes.REQUIRED; }
+    "*"                                                     { return DTOTypes.ASTERISK; }
+    "^"                                                     { return DTOTypes.POWER; }
+    "$"                                                     { return DTOTypes.DOLLAR; }
+    "->"                                                    { return DTOTypes.ARROW; }
+    "/"                                                     { return DTOTypes.SLASH; }
+    "::"                                                    { return DTOTypes.CLASS_REFERENCE; }
+    "("                                                     { return DTOTypes.PAREN_L; }
+    ")"                                                     { return DTOTypes.PAREN_R; }
+    "["                                                     { return DTOTypes.BRACKET_L; }
+    "]"                                                     { return DTOTypes.BRACKET_R; }
+    "<"                                                     { return DTOTypes.ANGLE_BRACKET_L; }
+    ">"                                                     { return DTOTypes.ANGLE_BRACKET_R; }
+    "{"                                                     { braceLevel++; return DTOTypes.BRACE_L; }
+    "}"                                                     { braceLevel--; return DTOTypes.BRACE_R; }
 
-    {IDENTIFIER}                     { return DTOTypes.IDENTIFIER; }
-    ({CRLF}|{WHITE_SPACE})+          { return TokenType.WHITE_SPACE; }
+    {IDENTIFIER}                                            { return DTOTypes.IDENTIFIER; }
+    ({CRLF}|{WHITE_SPACE})+                                 { return TokenType.WHITE_SPACE; }
 
-    [^]                              { return TokenType.BAD_CHARACTER; }
-}
-
-<ALIAS_GROUP> {
-    "as" ({CRLF}|{WHITE_SPACE})* "(" { yypushback(yylength() - 2); return DTOTypes.AS_KEYWORD; }
-    ({CRLF}|{WHITE_SPACE})+          { return TokenType.WHITE_SPACE; }
-    "("                              { yypushback(1); yybegin(ALIAS_GROUP_ORIGINAL); }
-    "->"                             { yypushback(2); yybegin(YYINITIAL); }
-}
-
-<ALIAS_GROUP_ORIGINAL> {
-    "("                              { return DTOTypes.PAREN_L; }
-    ({CRLF}|{WHITE_SPACE})+          { return TokenType.WHITE_SPACE; }
-    "^"                              { return DTOTypes.POWER; }
-    [A-Za-z_]\w* "$"                 { yypushback(1); return DTOTypes.IDENTIFIER; }
-    [A-Za-z_]\w*                     { return DTOTypes.IDENTIFIER; }
-    "$"                              { return DTOTypes.DOLLAR; }
-    "->"                             { yypushback(2); yybegin(ALIAS_GROUP); }
+    [^]                                                     { return TokenType.BAD_CHARACTER; }
 }
 
 <PROP_FUNCTION> {
