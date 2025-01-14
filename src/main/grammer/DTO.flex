@@ -35,16 +35,12 @@ STRING = \"[^\"]*\"
 INTEGER = \d+
 FLOAT = \d+\.\d+
 
-%s PROP_FUNCTION
-
 %%
 
 <YYINITIAL> {
     {DOC_COMMENT}                                           { return DTOTokenTypes.DOC_COMMENT; }
     {BLOCK_COMMENT}                                         { return DTOTokenTypes.BLOCK_COMMENT; }
     {LINE_COMMENT}                                          { return DTOTokenTypes.LINE_COMMENT; }
-
-    "null" " "* "("                                         { yypushback(yylength()); yybegin(PROP_FUNCTION); }
 
     "export"                                                { return DTOTypes.EXPORT_KEYWORD; }
     "package"                                               { return DTOTypes.PACKAGE_KEYWORD; }
@@ -97,11 +93,4 @@ FLOAT = \d+\.\d+
     ({CRLF}|{WHITE_SPACE})+                                 { return TokenType.WHITE_SPACE; }
 
     [^]                                                     { return TokenType.BAD_CHARACTER; }
-}
-
-<PROP_FUNCTION> {
-    "null"                           { return DTOTypes.IDENTIFIER; }
-    {IDENTIFIER}                     { return DTOTypes.IDENTIFIER; }
-    "("                              { return DTOTypes.PAREN_L; }
-    ")"                              { yybegin(YYINITIAL); return DTOTypes.PAREN_R; }
 }

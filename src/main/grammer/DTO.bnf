@@ -112,7 +112,7 @@ positive-prop ::= annotation* "+"? modifier? prop-name prop-flags? prop-args? ("
     mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTOSinglePropImpl"
 }
 
-prop-name ::= IDENTIFIER
+prop-name ::= IDENTIFIER | "null"
 
 prop-flags ::= "/" "i$"? "i"? POWER? DOLLAR?
 
