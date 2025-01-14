@@ -46,7 +46,7 @@ dependencies {
 changelog {
     keepUnreleasedSection = false
     groups = listOf("Added", "Changed", "Deprecated", "Removed", "Fixed")
-    headerParserRegex = """^(0|[1-9]\d*)(\.(0|[1-9]\d*)){2,3}"""
+    headerParserRegex = """^((0|[1-9]\d*)(\.(0|[1-9]\d*)){2,3}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)${'$'}"""
 }
 
 intellijPlatform {
