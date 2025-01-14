@@ -1,7 +1,5 @@
 # JimmerDTO Plugin for IntelliJ IDEA
 
-[中文说明](https://github.com/ClearPlume/jimmer-dto/blob/master/README_ZH.md)
-
 ## Introduction
 
 The plugin developed for [IntelliJ IDEA](https://www.jetbrains.com/idea/) provides support for the [JimmerDTO](https://babyfish-ct.github.io/jimmer-doc/docs/object/view/dto-language/) language of [Jimmer](https://github.com/babyfish-ct/jimmer).
@@ -9,12 +7,17 @@ The plugin developed for [IntelliJ IDEA](https://www.jetbrains.com/idea/) provid
 Currently, it supports the following features:
 
 - Syntax highlighting for the language itself
+- Completion suggestions
+- Formatting
+- Navigation
+- Property prompts based on entity definitions
+- Type use
 
 In the future, these features will be added:
 
-- Completion suggestions, formatting, refactoring, code checking, etc.
-- Navigation, search, property prompts based on entity definitions, syntax detection, etc.
-- Type, property jumps, context detection
+- Refactoring, code checking, etc.
+- Search, syntax detection, etc.
+- Property check based on context detection
 
 ## DEMO
 
@@ -32,9 +35,9 @@ In the future, these features will be added:
 
 ## Support Information
 
-The plugin supports both the community and ultimate editions of IDEA, from version 2020.3.4 to the latest.
+The plugin supports both the community and ultimate editions of IDEA, from version 2022.3 to the latest.
 
-## Installation Method
+## Installation
 
 You can directly search for "JimmerDTO" in the IDEA plugin market.
 

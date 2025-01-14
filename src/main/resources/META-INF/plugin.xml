@@ -71,42 +71,7 @@
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
-    <change-notes><![CDATA[
-    <p><b>0.0.7.33 (2025-01-09)</b></p>
-    <ul>
-      <li><b>Issue</b><b>#25</b>, <b>#26</b></li>
-    </ul>
-    <ul>
-      <li><b>Issue</b><b>#25</b>, <b>#26</b></li>
-    </ul>
-    <hr/>
-    <p><b>0.0.7.32 (2025-01-08)</b></p>
-    <ul>
-      <li><b>Feature</b>Formatting of some language structures is supplemented</li>
-      <li><b>Issue</b><b>#24</b></li>
-    </ul>
-    <ul>
-      <li><b>新特性</b>补充部分语言结构的格式化</b></li>
-      <li><b>Issue</b><b>#24</b></li>
-    </ul>
-    <hr/>
-    <p><b>0.0.7.31 (2025-01-07)</b></p>
-    <ul>
-      <li><b>Feature</b>Code formatting basically complete</li>
-    </ul>
-    <ul>
-      <li><b>新特性</b>代码格式化基本完成</b></li>
-    </ul>
-    <hr/>
-    <p><b>0.0.7.30 (2025-01-01)</b></p>
-    <ul>
-      <li><b>Feature</b>Nested annotation import basically complete</li>
-    </ul>
-    <ul>
-      <li><b>新特性</b>嵌套注解提示基本完成</b></li>
-    </ul>
-    <hr/>
-    <p><b>0.0.7.29 (2024-12-30)</b></p>
+    <change-notes><![CDATA[<p><b>0.0.7.29 (2024-12-30)</b></p>
     <ul>
       <li><b>Feature</b>Annotation import basically complete</li>
     </ul>
