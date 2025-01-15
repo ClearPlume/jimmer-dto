@@ -16,25 +16,26 @@
 ### Fixed
 
 * Issue [#26](https://github.com/ClearPlume/jimmer-dto/issues/26): Fixed incorrect indentation levels after pressing Enter
-* Issue [#25](https://github.com/ClearPlume/jimmer-dto/issues/25): Fixed property hints were missing in associated property body and flat body due to changes in the BNF structure
-* Issue [#24](https://github.com/ClearPlume/jimmer-dto/issues/24): Fixed spaces could not follow 'as' in the alias-group
+* Issue [#25](https://github.com/ClearPlume/jimmer-dto/issues/25): Fixed property hints were missing in associated property body and flat body due to
+  changes in the BNF structure
+* Issue [#24](https://github.com/ClearPlume/jimmer-dto/issues/24): Fixed spaces could not follow `as` in the alias-group
 
 ## [0.0.7.32] - 2025-01-08
 
 ### Added
 
-* Formatting: Remove spaces around the parentheses "()", "[]", "<>"
-* Formatting: Space around "->"
+* Formatting: Remove spaces around the parentheses `()`, `[]`, `<>`
+* Formatting: Space around `->`
 * Formatting: Space around the `as` keyword
 * Formatting: A space after the `export` keyword in export statements
-* Formatting: A newline and a tab before "->" in export statements
+* Formatting: A newline and a tab before `->` in export statements
 * Formatting: Indentation of child elements within Dto body, associated property body, and `as` block body
 * Formatting: Handling spaces before the opening curly brace
 * Formatting: Adding blank lines before and after properties in Dto body
 
 ### Fixed
 
-* Support for missing "in" and "out" keywords when using generics
+* Support for missing `in` and `out` keywords when using generics
 
 ## [0.0.7.31] - 2025-01-07
 
@@ -44,7 +45,7 @@
 
 ### Fixed
 
-* Incorrect removal of "@" when using fully qualified mode for annotation hints
+* Incorrect removal of `@` when using fully qualified mode for annotation hints
 * Failure to trigger package imports after removing qualified-type-name
 * Fix the impact of whitespace on the logic of obtaining export and import package structures
 
