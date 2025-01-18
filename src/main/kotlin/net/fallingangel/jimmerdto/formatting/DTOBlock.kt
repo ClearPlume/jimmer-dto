@@ -13,11 +13,13 @@ class DTOBlock(
     wrap: Wrap?,
     alignment: Alignment?
 ) : AbstractBlock(node, wrap, alignment) {
-    private val braces = TokenSet.create(BRACE_L, BRACE_R)
-    private val parents = TokenSet.create(DTO_BODY, ALIAS_GROUP_BODY)
+    // 缩进体
+    private val parents = TokenSet.create(DTO_BODY, ALIAS_GROUP_BODY, ENUM_BODY)
+    // 父级为缩进体，但本身不需要缩进
+    private val parentSymbols = TokenSet.create(BRACE_L, BRACE_R, ARROW)
 
     override fun getIndent(): Indent? {
-        if (node.treeParent?.elementType in parents && node.elementType !in braces) {
+        if (node.treeParent?.elementType in parents && node.elementType !in parentSymbols) {
             return Indent.getNormalIndent()
         }
         if (
