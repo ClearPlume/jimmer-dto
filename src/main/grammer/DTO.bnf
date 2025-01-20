@@ -77,7 +77,7 @@ dto-name ::= IDENTIFIER
 
 dto-body ::=
 "{"
-    (user-prop | macro | positive-prop | alias-group | negative-prop) (("," | ";")? (user-prop | macro | positive-prop | alias-group | negative-prop) ("," | ";")?)*
+    ((user-prop | macro | positive-prop | alias-group | negative-prop) ("," | ";")?)*
 "}"
 
 macro ::= "#" macro-name macro-args? ("?" | "!")? {
