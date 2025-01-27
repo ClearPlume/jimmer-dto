@@ -109,8 +109,9 @@ replacement ::= STRING_CONSTANT | IDENTIFIER
 
 positive-prop ::= annotation* "+"? modifier? prop-name prop-flags? prop-args? ("?" | "!" | "*")? ("as" prop-alias)? interfaces? (enum-body | prop-body)? {
     pin = 4
-    implements="net.fallingangel.jimmerdto.psi.mixin.DTOSingleProp"
-    mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTOSinglePropImpl"
+    implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
+    mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
+    methods=[getName setName invoke unaryPlus]
 }
 
 prop-name ::= IDENTIFIER | "null"
@@ -138,8 +139,9 @@ enum-instance-value ::= (INTEGER_CONSTANT | STRING_CONSTANT)
 
 negative-prop ::= "-" prop-name {
     pin = 2
-    implements="net.fallingangel.jimmerdto.psi.mixin.DTOSingleProp"
-    mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTOSinglePropImpl"
+    implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
+    mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
+    methods=[getName setName invoke unaryPlus]
 }
 
 user-prop ::= annotation* prop-name ":" type-def {

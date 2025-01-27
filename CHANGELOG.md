@@ -1,5 +1,15 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+* Implement `PsiReferenceContributor`, complete the reference association between dto prop and entity prop
+
+### Fixed
+
+* Issue [#28](https://github.com/ClearPlume/jimmer-dto/issues/28): Improve the formatting of enum mapping
+
 ## [0.0.7.34] - 2025-01-14
 
 ### Added

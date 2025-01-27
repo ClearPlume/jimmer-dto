@@ -103,3 +103,11 @@ fun Project.createAnnotation(name: String): DTOAnnotation {
             .positivePropList[0]!!
             .annotationList[0]
 }
+
+fun Project.createValue(value: String): DTOValue {
+    return createDTO("Dummy", positiveProps = listOf("id($value)"))
+            .dtoBody!!
+            .positivePropList[0]!!
+            .propArgs!!
+            .valueList[0]
+}

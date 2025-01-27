@@ -49,6 +49,7 @@
                 implementationClass="net.fallingangel.jimmerdto.highlighting.DTOSyntaxHighlighterFactory"/>
         <lang.formatter language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.formatting.Formatter"/>
         <lang.foldingBuilder language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOFoldingBuilder"/>
+        <psi.referenceContributor language="JimmerDTO" implementation="net.fallingangel.jimmerdto.refenerce.DTOReferenceContributor"/>
 
         <colorSettingsPage implementation="net.fallingangel.jimmerdto.highlighting.DTOColorSettingsPage"/>
         <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>
@@ -56,8 +57,6 @@
 
         <lang.braceMatcher language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOBraceMatcher"/>
         <lang.commenter language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCommenter"/>
-        <!--suppress PluginXmlValidity-->
-        <lang.directNavigationProvider implementation="net.fallingangel.jimmerdto.DTONavigationProvider"/>
         <completion.contributor language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCompletionContributor"/>
 
         <codeInsight.lineMarkerProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.DTOLineMarkerProvider"/>

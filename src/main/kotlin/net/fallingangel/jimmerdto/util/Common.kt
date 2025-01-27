@@ -8,12 +8,17 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.util.PsiTreeUtil
 import net.fallingangel.jimmerdto.enums.Language
 import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
 import net.fallingangel.jimmerdto.psi.DTOExport
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import org.jetbrains.jps.model.java.JavaSourceRootType
+import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 
 val VirtualFile.language: Language
@@ -48,6 +53,20 @@ val DTOElement.fqe: String
                     .substringBeforeLast('.')
                     .replace('/', '.')
     }
+
+/**
+ * 从PsiClass定义中，寻找字段的Psi元素
+ *
+ * @param fieldName 字段名称
+ */
+fun PsiClass.element(fieldName: String): PsiElement? {
+    return if (language == KotlinLanguage.INSTANCE) {
+        val ktClass = PsiTreeUtil.findChildOfType(containingFile.virtualFile.toPsiFile(project), KtClass::class.java) ?: return null
+        ktClass.properties().find { it.name == fieldName }
+    } else {
+        methods().find { it.name == fieldName }
+    }
+}
 
 fun generateRoot(element: PsiElement): VirtualFile? {
     val generateRoot by lazy {
