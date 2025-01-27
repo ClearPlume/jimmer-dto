@@ -2,6 +2,7 @@
   parserClass="net.fallingangel.jimmerdto.parser.DTOParser"
 
   extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+  implements="net.fallingangel.jimmerdto.psi.mixin.DTOElement"
 
   psiClassPrefix="DTO"
   psiImplClassSuffix="Impl"
