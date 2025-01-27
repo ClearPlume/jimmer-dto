@@ -5,12 +5,16 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.enums.Language
 import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
+import net.fallingangel.jimmerdto.psi.DTOExport
+import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import org.jetbrains.jps.model.java.JavaSourceRootType
+import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 
 val VirtualFile.language: Language
     get() {
@@ -19,6 +23,30 @@ val VirtualFile.language: Language
             "kt" -> Language.Kotlin
             else -> throw IllegalFileFormatException(fileType ?: "<no-type>")
         }
+    }
+
+val DTOElement.root: VirtualFile?
+    get() {
+        val fileIndex = ProjectRootManager.getInstance(project).fileIndex
+        return fileIndex.getContentRootForFile(virtualFile)
+    }
+
+val DTOElement.fqe: String
+    get() {
+        // src/main绝对路径
+        val root = root?.path ?: throw IllegalStateException("Source root is null")
+        val export = containingFile.getChildOfType<DTOExport>()
+
+        // dto文件对应类全限定名
+        return export?.qualified
+            ?: containingFile.virtualFile.path // dto文件
+                    // dto文件相对根路径的子路径
+                    .removePrefix("$root/")
+                    // 移除『dto/』前缀
+                    .substringAfter('/')
+                    // 移除『.dto』后缀
+                    .substringBeforeLast('.')
+                    .replace('/', '.')
     }
 
 fun generateRoot(element: PsiElement): VirtualFile? {
