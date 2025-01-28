@@ -4,7 +4,10 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReference
+import com.intellij.psi.TokenType
 import com.intellij.psi.search.ProjectScope
+import com.intellij.psi.util.elementType
+import com.intellij.psi.util.prevLeafs
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.refenerce.DTOReference
 import net.fallingangel.jimmerdto.refenerce.DTOValueReference
@@ -71,9 +74,45 @@ object DTOPsiUtil {
     }
 
     @JvmStatic
+    fun getName(qualifiedPart: DTOQualifiedNamePart): String {
+        return qualifiedPart.text
+    }
+
+    @JvmStatic
+    fun setName(qualifiedPart: DTOQualifiedNamePart, name: String): DTOQualifiedNamePart {
+        val oldPartNode = qualifiedPart.node
+        oldPartNode.treeParent.replaceChild(oldPartNode, qualifiedPart.project.createQualifiedNamePart(name).node)
+        return qualifiedPart
+    }
+
+    @JvmStatic
+    fun invoke(qualifiedPart: DTOQualifiedNamePart): Array<PsiReference> {
+        return arrayOf(DTOReference(qualifiedPart, qualifiedPart.identifier.textRangeInParent))
+    }
+
+    @JvmStatic
+    fun unaryPlus(qualifiedPart: DTOQualifiedNamePart): PsiElement? {
+        val part = qualifiedPart.text
+        val `package` = qualifiedPart.prevLeafs
+                .takeWhile { it.elementType !in arrayOf(DTOTypes.EXPORT_KEYWORD, DTOTypes.PACKAGE_KEYWORD, DTOTypes.IMPORT_KEYWORD) }
+                .filter { it.elementType != TokenType.WHITE_SPACE }
+                .map(PsiElement::getText)
+                .toList()
+                .asReversed()
+                .joinToString("")
+        val qualified = if (`package`.isEmpty()) {
+            part
+        } else {
+            "$`package`$part"
+        }
+        val psiFacade = JavaPsiFacade.getInstance(qualifiedPart.project)
+        return psiFacade.findClass(qualified, ProjectScope.getAllScope(qualifiedPart.project)) ?: psiFacade.findPackage(qualified)
+    }
+
+    @JvmStatic
     fun setName(value: DTOValue, name: String): DTOValue {
-        val valueNode = value.node
-        valueNode.treeParent.replaceChild(valueNode, value.project.createValue(name).node)
+        val oldValueNode = value.node
+        oldValueNode.treeParent.replaceChild(oldValueNode, value.project.createValue(name).node)
         return value
     }
 }

@@ -14,6 +14,10 @@ fun Project.createImport(qualifiedName: String): DTOImport {
     return createDTOFile("import $qualifiedName").getChildOfType()!!
 }
 
+fun Project.createQualifiedNamePart(namePart: String): DTOQualifiedNamePart {
+    return createImport(namePart).qualifiedType.qualifiedName.qualifiedNamePartList[0]
+}
+
 fun Project.createDTO(
     name: String,
     implements: List<String> = emptyList(),

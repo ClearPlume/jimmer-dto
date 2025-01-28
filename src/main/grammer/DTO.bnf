@@ -159,7 +159,11 @@ modifier ::= "input" | "specification" | "abstract" | "unsafe" | "dynamic" | "fi
 
 qualified-name ::= qualified-name-part ("." qualified-name-part)*
 
-qualified-name-part ::= IDENTIFIER
+qualified-name-part ::= IDENTIFIER {
+    implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
+    mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
+    methods=[getName setName invoke unaryPlus]
+}
 
 qualified-type ::= qualified-name ("as" qualified-type-alias)?
 

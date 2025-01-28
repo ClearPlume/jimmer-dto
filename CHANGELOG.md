@@ -5,6 +5,7 @@
 ### Added
 
 * Implement `PsiReferenceContributor`, complete the reference association between dto prop and entity prop
+* Reference parsing of imported elements is supported
 
 ### Fixed
 
