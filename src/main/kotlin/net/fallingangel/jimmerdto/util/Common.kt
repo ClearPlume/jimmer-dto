@@ -17,9 +17,11 @@ import net.fallingangel.jimmerdto.psi.DTOExport
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
+import org.jetbrains.kotlin.resolve.BindingContext
 
 val VirtualFile.language: Language
     get() {
@@ -55,16 +57,37 @@ val DTOElement.fqe: String
     }
 
 /**
- * 从PsiClass定义中，寻找字段的Psi元素
+ * 从PsiClass定义中，依据字段路径寻找它的Psi元素
  *
- * @param fieldName 字段名称
+ * @param propPath 字段路径
  */
-fun PsiClass.element(fieldName: String): PsiElement? {
+fun PsiClass.element(propPath: List<String>): PsiElement? {
+    if (propPath.isEmpty()) {
+        return null
+    }
     return if (language == KotlinLanguage.INSTANCE) {
         val ktClass = PsiTreeUtil.findChildOfType(containingFile.virtualFile.toPsiFile(project), KtClass::class.java) ?: return null
-        ktClass.properties().find { it.name == fieldName }
+        var e = ktClass.properties().find { it.name == propPath[0] } ?: return null
+        propPath
+                .drop(1)
+                .forEach {
+                    e = e.analyze()[BindingContext.TYPE, e.typeReference]
+                            ?.clazz()
+                            ?.getProperties()
+                            ?.find { property -> property.name == it } ?: return null
+                }
+        e
     } else {
-        methods().find { it.name == fieldName }
+        var e = methods().find { it.name == propPath[0] } ?: return null
+        propPath
+                .drop(1)
+                .forEach {
+                    e = e.returnType
+                            ?.clazz()
+                            ?.methods
+                            ?.find { method -> method.name == it } ?: return null
+                }
+        e
     }
 }
 

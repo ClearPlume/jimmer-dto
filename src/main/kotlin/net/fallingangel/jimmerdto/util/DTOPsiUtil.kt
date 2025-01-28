@@ -44,9 +44,7 @@ object DTOPsiUtil {
     @JvmStatic
     fun unaryPlus(prop: DTOPositiveProp): PsiElement? {
         val project = prop.project
-        val propName = prop.propName.text
-
-        return JavaPsiFacade.getInstance(project).findClass(prop.fqe, ProjectScope.getAllScope(project))?.element(propName)
+        return JavaPsiFacade.getInstance(project).findClass(prop.fqe, ProjectScope.getAllScope(project))?.element(prop.propPath())
     }
 
     @JvmStatic
@@ -69,9 +67,7 @@ object DTOPsiUtil {
     @JvmStatic
     fun unaryPlus(prop: DTONegativeProp): PsiElement? {
         val project = prop.project
-        val propName = prop.propName.text
-
-        return JavaPsiFacade.getInstance(project).findClass(prop.fqe, ProjectScope.getAllScope(project))?.element(propName)
+        return JavaPsiFacade.getInstance(project).findClass(prop.fqe, ProjectScope.getAllScope(project))?.element(prop.propPath())
     }
 
     @JvmStatic

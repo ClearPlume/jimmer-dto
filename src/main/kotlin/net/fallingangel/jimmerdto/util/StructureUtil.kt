@@ -50,12 +50,14 @@ val PsiElement.haveUpper: Boolean
         if (this is DTOFile) {
             return false
         }
-        return parent.parent is DTOAliasGroup || parent.parent.parent is DTOPositiveProp
+        return parent.parent is DTOAliasGroup || parent.parent is DTOPropBody || parent is DTOPropArgs && parent.parent.parent.parent is DTOPropBody
     }
 
 val PsiElement.upper: PsiElement
     get() = if (parent.parent is DTOAliasGroup) {
         parent.parent
+    } else if (parent is DTOPropArgs && parent.parent.parent.parent is DTOPropBody) {
+        parent.parent.parent.parent.parent
     } else {
         parent.parent.parent
     }
@@ -119,17 +121,23 @@ operator fun <S : PsiElement, R, T : Structure<S, R>> S.get(type: T): R {
 }
 
 fun PsiElement.propPath(): List<String> {
-    val propName = if (this is DTOPositiveProp) {
-        if (propName.text == "flat") {
-            listOf(propArgs!!.valueList[0].text)
-        } else {
-            listOf(propName.text)
+    val propName = when (this) {
+        is DTOValue -> listOf(text)
+
+        is DTONegativeProp -> listOf(propName.text)
+
+        is DTOPositiveProp -> {
+            val args = propArgs
+            if (args == null) {
+                listOf(propName.text)
+            } else if (args.valueList.size == 1) {
+                listOf(args.valueList[0].text)
+            } else {
+                emptyList()
+            }
         }
-    } else if (this is DTOAliasGroup) {
-        emptyList()
-    } else {
-        println("Only support find path for prop, currently finding prop for <${this::class.simpleName}>")
-        emptyList()
+
+        else -> emptyList()
     }
 
     if (!haveUpper || parent.parent.parent is DTODto) {
