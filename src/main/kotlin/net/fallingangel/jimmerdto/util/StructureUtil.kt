@@ -50,7 +50,7 @@ val PsiElement.haveUpper: Boolean
         if (this is DTOFile) {
             return false
         }
-        return parent.parent is DTOAliasGroup || parent.parent.parent.parent is DTOPositiveProp
+        return parent.parent is DTOAliasGroup || parent.parent.parent is DTOPositiveProp
     }
 
 val PsiElement.upper: PsiElement
