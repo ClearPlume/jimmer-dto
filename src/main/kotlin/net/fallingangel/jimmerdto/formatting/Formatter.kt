@@ -3,6 +3,7 @@ package net.fallingangel.jimmerdto.formatting
 import com.intellij.formatting.*
 import com.intellij.psi.tree.TokenSet
 import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.psi.DTOTokenTypes
 import net.fallingangel.jimmerdto.psi.DTOTypes.*
 
 class Formatter : FormattingModelBuilder {
@@ -30,6 +31,7 @@ class Formatter : FormattingModelBuilder {
                 .around(MODIFIER).spaces(1)
                 .around(IMPLEMENTS_KEYWORD).spaces(1)
                 .around(AS_KEYWORD).spaces(1)
+                .after(DTOTokenTypes.comments).emptyLine(0)
 
                 // psi elements
                 .after(EXPORT).emptyLine(1)

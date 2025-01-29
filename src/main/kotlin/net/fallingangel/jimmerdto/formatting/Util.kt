@@ -3,7 +3,7 @@ package net.fallingangel.jimmerdto.formatting
 import com.intellij.formatting.SpacingBuilder
 import com.intellij.psi.tree.IElementType
 
-fun SpacingBuilder.RuleBuilder.emptyLine(lines: Int = 1): SpacingBuilder {
+fun SpacingBuilder.RuleBuilder.emptyLine(lines: Int): SpacingBuilder {
     return spacing(0, 0, lines + 1, false, 0)
 }
 
