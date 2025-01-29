@@ -5,6 +5,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiReferenceBase
 import com.intellij.util.IncorrectOperationException
 import net.fallingangel.jimmerdto.psi.DTOEnumInstance
+import net.fallingangel.jimmerdto.psi.DTOMacroThis
 import net.fallingangel.jimmerdto.psi.DTONegativeProp
 import net.fallingangel.jimmerdto.psi.DTOPositiveProp
 import net.fallingangel.jimmerdto.psi.DTOQualifiedNamePart
@@ -20,6 +21,7 @@ class DTOReference(private val element: DTONamedElement, textRange: TextRange) :
             is DTONegativeProp -> DTOPsiUtil.setName(element, newElementName)
             is DTOQualifiedNamePart -> DTOPsiUtil.setName(element, newElementName)
             is DTOEnumInstance -> DTOPsiUtil.setName(element, newElementName)
+            is DTOMacroThis -> DTOPsiUtil.setName(element, newElementName)
             else -> throw IncorrectOperationException()
         }
     }

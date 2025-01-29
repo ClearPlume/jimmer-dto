@@ -89,7 +89,11 @@ macro-name ::= IDENTIFIER
 
 macro-args ::= "(" ( macro-this | qualified-name) ("," ( macro-this | qualified-name))* ")"
 
-macro-this ::= THIS_KEYWORD
+macro-this ::= THIS_KEYWORD {
+    implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
+    mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
+    methods=[getName setName invoke unaryPlus]
+}
 
 alias-group ::= "as" "(" alias-pattern ")" alias-group-body
 

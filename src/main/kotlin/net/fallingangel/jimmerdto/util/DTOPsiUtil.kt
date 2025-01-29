@@ -147,6 +147,42 @@ object DTOPsiUtil {
     }
 
     @JvmStatic
+    fun getName(macroThis: DTOMacroThis): String {
+        return macroThis.text
+    }
+
+    @JvmStatic
+    @Suppress("UNUSED_PARAMETER")
+    fun setName(macroThis: DTOMacroThis, name: String): DTOMacroThis {
+        return macroThis
+    }
+
+    @JvmStatic
+    fun invoke(enum: DTOMacroThis): Array<PsiReference> {
+        return arrayOf(DTOReference(enum, TextRange.create(0, 4)))
+    }
+
+    @JvmStatic
+    fun unaryPlus(macroThis: DTOMacroThis): PsiElement? {
+        val project = macroThis.project
+        val propPath = macroThis.parent.parent.propPath()
+        val dtoClass = JavaPsiFacade.getInstance(project).findClass(macroThis.fqe, ProjectScope.getAllScope(project)) ?: return null
+
+        return if (propPath.isEmpty()) {
+            dtoClass
+        } else {
+            val propClass = dtoClass.element(propPath) ?: return null
+            if (propClass.language == KotlinLanguage.INSTANCE) {
+                propClass as KtProperty
+                propClass.analyze()[BindingContext.TYPE, propClass.typeReference]?.clazz()
+            } else {
+                propClass as PsiMethod
+                propClass.returnType?.clazz()
+            }
+        }
+    }
+
+    @JvmStatic
     fun setName(value: DTOValue, name: String): DTOValue {
         val oldValueNode = value.node
         oldValueNode.treeParent.replaceChild(oldValueNode, value.project.createValue(name).node)
