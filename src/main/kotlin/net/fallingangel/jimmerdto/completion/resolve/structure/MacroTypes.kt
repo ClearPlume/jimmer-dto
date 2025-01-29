@@ -28,6 +28,6 @@ class MacroTypes : Structure<DTOMacroArgs, List<String>> {
                 entityFile.ktClass(project, propPath)?.virtualFile ?: return emptyList()
             }
         }
-        return propClassFile.supers(project) + "this" + propClassFile.name.substringBeforeLast('.')
+        return propClassFile.supers(project) + propClassFile.name.substringBeforeLast('.') + "this"
     }
 }

@@ -87,7 +87,7 @@ macro ::= "#" macro-name macro-args? ("?" | "!")? {
 
 macro-name ::= IDENTIFIER
 
-macro-args ::= "(" ( macro-this | qualified-name-part) ("," ( macro-this | qualified-name-part))* ")"
+macro-args ::= "(" ( macro-this | qualified-name) ("," ( macro-this | qualified-name))* ")"
 
 macro-this ::= THIS_KEYWORD
 
