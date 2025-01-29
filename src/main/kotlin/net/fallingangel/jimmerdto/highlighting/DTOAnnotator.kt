@@ -201,6 +201,9 @@ class DTOAnnotator : Annotator {
 
         private fun visitEnumMappingProp(o: DTOPositiveProp, propName: String) {
             val enumBody = o.enumBody ?: return
+            if (enumBody.enumInstanceMappingList.isEmpty()) {
+                return
+            }
             val enumInstance = enumBody.enumInstanceMappingList[0].enumInstance
 
             val availableEnums = enumInstance[StructureType.EnumValues]
