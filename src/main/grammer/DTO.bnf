@@ -133,7 +133,11 @@ enum-instance-mapping ::= enum-instance ":" enum-instance-value {
     pin = 1
 }
 
-enum-instance ::= IDENTIFIER
+enum-instance ::= IDENTIFIER {
+    implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
+    mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
+    methods=[getName setName invoke unaryPlus]
+}
 
 enum-instance-value ::= (INTEGER_CONSTANT | STRING_CONSTANT)
 

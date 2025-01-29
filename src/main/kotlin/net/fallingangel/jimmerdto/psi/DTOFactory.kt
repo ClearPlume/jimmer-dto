@@ -90,6 +90,10 @@ fun Project.createEnumMappings(mappings: List<String>): List<DTOEnumInstanceMapp
             .enumInstanceMappingList
 }
 
+fun Project.createEnumMappingInstance(enum: String): DTOEnumInstance {
+    return createEnumMappings(listOf("$enum: 1"))[0].enumInstance
+}
+
 fun Project.createUserProp(name: String, type: String): DTOUserProp {
     return createDTO("Dummy", userProps = listOf("$name: $type"))
             .dtoBody!!

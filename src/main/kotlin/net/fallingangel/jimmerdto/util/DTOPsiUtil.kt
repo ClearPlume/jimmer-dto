@@ -1,16 +1,17 @@
 package net.fallingangel.jimmerdto.util
 
 import com.intellij.openapi.util.TextRange
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiReference
-import com.intellij.psi.TokenType
+import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.prevLeafs
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.refenerce.DTOReference
 import net.fallingangel.jimmerdto.refenerce.DTOValueReference
+import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.resolve.BindingContext
 
 object DTOPsiUtil {
     @JvmStatic
@@ -107,6 +108,42 @@ object DTOPsiUtil {
         }
         val psiFacade = JavaPsiFacade.getInstance(qualifiedPart.project)
         return psiFacade.findClass(qualified, ProjectScope.getAllScope(qualifiedPart.project)) ?: psiFacade.findPackage(qualified)
+    }
+
+    @JvmStatic
+    fun getName(enum: DTOEnumInstance): String {
+        return enum.text
+    }
+
+    @JvmStatic
+    fun setName(enum: DTOEnumInstance, name: String): DTOEnumInstance {
+        val oldEnumNode = enum.node
+        oldEnumNode.treeParent.replaceChild(oldEnumNode, enum.project.createEnumMappingInstance(name).node)
+        return enum
+    }
+
+    @JvmStatic
+    fun invoke(enum: DTOEnumInstance): Array<PsiReference> {
+        return arrayOf(DTOReference(enum, enum.identifier.textRangeInParent))
+    }
+
+    @JvmStatic
+    fun unaryPlus(enum: DTOEnumInstance): PsiElement? {
+        val project = enum.project
+        val enumName = enum.text
+        val prop = enum.parent.parent.parent
+        val propElement = JavaPsiFacade.getInstance(project).findClass(enum.fqe, ProjectScope.getAllScope(project))?.element(prop.propPath())
+        propElement ?: return null
+
+        return if (propElement.language == KotlinLanguage.INSTANCE) {
+            propElement as KtProperty
+            val propClass = propElement.analyze()[BindingContext.TYPE, propElement.typeReference]?.clazz() ?: return null
+            propClass.declarations.find { it.name == enumName }
+        } else {
+            propElement as PsiMethod
+            val propClass = propElement.returnType?.clazz() ?: return null
+            propClass.fields.find { it.name == enumName }
+        }
     }
 
     @JvmStatic
