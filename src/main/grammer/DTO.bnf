@@ -46,7 +46,6 @@
     EXPORT_KEYWORD="export"
     PACKAGE_KEYWORD="package"
     IMPORT_KEYWORD="import"
-    THIS_KEYWORD="this"
     AS_KEYWORD="as"
     CLASS_KEYWORD="class"
     IMPLEMENTS_KEYWORD="implements"
@@ -87,9 +86,9 @@ macro ::= "#" macro-name macro-args? ("?" | "!")? {
 
 macro-name ::= IDENTIFIER
 
-macro-args ::= "(" ((macro-this | qualified-name) ("," (macro-this | qualified-name))*)? ")"
+macro-args ::= "(" (macro-arg ("," macro-arg)*)? ")"
 
-macro-this ::= THIS_KEYWORD {
+macro-arg ::= IDENTIFIER {
     implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
     mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
     methods=[getName setName invoke unaryPlus]

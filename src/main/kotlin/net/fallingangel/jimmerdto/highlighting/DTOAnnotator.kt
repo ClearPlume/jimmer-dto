@@ -66,20 +66,31 @@ class DTOAnnotator : Annotator {
          * 为宏参数上色
          */
         override fun visitMacroArgs(o: DTOMacroArgs) {
-            if (o.macroThisList.isEmpty() && o.qualifiedNameList.isEmpty()) {
+            val argList = o.macroArgList
+            if (argList.isEmpty()) {
                 o.error("Macro parameter list cannot be empty", InsertMacroArg(o))
                 return
             }
 
-            val thisList = o.macroThisList
-            // 若出现超过一个<this>，即为重复
+            // 不允许出现超过一个<this>
+            val thisList = argList.filter { it.text == "this" }
+            thisList.forEach {
+                it.style(DTOSyntaxHighlighter.KEYWORD)
+            }
             if (thisList.size > 1) {
-                thisList.forEach { it.error("Only one `this` is allowed", RemoveElement("this", it), DTOSyntaxHighlighter.DUPLICATION) }
+                thisList
+                        .forEach {
+                            it.error(
+                                "Only one `this` is allowed",
+                                RemoveElement("this", it),
+                                DTOSyntaxHighlighter.DUPLICATION,
+                            )
+                        }
             }
 
             // 宏可用参数，<this>一定是最后一个
             val macroAvailableParams = o[StructureType.MacroTypes]
-            for (macroArg in o.qualifiedNameList) {
+            for (macroArg in o.macroArgList) {
                 // 当前元素不在宏可用参数中，即为非法
                 if (macroArg.text !in macroAvailableParams) {
                     macroArg.error(
@@ -88,7 +99,7 @@ class DTOAnnotator : Annotator {
                     )
                 }
                 // 当前元素在参数列表中出现过一次以上，即为重复
-                if (o.qualifiedNameList.count { it.text == macroArg.text } != 1) {
+                if (o.macroArgList.count { it.text == macroArg.text } != 1) {
                     macroArg.error(
                         "Each parameter is only allowed to appear once",
                         RemoveElement(macroArg.text, macroArg),

@@ -46,7 +46,6 @@ FLOAT = \d+\.\d+
     "package"                                               { return DTOTypes.PACKAGE_KEYWORD; }
     "import"                                                { return DTOTypes.IMPORT_KEYWORD; }
     "as"                                                    { return DTOTypes.AS_KEYWORD; }
-    "this"                                                  { return DTOTypes.THIS_KEYWORD; }
     "class"                                                 { return DTOTypes.CLASS_KEYWORD; }
     "implements"                                            { return DTOTypes.IMPLEMENTS_KEYWORD; }
     {MODIFIER}                                              {

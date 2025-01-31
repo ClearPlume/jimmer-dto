@@ -120,10 +120,10 @@ fun Project.createValue(value: String): DTOValue {
             .valueList[0]
 }
 
-fun Project.createMacroArg(arg: String): DTOQualifiedName {
+fun Project.createMacroArg(arg: String): DTOMacroArg {
     return createDTO("Dummy", macros = listOf("#allScalars($arg)"))
             .dtoBody!!
             .macroList[0]!!
             .macroArgs!!
-            .qualifiedNameList[0]
+            .macroArgList[0]
 }

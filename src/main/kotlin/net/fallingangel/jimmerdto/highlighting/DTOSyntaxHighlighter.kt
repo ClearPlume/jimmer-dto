@@ -21,7 +21,6 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
             DTOTokenTypes.DOC_COMMENT -> arrayOf(DOC_COMMENT)
 
             DTOTypes.AS_KEYWORD,
-            DTOTypes.THIS_KEYWORD,
             DTOTypes.EXPORT_KEYWORD,
             DTOTypes.PACKAGE_KEYWORD,
             DTOTypes.IMPORT_KEYWORD,

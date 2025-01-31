@@ -147,26 +147,34 @@ object DTOPsiUtil {
     }
 
     @JvmStatic
-    fun getName(macroThis: DTOMacroThis): String {
-        return macroThis.text
+    fun getName(arg: DTOMacroArg): String {
+        return arg.text
     }
 
     @JvmStatic
-    @Suppress("UNUSED_PARAMETER")
-    fun setName(macroThis: DTOMacroThis, name: String): DTOMacroThis {
-        return macroThis
+    fun setName(arg: DTOMacroArg, name: String): DTOMacroArg {
+        if (arg.text == "this") {
+            return arg
+        }
+        val oldArgNode = arg.node
+        oldArgNode.treeParent.replaceChild(oldArgNode, arg.project.createMacroArg(name).node)
+        return arg
     }
 
     @JvmStatic
-    fun invoke(enum: DTOMacroThis): Array<PsiReference> {
-        return arrayOf(DTOReference(enum, TextRange.create(0, 4)))
+    fun invoke(arg: DTOMacroArg): Array<PsiReference> {
+        return arrayOf(DTOReference(arg, arg.identifier.textRangeInParent))
     }
 
     @JvmStatic
-    fun unaryPlus(macroThis: DTOMacroThis): PsiElement? {
-        val project = macroThis.project
-        val propPath = macroThis.parent.parent.propPath()
-        val dtoClass = JavaPsiFacade.getInstance(project).findClass(macroThis.fqe, ProjectScope.getAllScope(project)) ?: return null
+    fun unaryPlus(arg: DTOMacroArg): PsiElement? {
+        if (arg.text != "this") {
+            return null
+        }
+
+        val project = arg.project
+        val propPath = arg.parent.parent.propPath()
+        val dtoClass = JavaPsiFacade.getInstance(project).findClass(arg.fqe, ProjectScope.getAllScope(project)) ?: return null
 
         return if (propPath.isEmpty()) {
             dtoClass

@@ -222,20 +222,10 @@ class DTOCompletionContributor : CompletionContributor() {
         )
         complete(
             { parameters, result ->
-                val macroArgs = if (parameters.position.elementType == DTOTypes.THIS_KEYWORD) {
-                    parameters.position.parent.parent<DTOMacroArgs>()
-                } else {
-                    parameters.parent<DTOQualifiedNamePart>().parent as DTOMacroArgs
-                }
+                val macroArgs = parameters.position.parent.parent<DTOMacroArgs>()
                 result.addAllElements(macroArgs[StructureType.MacroTypes].lookUp())
             },
-            or(
-                psiElement(DTOTypes.THIS_KEYWORD)
-                        .withParent(DTOMacroThis::class.java)
-                        .withSuperParent(2, DTOMacroArgs::class.java),
-                identifier.withParent(DTOQualifiedNamePart::class.java)
-                        .withSuperParent(2, psiElement(DTOMacroArgs::class.java))
-            )
+            identifier.withParent(psiElement(DTOMacroArg::class.java)),
         )
     }
 
