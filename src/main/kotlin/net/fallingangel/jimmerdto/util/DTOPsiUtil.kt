@@ -3,6 +3,7 @@ package net.fallingangel.jimmerdto.util
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
+import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.prevLeafs
 import net.fallingangel.jimmerdto.psi.*
@@ -10,6 +11,8 @@ import net.fallingangel.jimmerdto.refenerce.DTOReference
 import net.fallingangel.jimmerdto.refenerce.DTOValueReference
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.BindingContext
 
@@ -168,10 +171,23 @@ object DTOPsiUtil {
 
     @JvmStatic
     fun unaryPlus(arg: DTOMacroArg): PsiElement? {
-        if (arg.text != "this") {
-            return null
+        val `this` = resolveMacroThis(arg) ?: return null
+        `this` as PsiNamedElement
+        return if (arg.text !in listOf("this", `this`.name)) {
+            val supers: List<PsiNamedElement> = if (`this`.language == KotlinLanguage.INSTANCE) {
+                val ktClass = PsiTreeUtil.findChildOfType(`this`.virtualFile.toPsiFile(arg.project), KtClass::class.java) ?: return null
+                ktClass.supers()
+            } else {
+                `this` as PsiClass
+                `this`.supers()
+            }
+            supers.find { it.name == arg.identifier.text }
+        } else {
+            `this`
         }
+    }
 
+    private fun resolveMacroThis(arg: DTOMacroArg): PsiElement? {
         val project = arg.project
         val propPath = arg.parent.parent.propPath()
         val dtoClass = JavaPsiFacade.getInstance(project).findClass(arg.fqe, ProjectScope.getAllScope(project)) ?: return null
@@ -179,13 +195,13 @@ object DTOPsiUtil {
         return if (propPath.isEmpty()) {
             dtoClass
         } else {
-            val propClass = dtoClass.element(propPath) ?: return null
-            if (propClass.language == KotlinLanguage.INSTANCE) {
-                propClass as KtProperty
-                propClass.analyze()[BindingContext.TYPE, propClass.typeReference]?.clazz()
+            val prop = dtoClass.element(propPath) ?: return null
+            if (prop.language == KotlinLanguage.INSTANCE) {
+                prop as KtProperty
+                prop.analyze()[BindingContext.TYPE, prop.typeReference]?.clazz()
             } else {
-                propClass as PsiMethod
-                propClass.returnType?.clazz()
+                prop as PsiMethod
+                prop.returnType?.clazz()
             }
         }
     }

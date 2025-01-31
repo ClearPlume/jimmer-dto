@@ -7,7 +7,7 @@
 * Implement `PsiReferenceContributor`, complete the reference association between dto prop and entity prop
 * Reference parsing of imported elements is supported
 * Blank lines after comments are formatted
-* Reference parsing of `this` in #allScalars
+* Reference parsing of args in #allScalars
 
 ### Fixed
 
