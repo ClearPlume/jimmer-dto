@@ -87,7 +87,7 @@ macro ::= "#" macro-name macro-args? ("?" | "!")? {
 
 macro-name ::= IDENTIFIER
 
-macro-args ::= "(" ( macro-this | qualified-name) ("," ( macro-this | qualified-name))* ")"
+macro-args ::= "(" ((macro-this | qualified-name) ("," (macro-this | qualified-name))*)? ")"
 
 macro-this ::= THIS_KEYWORD {
     implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]

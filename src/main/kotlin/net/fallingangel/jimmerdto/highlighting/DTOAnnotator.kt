@@ -66,6 +66,11 @@ class DTOAnnotator : Annotator {
          * 为宏参数上色
          */
         override fun visitMacroArgs(o: DTOMacroArgs) {
+            if (o.macroThisList.isEmpty() && o.qualifiedNameList.isEmpty()) {
+                o.error("Macro parameter list cannot be empty", InsertMacroArg(o))
+                return
+            }
+
             val thisList = o.macroThisList
             // 若出现超过一个<this>，即为重复
             if (thisList.size > 1) {
