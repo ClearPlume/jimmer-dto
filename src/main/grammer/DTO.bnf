@@ -94,7 +94,7 @@ macro-arg ::= IDENTIFIER {
     methods=[getName setName invoke unaryPlus]
 }
 
-alias-group ::= "as" "(" alias-pattern ")" alias-group-body
+alias-group ::= "as" "(" alias-pattern? ")" alias-group-body
 
 alias-group-body ::= "{" (macro | positive-prop)* "}"
 

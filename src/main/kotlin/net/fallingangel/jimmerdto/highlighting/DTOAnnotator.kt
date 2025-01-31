@@ -10,10 +10,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
-import com.intellij.psi.util.elementType
-import com.intellij.psi.util.nextLeaf
-import com.intellij.psi.util.parentOfType
-import com.intellij.psi.util.prevLeafs
+import com.intellij.psi.util.*
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
@@ -118,8 +115,28 @@ class DTOAnnotator : Annotator {
             // 『as』
             o.firstChild.style(DTOSyntaxHighlighter.FUNCTION)
 
+            // alias-pattern
+            val aliasPattern = o.aliasPattern
+            if (aliasPattern == null) {
+                var foundParenR = false
+                o.firstChild.nextLeafs
+                        .dropWhile { it.elementType != DTOTypes.PAREN_L }
+                        .takeWhile {
+                            if (foundParenR) {
+                                false
+                            } else {
+                                if (it.elementType == DTOTypes.PAREN_R) {
+                                    foundParenR = true
+                                }
+                                true
+                            }
+                        }
+                        .forEach { it.error("alias-pattern in alias-group cannot be empty") }
+                return
+            }
+
             // original
-            val original = o.aliasPattern.original
+            val original = aliasPattern.original
             val power = original.aliasPower
             val dollar = original.aliasDollar
 
@@ -136,7 +153,7 @@ class DTOAnnotator : Annotator {
             }
 
             // replacement
-            val stringConstant = o.aliasPattern.replacement?.stringConstant
+            val stringConstant = aliasPattern.replacement?.stringConstant
             stringConstant?.error(
                 "Unlike the usual case, string literals are not allowed here",
                 ConvertStringToReplacement(stringConstant)

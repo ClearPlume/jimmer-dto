@@ -70,7 +70,7 @@ fun Project.createAliasGroup(
  * @return alias-pattern中的合法『replacement』元素。因为没有对应的Psi类定义，只能以[PsiElement]类型返回
  */
 fun Project.createAliasGroupReplacement(replacement: String = ""): PsiElement? {
-    return createAliasGroup("^ -> $replacement").aliasPattern.replacement?.identifier
+    return createAliasGroup("^ -> $replacement").aliasPattern!!.replacement?.identifier
 }
 
 fun Project.createEnumMappingProp(name: String, mappings: List<String>): DTOPositiveProp {

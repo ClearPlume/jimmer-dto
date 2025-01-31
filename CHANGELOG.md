@@ -16,6 +16,7 @@
 * Fixed an error where there were no elements in the enum-mapping when the code was colored
 * Enhanced error messaging and quick fix suggestions for `#allScalars` when args are missing
 * Enhanced error messaging for function when args are missing
+* Enhanced error messaging for alias-group when alias-pattern is missing
 
 ## [0.0.7.34] - 2025-01-14
 
