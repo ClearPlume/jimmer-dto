@@ -68,7 +68,7 @@ class DTOAnnotator : Annotator {
         override fun visitMacroArgs(o: DTOMacroArgs) {
             val argList = o.macroArgList
             if (argList.isEmpty()) {
-                o.error("Macro parameter list cannot be empty", InsertMacroArg(o))
+                o.error("Macro arg list cannot be empty", InsertMacroArg(o))
                 return
             }
 
@@ -174,6 +174,10 @@ class DTOAnnotator : Annotator {
 
             // 方法名
             val propArgs = o.propArgs ?: return
+            if (propArgs.valueList.isEmpty()) {
+                propArgs.error("Function arg list cannot be empty")
+                return
+            }
             if (propName in availableFunctions) {
                 o.propName.style(DTOSyntaxHighlighter.FUNCTION)
             } else {

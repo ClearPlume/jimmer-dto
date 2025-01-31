@@ -122,7 +122,7 @@ prop-name ::= IDENTIFIER | "null"
 prop-flags ::= "/" "i$"? "i"? POWER? DOLLAR?
 
 //prop-args ::= "(" (named-parameter | value) ("," (named-parameter | value))* ")"
-prop-args ::= "(" value ("," value)* ")"
+prop-args ::= "(" (value ("," value)*)? ")"
 
 prop-alias ::= IDENTIFIER
 

@@ -7,14 +7,15 @@
 * Implement `PsiReferenceContributor`, complete the reference association between dto prop and entity prop
 * Reference parsing of imported elements is supported
 * Blank lines after comments are formatted
-* Reference parsing of args in #allScalars
+* Reference parsing of args in `#allScalars`
 
 ### Fixed
 
 * Issue [#28](https://github.com/ClearPlume/jimmer-dto/issues/28): Improve the formatting of enum mapping
 * Issue [#27](https://github.com/ClearPlume/jimmer-dto/issues/27): Fixed hint for child prop in multi-level props
 * Fixed an error where there were no elements in the enum-mapping when the code was colored
-* Enhanced error messaging and quick fix suggestions for #allScalars when args are missing
+* Enhanced error messaging and quick fix suggestions for `#allScalars` when args are missing
+* Enhanced error messaging for function when args are missing
 
 ## [0.0.7.34] - 2025-01-14
 
