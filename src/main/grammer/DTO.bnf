@@ -19,7 +19,12 @@
     COMMA=","
     DOT="."
     AT="@"
-    EQUALS="="
+    EQ="="
+    NE="<>"
+    LT="<"
+    LE="<="
+    GT=">"
+    GE=">="
     COLON=":"
     SEMICOLON=";"
     HASH="#"
@@ -37,8 +42,6 @@
     PAREN_R=")"
     BRACKET_L="["
     BRACKET_R="]"
-    ANGLE_BRACKET_L="<"
-    ANGLE_BRACKET_R=">"
     BRACE_L="{"
     BRACE_R="}"
 
@@ -49,12 +52,22 @@
     AS_KEYWORD="as"
     CLASS_KEYWORD="class"
     IMPLEMENTS_KEYWORD="implements"
+    WHERE_KEYWORD="!where"
+    ORDER_BY_KEYWORD="!orderBy"
+    FILTER_KEYWORD="!filter"
+    RECURSION_KEYWORD="!recursion"
+    FETCH_TYPE_KEYWORD="!fetchType"
+    LIMIT_KEYWORD="!limit"
+    OFFSET_KEYWORD="!offset"
+    BATCH_KEYWORD="!batch"
+    DEPTH_KEYWORD="!depth"
 
     BOOLEAN_CONSTANT="regexp:true|false"
     NULL_CONSTANT="null"
     INTEGER_CONSTANT="regexp:\\d+"
     FLOAT_CONSTANT="regexp:\\d+\\.\\d+"
     STRING_CONSTANT="regexp:\"[^\"]*\""
+    SQL_STRING_CONSTANT="regexp:'[^']*'"
     CHAR_CONSTANT="regexp:'[^']'"
   ]
 }
@@ -110,7 +123,7 @@ alias-dollar ::= DOLLAR
 
 replacement ::= STRING_CONSTANT | IDENTIFIER
 
-positive-prop ::= annotation* "+"? modifier? prop-name prop-flags? prop-args? ("?" | "!" | "*")? ("as" prop-alias)? interfaces? (enum-body | prop-body)? {
+positive-prop ::= (annotation | configuration)* "+"? modifier? prop-name prop-flags? prop-args? ("?" | "!" | "*")? ("as" prop-alias)? interfaces? (enum-body | prop-body)? {
     pin = 4
     implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
     mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
@@ -222,6 +235,43 @@ annotation-value ::= CHAR_CONSTANT | STRING_CONSTANT |
              nest-annotation | annotation | class-value | enum-value | annotation-array-value
 
 annotation-array-value ::= "[" (annotation-value ("," annotation-value)*)? "]" | "{" (annotation-value ("," annotation-value)*)? "}"
+
+// configuration
+configuration ::= where | order-by | filter | recursion | fetchType | limit | offset | batch | depth
+
+where ::= "!where" where-args
+
+where-args ::= "(" (predicate ((and | or) predicate)*)? ")"
+
+predicate ::= compare | nullity
+
+compare ::= qualified-name compare-symbol compare-value
+
+compare-symbol ::= "=" | "<>" | "<" | "<=" | ">" | ">="
+
+compare-value ::= BOOLEAN_CONSTANT | CHAR_CONSTANT | FLOAT_CONSTANT | INTEGER_CONSTANT | SQL_STRING_CONSTANT
+
+nullity ::= qualified-name is not? NULL_CONSTANT
+
+order-by ::= "!orderBy" order-by-args
+
+order-by-args ::= "(" (order-by-arg ("," order-by-arg)*)? ")"
+
+order-by-arg ::= qualified-name (asc | desc)?
+
+filter ::= "!filter" "(" qualified-name ")"
+
+recursion ::= "!recursion" "(" qualified-name ")"
+
+fetchType ::= "!fetchType" "(" IDENTIFIER ")"
+
+limit ::= "!limit" "(" INTEGER_CONSTANT ")"
+
+offset ::= "!offset" "(" INTEGER_CONSTANT ")"
+
+batch ::= "!batch" "(" INTEGER_CONSTANT ")"
+
+depth ::= "!depth" "(" INTEGER_CONSTANT ")"
 
 type-def ::= qualified-name generic-args? "?"?
 

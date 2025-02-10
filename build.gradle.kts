@@ -40,7 +40,7 @@ dependencies {
     }
 
     testImplementation("junit:junit:4.13.2")
-    testCompileOnly("org.babyfish.jimmer:jimmer-sql-kotlin:0.8.150")
+    testCompileOnly("org.babyfish.jimmer:jimmer-sql-kotlin:0.9.49")
 }
 
 changelog {

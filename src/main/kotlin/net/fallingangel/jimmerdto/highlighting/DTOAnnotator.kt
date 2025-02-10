@@ -340,7 +340,7 @@ class DTOAnnotator : Annotator {
          */
         override fun visitAnnotationParameter(o: DTOAnnotationParameter) {
             o.firstChild.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
-            o.firstChild.next(DTOTypes.EQUALS).style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
+            o.firstChild.next(DTOTypes.EQ).style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
         }
 
         /**

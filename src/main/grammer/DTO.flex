@@ -32,6 +32,7 @@ MODIFIER = input | specification | abstract | unsafe | dynamic | fixed | static 
 BOOLEAN = true | false
 CHAR = '[^']'
 STRING = \"[^\"]*\"
+SQL_STRING = '[^']*'
 INTEGER = \d+
 FLOAT = \d+\.\d+
 
@@ -48,6 +49,21 @@ FLOAT = \d+\.\d+
     "as"                                                    { return DTOTypes.AS_KEYWORD; }
     "class"                                                 { return DTOTypes.CLASS_KEYWORD; }
     "implements"                                            { return DTOTypes.IMPLEMENTS_KEYWORD; }
+    "!where"                                                { return DTOTypes.WHERE_KEYWORD; }
+    "and"                                                   { return DTOTypes.AND; }
+    "or"                                                    { return DTOTypes.OR; }
+    "is"                                                    { return DTOTypes.IS; }
+    "not"                                                   { return DTOTypes.NOT; }
+    "!orderBy"                                              { return DTOTypes.ORDER_BY_KEYWORD; }
+    "asc"                                                   { return DTOTypes.ASC; }
+    "desc"                                                  { return DTOTypes.DESC; }
+    "!filter"                                               { return DTOTypes.FILTER_KEYWORD; }
+    "!recursion"                                            { return DTOTypes.RECURSION_KEYWORD; }
+    "!fetchType"                                            { return DTOTypes.FETCH_TYPE_KEYWORD; }
+    "!limit"                                                { return DTOTypes.LIMIT_KEYWORD; }
+    "!offset"                                               { return DTOTypes.OFFSET_KEYWORD; }
+    "!batch"                                                { return DTOTypes.BATCH_KEYWORD; }
+    "!depth"                                                { return DTOTypes.DEPTH_KEYWORD; }
     {MODIFIER}                                              {
         if (braceLevel > 0) {
             return DTOTypes.IDENTIFIER;
@@ -59,13 +75,19 @@ FLOAT = \d+\.\d+
     "null"                                                  { return DTOTypes.NULL_CONSTANT; }
     {CHAR}                                                  { return DTOTypes.CHAR_CONSTANT; }
     {STRING}                                                { return DTOTypes.STRING_CONSTANT; }
+    {SQL_STRING}                                            { return DTOTypes.SQL_STRING_CONSTANT; }
     {INTEGER}                                               { return DTOTypes.INTEGER_CONSTANT; }
     {FLOAT}                                                 { return DTOTypes.FLOAT_CONSTANT; }
 
     ","                                                     { return DTOTypes.COMMA; }
     "."                                                     { return DTOTypes.DOT; }
     "@"                                                     { return DTOTypes.AT; }
-    "="                                                     { return DTOTypes.EQUALS; }
+    "="                                                     { return DTOTypes.EQ; }
+    "<>"                                                    { return DTOTypes.NE; }
+    "<"                                                     { return DTOTypes.LT; }
+    "<="                                                    { return DTOTypes.LE; }
+    ">"                                                     { return DTOTypes.GT; }
+    ">="                                                    { return DTOTypes.GE; }
     ":"                                                     { return DTOTypes.COLON; }
     ";"                                                     { return DTOTypes.SEMICOLON; }
     "#"                                                     { return DTOTypes.HASH; }
@@ -83,8 +105,6 @@ FLOAT = \d+\.\d+
     ")"                                                     { return DTOTypes.PAREN_R; }
     "["                                                     { return DTOTypes.BRACKET_L; }
     "]"                                                     { return DTOTypes.BRACKET_R; }
-    "<"                                                     { return DTOTypes.ANGLE_BRACKET_L; }
-    ">"                                                     { return DTOTypes.ANGLE_BRACKET_R; }
     "{"                                                     { braceLevel++; return DTOTypes.BRACE_L; }
     "}"                                                     { braceLevel--; return DTOTypes.BRACE_R; }
 

@@ -11,7 +11,7 @@ class DTOBraceMatcher : PairedBraceMatcher {
         BracePair(DTOTypes.BRACE_L, DTOTypes.BRACE_R, true),
         BracePair(DTOTypes.PAREN_L, DTOTypes.PAREN_R, false),
         BracePair(DTOTypes.BRACKET_L, DTOTypes.BRACKET_R, false),
-        BracePair(DTOTypes.ANGLE_BRACKET_L, DTOTypes.ANGLE_BRACKET_R, false)
+        BracePair(DTOTypes.LT, DTOTypes.GT, false)
     )
 
     override fun isPairedBracesAllowedBeforeType(lbraceType: IElementType, contextType: IElementType?) = true

@@ -10,7 +10,7 @@ class Formatter : FormattingModelBuilder {
     override fun createModel(context: FormattingContext): FormattingModel {
         val styleSettings = context.codeStyleSettings
         val dtoProps = TokenSet.create(USER_PROP, MACRO, POSITIVE_PROP, ALIAS_GROUP, NEGATIVE_PROP)
-        val braces = TokenSet.create(PAREN_L, PAREN_R, BRACKET_L, BRACKET_R, ANGLE_BRACKET_L, ANGLE_BRACKET_R)
+        val braces = TokenSet.create(PAREN_L, PAREN_R, BRACKET_L, BRACKET_R, LT, GT)
         val parents = TokenSet.create(DTO_BODY, ALIAS_GROUP_BODY, ENUM_BODY)
 
         val spacingBuilder = SpacingBuilder(styleSettings, DTOLanguage)
@@ -22,7 +22,7 @@ class Formatter : FormattingModelBuilder {
                 .around(COMMA, 0, 1)
                 .after(AT).spaces(0)
                 .after(HASH).spaces(0)
-                .around(EQUALS).spaces(1)
+                .around(EQ).spaces(1)
                 .afterInside(MINUS, NEGATIVE_PROP).spaces(0)
                 .around(MINUS).spaces(1)
                 .around(DOT).spaces(0)
