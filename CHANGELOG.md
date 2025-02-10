@@ -1,10 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [0.0.7.35] - 2025-02-10
 
 ### Added
 
-* Implement `PsiReferenceContributor`, complete the reference association between dto prop and entity prop
+* Implement `PsiReferenceContributor`, complete reference association
 * Reference parsing of imported elements is supported
 * Blank lines after comments are formatted
 * Reference parsing of args in `#allScalars`
