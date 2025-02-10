@@ -8,6 +8,7 @@
 * Reference parsing of imported elements is supported
 * Blank lines after comments are formatted
 * Reference parsing of args in `#allScalars`
+* Improved messaging when `this` and `simple entity class name` co-occur in `#allScalars` arg list
 
 ### Fixed
 

@@ -188,9 +188,13 @@ object DTOPsiUtil {
     }
 
     private fun resolveMacroThis(arg: DTOMacroArg): PsiElement? {
-        val project = arg.project
-        val propPath = arg.parent.parent.propPath()
-        val dtoClass = JavaPsiFacade.getInstance(project).findClass(arg.fqe, ProjectScope.getAllScope(project)) ?: return null
+        return resolveMacroThis(arg.parent as DTOMacroArgs)
+    }
+
+    fun resolveMacroThis(args: DTOMacroArgs): PsiElement? {
+        val project = args.project
+        val propPath = args.parent.propPath()
+        val dtoClass = JavaPsiFacade.getInstance(project).findClass(args.fqe, ProjectScope.getAllScope(project)) ?: return null
 
         return if (propPath.isEmpty()) {
             dtoClass

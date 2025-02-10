@@ -9,6 +9,7 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.*
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
@@ -100,6 +101,24 @@ class DTOAnnotator : Annotator {
                     macroArg.error(
                         "Each parameter is only allowed to appear once",
                         RemoveElement(macroArg.text, macroArg),
+                        DTOSyntaxHighlighter.DUPLICATION
+                    )
+                }
+                // 当前实体的简单类名和this同时出现
+                // 当前实体的简单类名
+                val thisName = (DTOPsiUtil.resolveMacroThis(o) as PsiNamedElement).name
+
+                // 等价于this的宏参数
+                val sameThisArg = o.macroArgList.find { it.text == thisName }
+                if (macroArg.text == "this" && sameThisArg != null) {
+                    sameThisArg.error(
+                        "Here `$thisName` is equivalent to `this`",
+                        RemoveElement(sameThisArg.text, sameThisArg),
+                        DTOSyntaxHighlighter.DUPLICATION
+                    )
+                    macroArg.error(
+                        "Here `this` is equivalent to `$thisName`",
+                        RemoveElement("this", macroArg),
                         DTOSyntaxHighlighter.DUPLICATION
                     )
                 }
