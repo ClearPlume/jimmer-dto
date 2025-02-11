@@ -8,7 +8,6 @@ import com.intellij.psi.util.elementType
 import com.intellij.psi.util.prevLeafs
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.refenerce.DTOReference
-import net.fallingangel.jimmerdto.refenerce.DTOValueReference
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
@@ -18,63 +17,38 @@ import org.jetbrains.kotlin.resolve.BindingContext
 
 object DTOPsiUtil {
     @JvmStatic
-    fun getName(prop: DTOPositiveProp): String {
-        return prop.propName.text
+    fun getName(name: DTOPropName): String {
+        return name.text
     }
 
     @JvmStatic
-    fun setName(prop: DTOPositiveProp, name: String): DTOPositiveProp {
-        val oldNameNode = prop.node.findChildByType(DTOTypes.PROP_NAME) ?: return prop
-        prop.node.replaceChild(oldNameNode, prop.project.createUserPropName(name).node)
-        return prop
+    fun setName(name: DTOPropName, newName: String): DTOPropName {
+        name.node.replaceChild(name.identifier!!.node, name.project.createUserPropName(newName).identifier!!.node)
+        return name
     }
 
     @JvmStatic
-    fun invoke(prop: DTOPositiveProp): Array<PsiReference> {
-        val propArgs = prop.propArgs
-        @Suppress("IfThenToElvis")
-        return if (propArgs == null) {
-            arrayOf(DTOReference(prop, prop.propName.textRangeInParent))
-        } else {
-            // 属性方法中的value值
-            propArgs.valueList
-                    .map {
-                        val valueStart = it.textRangeInParent.startOffset
-                        val argStart = it.parent.textRangeInParent.startOffset
-                        val valueInArgStart = argStart + valueStart
-                        DTOValueReference(it, prop, TextRange(valueInArgStart, valueInArgStart + it.textLength))
-                    }
-                    .toTypedArray()
+    fun invoke(name: DTOPropName): Array<PsiReference> {
+        return when (name.parent) {
+            is DTOUserProp -> emptyArray()
+            else -> arrayOf(DTOReference(name, name.firstChild.textRangeInParent))
         }
     }
 
     @JvmStatic
-    fun unaryPlus(prop: DTOPositiveProp): PsiElement? {
-        val project = prop.project
-        return JavaPsiFacade.getInstance(project).findClass(prop.fqe, ProjectScope.getAllScope(project))?.element(prop.propPath())
-    }
+    fun unaryPlus(name: DTOPropName): PsiElement? {
+        val project = name.project
+        return when (val prop = name.parent) {
+            is DTONegativeProp -> JavaPsiFacade.getInstance(project).findClass(name.fqe, ProjectScope.getAllScope(project))?.element(prop.propPath())
 
-    @JvmStatic
-    fun getName(prop: DTONegativeProp): String {
-        return prop.propName.text
-    }
+            is DTOPositiveProp -> if (prop.propArgs == null) {
+                JavaPsiFacade.getInstance(project).findClass(name.fqe, ProjectScope.getAllScope(project))?.element(prop.propPath())
+            } else {
+                null
+            }
 
-    @JvmStatic
-    fun setName(prop: DTONegativeProp, name: String): DTONegativeProp {
-        val oldNameNode = prop.node.findChildByType(DTOTypes.PROP_NAME) ?: return prop
-        prop.node.replaceChild(oldNameNode, prop.project.createUserPropName(name).node)
-        return prop
-    }
-
-    @JvmStatic
-    fun invoke(prop: DTONegativeProp): Array<PsiReference> {
-        return arrayOf(DTOReference(prop, prop.propName.textRangeInParent))
-    }
-
-    @JvmStatic
-    fun unaryPlus(prop: DTONegativeProp): PsiElement? {
-        val project = prop.project
-        return JavaPsiFacade.getInstance(project).findClass(prop.fqe, ProjectScope.getAllScope(project))?.element(prop.propPath())
+            else -> null
+        }
     }
 
     @JvmStatic
@@ -211,9 +185,31 @@ object DTOPsiUtil {
     }
 
     @JvmStatic
+    fun getName(value: DTOValue): String {
+        return value.text
+    }
+
+    @JvmStatic
     fun setName(value: DTOValue, name: String): DTOValue {
         val oldValueNode = value.node
         oldValueNode.treeParent.replaceChild(oldValueNode, value.project.createValue(name).node)
         return value
+    }
+
+    @JvmStatic
+    fun invoke(value: DTOValue): Array<PsiReference> {
+        return arrayOf(DTOReference(value, TextRange(0, value.textLength)))
+    }
+
+    @JvmStatic
+    fun unaryPlus(value: DTOValue): PsiElement? {
+        val project = value.project
+        val prop = value.parent.parent as DTOPositiveProp
+        val clazz = JavaPsiFacade.getInstance(project).findClass(prop.fqe, ProjectScope.getAllScope(project)) ?: return null
+        val propPath = value.propPath()
+        if (propPath.isEmpty()) {
+            return null
+        }
+        return clazz.element(propPath)
     }
 }

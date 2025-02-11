@@ -125,12 +125,13 @@ replacement ::= STRING_CONSTANT | IDENTIFIER
 
 positive-prop ::= (annotation | configuration)* "+"? modifier? prop-name prop-flags? prop-args? ("?" | "!" | "*")? ("as" prop-alias)? interfaces? (enum-body | prop-body)? {
     pin = 4
+}
+
+prop-name ::= IDENTIFIER | "null" {
     implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
     mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
     methods=[getName setName invoke unaryPlus]
 }
-
-prop-name ::= IDENTIFIER | "null"
 
 prop-flags ::= "/" "i$"? "i"? POWER? DOLLAR?
 
@@ -159,9 +160,6 @@ enum-instance-value ::= (INTEGER_CONSTANT | STRING_CONSTANT)
 
 negative-prop ::= "-" prop-name {
     pin = 2
-    implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
-    mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
-    methods=[getName setName invoke unaryPlus]
 }
 
 user-prop ::= annotation* prop-name ":" type-def {
@@ -197,7 +195,11 @@ qualified-type-alias ::= IDENTIFIER
 value ::= CHAR_CONSTANT | STRING_CONSTANT |
              INTEGER_CONSTANT | FLOAT_CONSTANT |
              BOOLEAN_CONSTANT | NULL_CONSTANT |
-             class-value | enum-value | IDENTIFIER | array-value
+             class-value | enum-value | IDENTIFIER | array-value {
+    implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
+    mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
+    methods=[getName setName invoke unaryPlus]
+}
 
 enum-value ::= IDENTIFIER ("." IDENTIFIER)+
 
