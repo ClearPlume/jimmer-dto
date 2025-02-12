@@ -29,6 +29,7 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
             DTOTypes.BOOLEAN_CONSTANT,
             DTOTypes.NULL,
             DTOTypes.IS,
+            DTOTypes.NOT,
             DTOTypes.AND,
             DTOTypes.OR -> arrayOf(KEYWORD)
 
