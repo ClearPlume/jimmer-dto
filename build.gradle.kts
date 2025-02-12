@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "net.fallingangel"
-version = "0.0.7.35"
+version = "0.0.7.36"
 
 val since by extra("223.7571.182")
 val until by extra("243.*")
@@ -44,6 +44,7 @@ dependencies {
 }
 
 changelog {
+    unreleasedTerm = "Unreleased"
     groups = listOf("Added", "Changed", "Deprecated", "Removed", "Fixed")
     headerParserRegex = """^((0|[1-9]\d*)(\.(0|[1-9]\d*)){2,3}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)${'$'}"""
 }
