@@ -43,12 +43,12 @@ FLOAT = \d+\.\d+
     {BLOCK_COMMENT}                                         { return DTOTokenTypes.BLOCK_COMMENT; }
     {LINE_COMMENT}                                          { return DTOTokenTypes.LINE_COMMENT; }
 
-    "export"                                                { return DTOTypes.EXPORT_KEYWORD; }
-    "package"                                               { return DTOTypes.PACKAGE_KEYWORD; }
-    "import"                                                { return DTOTypes.IMPORT_KEYWORD; }
-    "as"                                                    { return DTOTypes.AS_KEYWORD; }
-    "class"                                                 { return DTOTypes.CLASS_KEYWORD; }
-    "implements"                                            { return DTOTypes.IMPLEMENTS_KEYWORD; }
+    "export"                                                { return DTOTypes.EXPORT; }
+    "package"                                               { return DTOTypes.PACKAGE; }
+    "import"                                                { return DTOTypes.IMPORT; }
+    "as"                                                    { return DTOTypes.AS; }
+    "class"                                                 { return DTOTypes.CLASS; }
+    "implements"                                            { return DTOTypes.IMPLEMENTS; }
     "!where"                                                { return DTOTypes.WHERE_KEYWORD; }
     "and"                                                   { return DTOTypes.AND; }
     "or"                                                    { return DTOTypes.OR; }
@@ -72,7 +72,7 @@ FLOAT = \d+\.\d+
         }
     }
     {BOOLEAN}                                               { return DTOTypes.BOOLEAN_CONSTANT; }
-    "null"                                                  { return DTOTypes.NULL_CONSTANT; }
+    "null"                                                  { return DTOTypes.NULL; }
     {CHAR}                                                  { return DTOTypes.CHAR_CONSTANT; }
     {STRING}                                                { return DTOTypes.STRING_CONSTANT; }
     {SQL_STRING}                                            { return DTOTypes.SQL_STRING_CONSTANT; }

@@ -72,7 +72,7 @@ object DTOPsiUtil {
     fun unaryPlus(qualifiedPart: DTOQualifiedNamePart): PsiElement? {
         val part = qualifiedPart.text
         val `package` = qualifiedPart.prevLeafs
-                .takeWhile { it.elementType !in arrayOf(DTOTypes.EXPORT_KEYWORD, DTOTypes.PACKAGE_KEYWORD, DTOTypes.IMPORT_KEYWORD) }
+                .takeWhile { it.elementType !in arrayOf(DTOTypes.EXPORT, DTOTypes.PACKAGE, DTOTypes.IMPORT) }
                 .filter { it.elementType != TokenType.WHITE_SPACE }
                 .map(PsiElement::getText)
                 .toList()

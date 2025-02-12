@@ -65,12 +65,12 @@ val PsiElement.upper: PsiElement
 val PsiElement.virtualFile: VirtualFile
     get() = containingFile.originalFile.virtualFile
 
-val DTOExport.qualified: String
+val DTOExportStatement.qualified: String
     get() = qualifiedType.qualifiedName.qualifiedNamePartList
             .filter { it.elementType != TokenType.WHITE_SPACE }
             .joinToString(".", transform = PsiElement::getText)
 
-val DTOImport.qualified: String
+val DTOImportStatement.qualified: String
     get() = qualifiedType.qualifiedName.qualifiedNamePartList
             .filter { it.elementType != TokenType.WHITE_SPACE }
             .joinToString(".", transform = PsiElement::getText)
@@ -155,8 +155,8 @@ fun DTODto.classFile(): VirtualFile? {
     // 获取GenerateSource源码路径
     val generateRoot = generateRoot(this) ?: return null
     val fileManager = VirtualFileManager.getInstance()
-    val export = virtualFile.toPsiFile(project)?.getChildOfType<DTOExport>()
-    val `package` = export?.`package`
+    val export = virtualFile.toPsiFile(project)?.getChildOfType<DTOExportStatement>()
+    val `package` = export?.packageStatement
 
     val dtoPath = if (export != null) {
         /* 获取package关键字定义的dto类路径 */
@@ -215,7 +215,7 @@ fun Project.allPackages(`package`: String): List<PsiPackage> {
 fun DTOAnnotationName.psiClass(): PsiClass {
     val name = text?.split(".") ?: throw IllegalStateException()
     val clazz = if (name.size == 1) {
-        val imports = PsiTreeUtil.findChildrenOfType(containingFile, DTOImport::class.java)
+        val imports = PsiTreeUtil.findChildrenOfType(containingFile, DTOImportStatement::class.java)
         val import = imports.find { it.qualifiedType.qualifiedName.qualifiedNamePartList.last().text == name.first() }
         import ?: throw IllegalStateException()
         import.qualified

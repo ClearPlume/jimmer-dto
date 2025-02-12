@@ -13,7 +13,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
 import net.fallingangel.jimmerdto.enums.Language
 import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
-import net.fallingangel.jimmerdto.psi.DTOExport
+import net.fallingangel.jimmerdto.psi.DTOExportStatement
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -42,7 +42,7 @@ val DTOElement.fqe: String
     get() {
         // src/main绝对路径
         val root = root?.path ?: throw IllegalStateException("Source root is null")
-        val export = containingFile.getChildOfType<DTOExport>()
+        val export = containingFile.getChildOfType<DTOExportStatement>()
 
         // dto文件对应类全限定名
         return export?.qualified

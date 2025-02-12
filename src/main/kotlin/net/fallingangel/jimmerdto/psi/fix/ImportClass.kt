@@ -12,7 +12,7 @@ import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.ui.components.JBList
 import net.fallingangel.jimmerdto.psi.DTODto
-import net.fallingangel.jimmerdto.psi.DTOImport
+import net.fallingangel.jimmerdto.psi.DTOImportStatement
 import net.fallingangel.jimmerdto.psi.DTOQualifiedName
 import net.fallingangel.jimmerdto.psi.createImport
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
@@ -42,7 +42,7 @@ class ImportClass(private val element: DTOQualifiedName) : BaseFix() {
                     val selectedClass = classesHolder.selectedValue
                     val dtoImport = project.createImport(selectedClass)
 
-                    val import = file.getChildOfType<DTOImport>()
+                    val import = file.getChildOfType<DTOImportStatement>()
                     if (import != null) {
                         WriteCommandAction.runWriteCommandAction(project) {
                             file.node.addChild(dtoImport.node, import.node)

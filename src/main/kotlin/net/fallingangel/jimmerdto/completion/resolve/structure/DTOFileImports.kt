@@ -2,7 +2,7 @@ package net.fallingangel.jimmerdto.completion.resolve.structure
 
 import com.intellij.psi.util.PsiTreeUtil
 import net.fallingangel.jimmerdto.psi.DTOFile
-import net.fallingangel.jimmerdto.psi.DTOImport
+import net.fallingangel.jimmerdto.psi.DTOImportStatement
 
 class DTOFileImports : Structure<DTOFile, List<String>> {
     /**
@@ -11,7 +11,7 @@ class DTOFileImports : Structure<DTOFile, List<String>> {
      * @return DTO文件中，导入的类型列表
      */
     override fun value(element: DTOFile): List<String> {
-        val imports = PsiTreeUtil.getChildrenOfTypeAsList(element, DTOImport::class.java)
+        val imports = PsiTreeUtil.getChildrenOfTypeAsList(element, DTOImportStatement::class.java)
         val importedTypes = imports
                 .filter { it.qualifiedType.qualifiedTypeAlias == null && it.groupedTypes == null }
                 .map { it.qualifiedType.qualifiedName.qualifiedNamePartList.last().text }

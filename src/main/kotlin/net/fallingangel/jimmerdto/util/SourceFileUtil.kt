@@ -12,7 +12,7 @@ import com.intellij.psi.util.PsiUtil
 import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.enums.Language
 import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
-import net.fallingangel.jimmerdto.psi.DTOExport
+import net.fallingangel.jimmerdto.psi.DTOExportStatement
 import net.fallingangel.jimmerdto.structure.JavaNullableType
 import net.fallingangel.jimmerdto.structure.Property
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
@@ -149,7 +149,7 @@ fun KtClass.supers(): List<KtClass> {
  */
 fun VirtualFile.entityFile(project: Project): VirtualFile? {
     val psiFile = toPsiFile(project) ?: return null
-    val export = psiFile.getChildOfType<DTOExport>()
+    val export = psiFile.getChildOfType<DTOExportStatement>()
 
     val entityName = if (export != null) {
         export.qualified

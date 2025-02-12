@@ -13,7 +13,7 @@ import com.intellij.psi.util.parentOfType
 import net.fallingangel.jimmerdto.DTOFileType
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.psi.DTODtoBody
-import net.fallingangel.jimmerdto.psi.DTOExport
+import net.fallingangel.jimmerdto.psi.DTOExportStatement
 import net.fallingangel.jimmerdto.util.*
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
@@ -28,7 +28,7 @@ class InsertEntityPropAction : AnAction() {
 
         val dtoFile = e.getData(CommonDataKeys.PSI_FILE) ?: return
         val space = dtoFile.findElementAt(offset) as? PsiWhiteSpace ?: return
-        val export = dtoFile.getChildOfType<DTOExport>()
+        val export = dtoFile.getChildOfType<DTOExportStatement>()
 
         val body = space.parentOfType<DTODtoBody>() ?: return
 

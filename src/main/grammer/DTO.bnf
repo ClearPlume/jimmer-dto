@@ -46,12 +46,6 @@
     BRACE_R="}"
 
     IDENTIFIER="regexp:[$A-Za-z_][$\\w]*"
-    EXPORT_KEYWORD="export"
-    PACKAGE_KEYWORD="package"
-    IMPORT_KEYWORD="import"
-    AS_KEYWORD="as"
-    CLASS_KEYWORD="class"
-    IMPLEMENTS_KEYWORD="implements"
     WHERE_KEYWORD="!where"
     ORDER_BY_KEYWORD="!orderBy"
     FILTER_KEYWORD="!filter"
@@ -63,7 +57,6 @@
     DEPTH_KEYWORD="!depth"
 
     BOOLEAN_CONSTANT="regexp:true|false"
-    NULL_CONSTANT="null"
     INTEGER_CONSTANT="regexp:\\d+"
     FLOAT_CONSTANT="regexp:\\d+\\.\\d+"
     STRING_CONSTANT="regexp:\"[^\"]*\""
@@ -72,13 +65,13 @@
   ]
 }
 
-dto-file ::= export? import* dto*
+dto-file ::= export-statement? import-statement* dto*
 
-export ::= "export" qualified-type ("->" package)?
+export-statement ::= export qualified-type ("->" package-statement)?
 
-package ::= "package" qualified-type
+package-statement ::= package qualified-type
 
-import ::= "import" qualified-type grouped-types?
+import-statement ::= import qualified-type grouped-types?
 
 grouped-types ::= "." "{" qualified-type ("," qualified-type)* "}"
 
@@ -107,7 +100,7 @@ macro-arg ::= IDENTIFIER {
     methods=[getName setName invoke unaryPlus]
 }
 
-alias-group ::= "as" "(" alias-pattern? ")" alias-group-body
+alias-group ::= as "(" alias-pattern? ")" alias-group-body
 
 alias-group-body ::= "{" (macro | positive-prop)* "}"
 
@@ -123,11 +116,11 @@ alias-dollar ::= DOLLAR
 
 replacement ::= STRING_CONSTANT | IDENTIFIER
 
-positive-prop ::= (annotation | configuration)* "+"? modifier? prop-name prop-flags? prop-args? ("?" | "!" | "*")? ("as" prop-alias)? interfaces? (enum-body | prop-body)? {
+positive-prop ::= (annotation | prop-config)* "+"? modifier? prop-name prop-flags? prop-args? ("?" | "!" | "*")? (as prop-alias)? interfaces? (enum-body | prop-body)? {
     pin = 4
 }
 
-prop-name ::= IDENTIFIER | "null" {
+prop-name ::= IDENTIFIER | null {
     implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
     mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
     methods=[getName setName invoke unaryPlus]
@@ -183,9 +176,15 @@ qualified-name-part ::= IDENTIFIER {
     methods=[getName setName invoke unaryPlus]
 }
 
-qualified-type ::= qualified-name ("as" qualified-type-alias)?
+qualified-type ::= qualified-name (as qualified-type-alias)?
 
 qualified-type-alias ::= IDENTIFIER
+
+type-def ::= qualified-name generic-args? "?"?
+
+interfaces ::= implements type-def ("," type-def)* {
+    pin = 1
+}
 
 // parameter
 //named-parameter ::= parameter-name "=" value
@@ -194,7 +193,7 @@ qualified-type-alias ::= IDENTIFIER
 
 value ::= CHAR_CONSTANT | STRING_CONSTANT |
              INTEGER_CONSTANT | FLOAT_CONSTANT |
-             BOOLEAN_CONSTANT | NULL_CONSTANT |
+             BOOLEAN_CONSTANT | null |
              class-value | enum-value | IDENTIFIER | array-value {
     implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
     mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
@@ -203,7 +202,7 @@ value ::= CHAR_CONSTANT | STRING_CONSTANT |
 
 enum-value ::= IDENTIFIER ("." IDENTIFIER)+
 
-class-value ::= qualified-name "?"? ("." | "::") "class" {
+class-value ::= qualified-name "?"? ("." | "::") class {
     pin = 3
 }
 
@@ -233,13 +232,13 @@ annotation-parameter ::= IDENTIFIER "=" annotation-value {
 
 annotation-value ::= CHAR_CONSTANT | STRING_CONSTANT |
              INTEGER_CONSTANT | FLOAT_CONSTANT |
-             BOOLEAN_CONSTANT | NULL_CONSTANT |
+             BOOLEAN_CONSTANT | null |
              nest-annotation | annotation | class-value | enum-value | annotation-array-value
 
 annotation-array-value ::= "[" (annotation-value ("," annotation-value)*)? "]" | "{" (annotation-value ("," annotation-value)*)? "}"
 
-// configuration
-configuration ::= where | order-by | filter | recursion | fetchType | limit | offset | batch | depth
+// prop-config
+prop-config ::= where | order-by | filter | recursion | fetchType | limit | offset | batch | depth
 
 where ::= "!where" where-args
 
@@ -253,7 +252,7 @@ compare-symbol ::= "=" | "<>" | "<" | "<=" | ">" | ">="
 
 compare-value ::= BOOLEAN_CONSTANT | CHAR_CONSTANT | FLOAT_CONSTANT | INTEGER_CONSTANT | SQL_STRING_CONSTANT
 
-nullity ::= qualified-name is not? NULL_CONSTANT
+nullity ::= qualified-name is not? null
 
 order-by ::= "!orderBy" order-by-args
 
@@ -274,9 +273,3 @@ offset ::= "!offset" "(" INTEGER_CONSTANT ")"
 batch ::= "!batch" "(" INTEGER_CONSTANT ")"
 
 depth ::= "!depth" "(" INTEGER_CONSTANT ")"
-
-type-def ::= qualified-name generic-args? "?"?
-
-interfaces ::= "implements" type-def ("," type-def)* {
-    pin = 1
-}

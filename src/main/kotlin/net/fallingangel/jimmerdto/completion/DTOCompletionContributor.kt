@@ -407,9 +407,9 @@ class DTOCompletionContributor : CompletionContributor() {
             dto.inFile(
                 psiFile(DTOFile::class.java).withFirstChildSkipping(
                     or(
-                        psiElement(DTOExport::class.java),
+                        psiElement(DTOExportStatement::class.java),
                         whitespace,
-                        psiElement(DTOImport::class.java),
+                        psiElement(DTOImportStatement::class.java),
                     ),
                     or(
                         psiElement(DTODto::class.java)
@@ -430,8 +430,8 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeExportPackage() {
         completePackage(
             identifier.withParent(DTOQualifiedNamePart::class.java)
-                    .withSuperParent(4, DTOExport::class.java),
-            DTOTypes.EXPORT_KEYWORD,
+                    .withSuperParent(4, DTOExportStatement::class.java),
+            DTOTypes.EXPORT,
             Project::allEntities
         )
     }
@@ -442,8 +442,8 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeImportPackage() {
         completePackage(
             identifier.withParent(DTOQualifiedNamePart::class.java)
-                    .withSuperParent(4, DTOImport::class.java),
-            DTOTypes.IMPORT_KEYWORD,
+                    .withSuperParent(4, DTOImportStatement::class.java),
+            DTOTypes.IMPORT,
             Project::allClasses
         )
     }
@@ -736,8 +736,8 @@ class DTOCompletionContributor : CompletionContributor() {
                 .withInsertHandler { context, _ ->
                     WriteCommandAction.runWriteCommandAction(context.project) {
                         val file = context.file as DTOFile
-                        val export = file.findChildByClass(DTOExport::class.java)
-                        val imports = file.findChildrenByClass(DTOImport::class.java)
+                        val export = file.findChildByClass(DTOExportStatement::class.java)
+                        val imports = file.findChildrenByClass(DTOImportStatement::class.java)
                         val importedSameName = imports.any { i -> i.qualified.substringAfterLast('.') == name }
                         val import = imports.find { i -> i.qualified == qualifiedName }
 

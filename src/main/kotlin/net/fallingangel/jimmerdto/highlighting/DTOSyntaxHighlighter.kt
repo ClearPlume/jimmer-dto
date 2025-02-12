@@ -20,14 +20,17 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
             DTOTokenTypes.BLOCK_COMMENT -> arrayOf(BLOCK_COMMENT)
             DTOTokenTypes.DOC_COMMENT -> arrayOf(DOC_COMMENT)
 
-            DTOTypes.AS_KEYWORD,
-            DTOTypes.EXPORT_KEYWORD,
-            DTOTypes.PACKAGE_KEYWORD,
-            DTOTypes.IMPORT_KEYWORD,
-            DTOTypes.CLASS_KEYWORD,
-            DTOTypes.IMPLEMENTS_KEYWORD,
+            DTOTypes.AS,
+            DTOTypes.EXPORT,
+            DTOTypes.PACKAGE,
+            DTOTypes.IMPORT,
+            DTOTypes.CLASS,
+            DTOTypes.IMPLEMENTS,
             DTOTypes.BOOLEAN_CONSTANT,
-            DTOTypes.NULL_CONSTANT -> arrayOf(KEYWORD)
+            DTOTypes.NULL,
+            DTOTypes.IS,
+            DTOTypes.AND,
+            DTOTypes.OR -> arrayOf(KEYWORD)
 
             DTOTypes.MODIFIER -> arrayOf(MODIFIER)
             DTOTypes.NEGATIVE_PROP -> arrayOf(NEGATIVE_PROP)

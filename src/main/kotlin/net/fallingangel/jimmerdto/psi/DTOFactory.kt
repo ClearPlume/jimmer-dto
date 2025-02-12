@@ -10,7 +10,7 @@ fun Project.createDTOFile(content: String = ""): DTOFile {
     return PsiFileFactory.getInstance(this).createFileFromText(DTOLanguage, content) as DTOFile
 }
 
-fun Project.createImport(qualifiedName: String): DTOImport {
+fun Project.createImport(qualifiedName: String): DTOImportStatement {
     return createDTOFile("import $qualifiedName").getChildOfType()!!
 }
 

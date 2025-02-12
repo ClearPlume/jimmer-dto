@@ -398,13 +398,13 @@ class DTOAnnotator : Annotator {
          * 为全限定类名的部分上色
          */
         override fun visitQualifiedNamePart(o: DTOQualifiedNamePart) {
-            if (o.haveParent<DTOPackage>() || (!o.haveParent<DTOExport>() && !o.haveParent<DTOImport>())) {
+            if (o.haveParent<DTOPackageStatement>() || (!o.haveParent<DTOExportStatement>() && !o.haveParent<DTOImportStatement>())) {
                 return
             }
 
             when (o.parent.parent.parent.parent) {
-                is DTOExport -> o.visitPackage(DTOTypes.EXPORT_KEYWORD, Project::allEntities)
-                is DTOImport -> o.visitPackage(DTOTypes.IMPORT_KEYWORD, Project::allClasses)
+                is DTOExportStatement -> o.visitPackage(DTOTypes.EXPORT, Project::allEntities)
+                is DTOImportStatement -> o.visitPackage(DTOTypes.IMPORT, Project::allClasses)
             }
         }
 
@@ -426,7 +426,7 @@ class DTOAnnotator : Annotator {
 
             // 包不能被导入
             if (nextSibling == null && text !in curPackageClasses) {
-                val packageAction = if (statementKeyword == DTOTypes.EXPORT_KEYWORD) {
+                val packageAction = if (statementKeyword == DTOTypes.EXPORT) {
                     "exported"
                 } else {
                     "imported"
