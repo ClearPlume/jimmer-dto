@@ -33,8 +33,18 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
             DTOTypes.NEGATIVE_PROP -> arrayOf(NEGATIVE_PROP)
 
             DTOTypes.CHAR_CONSTANT -> arrayOf(CHAR)
-            DTOTypes.STRING_CONSTANT -> arrayOf(STRING)
+            DTOTypes.STRING_CONSTANT, DTOTypes.SQL_STRING_CONSTANT -> arrayOf(STRING)
             DTOTypes.INTEGER_CONSTANT, DTOTypes.FLOAT_CONSTANT -> arrayOf(NUMBER)
+
+            DTOTypes.WHERE_KEYWORD,
+            DTOTypes.ORDER_BY_KEYWORD,
+            DTOTypes.FILTER_KEYWORD,
+            DTOTypes.RECURSION_KEYWORD,
+            DTOTypes.FETCH_TYPE_KEYWORD,
+            DTOTypes.LIMIT_KEYWORD,
+            DTOTypes.OFFSET_KEYWORD,
+            DTOTypes.BATCH_KEYWORD,
+            DTOTypes.DEPTH_KEYWORD -> arrayOf(PROP_CONFIG)
 
             TokenType.BAD_CHARACTER -> arrayOf(HighlighterColors.BAD_CHARACTER)
             else -> arrayOf()
@@ -56,6 +66,7 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
         val ANNOTATION = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ANNOTATION", DefaultLanguageHighlighterColors.METADATA)
         val FUNCTION = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_FUNCTION", DefaultLanguageHighlighterColors.STATIC_METHOD)
         val MACRO = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_MACRO", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION)
+        val PROP_CONFIG = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_PROP_CONFIG")
         val NEGATIVE_PROP = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NEGATIVE_PROP", CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES)
         val NAMED_PARAMETER_NAME = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NAMED_PARAMETER_NAME")
         val ENUM_INSTANCE = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ENUM_INSTANCE", DefaultLanguageHighlighterColors.STATIC_FIELD)

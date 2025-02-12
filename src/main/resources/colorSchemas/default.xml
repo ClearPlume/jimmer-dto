@@ -18,4 +18,9 @@
             <option name="FOREGROUND" value="4A86E8"/>
         </value>
     </option>
+    <option name="JIMMER_DTO_PROP_CONFIG">
+        <value>
+            <option name="FOREGROUND" value="DD6718"/>
+        </value>
+    </option>
 </list>
