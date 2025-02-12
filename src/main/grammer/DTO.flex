@@ -30,9 +30,9 @@ DOC_COMMENT = "/**"{COMMENT_CONTENT}"*/"
 
 MODIFIER = input | specification | abstract | unsafe | dynamic | fixed | static | fuzzy | out | in
 BOOLEAN = true | false
-CHAR = '[^']'
-STRING = \"[^\"]*\"
-SQL_STRING = '[^']*'
+CHAR = '([^'\\]|\\[btnfr'\\])'
+STRING = \"([^\"\\]|\\.)*\"
+SQL_STRING = '([^']|'')*'
 INTEGER = \d+
 FLOAT = \d+\.\d+
 

@@ -59,9 +59,9 @@
     BOOLEAN_CONSTANT="regexp:true|false"
     INTEGER_CONSTANT="regexp:\\d+"
     FLOAT_CONSTANT="regexp:\\d+\\.\\d+"
-    STRING_CONSTANT="regexp:\"[^\"]*\""
-    SQL_STRING_CONSTANT="regexp:'[^']*'"
-    CHAR_CONSTANT="regexp:'[^']'"
+    CHAR_CONSTANT="regexp:'([^'\\]|\\[btnfr'\\])'"
+    STRING_CONSTANT="regexp:\"([^\"\\]|\\.)*\""
+    SQL_STRING_CONSTANT="regexp:'([^']|'')*'"
   ]
 }
 
