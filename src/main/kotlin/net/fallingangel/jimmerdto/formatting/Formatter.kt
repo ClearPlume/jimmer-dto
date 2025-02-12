@@ -42,6 +42,7 @@ class Formatter : FormattingModelBuilder {
                 .around(IMPORT).spaces(1)
                 .between(IMPORT, DTO).emptyLine(1)
                 .between(DTO, DTO).emptyLine(1)
+                .betweenInside(ANNOTATION, DTO_BODY, PROP_BODY).spaces(1)
                 .after(ANNOTATION).emptyLine(0)
                 .around(ANNOTATION_VALUE).spaces(0)
                 .around(DTO_NAME).spaces(1)
