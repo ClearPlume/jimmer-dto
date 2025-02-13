@@ -1,33 +1,42 @@
 package net.fallingangel.jimmerdto.completion.resolve.structure
 
-import net.fallingangel.jimmerdto.enums.Language
-import net.fallingangel.jimmerdto.psi.DTOMacroArgs
-import net.fallingangel.jimmerdto.util.*
+import com.intellij.lang.java.JavaLanguage
+import com.intellij.psi.PsiClass
+import com.intellij.psi.util.PsiTreeUtil
+import net.fallingangel.jimmerdto.psi.DTOMacro
+import net.fallingangel.jimmerdto.util.DTOPsiUtil
+import net.fallingangel.jimmerdto.util.isEntity
+import net.fallingangel.jimmerdto.util.supers
+import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.jetbrains.kotlin.psi.KtClass
 
-class MacroTypes : Structure<DTOMacroArgs, List<String>> {
+class MacroTypes : Structure<DTOMacro, List<String>> {
     /**
      * @param element Dto宏的参数元素
      *
      * @return 宏的可用参数类型列表
      */
-    override fun value(element: DTOMacroArgs): List<String> {
+    override fun value(element: DTOMacro): List<String> {
         val project = element.project
-        val entityFile = element.virtualFile.entityFile(project) ?: return emptyList()
-
-        val propPath = if (element.parent.haveUpper) {
-            element.parent.upper.propPath()
-        } else {
-            emptyList()
-        }
-        val propClassFile = when (entityFile.language) {
-            Language.Java -> {
-                entityFile.psiClass(project, propPath)?.virtualFile ?: return emptyList()
+        val propClass = DTOPsiUtil.resolveMacroThis(element) ?: return emptyList()
+        val supers = when (propClass.language) {
+            JavaLanguage.INSTANCE -> {
+                (propClass as PsiClass).supers()
+                        .filter(PsiClass::isEntity)
+                        .mapNotNull { it.name }
+                        .filter { it != "Object" }
             }
 
-            Language.Kotlin -> {
-                entityFile.ktClass(project, propPath)?.virtualFile ?: return emptyList()
+            KotlinLanguage.INSTANCE -> {
+                val ktClass = PsiTreeUtil.findChildOfType(propClass.containingFile.virtualFile.toPsiFile(project), KtClass::class.java)
+                (ktClass as KtClass).supers()
+                        .filter(KtClass::isEntity)
+                        .mapNotNull(KtClass::getName)
             }
+
+            else -> emptyList()
         }
-        return propClassFile.supers(project) + propClassFile.name.substringBeforeLast('.') + "this"
+        return supers + propClass.name!! + "this"
     }
 }

@@ -160,11 +160,11 @@ object DTOPsiUtil {
     }
 
     private fun resolveMacroThis(arg: DTOMacroArg): PsiElement? {
-        return resolveMacroThis(arg.parent as DTOMacroArgs)
+        return resolveMacroThis(arg.parent.parent as DTOMacro)
     }
 
-    fun resolveMacroThis(args: DTOMacroArgs): PsiElement? {
-        val propPath = args.parent.propPath()
+    fun resolveMacroThis(args: DTOMacro): PsiNamedElement? {
+        val propPath = args.propPath()
         val dtoClass = args.fqeClass ?: return null
 
         return if (propPath.isEmpty()) {

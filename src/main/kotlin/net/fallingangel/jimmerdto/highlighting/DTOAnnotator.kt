@@ -9,7 +9,6 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.*
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
@@ -66,7 +65,7 @@ class DTOAnnotator : Annotator {
         override fun visitMacroArgs(o: DTOMacroArgs) {
             val argList = o.macroArgList
             if (argList.isEmpty()) {
-                o.error("Macro arg list cannot be empty", InsertMacroArg(o))
+                o.error("Macro arg list cannot be empty", InsertMacroArg(o.parent as DTOMacro))
                 return
             }
 
@@ -87,7 +86,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 宏可用参数，<this>一定是最后一个
-            val macroAvailableParams = o[StructureType.MacroTypes]
+            val macroAvailableParams = (o.parent as DTOMacro)[StructureType.MacroTypes]
             for (macroArg in o.macroArgList) {
                 // 当前元素不在宏可用参数中，即为非法
                 if (macroArg.text !in macroAvailableParams) {
@@ -106,7 +105,7 @@ class DTOAnnotator : Annotator {
                 }
                 // 当前实体的简单类名和this同时出现
                 // 当前实体的简单类名
-                val thisName = (DTOPsiUtil.resolveMacroThis(o) as PsiNamedElement).name
+                val thisName = DTOPsiUtil.resolveMacroThis(o.parent as DTOMacro)!!.name
 
                 // 等价于this的宏参数
                 val sameThisArg = o.macroArgList.find { it.text == thisName }

@@ -222,7 +222,7 @@ class DTOCompletionContributor : CompletionContributor() {
         )
         complete(
             { parameters, result ->
-                val macroArgs = parameters.position.parent.parent<DTOMacroArgs>()
+                val macroArgs = parameters.position.parent.parent.parent<DTOMacro>()
                 result.addAllElements(macroArgs[StructureType.MacroTypes].lookUp())
             },
             identifier.withParent(psiElement(DTOMacroArg::class.java)),

@@ -111,31 +111,6 @@ fun VirtualFile.properties(project: Project, propPath: List<String> = emptyList(
     return properties ?: emptyList()
 }
 
-/**
- * 获取实体类文件中实体类的基类型列表
- */
-fun VirtualFile.supers(project: Project): List<String> {
-    val supers = try {
-        when (language) {
-            Language.Java -> {
-                psiClass(project)?.supers()
-                        ?.filter(PsiClass::isEntity)
-                        ?.mapNotNull { it.name }
-                        ?.filter { it != "Object" }
-            }
-
-            Language.Kotlin -> {
-                ktClass(project)?.supers()
-                        ?.filter(KtClass::isEntity)
-                        ?.mapNotNull(KtClass::getName)
-            }
-        }
-    } catch (e: IllegalFileFormatException) {
-        null
-    }
-    return supers ?: emptyList()
-}
-
 fun PsiClass.supers(): List<PsiClass> {
     return supers.toList() + supers.map { it.supers.toList() }.flatten()
 }
