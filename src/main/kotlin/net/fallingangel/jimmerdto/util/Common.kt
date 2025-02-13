@@ -8,8 +8,10 @@ import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.PsiTreeUtil
 import net.fallingangel.jimmerdto.enums.Language
 import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
@@ -55,6 +57,9 @@ val DTOElement.fqe: String
                     .substringBeforeLast('.')
                     .replace('/', '.')
     }
+
+val DTOElement.fqeClass: PsiClass?
+    get() = JavaPsiFacade.getInstance(project).findClass(fqe, ProjectScope.getAllScope(project))
 
 /**
  * 从PsiClass定义中，依据字段路径寻找它的Psi元素

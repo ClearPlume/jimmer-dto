@@ -37,12 +37,11 @@ object DTOPsiUtil {
 
     @JvmStatic
     fun unaryPlus(name: DTOPropName): PsiElement? {
-        val project = name.project
         return when (val prop = name.parent) {
-            is DTONegativeProp -> JavaPsiFacade.getInstance(project).findClass(name.fqe, ProjectScope.getAllScope(project))?.element(prop.propPath())
+            is DTONegativeProp -> name.fqeClass?.element(prop.propPath())
 
             is DTOPositiveProp -> if (prop.propArgs == null) {
-                JavaPsiFacade.getInstance(project).findClass(name.fqe, ProjectScope.getAllScope(project))?.element(prop.propPath())
+                name.fqeClass?.element(prop.propPath())
             } else {
                 null
             }
@@ -106,10 +105,9 @@ object DTOPsiUtil {
 
     @JvmStatic
     fun unaryPlus(enum: DTOEnumInstance): PsiElement? {
-        val project = enum.project
         val enumName = enum.text
         val prop = enum.parent.parent.parent
-        val propElement = JavaPsiFacade.getInstance(project).findClass(enum.fqe, ProjectScope.getAllScope(project))?.element(prop.propPath())
+        val propElement = enum.fqeClass?.element(prop.propPath())
         propElement ?: return null
 
         return if (propElement.language == KotlinLanguage.INSTANCE) {
@@ -166,9 +164,8 @@ object DTOPsiUtil {
     }
 
     fun resolveMacroThis(args: DTOMacroArgs): PsiElement? {
-        val project = args.project
         val propPath = args.parent.propPath()
-        val dtoClass = JavaPsiFacade.getInstance(project).findClass(args.fqe, ProjectScope.getAllScope(project)) ?: return null
+        val dtoClass = args.fqeClass ?: return null
 
         return if (propPath.isEmpty()) {
             dtoClass
@@ -203,9 +200,8 @@ object DTOPsiUtil {
 
     @JvmStatic
     fun unaryPlus(value: DTOValue): PsiElement? {
-        val project = value.project
         val prop = value.parent.parent as DTOPositiveProp
-        val clazz = JavaPsiFacade.getInstance(project).findClass(prop.fqe, ProjectScope.getAllScope(project)) ?: return null
+        val clazz = prop.fqeClass ?: return null
         val propPath = value.propPath()
         if (propPath.isEmpty()) {
             return null
