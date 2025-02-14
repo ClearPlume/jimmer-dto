@@ -90,7 +90,11 @@ macro ::= "#" macro-name macro-args? ("?" | "!")? {
     pin = 1
 }
 
-macro-name ::= IDENTIFIER
+macro-name ::= IDENTIFIER {
+    implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
+    mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
+    methods=[getName]
+}
 
 macro-args ::= "(" (macro-arg ("," macro-arg)*)? ")"
 

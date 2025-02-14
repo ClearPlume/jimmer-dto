@@ -163,9 +163,9 @@ object DTOPsiUtil {
         return resolveMacroThis(arg.parent.parent as DTOMacro)
     }
 
-    fun resolveMacroThis(args: DTOMacro): PsiNamedElement? {
-        val propPath = args.propPath()
-        val dtoClass = args.fqeClass ?: return null
+    fun resolveMacroThis(macro: DTOMacro): PsiNamedElement? {
+        val propPath = macro.propPath()
+        val dtoClass = macro.fqeClass ?: return null
 
         return if (propPath.isEmpty()) {
             dtoClass
@@ -208,4 +208,7 @@ object DTOPsiUtil {
         }
         return clazz.element(propPath)
     }
+
+    @JvmStatic
+    fun getName(macro: DTOMacroName) = macro.name("allScalars")
 }

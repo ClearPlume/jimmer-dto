@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+* Added support for k2 mode
+* Issue [#35](https://github.com/ClearPlume/jimmer-dto/issues/35): Added Quick Documentation for macros, displaying a list of properties mentioned by
+  the macros
+
 ## [0.0.7.36] - 2025-02-12
 
 ### Added
@@ -121,7 +127,8 @@
 
 ### Fixed
 
-* Issue [#21](https://github.com/ClearPlume/jimmer-dto/issues/21): Update CreateJimmerDtoFile#getActionUpdateThread method to return ActionUpdateThread.BGT
+* Issue [#21](https://github.com/ClearPlume/jimmer-dto/issues/21): Update CreateJimmerDtoFile#getActionUpdateThread method to return
+  ActionUpdateThread.BGT
 
 ## [0.0.7.25] - 2024-09-09
 
@@ -145,7 +152,8 @@
 * Issue [#16](https://github.com/ClearPlume/jimmer-dto/issues/16): Add error message and quick fix for unstructured association prop
 * Issue [#15](https://github.com/ClearPlume/jimmer-dto/issues/15): Add warning and quick fix for using generated DTOs as user-prop type in Jimmer
 * Issue [#14](https://github.com/ClearPlume/jimmer-dto/issues/14): Fix issue where null method in specification DTO are not recognized as method
-* Issue [#13](https://github.com/ClearPlume/jimmer-dto/issues/13): Update InsertEntityPropAction#getActionUpdateThread method to return ActionUpdateThread.BGT
+* Issue [#13](https://github.com/ClearPlume/jimmer-dto/issues/13): Update InsertEntityPropAction#getActionUpdateThread method to return
+  ActionUpdateThread.BGT
 
 ## [0.0.7.23] - 2024-08-19
 
@@ -157,7 +165,8 @@
 
 ### Fixed
 
-* Issue [#11](https://github.com/ClearPlume/jimmer-dto/issues/11): Add error message and repair options for duplicate names between user prop and entity prop
+* Issue [#11](https://github.com/ClearPlume/jimmer-dto/issues/11): Add error message and repair options for duplicate names between user prop and
+  entity prop
 * Issue [#10](https://github.com/ClearPlume/jimmer-dto/issues/10): Fix error and improve hints for macro arg involving ancestor types
 
 ## [0.0.7.21] - 2024-05-10
