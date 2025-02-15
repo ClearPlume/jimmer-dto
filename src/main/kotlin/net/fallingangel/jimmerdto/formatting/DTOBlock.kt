@@ -23,7 +23,7 @@ class DTOBlock(
             return Indent.getNormalIndent()
         }
         if (
-            node.treeParent?.elementType == EXPORT &&
+            node.treeParent?.elementType == EXPORT_STATEMENT &&
             (node.treePrev?.elementType == TokenType.WHITE_SPACE && node.treePrev?.treePrev?.elementType == QUALIFIED_TYPE ||
                     node.treePrev?.elementType == QUALIFIED_TYPE)
         ) {
