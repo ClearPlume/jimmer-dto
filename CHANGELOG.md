@@ -8,6 +8,11 @@
 * Issue [#35](https://github.com/ClearPlume/jimmer-dto/issues/35): Added Quick Documentation for macros, displaying a list of properties mentioned by
   the macros
 
+### Fixed
+
+* Issue [#38](https://github.com/ClearPlume/jimmer-dto/issues/38): Fixed an issue where macro parameter hints would not appear if the macro parameter
+  list was empty
+
 ## [0.0.7.36] - 2025-02-12
 
 ### Added

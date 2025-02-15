@@ -100,15 +100,14 @@ class DTOCompletionContributor : CompletionContributor() {
         val parent = element.parent
         when {
             parent is DTOEnumInstanceValue -> context.dummyIdentifier = ""
+
             parent is DTOEnumInstanceMapping
                     && element.prevSibling.elementType == DTOTypes.COLON -> context.dummyIdentifier = ""
-
-            parent is DTOMacroArgs
-                    || parent.parent is DTOMacroArgs -> context.dummyIdentifier = ""
 
             parent.parent is DTOPropArgs -> context.dummyIdentifier = ""
 
             parent is DTOAnnotationArrayValue -> context.dummyIdentifier += "()"
+
             parent is DTOAnnotationName && parent.parent is DTOAnnotationConstructor && parent.parent.parent is DTOAnnotation -> {
                 context.dummyIdentifier = CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED
             }
