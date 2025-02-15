@@ -63,6 +63,7 @@
         <codeInsight.lineMarkerProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.DTOLineMarkerProvider"/>
         <codeInsight.inlayProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOInlayHintProvider"/>
 
+        <backgroundPostStartupActivity implementation="net.fallingangel.jimmerdto.service.StartupServices"/>
         <notificationGroup id="JimmerDTO Notification Group" displayType="BALLOON"/>
 
         <fileBasedIndex implementation="net.fallingangel.jimmerdto.util.AnnotationClassIndex"/>

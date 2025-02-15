@@ -11,6 +11,8 @@
 * Issue [#39](https://github.com/ClearPlume/jimmer-dto/issues/39): Added reference resolution to DTO name
 * Issue [#31](https://github.com/ClearPlume/jimmer-dto/issues/31): Fixed an issue where missing classes or packages in export and import statements
   were not producing error messages
+* Issue [#32](https://github.com/ClearPlume/jimmer-dto/issues/32): Fixed an issue where the corresponding DTO class was not being deleted upon saving
+  the DTO file
 
 ### Fixed
 
