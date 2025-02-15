@@ -13,6 +13,8 @@
   were not producing error messages
 * Issue [#32](https://github.com/ClearPlume/jimmer-dto/issues/32): Fixed an issue where the corresponding DTO class was not being deleted upon saving
   the DTO file
+* Issue [#29](https://github.com/ClearPlume/jimmer-dto/issues/29): Fixed an issue where an `import` statement was incorrectly inserted when completing
+  class suggestions in `export` statements.
 
 ### Fixed
 

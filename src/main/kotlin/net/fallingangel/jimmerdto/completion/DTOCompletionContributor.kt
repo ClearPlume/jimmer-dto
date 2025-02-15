@@ -431,7 +431,8 @@ class DTOCompletionContributor : CompletionContributor() {
             identifier.withParent(DTOQualifiedNamePart::class.java)
                     .withSuperParent(4, DTOExportStatement::class.java),
             DTOTypes.EXPORT,
-            Project::allEntities
+            Project::allEntities,
+            needImport = false,
         )
     }
 
@@ -507,6 +508,7 @@ class DTOCompletionContributor : CompletionContributor() {
         statementKeyword: IElementType,
         crossinline classes: Project.(String?) -> List<PsiClass>,
         classAvailableBeforeFirstDot: Boolean = false,
+        needImport: Boolean = true,
     ) {
         complete(
             { parameters, result ->
@@ -530,9 +532,9 @@ class DTOCompletionContributor : CompletionContributor() {
                 }
                 val curPackage = typedPackage.joinToString(".")
                 val curPackageClasses = if (typedPackage.isEmpty() && classAvailableBeforeFirstDot) {
-                    project.classes(null).lookUp()
+                    project.classes(null).lookUp(needImport)
                 } else {
-                    project.classes(curPackage).lookUp()
+                    project.classes(curPackage).lookUp(needImport)
                 }
 
                 val availablePackages = project.allPackages(curPackage)
@@ -726,36 +728,38 @@ class DTOCompletionContributor : CompletionContributor() {
     }
 
     @JvmName("lookupPsiClass")
-    private fun List<PsiClass>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }) = map {
+    private fun List<PsiClass>.lookUp(needImport: Boolean = true, customizer: LookupElementBuilder.() -> LookupElement = { this }) = map {
         val qualifiedName = it.qualifiedName!!
         val name = it.name!!
         LookupElementBuilder.create(qualifiedName, name)
                 .withIcon(it.icon)
                 .withTypeText("(${qualifiedName.substringBeforeLast('.')})", true)
                 .withInsertHandler { context, _ ->
-                    WriteCommandAction.runWriteCommandAction(context.project) {
-                        val file = context.file as DTOFile
-                        val export = file.findChildByClass(DTOExportStatement::class.java)
-                        val imports = file.findChildrenByClass(DTOImportStatement::class.java)
-                        val importedSameName = imports.any { i -> i.qualified.substringAfterLast('.') == name }
-                        val import = imports.find { i -> i.qualified == qualifiedName }
+                    if (needImport) {
+                        WriteCommandAction.runWriteCommandAction(context.project) {
+                            val file = context.file as DTOFile
+                            val export = file.findChildByClass(DTOExportStatement::class.java)
+                            val imports = file.findChildrenByClass(DTOImportStatement::class.java)
+                            val importedSameName = imports.any { i -> i.qualified.substringAfterLast('.') == name }
+                            val import = imports.find { i -> i.qualified == qualifiedName }
 
-                        if (importedSameName) {
-                            if (import == null) {
-                                val annotationName = file.findElementAt(context.startOffset)?.parent ?: return@runWriteCommandAction
-                                val newAnnotationName = context.project.createAnnotation(qualifiedName).annotationConstructor.annotationName
-                                annotationName.parent.node.replaceChild(annotationName.node, newAnnotationName!!.node)
-                            }
-                        } else {
-                            if (import == null) {
-                                if (imports.isEmpty()) {
-                                    if (export == null) {
-                                        file.node.addLeaf(TokenType.WHITE_SPACE, "import $qualifiedName\n\n", file.node.firstChildNode)
+                            if (importedSameName) {
+                                if (import == null) {
+                                    val annotationName = file.findElementAt(context.startOffset)?.parent ?: return@runWriteCommandAction
+                                    val newAnnotationName = context.project.createAnnotation(qualifiedName).annotationConstructor.annotationName
+                                    annotationName.parent.node.replaceChild(annotationName.node, newAnnotationName!!.node)
+                                }
+                            } else {
+                                if (import == null) {
+                                    if (imports.isEmpty()) {
+                                        if (export == null) {
+                                            file.node.addLeaf(TokenType.WHITE_SPACE, "import $qualifiedName\n\n", file.node.firstChildNode)
+                                        } else {
+                                            file.node.addLeaf(DTOTypes.IMPORT, "\n\nimport $qualifiedName", export.node.treeNext)
+                                        }
                                     } else {
-                                        file.node.addLeaf(DTOTypes.IMPORT, "\n\nimport $qualifiedName", export.node.treeNext)
+                                        file.node.addLeaf(DTOTypes.IMPORT, "\nimport $qualifiedName", imports.last().node.treeNext)
                                     }
-                                } else {
-                                    file.node.addLeaf(DTOTypes.IMPORT, "\nimport $qualifiedName", imports.last().node.treeNext)
                                 }
                             }
                         }
