@@ -30,25 +30,6 @@ import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.types.KotlinType
 
 /**
- * 获取类文件中的类名Element
- */
-fun VirtualFile.nameIdentifier(project: Project): PsiNameIdentifierOwner? {
-    return try {
-        when (language) {
-            Language.Java -> {
-                psiClass(project)
-            }
-
-            Language.Kotlin -> {
-                ktClass(project)
-            }
-        }
-    } catch (e: IllegalFileFormatException) {
-        null
-    }
-}
-
-/**
  * 获取类文件中类的注解，全限定名
  */
 fun VirtualFile.annotations(project: Project): List<String> {

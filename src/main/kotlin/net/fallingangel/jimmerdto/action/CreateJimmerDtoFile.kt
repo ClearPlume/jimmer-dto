@@ -6,9 +6,10 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.psi.PsiClass
 import net.fallingangel.jimmerdto.util.*
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
-import org.jetbrains.kotlin.idea.refactoring.memberInfo.qualifiedClassNameForRendering
+import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 
 class CreateJimmerDtoFile : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
@@ -19,13 +20,13 @@ class CreateJimmerDtoFile : AnAction() {
             NotificationType.WARNING
         )
 
-        val entityFile = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
-        val qualifiedEntityName = entityFile.nameIdentifier(project)?.qualifiedClassNameForRendering() ?: return
-        val entityPackage = qualifiedEntityName.substringBeforeLast('.', "")
-        val entityName = qualifiedEntityName.substringAfterLast('.')
-        val dtoFileName = "$entityPackage/$entityName.dto"
+        val entityClass = event.getData(CommonDataKeys.VIRTUAL_FILE)?.toPsiFile(project)?.getChildOfType<PsiClass>() ?: return
+        val entityQualifiedName = entityClass.qualifiedName ?: return
+        val entityPackage = entityQualifiedName.substringBeforeLast('.', "")
+        val entityName = entityClass.name ?: return
+        val dtoFileName = entityClass.qualifiedName?.replaceAfterLast('.', "dto") ?: return
 
-        val dtoRoot = entityFile.toPsiFile(project)?.originalElement?.let { dtoRoot(it) } ?: return
+        val dtoRoot = dtoRoot(entityClass) ?: return
         val dtoFile = dtoRoot.findFile(dtoFileName)
 
         if (dtoFile != null) {

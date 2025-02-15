@@ -6,7 +6,6 @@ import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.patterns.*
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
@@ -23,10 +22,7 @@ import net.fallingangel.jimmerdto.psi.*
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
-import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
-import java.nio.file.Paths
 import javax.swing.Icon
 
 val PsiWhiteSpace.haveUpper: Boolean
@@ -153,30 +149,6 @@ fun PsiElement.propPath(): List<String> {
 
 inline fun <reified P> PsiElement.parent(): P {
     return parent as P
-}
-
-fun DTODto.classFile(): VirtualFile? {
-    val dtoName = dtoName.text
-    // 获取GenerateSource源码路径
-    val generateRoot = generateRoot(this) ?: return null
-    val fileManager = VirtualFileManager.getInstance()
-    val export = virtualFile.toPsiFile(project)?.getChildOfType<DTOExportStatement>()
-    val `package` = export?.packageStatement
-
-    val dtoPath = if (export != null) {
-        /* 获取package关键字定义的dto类路径 */
-        val packageDtoPath = `package`?.qualifiedType?.text?.replace('.', '/')
-        /* 若没有指定package，则获取export关键字指定的类路径对应的dto类路径 */
-        packageDtoPath ?: (export.qualified.substringBeforeLast('.') + ".dto").replace('.', '/')
-    } else {
-        /* 获取默认的dto文件生成类路径 */
-        // 获取dto根路径
-        val dtoRoot = dtoRoot(this)?.path ?: return null
-        // 获取dto相对dto根路径的路径
-        virtualFile.path.removePrefix(dtoRoot).replace(Regex("/(.+)/.+?dto$"), "$1/dto")
-    }
-    val generateDtoRoot = fileManager.findFileByNioPath(Paths.get("${generateRoot.path}/$dtoPath")) ?: return null
-    return generateDtoRoot.children.find { it.name.split('.')[0] == dtoName }
 }
 
 /**

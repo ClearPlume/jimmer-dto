@@ -96,13 +96,6 @@ fun PsiClass.element(propPath: List<String>): PsiElement? {
     }
 }
 
-fun generateRoot(element: PsiElement): VirtualFile? {
-    val generateRoot by lazy {
-        root(element).firstOrNull { file -> "generated-sources" in file.path || "generated" in file.path }
-    }
-    return generateRoot
-}
-
 fun sourceRoot(element: PsiElement): VirtualFile? {
     val sourceRoot by lazy {
         root(element).firstOrNull { file -> "src" in file.path }
