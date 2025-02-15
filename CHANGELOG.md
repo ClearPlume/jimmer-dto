@@ -9,18 +9,20 @@
   the macros
 * Issue [#36](https://github.com/ClearPlume/jimmer-dto/issues/36): Added a quick fix for correcting macro name
 * Issue [#39](https://github.com/ClearPlume/jimmer-dto/issues/39): Added reference resolution to DTO name
-* Issue [#31](https://github.com/ClearPlume/jimmer-dto/issues/31): Fixed an issue where missing classes or packages in export and import statements
-  were not producing error messages
-* Issue [#32](https://github.com/ClearPlume/jimmer-dto/issues/32): Fixed an issue where the corresponding DTO class was not being deleted upon saving
-  the DTO file
-* Issue [#29](https://github.com/ClearPlume/jimmer-dto/issues/29): Fixed an issue where an `import` statement was incorrectly inserted when completing
-  class suggestions in `export` statements.
 
 ### Fixed
 
 * Issue [#38](https://github.com/ClearPlume/jimmer-dto/issues/38): Fixed an issue where macro parameter hints would not appear if the macro parameter
   list was empty
 * Issue [#37](https://github.com/ClearPlume/jimmer-dto/issues/37): Fixed the issue where there should be no space before "*?!" within a prop
+* Issue [#31](https://github.com/ClearPlume/jimmer-dto/issues/31): Fixed an issue where missing classes or packages in export and import statements
+  were not producing error messages
+* Issue [#32](https://github.com/ClearPlume/jimmer-dto/issues/32): Fixed an issue where the corresponding DTO class was not being deleted upon saving
+  the DTO file
+* Issue [#29](https://github.com/ClearPlume/jimmer-dto/issues/29): Fixed an issue where an `import` statement was incorrectly inserted when completing
+  class suggestions in `export` statements
+* Issue [#41](https://github.com/ClearPlume/jimmer-dto/issues/41): Improved type hinting in prop suggestions to include information about
+  nullability
 
 ## [0.0.7.36] - 2025-02-12
 

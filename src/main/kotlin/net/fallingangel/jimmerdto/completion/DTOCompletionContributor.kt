@@ -721,8 +721,9 @@ class DTOCompletionContributor : CompletionContributor() {
     @JvmName("lookupProperty")
     private fun List<Property>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }): List<LookupElement> {
         return map {
+            val nullable = it.nullable
             LookupElementBuilder.create(it.name)
-                    .withTypeText(it.type, true)
+                    .withTypeText(it.type + if (nullable) "?" else "", true)
                     .customizer()
         }
     }
