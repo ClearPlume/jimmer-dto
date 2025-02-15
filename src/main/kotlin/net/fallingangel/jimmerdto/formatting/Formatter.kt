@@ -50,6 +50,7 @@ class Formatter : FormattingModelBuilder {
                 .afterInside(BRACE_L, parents).emptyLine(0)
                 .beforeInside(BRACE_R, parents).emptyLine(0)
                 .around(dtoProps).emptyLine(1)
+                .beforeInside(TokenSet.create(OPTIONAL, REQUIRED, ASTERISK), POSITIVE_PROP).spaces(0)
                 .between(PROP_NAME, PROP_ARGS).spaces(0)
                 .around(PROP_NAME).spaces(1)
                 .betweenInside(QUALIFIED_NAME, GENERIC_ARGS, TYPE_DEF).spaces(0)

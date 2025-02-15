@@ -7,6 +7,7 @@
 * Added support for k2 mode
 * Issue [#35](https://github.com/ClearPlume/jimmer-dto/issues/35): Added Quick Documentation for macros, displaying a list of properties mentioned by
   the macros
+* Issue [#37](https://github.com/ClearPlume/jimmer-dto/issues/37): Fixed the issue where there should be no space before "*?!" within a prop
 
 ### Fixed
 
