@@ -107,7 +107,7 @@ class DTOAnnotator : Annotator {
                 }
                 // 当前实体的简单类名和this同时出现
                 // 当前实体的简单类名
-                val thisName = DTOPsiUtil.resolveMacroThis(o.parent as DTOMacro)!!.name
+                val thisName = DTOPsiUtil.resolveMacroThis(o.parent as DTOMacro)?.name ?: return
 
                 // 等价于this的宏参数
                 val sameThisArg = o.macroArgList.find { it.text == thisName }
@@ -403,7 +403,7 @@ class DTOAnnotator : Annotator {
                 return
             }
 
-            when (o.parent.parent.parent.parent) {
+            when (o.parent.parent.parent) {
                 is DTOExportStatement -> o.visitPackage(DTOTypes.EXPORT, Project::allEntities)
                 is DTOImportStatement -> o.visitPackage(DTOTypes.IMPORT, Project::allClasses)
             }
