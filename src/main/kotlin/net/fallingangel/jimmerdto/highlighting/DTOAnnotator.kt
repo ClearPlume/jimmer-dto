@@ -54,8 +54,10 @@ class DTOAnnotator : Annotator {
                 o.firstChild.style(DTOSyntaxHighlighter.MACRO)
                 macroName.style(DTOSyntaxHighlighter.MACRO)
             } else {
-                o.firstChild.error()
-                macroName.error()
+                macroName.error(
+                    "Macro name should be \"allScalars\"",
+                    ReplaceElement(macroName, o.project.createMacro().macroName!!),
+                )
             }
         }
 

@@ -120,10 +120,15 @@ fun Project.createValue(value: String): DTOValue {
             .valueList[0]
 }
 
-fun Project.createMacroArg(arg: String): DTOMacroArg {
-    return createDTO("Dummy", macros = listOf("#allScalars($arg)"))
+fun Project.createMacro(argList: List<String> = emptyList()): DTOMacro {
+    val args = argList.joinToString(",")
+    return createDTO("Dummy", macros = listOf("#allScalars($args)"))
             .dtoBody!!
-            .macroList[0]!!
+            .macroList[0]
+}
+
+fun Project.createMacroArg(arg: String): DTOMacroArg {
+    return createMacro(listOf(arg))
             .macroArgs!!
             .macroArgList[0]
 }
