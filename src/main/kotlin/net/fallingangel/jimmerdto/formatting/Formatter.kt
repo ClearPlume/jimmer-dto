@@ -45,6 +45,7 @@ class Formatter : FormattingModelBuilder {
                 .betweenInside(ANNOTATION, DTO_BODY, PROP_BODY).spaces(1)
                 .after(ANNOTATION).emptyLine(0)
                 .around(ANNOTATION_VALUE).spaces(0)
+                .after(PROP_CONFIG).emptyLine(0)
                 .around(DTO_NAME).spaces(1)
                 .around(INTERFACES).spaces(1)
                 .afterInside(BRACE_L, parents).emptyLine(0)
