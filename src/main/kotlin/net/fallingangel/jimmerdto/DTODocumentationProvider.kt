@@ -73,11 +73,13 @@ class DTODocumentationProvider : AbstractDocumentationProvider() {
 
     @JvmName("renderArgJ")
     private fun Map<PsiClass, List<PsiMethod>>.renderArg(): String {
-        return map { (clazz, methods) ->
-            val methodsString = methods.joinToString("\n") {
+        return map { (clazz, props) ->
+            val propsString = props.joinToString("\n") {
+                val nullable = it.annotations.any { annotation -> annotation.qualifiedName!!.substringAfterLast('.') in listOf("Null", "Nullable") }
+                val propType = it.returnType
                 """
                     $SECTION_HEADER_START
-                    ${it.returnType?.clazz()?.name}
+                    ${propType?.clazz()?.name ?: propType?.presentableText}${if (nullable) "?" else ""}
                     $SECTION_SEPARATOR
                     <p>
                     ${it.name}
@@ -89,7 +91,7 @@ class DTODocumentationProvider : AbstractDocumentationProvider() {
             """
                 $DEFINITION_START${clazz.qualifiedName}$DEFINITION_END
                 $SECTIONS_START
-                $methodsString
+                $propsString
                 $SECTIONS_END
             """.trimIndent()
         }.joinToString("\n")
