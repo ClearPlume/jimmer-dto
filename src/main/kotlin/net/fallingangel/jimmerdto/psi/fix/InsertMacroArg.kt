@@ -29,9 +29,10 @@ class InsertMacroArg(private val element: DTOMacro) : BaseFix() {
                 if (event.isOk) {
                     val selectedArg = argsHolder.selectedValue
                     val arg = project.createMacroArg(selectedArg)
+                    val argsNode = element.macroArgs!!.node
 
                     WriteCommandAction.runWriteCommandAction(project) {
-                        element.node.addChild(arg.node, element.node.lastChildNode)
+                        argsNode.addChild(arg.node, argsNode.lastChildNode)
                     }
                 }
             }
