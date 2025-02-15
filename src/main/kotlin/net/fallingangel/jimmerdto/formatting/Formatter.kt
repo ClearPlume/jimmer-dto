@@ -34,7 +34,7 @@ class Formatter : FormattingModelBuilder {
                 .after(DTOTokenTypes.comments).emptyLine(0)
 
                 // psi elements
-                .after(EXPORT).emptyLine(1)
+                .after(EXPORT_STATEMENT).emptyLine(1)
                 .around(EXPORT).spaces(1)
                 .afterInside(QUALIFIED_TYPE, EXPORT).emptyLine(0)
                 .after(PACKAGE).spaces(1)
