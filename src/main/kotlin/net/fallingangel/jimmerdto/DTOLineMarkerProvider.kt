@@ -30,7 +30,7 @@ class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
             result.add(
                 NavigationGutterIconBuilder.create(Icons.icon_16)
                         .setTargets(dtoClass)
-                        .setTooltipText("Jump to generated class [$dtoName]")
+                        .setTooltipText("Jump to generated class [${dtoName.text}]")
                         .createLineMarkerInfo(element)
             )
         }
