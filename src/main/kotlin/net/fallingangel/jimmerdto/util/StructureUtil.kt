@@ -70,6 +70,11 @@ val DTOExportStatement.qualified: String
             .filter { it.elementType != TokenType.WHITE_SPACE }
             .joinToString(".", transform = PsiElement::getText)
 
+val DTOPackageStatement.qualified: String
+    get() = qualifiedType.qualifiedName.qualifiedNamePartList
+            .filter { it.elementType != TokenType.WHITE_SPACE }
+            .joinToString(".", transform = PsiElement::getText)
+
 val DTOImportStatement.qualified: String
     get() = qualifiedType.qualifiedName.qualifiedNamePartList
             .filter { it.elementType != TokenType.WHITE_SPACE }

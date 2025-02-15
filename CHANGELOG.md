@@ -8,6 +8,7 @@
 * Issue [#35](https://github.com/ClearPlume/jimmer-dto/issues/35): Added Quick Documentation for macros, displaying a list of properties mentioned by
   the macros
 * Issue [#36](https://github.com/ClearPlume/jimmer-dto/issues/36): Added a quick fix for correcting macro name
+* Issue [#39](https://github.com/ClearPlume/jimmer-dto/issues/39): Added reference resolution to DTO name
 
 ### Fixed
 

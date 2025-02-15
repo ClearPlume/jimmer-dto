@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.resolve.BindingContext
 
 object DTOPsiUtil {
@@ -211,4 +212,29 @@ object DTOPsiUtil {
 
     @JvmStatic
     fun getName(macro: DTOMacroName) = macro.name("allScalars")
+
+    @JvmStatic
+    fun getName(name: DTODtoName): String {
+        return name.text
+    }
+
+    @JvmStatic
+    fun setName(name: DTODtoName, newName: String): DTODtoName {
+        val oldNameNode = name.node
+        oldNameNode.treeParent.replaceChild(oldNameNode, name.project.createDTOName(newName).node)
+        return name
+    }
+
+    @JvmStatic
+    fun invoke(name: DTODtoName): Array<PsiReference> {
+        return arrayOf(DTOReference(name, name.identifier.textRangeInParent))
+    }
+
+    @JvmStatic
+    fun unaryPlus(name: DTODtoName): PsiElement? {
+        val project = name.project
+        val dtoFile = name.containingFile as DTOFile
+        val `package` = dtoFile.getChildOfType<DTOExportStatement>()?.packageStatement?.qualified ?: name.fqe.substringBeforeLast('.')
+        return JavaPsiFacade.getInstance(project).findClass("$`package`.dto.${name.text}", ProjectScope.getAllScope(project))
+    }
 }

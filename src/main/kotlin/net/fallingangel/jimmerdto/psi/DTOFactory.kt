@@ -49,6 +49,10 @@ fun Project.createDTO(
     ).getChildOfType()!!
 }
 
+fun Project.createDTOName(name: String): DTODtoName {
+    return createDTO(name).getChildOfType()!!
+}
+
 fun Project.createAliasGroup(
     pattern: String,
     userProps: List<String> = emptyList(),

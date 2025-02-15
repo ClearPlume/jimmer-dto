@@ -79,7 +79,11 @@ dto ::= annotation* modifier* dto-name interfaces? dto-body {
     pin = 3
 }
 
-dto-name ::= IDENTIFIER
+dto-name ::= IDENTIFIER {
+    implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
+    mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
+    methods=[getName setName invoke unaryPlus]
+}
 
 dto-body ::=
 "{"
