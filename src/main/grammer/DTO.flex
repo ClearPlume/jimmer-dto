@@ -33,8 +33,33 @@ BOOLEAN = true | false
 CHAR = '([^'\\]|\\[btnfr'\\])'
 STRING = \"([^\"\\]|\\.)*\"
 SQL_STRING = '([^']|'')*'
-INTEGER = \d+
-FLOAT = \d+\.\d+
+
+IntegerTypeSuffix = [lL]
+
+DecimalNumeral = 0|[1-9][\d_]*
+DecimalInteger = {DecimalNumeral}{IntegerTypeSuffix}?
+
+HexDigit = [\da-fA-F_]
+HexInteger = 0[xX]{HexDigit}+{IntegerTypeSuffix}?
+
+OctalInteger = 0[0-7_]+{IntegerTypeSuffix}?
+
+BinaryInteger = 0[bB][01_]+{IntegerTypeSuffix}?
+
+Integer = {DecimalInteger}|{HexInteger}|{OctalInteger}|{BinaryInteger}
+
+Digits = \d[\d_]*
+SignedInteger = [+-]?{Digits}
+ExponentPart = [eE]{SignedInteger}
+FloatTypeSuffix = [FfDd]
+
+// 指数『20e2』
+ExponentFloating = {SignedInteger}\.{ExponentPart}{FloatTypeSuffix}?
+// 小数
+DecimalFloatingPoint = {SignedInteger}\.{Digits}{FloatTypeSuffix}?
+// 十六进制小数『0xAB.Cp10』
+HexFloatingPoint = 0[xX]{HexDigit}+\.{HexDigit}+[pP]{SignedInteger}{FloatTypeSuffix}?
+FloatingPoint = {ExponentFloating}|{DecimalFloatingPoint}|{HexFloatingPoint}
 
 %%
 
@@ -76,8 +101,8 @@ FLOAT = \d+\.\d+
     {CHAR}                                                  { return DTOTypes.CHAR_CONSTANT; }
     {STRING}                                                { return DTOTypes.STRING_CONSTANT; }
     {SQL_STRING}                                            { return DTOTypes.SQL_STRING_CONSTANT; }
-    {INTEGER}                                               { return DTOTypes.INTEGER_CONSTANT; }
-    {FLOAT}                                                 { return DTOTypes.FLOAT_CONSTANT; }
+    {Integer}                                               { return DTOTypes.INTEGER_CONSTANT; }
+    {FloatingPoint}                                         { return DTOTypes.FLOAT_CONSTANT; }
 
     ","                                                     { return DTOTypes.COMMA; }
     "."                                                     { return DTOTypes.DOT; }

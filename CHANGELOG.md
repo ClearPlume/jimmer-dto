@@ -23,6 +23,8 @@
   class suggestions in `export` statements
 * Issue [#41](https://github.com/ClearPlume/jimmer-dto/issues/41): Improved type hinting in prop suggestions to include information about
   nullability
+* Issue [#40](https://github.com/ClearPlume/jimmer-dto/issues/40): Enhanced support for numeric literals to include suffixes like l, L, d, D, f, F,
+  and prefixes for hexadecimal and binary representations, as well as exponent notation
 
 ## [0.0.7.36] - 2025-02-12
 
