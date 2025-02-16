@@ -25,7 +25,7 @@ class DTOParserDefinition : ParserDefinition {
         DTOTokenTypes.DOC_COMMENT
     )
 
-    override fun getStringLiteralElements(): TokenSet = TokenSet.create(DTOTypes.STRING_CONSTANT)
+    override fun getStringLiteralElements(): TokenSet = TokenSet.create(DTOTypes.STRING, DTOTypes.SQL_STRING)
 
     override fun createElement(node: ASTNode): PsiElement = DTOTypes.Factory.createElement(node)
 

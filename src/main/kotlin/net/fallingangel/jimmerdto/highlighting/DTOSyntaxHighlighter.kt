@@ -26,7 +26,7 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
             DTOTypes.IMPORT,
             DTOTypes.CLASS,
             DTOTypes.IMPLEMENTS,
-            DTOTypes.BOOLEAN_CONSTANT,
+            DTOTypes.BOOLEAN,
             DTOTypes.NULL,
             DTOTypes.IS,
             DTOTypes.NOT,
@@ -36,9 +36,9 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
             DTOTypes.MODIFIER -> arrayOf(MODIFIER)
             DTOTypes.NEGATIVE_PROP -> arrayOf(NEGATIVE_PROP)
 
-            DTOTypes.CHAR_CONSTANT -> arrayOf(CHAR)
-            DTOTypes.STRING_CONSTANT, DTOTypes.SQL_STRING_CONSTANT -> arrayOf(STRING)
-            DTOTypes.INTEGER_CONSTANT, DTOTypes.FLOAT_CONSTANT -> arrayOf(NUMBER)
+            DTOTypes.CHAR -> arrayOf(CHAR)
+            DTOTypes.STRING, DTOTypes.SQL_STRING -> arrayOf(STRING)
+            DTOTypes.INT, DTOTypes.FLOAT -> arrayOf(NUMBER)
 
             DTOTypes.WHERE_KEYWORD,
             DTOTypes.ORDER_BY_KEYWORD,

@@ -173,7 +173,7 @@ class DTOAnnotator : Annotator {
             }
 
             // replacement
-            val stringConstant = aliasPattern.replacement?.stringConstant
+            val stringConstant = aliasPattern.replacement?.string
             stringConstant?.error(
                 "Unlike the usual case, string literals are not allowed here",
                 ConvertStringToReplacement(stringConstant)

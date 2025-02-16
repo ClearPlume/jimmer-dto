@@ -20,19 +20,19 @@ import net.fallingangel.jimmerdto.psi.DTOTokenTypes;
 %}
 
 CRLF=\R
-WHITE_SPACE=[\ \n\t\f]
-IDENTIFIER = [A-Za-z_$][$\w]*
+WhiteSpace=[\ \n\t\f]
+Identifier = [A-Za-z_$][$\w]*
 
-LINE_COMMENT = "//"[^\r\n]*
-COMMENT_CONTENT = ([^*] | \*+ [^/*])*
-BLOCK_COMMENT = "/*"{COMMENT_CONTENT}"*/"
-DOC_COMMENT = "/**"{COMMENT_CONTENT}"*/"
+LineComment = "//"[^\r\n]*
+CommentContent = ([^*] | \*+ [^/*])*
+BlockComment = "/*"{CommentContent}"*/"
+DocComment = "/**"{CommentContent}"*/"
 
-MODIFIER = input | specification | abstract | unsafe | dynamic | fixed | static | fuzzy | out | in
-BOOLEAN = true | false
-CHAR = '([^'\\]|\\[btnfr'\\])'
-STRING = \"([^\"\\]|\\.)*\"
-SQL_STRING = '([^']|'')*'
+Modifier = input | specification | abstract | unsafe | dynamic | fixed | static | fuzzy | out | in
+Boolean = true | false
+Char = '([^'\\]|\\[btnfr'\\])'
+String = \"([^\"\\]|\\.)*\"
+SqlString = '([^']|'')*'
 
 IntegerTypeSuffix = [lL]
 
@@ -64,9 +64,9 @@ FloatingPoint = {ExponentFloating}|{DecimalFloatingPoint}|{HexFloatingPoint}
 %%
 
 <YYINITIAL> {
-    {DOC_COMMENT}                                           { return DTOTokenTypes.DOC_COMMENT; }
-    {BLOCK_COMMENT}                                         { return DTOTokenTypes.BLOCK_COMMENT; }
-    {LINE_COMMENT}                                          { return DTOTokenTypes.LINE_COMMENT; }
+    {DocComment}                                            { return DTOTokenTypes.DOC_COMMENT; }
+    {BlockComment}                                          { return DTOTokenTypes.BLOCK_COMMENT; }
+    {LineComment}                                           { return DTOTokenTypes.LINE_COMMENT; }
 
     "export"                                                { return DTOTypes.EXPORT; }
     "package"                                               { return DTOTypes.PACKAGE; }
@@ -89,26 +89,27 @@ FloatingPoint = {ExponentFloating}|{DecimalFloatingPoint}|{HexFloatingPoint}
     "!offset"                                               { return DTOTypes.OFFSET_KEYWORD; }
     "!batch"                                                { return DTOTypes.BATCH_KEYWORD; }
     "!depth"                                                { return DTOTypes.DEPTH_KEYWORD; }
-    {MODIFIER}                                              {
+    {Modifier}                                              {
         if (braceLevel > 0) {
             return DTOTypes.IDENTIFIER;
         } else {
             return DTOTypes.MODIFIER;
         }
     }
-    {BOOLEAN}                                               { return DTOTypes.BOOLEAN_CONSTANT; }
+    {Boolean}                                               { return DTOTypes.BOOLEAN; }
     "null"                                                  { return DTOTypes.NULL; }
-    {CHAR}                                                  { return DTOTypes.CHAR_CONSTANT; }
-    {STRING}                                                { return DTOTypes.STRING_CONSTANT; }
-    {SQL_STRING}                                            { return DTOTypes.SQL_STRING_CONSTANT; }
-    {Integer}                                               { return DTOTypes.INTEGER_CONSTANT; }
-    {FloatingPoint}                                         { return DTOTypes.FLOAT_CONSTANT; }
+    {Char}                                                  { return DTOTypes.CHAR; }
+    {String}                                                { return DTOTypes.STRING; }
+    {SqlString}                                             { return DTOTypes.SQL_STRING; }
+    {Integer}                                               { return DTOTypes.INT; }
+    {FloatingPoint}                                         { return DTOTypes.FLOAT; }
 
     ","                                                     { return DTOTypes.COMMA; }
     "."                                                     { return DTOTypes.DOT; }
     "@"                                                     { return DTOTypes.AT; }
     "="                                                     { return DTOTypes.EQ; }
-    "<>"                                                    { return DTOTypes.NE; }
+    "<>"                                                    { return DTOTypes.UE; }
+    "!="                                                    { return DTOTypes.NE; }
     "<"                                                     { return DTOTypes.LT; }
     "<="                                                    { return DTOTypes.LE; }
     ">"                                                     { return DTOTypes.GT; }
@@ -133,8 +134,8 @@ FloatingPoint = {ExponentFloating}|{DecimalFloatingPoint}|{HexFloatingPoint}
     "{"                                                     { braceLevel++; return DTOTypes.BRACE_L; }
     "}"                                                     { braceLevel--; return DTOTypes.BRACE_R; }
 
-    {IDENTIFIER}                                            { return DTOTypes.IDENTIFIER; }
-    ({CRLF}|{WHITE_SPACE})+                                 { return TokenType.WHITE_SPACE; }
+    {Identifier}                                            { return DTOTypes.IDENTIFIER; }
+    ({CRLF}|{WhiteSpace})+                                  { return TokenType.WHITE_SPACE; }
 
     [^]                                                     { return TokenType.BAD_CHARACTER; }
 }

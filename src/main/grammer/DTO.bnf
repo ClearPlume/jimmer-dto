@@ -20,7 +20,8 @@
     DOT="."
     AT="@"
     EQ="="
-    NE="<>"
+    UE="<>"
+    NE="!="
     LT="<"
     LE="<="
     GT=">"
@@ -45,7 +46,6 @@
     BRACE_L="{"
     BRACE_R="}"
 
-    IDENTIFIER="regexp:[$A-Za-z_][$\\w]*"
     WHERE_KEYWORD="!where"
     ORDER_BY_KEYWORD="!orderBy"
     FILTER_KEYWORD="!filter"
@@ -56,12 +56,9 @@
     BATCH_KEYWORD="!batch"
     DEPTH_KEYWORD="!depth"
 
-    BOOLEAN_CONSTANT="regexp:true|false"
-    INTEGER_CONSTANT="regexp:\\d+"
-    FLOAT_CONSTANT="regexp:\\d+\\.\\d+"
-    CHAR_CONSTANT="regexp:'([^'\\]|\\[btnfr'\\])'"
-    STRING_CONSTANT="regexp:\"([^\"\\]|\\.)*\""
-    SQL_STRING_CONSTANT="regexp:'([^']|'')*'"
+    IDENTIFIER
+    STRING
+    SQL_STRING
   ]
 }
 
@@ -122,7 +119,7 @@ alias-power ::= POWER
 
 alias-dollar ::= DOLLAR
 
-replacement ::= STRING_CONSTANT | IDENTIFIER
+replacement ::= STRING | IDENTIFIER
 
 positive-prop ::= (annotation | prop-config)* "+"? modifier? prop-name prop-flags? prop-args? ("?" | "!" | "*")? (as prop-alias)? interfaces? (enum-body | prop-body)? {
     pin = 4
@@ -157,7 +154,7 @@ enum-instance ::= IDENTIFIER {
     methods=[getName setName invoke unaryPlus]
 }
 
-enum-instance-value ::= (INTEGER_CONSTANT | STRING_CONSTANT)
+enum-instance-value ::= (int | string)
 
 negative-prop ::= "-" prop-name {
     pin = 2
@@ -199,9 +196,9 @@ interfaces ::= implements type-def ("," type-def)* {
 
 //parameter-name ::= IDENTIFIER
 
-value ::= CHAR_CONSTANT | STRING_CONSTANT |
-             INTEGER_CONSTANT | FLOAT_CONSTANT |
-             BOOLEAN_CONSTANT | null |
+value ::= char | string |
+             int | float |
+             boolean | null |
              class-value | enum-value | IDENTIFIER | array-value {
     implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
     mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
@@ -238,9 +235,9 @@ annotation-parameter ::= IDENTIFIER "=" annotation-value {
     pin = 1
 }
 
-annotation-value ::= CHAR_CONSTANT | STRING_CONSTANT |
-             INTEGER_CONSTANT | FLOAT_CONSTANT |
-             BOOLEAN_CONSTANT | null |
+annotation-value ::= char | string |
+             int | float |
+             boolean | null |
              nest-annotation | annotation | class-value | enum-value | annotation-array-value
 
 annotation-array-value ::= "[" (annotation-value ("," annotation-value)*)? "]" | "{" (annotation-value ("," annotation-value)*)? "}"
@@ -256,9 +253,9 @@ predicate ::= compare | nullity
 
 compare ::= qualified-name compare-symbol compare-value
 
-compare-symbol ::= "=" | "<>" | "<" | "<=" | ">" | ">="
+compare-symbol ::= "=" | "<>" | "!=" | "<" | "<=" | ">" | ">="
 
-compare-value ::= BOOLEAN_CONSTANT | CHAR_CONSTANT | FLOAT_CONSTANT | INTEGER_CONSTANT | SQL_STRING_CONSTANT
+compare-value ::= boolean | char | float | int | SQL_STRING
 
 nullity ::= qualified-name is not? null
 
@@ -274,10 +271,10 @@ recursion ::= "!recursion" "(" qualified-name ")"
 
 fetchType ::= "!fetchType" "(" IDENTIFIER ")"
 
-limit ::= "!limit" "(" INTEGER_CONSTANT ")"
+limit ::= "!limit" "(" int ")"
 
-offset ::= "!offset" "(" INTEGER_CONSTANT ")"
+offset ::= "!offset" "(" int ")"
 
-batch ::= "!batch" "(" INTEGER_CONSTANT ")"
+batch ::= "!batch" "(" int ")"
 
-depth ::= "!depth" "(" INTEGER_CONSTANT ")"
+depth ::= "!depth" "(" int ")"
