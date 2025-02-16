@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.0.7.37] - 2025-02-16
+
 ### Added
 
 * Added support for k2 mode
