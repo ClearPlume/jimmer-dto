@@ -2,11 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+* Added support for k2 mode
+
 ## [0.0.7.37] - 2025-02-16
 
 ### Added
 
-* Added support for k2 mode
 * Issue [#35](https://github.com/ClearPlume/jimmer-dto/issues/35): Added Quick Documentation for macros, displaying a list of properties mentioned by
   the macros
 * Issue [#36](https://github.com/ClearPlume/jimmer-dto/issues/36): Added a quick fix for correcting macro name
