@@ -54,7 +54,7 @@ ExponentPart = [eE]{SignedInteger}
 FloatTypeSuffix = [FfDd]
 
 // 指数『20e2』
-ExponentFloating = {SignedInteger}\.{ExponentPart}{FloatTypeSuffix}?
+ExponentFloating = {SignedInteger}(\.{Digits})?{ExponentPart}{FloatTypeSuffix}?
 // 小数
 DecimalFloatingPoint = {SignedInteger}\.{Digits}{FloatTypeSuffix}?
 // 十六进制小数『0xAB.Cp10』
