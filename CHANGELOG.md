@@ -5,6 +5,7 @@
 ### Added
 
 * Added support for k2 mode
+* 2025.1 EAP is supported
 
 ## [0.0.7.37] - 2025-02-16
 

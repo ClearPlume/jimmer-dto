@@ -14,7 +14,7 @@ group = "net.fallingangel"
 version = "0.0.7.37"
 
 val since by extra("223.7571.182")
-val until by extra("243.*")
+val until by extra("251.*")
 
 val certificateChainValue = findProperty("certificateChainValue") as String?
 val privateKeyValue = findProperty("privateKeyValue") as String?
