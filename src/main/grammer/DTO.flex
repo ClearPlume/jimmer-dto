@@ -114,6 +114,8 @@ FloatingPoint = {ExponentFloating}|{DecimalFloatingPoint}|{HexFloatingPoint}
     "<="                                                    { return DTOTypes.LE; }
     ">"                                                     { return DTOTypes.GT; }
     ">="                                                    { return DTOTypes.GE; }
+    "like"                                                  { return DTOTypes.LIKE; }
+    "ilike"                                                 { return DTOTypes.ILIKE; }
     ":"                                                     { return DTOTypes.COLON; }
     ";"                                                     { return DTOTypes.SEMICOLON; }
     "#"                                                     { return DTOTypes.HASH; }

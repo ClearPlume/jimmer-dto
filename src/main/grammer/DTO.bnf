@@ -125,7 +125,7 @@ positive-prop ::= (annotation | prop-config)* "+"? modifier? prop-name prop-flag
     pin = 4
 }
 
-prop-name ::= IDENTIFIER | null {
+prop-name ::= IDENTIFIER | null | like {
     implements=["net.fallingangel.jimmerdto.psi.mixin.DTOElement"; "net.fallingangel.jimmerdto.psi.mixin.DTONamedElement"]
     mixin="net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl"
     methods=[getName setName invoke unaryPlus]
@@ -253,7 +253,7 @@ predicate ::= compare | nullity
 
 compare ::= qualified-name compare-symbol compare-value
 
-compare-symbol ::= "=" | "<>" | "!=" | "<" | "<=" | ">" | ">="
+compare-symbol ::= "=" | "<>" | "!=" | "<" | "<=" | ">" | ">=" | like | ilike
 
 compare-value ::= boolean | char | float | int | SQL_STRING
 

@@ -31,7 +31,11 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
             DTOTypes.IS,
             DTOTypes.NOT,
             DTOTypes.AND,
-            DTOTypes.OR -> arrayOf(KEYWORD)
+            DTOTypes.LIKE,
+            DTOTypes.ILIKE,
+            DTOTypes.OR,
+            DTOTypes.ASC,
+            DTOTypes.DESC -> arrayOf(KEYWORD)
 
             DTOTypes.MODIFIER -> arrayOf(MODIFIER)
             DTOTypes.NEGATIVE_PROP -> arrayOf(NEGATIVE_PROP)
