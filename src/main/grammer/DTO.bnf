@@ -265,9 +265,9 @@ order-by-args ::= "(" (order-by-arg ("," order-by-arg)*)? ")"
 
 order-by-arg ::= qualified-name (asc | desc)?
 
-filter ::= "!filter" "(" qualified-name ")"
+filter ::= "!filter" "(" IDENTIFIER ")"
 
-recursion ::= "!recursion" "(" qualified-name ")"
+recursion ::= "!recursion" "(" IDENTIFIER ")"
 
 fetchType ::= "!fetchType" "(" IDENTIFIER ")"
 
