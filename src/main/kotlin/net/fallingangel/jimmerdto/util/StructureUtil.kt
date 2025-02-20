@@ -12,6 +12,7 @@ import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
+import com.intellij.psi.util.prevLeaf
 import com.intellij.util.ProcessingContext
 import com.intellij.util.indexing.FileBasedIndex
 import net.fallingangel.jimmerdto.Constant
@@ -217,6 +218,17 @@ fun <T, Self, Skip, Pattern> PsiElementPattern<T, Self>.withFirstChildSkipping(
                     StandardPatterns.collection(PsiElement::class.java).first(pattern)
                 )
     )
+}
+
+fun <T, Self, Pattern> PsiElementPattern<T, Self>.afterLeafExact(pattern: ElementPattern<Pattern>): Self
+        where T : PsiElement,
+              Self : PsiElementPattern<T, Self>,
+              Pattern : PsiElement {
+    return with(object : PatternCondition<T>("afterLeafNonSkipping") {
+        override fun accepts(t: T, context: ProcessingContext): Boolean {
+            return pattern.accepts(t.prevLeaf(), context)
+        }
+    })
 }
 
 fun StringPattern.atStart(start: String): StringPattern {
