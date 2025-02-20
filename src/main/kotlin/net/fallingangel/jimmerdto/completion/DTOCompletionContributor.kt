@@ -1,6 +1,7 @@
 package net.fallingangel.jimmerdto.completion
 
 import com.intellij.codeInsight.completion.*
+import com.intellij.codeInsight.completion.CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
@@ -93,6 +94,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // Implements关键字提示
         completeImplementsKeyword()
+
+        // 属性配置提示
+        completePropConfig()
     }
 
     override fun beforeCompletion(context: CompletionInitializationContext) {
@@ -109,7 +113,7 @@ class DTOCompletionContributor : CompletionContributor() {
             parent is DTOAnnotationArrayValue -> context.dummyIdentifier += "()"
 
             parent is DTOAnnotationName && parent.parent is DTOAnnotationConstructor && parent.parent.parent is DTOAnnotation -> {
-                context.dummyIdentifier = CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED
+                context.dummyIdentifier = DUMMY_IDENTIFIER_TRIMMED
             }
 
             else -> return
@@ -651,6 +655,39 @@ class DTOCompletionContributor : CompletionContributor() {
                                     )
                         )
             )
+        )
+    }
+
+    /**
+     * 属性配置提示
+     */
+    private fun completePropConfig() {
+        complete(
+            { _, result ->
+                result.addAllElements(
+                    listOf(
+                        "where",
+                        "orderBy",
+                        "filter",
+                        "recursion",
+                        "fetchType",
+                        "limit",
+                        "offset",
+                        "batch",
+                        "depth",
+                    ).lookUp {
+                        PrioritizedLookupElement.withPriority(bold(), 100.0)
+                    }
+                )
+            },
+            or(
+                identifier.afterSibling(psiElement(DTOTypes.REQUIRED)),
+                identifier.withParent(psiElement().afterLeafExact(psiElement().withText("!"))),
+                identifier.withParent(
+                    psiElement(DTOPropName::class.java)
+                            .withParent(psiElement(DTOPositiveProp::class.java).afterLeafExact(psiElement().withText("!")))
+                ),
+            ),
         )
     }
 

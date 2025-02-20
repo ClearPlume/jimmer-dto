@@ -6,6 +6,12 @@
 
 * Added support for k2 mode
 * 2025.1 EAP is supported
+* Code hints for prop-config (excluding args)
+* Highlight for like、ilike、asc、desc
+
+### Deprecated
+
+* Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
 
 ## [0.0.7.37] - 2025-02-16
 
