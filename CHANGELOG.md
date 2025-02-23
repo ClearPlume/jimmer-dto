@@ -5,6 +5,15 @@
 ### Added
 
 * Added support for k2 mode
+
+### Deprecated
+
+* Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
+
+## [0.0.7.38] - 2025-02-23
+
+### Added
+
 * 2025.1 EAP is supported
 * Code hints for `prop-config` (excluding args)
 * Added syntax highlighting support for `like`, `ilike`, `asc`, and `desc` keywords
@@ -15,8 +24,7 @@
 
 ### Fixed
 
-* Issue [#44](https://github.com/ClearPlume/jimmer-dto/issues/44): Fixed PsiReference resolution failures for generated classes in `export` statements
-  with `package` clauses
+* Fixed PsiReference resolution failures for generated classes in `export` statements with `package` clauses
 
 ## [0.0.7.37] - 2025-02-16
 
