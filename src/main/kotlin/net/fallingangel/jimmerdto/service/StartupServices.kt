@@ -12,12 +12,8 @@ import com.intellij.psi.util.PsiTreeUtil
 import net.fallingangel.jimmerdto.DTOFileType
 import net.fallingangel.jimmerdto.DTOPluginDisposable
 import net.fallingangel.jimmerdto.psi.DTODto
-import net.fallingangel.jimmerdto.psi.DTOExportStatement
 import net.fallingangel.jimmerdto.psi.DTOFile
-import net.fallingangel.jimmerdto.util.fqe
-import net.fallingangel.jimmerdto.util.qualified
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
-import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 
 class StartupServices : StartupActivity.Background {
     override fun runActivity(project: Project) {
@@ -53,10 +49,8 @@ class StartupServices : StartupActivity.Background {
                 .forEach dto@{ dto ->
                     val dtoFile = dto.containingFile as DTOFile
                     val dtoName = dto.dtoName.text ?: return@dto
-                    val `package` = dtoFile.getChildOfType<DTOExportStatement>()?.packageStatement?.qualified ?: dto.fqe.substringBeforeLast('.')
-
                     val dtoClass = JavaPsiFacade.getInstance(project).findClass(
-                        "$`package`.dto.$dtoName",
+                        "${dtoFile.`package`}.$dtoName",
                         ProjectScope.getAllScope(project),
                     )
                     dtoClass ?: return
