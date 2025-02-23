@@ -15,6 +15,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.prevLeaf
 import com.intellij.util.ProcessingContext
 import com.intellij.util.indexing.FileBasedIndex
+import net.fallingangel.jimmerdto.ANNOTATION_CLASS_INDEX
 import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.completion.resolve.structure.Structure
 import net.fallingangel.jimmerdto.enums.Modifier
