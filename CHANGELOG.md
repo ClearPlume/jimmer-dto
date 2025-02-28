@@ -6,9 +6,17 @@
 
 * Added support for k2 mode
 
+### Changed
+
+* Adjusted the limit property to follow common semantics
+
 ### Deprecated
 
 * Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
+
+### Removed
+
+* Removed the offset property configuration
 
 ## [0.0.7.38] - 2025-02-23
 

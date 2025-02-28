@@ -52,7 +52,6 @@
     RECURSION_KEYWORD="!recursion"
     FETCH_TYPE_KEYWORD="!fetchType"
     LIMIT_KEYWORD="!limit"
-    OFFSET_KEYWORD="!offset"
     BATCH_KEYWORD="!batch"
     DEPTH_KEYWORD="!depth"
 
@@ -243,7 +242,7 @@ annotation-value ::= char | string |
 annotation-array-value ::= "[" (annotation-value ("," annotation-value)*)? "]" | "{" (annotation-value ("," annotation-value)*)? "}"
 
 // prop-config
-prop-config ::= where | order-by | filter | recursion | fetchType | limit | offset | batch | depth
+prop-config ::= where | order-by | filter | recursion | fetchType | limit | batch | depth
 
 where ::= "!where" where-args
 
@@ -271,9 +270,7 @@ recursion ::= "!recursion" "(" IDENTIFIER ")"
 
 fetchType ::= "!fetchType" "(" IDENTIFIER ")"
 
-limit ::= "!limit" "(" int ")"
-
-offset ::= "!offset" "(" int ")"
+limit ::= "!limit" "(" int ("," int)? ")"
 
 batch ::= "!batch" "(" int ")"
 

@@ -86,7 +86,6 @@ FloatingPoint = {ExponentFloating}|{DecimalFloatingPoint}|{HexFloatingPoint}
     "!recursion"                                            { return DTOTypes.RECURSION_KEYWORD; }
     "!fetchType"                                            { return DTOTypes.FETCH_TYPE_KEYWORD; }
     "!limit"                                                { return DTOTypes.LIMIT_KEYWORD; }
-    "!offset"                                               { return DTOTypes.OFFSET_KEYWORD; }
     "!batch"                                                { return DTOTypes.BATCH_KEYWORD; }
     "!depth"                                                { return DTOTypes.DEPTH_KEYWORD; }
     {Modifier}                                              {

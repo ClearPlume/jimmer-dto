@@ -50,7 +50,6 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
             DTOTypes.RECURSION_KEYWORD,
             DTOTypes.FETCH_TYPE_KEYWORD,
             DTOTypes.LIMIT_KEYWORD,
-            DTOTypes.OFFSET_KEYWORD,
             DTOTypes.BATCH_KEYWORD,
             DTOTypes.DEPTH_KEYWORD -> arrayOf(PROP_CONFIG)
 
