@@ -14,6 +14,7 @@ import com.intellij.psi.util.*
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
+import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.enums.SpecFunction
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.psi.fix.*
@@ -33,6 +34,12 @@ class DTOAnnotator : Annotator {
          */
         override fun visitPropConfig(o: DTOPropConfig) {
             o.propConfigName.style(DTOSyntaxHighlighter.PROP_CONFIG)
+
+            val propConfigNames = PropConfigName.values().map(PropConfigName::text)
+            if (o.propConfigName.text.substring(1) !in propConfigNames) {
+                val availableNames = propConfigNames.joinToString { "'$it'" }
+                o.propConfigName.error("Incorrect prop-config name, available names are: $availableNames")
+            }
         }
 
         /**
