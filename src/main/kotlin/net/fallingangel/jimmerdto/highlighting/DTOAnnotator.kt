@@ -289,7 +289,10 @@ class DTOAnnotator : Annotator {
             val propName = o.propName
             val entityProperties = o[StructureType.UserPropProperties]
             entityProperties.find { propName.text == it.name }?.let {
-                propName.error("It is prohibited for user-prop and entity prop to have the same name", RenameElement(propName))
+                propName.error(
+                    "It is prohibited for user-prop and entity prop to have the same name",
+                    RenameElement(propName, Project::createUserPropName),
+                )
             }
         }
 
@@ -421,7 +424,10 @@ class DTOAnnotator : Annotator {
             val availablePackages = project.allPackages(curPackage).map { it.name!! }
 
             if (text !in (curPackageClasses + availablePackages)) {
-                error("Unresolved reference: $text", RenameElement(this))
+                error(
+                    "Unresolved reference: $text",
+                    RenameElement(this, Project::createQualifiedNamePart),
+                )
                 return
             }
 

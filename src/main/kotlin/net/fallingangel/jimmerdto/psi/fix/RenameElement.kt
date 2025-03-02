@@ -7,9 +7,9 @@ import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.ui.components.JBTextField
-import net.fallingangel.jimmerdto.psi.createUserPropName
+import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 
-class RenameElement(private val element: PsiElement) : BaseFix() {
+class RenameElement(private val element: PsiElement, private val newElement: Project.(String) -> DTOElement) : BaseFix() {
     override fun getText() = "Rename element"
 
     override fun invoke(project: Project, editor: Editor, file: PsiFile) {
@@ -23,8 +23,7 @@ class RenameElement(private val element: PsiElement) : BaseFix() {
             return
         }
         WriteCommandAction.runWriteCommandAction(project) {
-            val newName = project.createUserPropName(input.text).node
-            element.parent.node.replaceChild(element.node, newName)
+            element.parent.node.replaceChild(element.node, project.newElement(input.text).node)
         }
     }
 }
