@@ -29,6 +29,13 @@ class DTOAnnotator : Annotator {
 
     private class DTOAnnotatorVisitor(private val holder: AnnotationHolder) : DTOVisitor() {
         /**
+         * 为属性配置上色
+         */
+        override fun visitPropConfig(o: DTOPropConfig) {
+            o.propConfigName.style(DTOSyntaxHighlighter.PROP_CONFIG)
+        }
+
+        /**
          * 为注解上色
          */
         override fun visitAnnotationConstructor(o: DTOAnnotationConstructor) {

@@ -44,15 +44,6 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
             DTOTypes.STRING, DTOTypes.SQL_STRING -> arrayOf(STRING)
             DTOTypes.INT, DTOTypes.FLOAT -> arrayOf(NUMBER)
 
-            DTOTypes.WHERE_KEYWORD,
-            DTOTypes.ORDER_BY_KEYWORD,
-            DTOTypes.FILTER_KEYWORD,
-            DTOTypes.RECURSION_KEYWORD,
-            DTOTypes.FETCH_TYPE_KEYWORD,
-            DTOTypes.LIMIT_KEYWORD,
-            DTOTypes.BATCH_KEYWORD,
-            DTOTypes.DEPTH_KEYWORD -> arrayOf(PROP_CONFIG)
-
             TokenType.BAD_CHARACTER -> arrayOf(HighlighterColors.BAD_CHARACTER)
             else -> arrayOf()
         }

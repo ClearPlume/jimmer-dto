@@ -46,18 +46,11 @@
     BRACE_L="{"
     BRACE_R="}"
 
-    WHERE_KEYWORD="!where"
-    ORDER_BY_KEYWORD="!orderBy"
-    FILTER_KEYWORD="!filter"
-    RECURSION_KEYWORD="!recursion"
-    FETCH_TYPE_KEYWORD="!fetchType"
-    LIMIT_KEYWORD="!limit"
-    BATCH_KEYWORD="!batch"
-    DEPTH_KEYWORD="!depth"
-
     IDENTIFIER
     STRING
     SQL_STRING
+
+    PROP_CONFIG_NAME
   ]
 }
 
@@ -242,9 +235,7 @@ annotation-value ::= char | string |
 annotation-array-value ::= "[" (annotation-value ("," annotation-value)*)? "]" | "{" (annotation-value ("," annotation-value)*)? "}"
 
 // prop-config
-prop-config ::= where | order-by | filter | recursion | fetchType | limit | batch | depth
-
-where ::= "!where" where-args
+prop-config ::= PROP_CONFIG_NAME (where-args | order-by-args | identifier-arg | int-arg)?
 
 where-args ::= "(" (predicate ((and | or) predicate)*)? ")"
 
@@ -258,20 +249,10 @@ compare-value ::= boolean | char | float | int | SQL_STRING
 
 nullity ::= qualified-name is not? null
 
-order-by ::= "!orderBy" order-by-args
-
 order-by-args ::= "(" (order-by-arg ("," order-by-arg)*)? ")"
 
 order-by-arg ::= qualified-name (asc | desc)?
 
-filter ::= "!filter" "(" IDENTIFIER ")"
+identifier-arg ::= "(" IDENTIFIER ")"
 
-recursion ::= "!recursion" "(" IDENTIFIER ")"
-
-fetchType ::= "!fetchType" "(" IDENTIFIER ")"
-
-limit ::= "!limit" "(" int ("," int)? ")"
-
-batch ::= "!batch" "(" int ")"
-
-depth ::= "!depth" "(" int ")"
+int-arg ::= "(" int ("," int)? ")"

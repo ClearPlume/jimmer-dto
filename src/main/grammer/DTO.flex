@@ -74,20 +74,13 @@ FloatingPoint = {ExponentFloating}|{DecimalFloatingPoint}|{HexFloatingPoint}
     "as"                                                    { return DTOTypes.AS; }
     "class"                                                 { return DTOTypes.CLASS; }
     "implements"                                            { return DTOTypes.IMPLEMENTS; }
-    "!where"                                                { return DTOTypes.WHERE_KEYWORD; }
+    "!" {Identifier}                                        { return DTOTypes.PROP_CONFIG_NAME; }
     "and"                                                   { return DTOTypes.AND; }
     "or"                                                    { return DTOTypes.OR; }
     "is"                                                    { return DTOTypes.IS; }
     "not"                                                   { return DTOTypes.NOT; }
-    "!orderBy"                                              { return DTOTypes.ORDER_BY_KEYWORD; }
     "asc"                                                   { return DTOTypes.ASC; }
     "desc"                                                  { return DTOTypes.DESC; }
-    "!filter"                                               { return DTOTypes.FILTER_KEYWORD; }
-    "!recursion"                                            { return DTOTypes.RECURSION_KEYWORD; }
-    "!fetchType"                                            { return DTOTypes.FETCH_TYPE_KEYWORD; }
-    "!limit"                                                { return DTOTypes.LIMIT_KEYWORD; }
-    "!batch"                                                { return DTOTypes.BATCH_KEYWORD; }
-    "!depth"                                                { return DTOTypes.DEPTH_KEYWORD; }
     {Modifier}                                              {
         if (braceLevel > 0) {
             return DTOTypes.IDENTIFIER;
