@@ -15,6 +15,7 @@ version = "0.0.7.39"
 
 val since by extra("223.7571.182")
 val until by extra("251.*")
+val jimmerVersion by extra("0.9.61")
 
 val certificateChainValue = findProperty("certificateChainValue") as String?
 val privateKeyValue = findProperty("privateKeyValue") as String?
@@ -39,8 +40,9 @@ dependencies {
         testFramework(TestFrameworkType.Platform)
     }
 
+    implementation("org.babyfish.jimmer:jimmer-core:$jimmerVersion")
+
     testImplementation("junit:junit:4.13.2")
-    testCompileOnly("org.babyfish.jimmer:jimmer-sql-kotlin:0.9.49")
 }
 
 changelog {

@@ -1,0 +1,27 @@
+package net.fallingangel.jimmerdto.lsi
+
+/**
+ * 依据路径查找属性
+ * @param tokens user.files.name
+ */
+fun LClass<*>.findProperty(tokens: List<String>): LProperty<*> {
+    if (tokens.isEmpty()) {
+        throw IllegalStateException("Property path won't be empty")
+    }
+    val token = tokens.first()
+    val property = properties.find { it.name == token } ?: throw IllegalStateException("Property $token does not exist")
+
+    if (tokens.size == 1) {
+        return property
+    }
+    return property.type.findProperty(tokens.drop(1))
+}
+
+private fun LType.findProperty(tokens: List<String>): LProperty<*> {
+    return when (this) {
+        is LClass<*> -> findProperty(tokens)
+        is LType.CollectionType -> elementType.findProperty(tokens)
+        is LType.ArrayType -> elementType.findProperty(tokens)
+        else -> throw IllegalStateException("Unsupported operation in $name")
+    }
+}

@@ -9,12 +9,13 @@ import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtil
-import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.enums.Language
 import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
 import net.fallingangel.jimmerdto.psi.DTOExportStatement
 import net.fallingangel.jimmerdto.structure.JavaNullableType
 import net.fallingangel.jimmerdto.structure.Property
+import org.babyfish.jimmer.sql.Entity
+import org.babyfish.jimmer.sql.MappedSuperclass
 import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
@@ -28,6 +29,7 @@ import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.types.KotlinType
+import kotlin.reflect.KClass
 
 /**
  * 获取类文件中类的注解，全限定名
@@ -216,7 +218,7 @@ private inline fun <reified T : PsiNameIdentifierOwner> PsiFile.clazz(): T? {
 /**
  * 获取KtAnnotationEntry对应注解的全限定名
  */
-private val KtAnnotationEntry.qualifiedName: String
+val KtAnnotationEntry.qualifiedName: String
     get() {
         // 解析注解条目，获取上下文
         val context = analyze()
@@ -226,10 +228,8 @@ private val KtAnnotationEntry.qualifiedName: String
 
 fun PsiClass.methods(): List<PsiMethod> {
     val supers = interfaces
-            .filter { interfaceClass ->
-                interfaceClass.annotations.any {
-                    it.qualifiedName in listOf(Constant.Annotation.ENTITY, Constant.Annotation.MAPPED_SUPERCLASS)
-                }
+            .filter {
+                it.hasAnnotation(Entity::class, MappedSuperclass::class)
             }
     return methods.toList() + supers.map { it.methods() }.flatten()
 }
@@ -240,31 +240,23 @@ fun KtClass.properties(): List<KtProperty> {
                 val context = superType.analyze()
                 val annotations = context[BindingContext.TYPE, superType.typeReference]?.clazz()?.annotationEntries ?: return@filter false
                 annotations.any {
-                    it.qualifiedName in listOf(Constant.Annotation.ENTITY, Constant.Annotation.MAPPED_SUPERCLASS)
+                    it.qualifiedName in listOf(Entity::class, MappedSuperclass::class).mapNotNull(KClass<*>::qualifiedName)
                 }
             }
     return getProperties() + supers.map(KtSuperTypeListEntry::properties).flatten()
 }
 
-fun PsiClass.isEntity() = hasAnnotation(Constant.Annotation.ENTITY, Constant.Annotation.MAPPED_SUPERCLASS)
-
-fun PsiClass.hasAnnotation(vararg annotations: String) = annotations.any { hasAnnotation(it) }
-
-fun KtClass.isEntity() = hasAnnotation(Constant.Annotation.ENTITY, Constant.Annotation.MAPPED_SUPERCLASS)
-
-fun KtClass.hasAnnotation(vararg annotations: String) = annotations.any { annotationEntries.map(KtAnnotationEntry::qualifiedName).contains(it) }
-
-private val KtSuperTypeListEntry.properties: List<KtProperty>
-    get() {
-        val context = analyze()
-        return context[BindingContext.TYPE, typeReference]?.clazz()?.properties() ?: emptyList()
-    }
-
-private val KtClass.supers: List<KtClass>
+val KtClass.supers: List<KtClass>
     get() {
         return superTypeListEntries
                 .mapNotNull {
                     val context = it.analyze()
                     context[BindingContext.TYPE, it.typeReference]?.clazz()
                 }
+    }
+
+private val KtSuperTypeListEntry.properties: List<KtProperty>
+    get() {
+        val context = analyze()
+        return context[BindingContext.TYPE, typeReference]?.clazz()?.properties() ?: emptyList()
     }

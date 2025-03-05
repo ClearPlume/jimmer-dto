@@ -31,6 +31,17 @@
 
     <!-- Extension points defined by the plugin.
          Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensionPoints>
+        <extensionPoint qualifiedName="net.fallingangel.languageProcessor"
+                        interface="net.fallingangel.jimmerdto.lsi.LanguageProcessor"
+                        dynamic="true"/>
+    </extensionPoints>
+
+    <extensions defaultExtensionNs="net.fallingangel">
+        <languageProcessor implementation="net.fallingangel.jimmerdto.lsi.processor.JavaProcessor"/>
+        <languageProcessor implementation="net.fallingangel.jimmerdto.lsi.processor.KotlinProcessor"/>
+    </extensions>
+
     <extensions defaultExtensionNs="com.intellij">
         <fileType
                 name="JimmerDTO"

@@ -1,0 +1,56 @@
+package net.fallingangel.jimmerdto.lsi
+
+import com.intellij.psi.PsiElement
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
+import net.fallingangel.jimmerdto.lsi.annotation.annotationsToString
+
+/**
+ * @param C 类级别Psi元素类型
+ * @param source 类对应Psi元素
+ */
+data class LClass<C : PsiElement>(
+    override val name: String,
+    override val canonicalName: String,
+    override val nullable: Boolean,
+    override val annotations: List<LAnnotation<*>>,
+    val parentsHolder: Lazy<List<LClass<C>>>,
+    val propertiesHolder: Lazy<List<LProperty<*>>>,
+    val methodsHolder: Lazy<List<LMethod<*>>>,
+    override val source: C,
+) : LType(), LElement, LAnnotationOwner, LPsiDependent {
+    val parents by parentsHolder
+
+    val properties by propertiesHolder
+
+    val methods by methodsHolder
+
+    override fun toString() = toDebugString(mutableSetOf())
+
+    override fun toDebugString(visited: MutableSet<String>): String {
+        val id = this.canonicalName
+        if (id in visited) return "$id↺"  // 发现递归引用，返回带↺的标识
+
+        visited += id // 标记当前节点已访问
+
+        val annotationStr = annotationsToString(visited)
+        val parentsStr = parents.joinToString(prefix = "[", postfix = "]") { it.toDebugString(visited) }
+        val propertiesStr = properties.joinToString(prefix = "[", postfix = "]") { it.toDebugString(visited) }
+        val methodsStr = methods.joinToString(prefix = "[", postfix = "]") { it.toDebugString(visited) }
+
+        visited -= id // 离开当前节点时，解除标记（允许其它路径访问）
+
+        return "LClass(name=$name, canonicalName=$canonicalName, nullable=$nullable, annotations=$annotationStr, parents=$parentsStr, properties=$propertiesStr, methods=$methodsStr, source=$source)"
+    }
+
+    override fun collectPsiElements(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
+        if (!visited.add(this)) {
+            return
+        }
+        result.add(source)
+        annotations.forEach { it.collectPsiElements(result, visited) }
+        parents.forEach { it.collectPsiElements(result, visited) }
+        properties.forEach { it.collectPsiElements(result, visited) }
+        methods.forEach { it.collectPsiElements(result, visited) }
+    }
+}

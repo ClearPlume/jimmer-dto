@@ -21,6 +21,7 @@ import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.resolve.BindingContext
@@ -60,6 +61,15 @@ val DTOElement.fqe: String
 
 val DTOElement.fqeClass: PsiClass?
     get() = JavaPsiFacade.getInstance(project).findClass(fqe, ProjectScope.getAllScope(project))
+
+fun Project.psiClass(qualifiedName: String): PsiClass? {
+    return JavaPsiFacade.getInstance(this).findClass(qualifiedName, ProjectScope.getAllScope(this))
+}
+
+fun Project.ktClass(qualifiedName: String): KtClass? {
+    val results = KotlinFullClassNameIndex.get(qualifiedName, this, ProjectScope.getContentScope(this))
+    return results.toList().takeIf { it.size == 1 }?.get(0) as? KtClass
+}
 
 /**
  * 从PsiClass定义中，依据字段路径寻找它的Psi元素

@@ -5,6 +5,7 @@ import com.intellij.icons.AllIcons
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.patterns.*
 import com.intellij.psi.*
@@ -16,16 +17,53 @@ import com.intellij.psi.util.prevLeaf
 import com.intellij.util.ProcessingContext
 import com.intellij.util.indexing.FileBasedIndex
 import net.fallingangel.jimmerdto.ANNOTATION_CLASS_INDEX
-import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.completion.resolve.structure.Structure
 import net.fallingangel.jimmerdto.enums.Modifier
+import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.psi.*
+import org.babyfish.jimmer.Immutable
+import org.babyfish.jimmer.sql.Embeddable
+import org.babyfish.jimmer.sql.Entity
+import org.babyfish.jimmer.sql.MappedSuperclass
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlinx.serialization.compiler.resolve.toClassDescriptor
 import javax.swing.Icon
+import kotlin.reflect.KClass
+
+val PsiClass.isInSource: Boolean
+    get() {
+        val fileIndex = ProjectFileIndex.getInstance(project)
+        return fileIndex.isInSource(containingFile.virtualFile)
+    }
+
+val KotlinType.isInSource: Boolean
+    get() {
+        val descriptor = toClassDescriptor ?: return false
+        val declaration = DescriptorToSourceUtils.getSourceFromDescriptor(descriptor) as? KtElement ?: return false
+        val fileIndex = ProjectFileIndex.getInstance(declaration.project)
+        return fileIndex.isInSource(declaration.containingFile.virtualFile)
+    }
+
+val PsiClass.isSuperEntity: Boolean
+    get() = hasAnnotation(MappedSuperclass::class.qualifiedName!!)
+
+val KtClass.isSuperEntity: Boolean
+    get() = hasAnnotation(MappedSuperclass::class.qualifiedName!!)
+
+val PsiClass.isEntity: Boolean
+    get() = isSuperEntity || hasAnnotation(Entity::class, Immutable::class)
+
+val PsiClass.isImmutable: Boolean
+    get() = isEntity || hasAnnotation(Embeddable::class.qualifiedName!!)
 
 val PsiWhiteSpace.haveUpper: Boolean
     get() = parent is DTOAliasGroup || parent.parent.parent is DTOPositiveProp
@@ -153,6 +191,10 @@ inline fun <reified P> PsiElement.parent(): P {
     return parent as P
 }
 
+inline fun <reified P> PsiElement.parentUnSure(): P? {
+    return parent as? P
+}
+
 /**
  * @param `package` null等同于空字符串
  */
@@ -181,7 +223,7 @@ fun Project.allAnnotations(`package`: String? = ""): List<PsiClass> {
  * @param `package` null等同于空字符串
  */
 fun Project.allEntities(`package`: String? = ""): List<PsiClass> {
-    return allClasses(`package` ?: "").filter { it.isInterface && it.hasAnnotation(Constant.Annotation.ENTITY) }
+    return allClasses(`package` ?: "").filter { it.isInterface && it.hasAnnotation(Entity::class.qualifiedName!!) }
 }
 
 fun Project.allPackages(`package`: String): List<PsiPackage> {
@@ -225,7 +267,7 @@ fun <T, Self, Pattern> PsiElementPattern<T, Self>.afterLeafExact(pattern: Elemen
         where T : PsiElement,
               Self : PsiElementPattern<T, Self>,
               Pattern : PsiElement {
-    return with(object : PatternCondition<T>("afterLeafNonSkipping") {
+    return with(object : PatternCondition<T>("afterLeafExact") {
         override fun accepts(t: T, context: ProcessingContext): Boolean {
             return pattern.accepts(t.prevLeaf(), context)
         }
@@ -246,4 +288,12 @@ fun List<DTOModifier>.toModifier() = map(DTOModifier::toModifier)
 
 infix fun DTODto.modifiedBy(modifier: Modifier): Boolean {
     return modifier in this.modifierList.toModifier()
+}
+
+fun DTOPositiveProp.hasConfig(config: PropConfigName) = propConfigList.any { it.propConfigName.text == "!${config.text}" }
+
+fun KtClass.hasAnnotation(vararg annotations: String) = annotations.any { annotationEntries.map(KtAnnotationEntry::qualifiedName).contains(it) }
+
+fun PsiModifierListOwner.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
+    return annotations.any { anno.mapNotNull(KClass<out Annotation>::qualifiedName).contains(it.qualifiedName) }
 }
