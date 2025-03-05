@@ -19,12 +19,18 @@ import com.intellij.psi.util.elementType
 import com.intellij.psi.util.prevLeafs
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.Modifier
+import net.fallingangel.jimmerdto.enums.PropConfigName
+import net.fallingangel.jimmerdto.lsi.LType
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.structure.BasicType
 import net.fallingangel.jimmerdto.structure.GenericType
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.structure.Property
 import net.fallingangel.jimmerdto.util.*
+import org.babyfish.jimmer.Immutable
+import org.babyfish.jimmer.sql.Embeddable
+import org.babyfish.jimmer.sql.Entity
+import org.babyfish.jimmer.sql.MappedSuperclass
 
 class DTOCompletionContributor : CompletionContributor() {
     private val identifier = psiElement(DTOTypes.IDENTIFIER)
@@ -115,6 +121,14 @@ class DTOCompletionContributor : CompletionContributor() {
             parent is DTOAnnotationName && parent.parent is DTOAnnotationConstructor && parent.parent.parent is DTOAnnotation -> {
                 context.dummyIdentifier = DUMMY_IDENTIFIER_TRIMMED
             }
+
+            parent is DTOWhereArgs -> context.dummyIdentifier += " > 0"
+
+            parent !is DTOWhereArgs && psiElement().inside(DTOWhereArgs::class.java).accepts(parent) -> {
+                context.dummyIdentifier = DUMMY_IDENTIFIER_TRIMMED
+            }
+
+            parent is DTOPropConfig -> context.dummyIdentifier = ""
 
             else -> return
         }
@@ -663,31 +677,67 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completePropConfig() {
         complete(
-            { _, result ->
-                result.addAllElements(
-                    listOf(
-                        "where",
-                        "orderBy",
-                        "filter",
-                        "recursion",
-                        "fetchType",
-                        "limit",
-                        "offset",
-                        "batch",
-                        "depth",
-                    ).lookUp {
-                        PrioritizedLookupElement.withPriority(bold(), 100.0)
-                    }
-                )
+            { parameters, result ->
+                val propConfig = parameters.position.parentUnSure<DTOPropConfig>() ?: return@complete
+                val prop = propConfig.parent<DTOPositiveProp>()
+                val dtoFile = prop.containingFile as DTOFile
+                val propPath = prop.propPath()
+                val clazz = dtoFile.findClass(propPath)
+                val property = dtoFile.findProperty(propPath)
+
+                val haveFilter = prop.hasConfig(PropConfigName.Filter)
+                val haveWhere = prop.hasConfig(PropConfigName.Where)
+                val haveOrderBy = prop.hasConfig(PropConfigName.OrderBy)
+                val haveDepth = prop.hasConfig(PropConfigName.Depth)
+                val haveRecursion = prop.hasConfig(PropConfigName.Recursion)
+
+                val isEntityAssociation = property.doesTypeHaveAnnotation(Entity::class)
+                val isAssociation = property.doesTypeHaveAnnotation(Immutable::class) ||
+                        property.doesTypeHaveExactlyOneAnnotation(
+                            Entity::class,
+                            MappedSuperclass::class,
+                            Embeddable::class,
+                        )
+                val propertyIsList = property.type is LType.CollectionType
+                val propertyIsReference = !propertyIsList && isAssociation
+
+                val availableProps = PropConfigName.values().toMutableList()
+
+                if (haveFilter || !isEntityAssociation || propertyIsReference && !property.nullable) {
+                    availableProps -= PropConfigName.Where
+                }
+
+                if (haveFilter || !isEntityAssociation || !propertyIsList) {
+                    availableProps -= PropConfigName.OrderBy
+                }
+
+                if (haveWhere || haveOrderBy || !isEntityAssociation || !propertyIsList) {
+                    availableProps -= PropConfigName.Filter
+                }
+
+                if (haveDepth || property.actualType != clazz) {
+                    availableProps -= PropConfigName.Recursion
+                }
+
+                if (!isEntityAssociation || propertyIsList) {
+                    availableProps -= PropConfigName.FetchType
+                }
+
+                if (!isEntityAssociation || !propertyIsList) {
+                    availableProps -= PropConfigName.Limit
+                }
+
+                if (!propertyIsList) {
+                    availableProps -= PropConfigName.Batch
+                }
+
+                if (haveRecursion || property.actualType != clazz) {
+                    availableProps -= PropConfigName.Depth
+                }
+
+                result.addAllElements(availableProps.map(PropConfigName::text).lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) })
             },
-            or(
-                identifier.afterSibling(psiElement(DTOTypes.REQUIRED)),
-                identifier.withParent(psiElement().afterLeafExact(psiElement().withText("!"))),
-                identifier.withParent(
-                    psiElement(DTOPropName::class.java)
-                            .withParent(psiElement(DTOPositiveProp::class.java).afterLeafExact(psiElement().withText("!")))
-                ),
-            ),
+            psiElement(DTOTypes.PROP_CONFIG_NAME),
         )
     }
 
