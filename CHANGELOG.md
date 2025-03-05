@@ -5,6 +5,11 @@
 ### Added
 
 * Added support for k2 mode
+* Provide suggestions for incorrect `prop-config` names
+
+### Changed
+
+* Contextual `prop-config` suggestions (excluding args)
 
 ### Deprecated
 
