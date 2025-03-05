@@ -5,7 +5,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.util.PsiTreeUtil
 import net.fallingangel.jimmerdto.psi.DTOMacro
 import net.fallingangel.jimmerdto.util.DTOPsiUtil
-import net.fallingangel.jimmerdto.util.isEntity
+import net.fallingangel.jimmerdto.util.isSuperEntity
 import net.fallingangel.jimmerdto.util.supers
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
@@ -23,7 +23,7 @@ class MacroTypes : Structure<DTOMacro, List<String>> {
         val supers = when (propClass.language) {
             JavaLanguage.INSTANCE -> {
                 (propClass as PsiClass).supers()
-                        .filter(PsiClass::isEntity)
+                        .filter(PsiClass::isSuperEntity)
                         .mapNotNull { it.name }
                         .filter { it != "Object" }
             }
@@ -31,7 +31,7 @@ class MacroTypes : Structure<DTOMacro, List<String>> {
             KotlinLanguage.INSTANCE -> {
                 val ktClass = PsiTreeUtil.findChildOfType(propClass.containingFile.virtualFile.toPsiFile(project), KtClass::class.java)
                 (ktClass as KtClass).supers()
-                        .filter(KtClass::isEntity)
+                        .filter(KtClass::isSuperEntity)
                         .mapNotNull(KtClass::getName)
             }
 
