@@ -7,7 +7,6 @@ enum class PropConfigName(val text: String) {
     Recursion("recursion"),
     FetchType("fetchType"),
     Limit("limit"),
-    Offset("offset"),
     Batch("batch"),
     Depth("depth"),
 }
