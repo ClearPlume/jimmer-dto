@@ -5,6 +5,15 @@
 ### Added
 
 * Added support for k2 mode
+
+### Deprecated
+
+* Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
+
+## [0.0.7.40] - 2025-03-07
+
+### Added
+
 * Provide suggestions for incorrect `prop-config` names
 * Suggestions for `prop-config` parameters
 
