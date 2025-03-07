@@ -2,6 +2,10 @@ package net.fallingangel.jimmerdto.lsi
 
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.lsi.annotation.*
+import org.babyfish.jimmer.Immutable
+import org.babyfish.jimmer.sql.Embeddable
+import org.babyfish.jimmer.sql.Entity
+import org.babyfish.jimmer.sql.MappedSuperclass
 import kotlin.reflect.KClass
 
 data class LProperty<P : PsiElement>(
@@ -16,7 +20,20 @@ data class LProperty<P : PsiElement>(
         type
     }
 
-    fun doesTypeHaveAnnotation(annotationClass: KClass<out Annotation>): Boolean {
+    val isEntityAssociation = doesTypeHaveAnnotation(Entity::class)
+
+    val isAssociation = doesTypeHaveAnnotation(Immutable::class) ||
+            doesTypeHaveExactlyOneAnnotation(
+                Entity::class,
+                MappedSuperclass::class,
+                Embeddable::class,
+            )
+
+    val isList = type is LType.CollectionType
+
+    val isReference = !isList && isAssociation
+
+    private fun doesTypeHaveAnnotation(annotationClass: KClass<out Annotation>): Boolean {
         return when (type) {
             is LClass<*> -> type.hasAnnotation(annotationClass)
             is LType.CollectionType -> (type.elementType as? LClass<*>)?.hasAnnotation(annotationClass) ?: false
@@ -24,7 +41,7 @@ data class LProperty<P : PsiElement>(
         }
     }
 
-    fun doesTypeHaveExactlyOneAnnotation(vararg annotationClasses: KClass<out Annotation>): Boolean {
+    private fun doesTypeHaveExactlyOneAnnotation(vararg annotationClasses: KClass<out Annotation>): Boolean {
         return when (type) {
             is LClass<*> -> type.hasExactlyOneAnnotation(*annotationClasses)
             is LType.CollectionType -> (type.elementType as? LClass<*>)?.hasExactlyOneAnnotation(*annotationClasses) ?: false

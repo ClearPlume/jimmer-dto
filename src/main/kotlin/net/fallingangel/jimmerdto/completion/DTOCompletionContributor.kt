@@ -17,20 +17,19 @@ import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.prevLeafs
+import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.lsi.LType
+import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.psi.*
 import net.fallingangel.jimmerdto.structure.BasicType
 import net.fallingangel.jimmerdto.structure.GenericType
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.structure.Property
 import net.fallingangel.jimmerdto.util.*
-import org.babyfish.jimmer.Immutable
 import org.babyfish.jimmer.sql.Embeddable
-import org.babyfish.jimmer.sql.Entity
-import org.babyfish.jimmer.sql.MappedSuperclass
 
 class DTOCompletionContributor : CompletionContributor() {
     private val identifier = psiElement(DTOTypes.IDENTIFIER)
@@ -103,6 +102,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // 属性配置提示
         completePropConfig()
+
+        // 属性配置参数提示
+        completePropConfigArg()
     }
 
     override fun beforeCompletion(context: CompletionInitializationContext) {
@@ -122,13 +124,15 @@ class DTOCompletionContributor : CompletionContributor() {
                 context.dummyIdentifier = DUMMY_IDENTIFIER_TRIMMED
             }
 
-            parent is DTOWhereArgs -> context.dummyIdentifier += " > 0"
+            parent.parent is DTOQualifiedName -> context.dummyIdentifier = ""
 
-            parent !is DTOWhereArgs && psiElement().inside(DTOWhereArgs::class.java).accepts(parent) -> {
-                context.dummyIdentifier = DUMMY_IDENTIFIER_TRIMMED
+            element.prevLeafs.takeWhile { it.elementType != DTOTypes.PROP_CONFIG_NAME }.any { it.elementType == DTOTypes.AND } -> {
+                context.dummyIdentifier += "> 0"
             }
 
-            parent is DTOPropConfig -> context.dummyIdentifier = ""
+            element.prevLeafs.takeWhile { it.elementType != DTOTypes.PROP_CONFIG_NAME }.any { it.elementType == DTOTypes.COMMA } -> {
+                context.dummyIdentifier += "desc"
+            }
 
             else -> return
         }
@@ -681,9 +685,8 @@ class DTOCompletionContributor : CompletionContributor() {
                 val propConfig = parameters.position.parentUnSure<DTOPropConfig>() ?: return@complete
                 val prop = propConfig.parent<DTOPositiveProp>()
                 val dtoFile = prop.containingFile as DTOFile
-                val propPath = prop.propPath()
-                val clazz = dtoFile.findClass(propPath)
-                val property = dtoFile.findProperty(propPath)
+                val clazz = dtoFile.findOwnClass(prop)
+                val property = dtoFile.findProperty(prop)
 
                 val haveFilter = prop.hasConfig(PropConfigName.Filter)
                 val haveWhere = prop.hasConfig(PropConfigName.Where)
@@ -691,19 +694,12 @@ class DTOCompletionContributor : CompletionContributor() {
                 val haveDepth = prop.hasConfig(PropConfigName.Depth)
                 val haveRecursion = prop.hasConfig(PropConfigName.Recursion)
 
-                val isEntityAssociation = property.doesTypeHaveAnnotation(Entity::class)
-                val isAssociation = property.doesTypeHaveAnnotation(Immutable::class) ||
-                        property.doesTypeHaveExactlyOneAnnotation(
-                            Entity::class,
-                            MappedSuperclass::class,
-                            Embeddable::class,
-                        )
-                val propertyIsList = property.type is LType.CollectionType
-                val propertyIsReference = !propertyIsList && isAssociation
+                val isEntityAssociation = property.isEntityAssociation
+                val propertyIsList = property.isList
 
                 val availableProps = PropConfigName.values().toMutableList()
 
-                if (haveFilter || !isEntityAssociation || propertyIsReference && !property.nullable) {
+                if (haveFilter || !isEntityAssociation || property.isReference && !property.nullable) {
                     availableProps -= PropConfigName.Where
                 }
 
@@ -738,6 +734,73 @@ class DTOCompletionContributor : CompletionContributor() {
                 result.addAllElements(availableProps.map(PropConfigName::text).lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) })
             },
             psiElement(DTOTypes.PROP_CONFIG_NAME),
+        )
+    }
+
+    /**
+     * 属性配置参数提示
+     */
+    private fun completePropConfigArg() {
+        complete(
+            { parameters, result ->
+                val dtoFile = parameters.position.containingFile as DTOFile
+                val expression = parameters.position.parent.parent<DTOQualifiedName>()
+                val prop = if (expression.parent.parent is DTOOrderByArgs) {
+                    expression.parent.parent.parent.parent<DTOPositiveProp>()
+                } else {
+                    expression.parent.parent.parent.parent.parent<DTOPositiveProp>()
+                }
+
+                val childPath = parameters.position.parent.siblings(forward = false, withSelf = false)
+                        .map(PsiElement::getText)
+                        .filter { it != "." && it != DUMMY_IDENTIFIER_TRIMMED }
+                        .toList()
+                        .asReversed()
+                val properties = dtoFile.findPropertyChildren(prop, childPath, false)
+
+                val scalars = properties
+                        .filter { it.type is LType.ScalarType }
+                        .map { it.name to it.presentableType }
+                val associations = properties
+                        .filter { it.isReference && it.isEntityAssociation }
+                        .map { it.name to it.presentableType }
+                val views = properties
+                        .filter { it.isReference && it.isEntityAssociation }
+                        .map { "${it.name}Id" to it.presentableType }
+                val embeddable = properties
+                        .filter { it.hasAnnotation(Embeddable::class) }
+                        .map { it.name to it.presentableType }
+
+                result.addAllElements(
+                    (scalars + associations + views + embeddable)
+                            .map { (name, type) -> LookupElementBuilder.create(name).withTypeText(type, true) }
+                )
+            },
+            and(
+                identifier.withSuperParent(2, DTOQualifiedName::class.java),
+                or(
+                    identifier.withSuperParent(
+                        5,
+                        psiElement(DTOWhereArgs::class.java)
+                                .afterLeaf(
+                                    or(
+                                        psiElement(DTOTypes.PROP_CONFIG_NAME).withText("!where"),
+                                        psiElement(DTOTypes.PROP_CONFIG_NAME).withText("!orderBy"),
+                                    ),
+                                ),
+                    ),
+                    identifier.withSuperParent(
+                        4,
+                        psiElement(DTOOrderByArgs::class.java)
+                                .afterLeaf(
+                                    or(
+                                        psiElement(DTOTypes.PROP_CONFIG_NAME).withText("!where"),
+                                        psiElement(DTOTypes.PROP_CONFIG_NAME).withText("!orderBy"),
+                                    ),
+                                ),
+                    ),
+                ),
+            ),
         )
     }
 

@@ -17,6 +17,7 @@ import net.fallingangel.jimmerdto.DTOFileType
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.lsi.*
+import net.fallingangel.jimmerdto.util.propPath
 import net.fallingangel.jimmerdto.util.qualified
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
@@ -85,15 +86,18 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
         }
 
     /**
-     * 查找路径属性所属LClass
-     * @param tokens user.files.name
-     * @return files LClass
+     * 查找属性所在类定义
+     *
+     * @param lastPathExcluded 是否将最后一个节点抛弃
+     *
+     * @return prop containing LClass
      */
-    fun findClass(tokens: List<String>): LClass<*> {
-        return if (tokens.size == 1) {
+    fun findOwnClass(prop: DTOPositiveProp, childPath: List<String> = emptyList(), lastPathExcluded: Boolean = childPath.isEmpty()): LClass<*> {
+        val tokens = prop.propPath() + childPath
+        return if (tokens.size == 1 && lastPathExcluded) {
             clazz
         } else {
-            val type = clazz.findProperty(tokens.dropLast(1)).type
+            val type = clazz.findProperty(tokens.dropLast(if (lastPathExcluded) 1 else 0)).type
             if (type is LType.CollectionType) {
                 type.elementType as LClass<*>
             } else {
@@ -103,11 +107,21 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
     }
 
     /**
-     * 依据路径查找属性
-     * @param tokens user.files.name
+     * 查找属性对应字段定义
      */
-    fun findProperty(tokens: List<String>): LProperty<*> {
-        return clazz.findProperty(tokens)
+    fun findProperty(prop: DTOPositiveProp): LProperty<*> {
+        return findOwnClass(prop).properties.first { it.name == prop.propName.name }
+    }
+
+    /**
+     * 查找属性子级属性
+     */
+    fun findPropertyChildren(
+        prop: DTOPositiveProp,
+        childPath: List<String> = emptyList(),
+        lastPathExcluded: Boolean = childPath.isEmpty(),
+    ): List<LProperty<*>> {
+        return findOwnClass(prop, childPath, lastPathExcluded).properties
     }
 
     companion object {

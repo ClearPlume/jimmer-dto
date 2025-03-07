@@ -6,6 +6,7 @@
 
 * Added support for k2 mode
 * Provide suggestions for incorrect `prop-config` names
+* Suggestions for `prop-config` parameters
 
 ### Changed
 
@@ -27,7 +28,7 @@
 
 ### Removed
 
-* Removed the offset property configuration
+* Removed the offset `prop-config`
 
 ## [0.0.7.38] - 2025-02-23
 
