@@ -7,12 +7,14 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
-import net.fallingangel.jimmerdto.DTOLexerAdapter
+import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.psi.DTOLexer
 import net.fallingangel.jimmerdto.psi.DTOTokenTypes
 import net.fallingangel.jimmerdto.psi.DTOTypes
+import org.antlr.intellij.adaptor.lexer.ANTLRLexerAdaptor
 
 class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
-    override fun getHighlightingLexer() = DTOLexerAdapter()
+    override fun getHighlightingLexer() = ANTLRLexerAdaptor(DTOLanguage, DTOLexer(null))
 
     override fun getTokenHighlights(tokenType: IElementType): Array<TextAttributesKey> {
         return when (tokenType) {

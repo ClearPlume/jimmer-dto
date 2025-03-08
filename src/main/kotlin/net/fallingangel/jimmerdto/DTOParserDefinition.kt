@@ -7,27 +7,43 @@ import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
-import net.fallingangel.jimmerdto.parser.DTOParser
 import net.fallingangel.jimmerdto.psi.DTOFile
-import net.fallingangel.jimmerdto.psi.DTOTokenTypes
-import net.fallingangel.jimmerdto.psi.DTOTypes
+import net.fallingangel.jimmerdto.psi.DTOLexer
+import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory
+import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
 class DTOParserDefinition : ParserDefinition {
     override fun createLexer(project: Project) = DTOLexerAdapter()
 
-    override fun createParser(project: Project) = DTOParser()
+    override fun createParser(project: Project) = DTOParserAdapter()
 
     override fun getFileNodeType() = Companion.FILE
 
-    override fun getCommentTokens() = TokenSet.create(
-        DTOTokenTypes.LINE_COMMENT,
-        DTOTokenTypes.BLOCK_COMMENT,
-        DTOTokenTypes.DOC_COMMENT
-    )
+    override fun getWhitespaceTokens(): TokenSet {
+        return PSIElementTypeFactory.createTokenSet(
+            DTOLanguage,
+            DTOLexer.WhiteSpace,
+        )
+    }
 
-    override fun getStringLiteralElements(): TokenSet = TokenSet.create(DTOTypes.STRING, DTOTypes.SQL_STRING)
+    override fun getCommentTokens(): TokenSet {
+        return PSIElementTypeFactory.createTokenSet(
+            DTOLanguage,
+            DTOLexer.LineComment,
+            DTOLexer.BlockComment,
+            DTOLexer.DocComment,
+        )
+    }
 
-    override fun createElement(node: ASTNode): PsiElement = DTOTypes.Factory.createElement(node)
+    override fun getStringLiteralElements(): TokenSet {
+        return PSIElementTypeFactory.createTokenSet(
+            DTOLanguage,
+            DTOLexer.StringLiteral,
+            DTOLexer.SqlStringLiteral,
+        )
+    }
+
+    override fun createElement(node: ASTNode): PsiElement = ANTLRPsiNode(node)
 
     override fun createFile(viewProvider: FileViewProvider) = DTOFile(viewProvider)
 

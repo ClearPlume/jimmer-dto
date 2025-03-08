@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto
 
-import com.intellij.lexer.FlexAdapter
+import net.fallingangel.jimmerdto.psi.DTOLexer
+import org.antlr.intellij.adaptor.lexer.ANTLRLexerAdaptor
 
-class DTOLexerAdapter : FlexAdapter(DTOLexer(null))
+class DTOLexerAdapter : ANTLRLexerAdaptor(DTOLanguage, DTOLexer(null))

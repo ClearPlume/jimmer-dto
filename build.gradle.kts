@@ -4,9 +4,11 @@ import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id("java")
+    java
+    antlr
+
     id("org.jetbrains.kotlin.jvm") version "1.8.22"
-    id("org.jetbrains.intellij.platform") version "2.2.1"
+    id("org.jetbrains.intellij.platform") version "2.3.0"
     id("org.jetbrains.changelog") version "2.2.1"
 }
 
@@ -16,6 +18,7 @@ version = "0.0.7.40"
 val since by extra("223.7571.182")
 val until by extra("251.*")
 val jimmerVersion by extra("0.9.61")
+val antlrVersion by extra("4.13.2")
 
 val certificateChainValue = findProperty("certificateChainValue") as String?
 val privateKeyValue = findProperty("privateKeyValue") as String?
@@ -40,6 +43,11 @@ dependencies {
         testFramework(TestFrameworkType.Platform)
     }
 
+    antlr("org.antlr:antlr4:$antlrVersion") {
+        exclude(group = "com.ibm.icu", module = "icu4j")
+    }
+    implementation("org.antlr:antlr4-runtime:$antlrVersion")
+    implementation("org.antlr:antlr4-intellij-adaptor:0.1")
     implementation("org.babyfish.jimmer:jimmer-core:$jimmerVersion")
 
     testImplementation("junit:junit:4.13.2")
@@ -96,7 +104,9 @@ tasks {
         sourceCompatibility = "17"
         targetCompatibility = "17"
     }
+
     withType<KotlinCompile> {
+        dependsOn("generateGrammarSource")
         kotlinOptions {
             jvmTarget = "17"
             freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
