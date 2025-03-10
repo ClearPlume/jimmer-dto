@@ -8,107 +8,109 @@ package net.fallingangel.jimmerdto.psi;
 dtoFile
     :
     exportStatement?
-    (importStatements += importStatement)*
-    (dtos += dto)*
+    importStatement*
+    dto*
     EOF
     ;
 
 exportStatement
     :
-    'export' qualifiedName
-    ('->' 'package' qualifiedName)?
+    Export qualifiedName
+    ('->' Package qualifiedName)?
     ;
 
 importStatement
     :
-    'import' qualifiedName
+    Import qualifiedName
     (
-        '.' '{' importedTypes += importedType (',' importedTypes += importedType)* '}' |
-        'as' alias = Identifier
+        '.' '{' importedType (',' importedType)* '}' |
+        As alias = Identifier
     )?
     ;
 
 importedType
     :
-    name = Identifier ('as' alias = Identifier)?
+    Identifier (As Identifier)?
     ;
 
 dto
     :
-    (annotations += annotation)*
-    (modifiers += modifier)*
-    name=Identifier
-    ('implements' interfaces += typeRef (',' interfaces += typeRef)*)?
-    body=dtoBody
+    annotation*
+    Modifier*
+    Identifier
+    (Implements typeRef (',' typeRef)*)?
+    dtoBody
     ;
 
 dtoBody
     :
     '{'
-    ((userProp | macro | positiveProp | negativeProp | aliasGroup) (',' | ';')?)*
+    ((macro | aliasGroup | positiveProp | negativeProp | userProp) (',' | ';')?)*
     '}'
     ;
 
 macro
     :
-    '#' name = Identifier
-    ('(' args += qualifiedName (',' args += qualifiedName)* ')')?
-    (optional = '?' | required = '!')?
+    '#' Identifier
+    ('(' qualifiedName (',' qualifiedName)* ')')?
+    ('?' | '!')?
     ;
 
 aliasGroup
     :
-    pattern = aliasPattern '{' (macros += macro)* (props += positiveProp)* '}'
+    As '(' '^'? Identifier? '$'? '->' Identifier? ')' aliasGroupBody
     ;
 
-aliasPattern
+aliasGroupBody
     :
-    'as' '('
-    (prefix = '^')?
-    (original = Identifier)?
-    (suffix = '$')?
-    (translator = '->')
-    (replacement = Identifier)?
-    ')'
+    '{' macro* positiveProp* '}'
     ;
 
 positiveProp
     :
-    (configs += propConfig | annotations += annotation)*
+    (propConfig | annotation)*
     '+'?
-    modifier?
+    Modifier?
     (
-        name = (Identifier | 'like' | 'null')
-        (flag = '/' (insensitive = 'i')? (prefix = '^')? (suffix = '$')?)?
-        ('(' args += Identifier (',' args += Identifier)* ','? ')')?
+        propName
+        ('/' 'i'? '^'? '$'?)?
+        ('(' Identifier (',' Identifier)* ','? ')')?
     )
-    (optional = '?' | required = '!' | recursive = '*')?
-    ('as' alias = Identifier)?
-    (
-        (bodyAnnotations += annotation)*
-        ('implements' interfaces += typeRef (',' interfaces += typeRef)*)?
-        dtoBody
-        |
-        '->' enumBody
-    )?
+    ('?' | '!' | '*')?
+    (As Identifier)?
+    propBody?
+    ;
+
+propBody
+    :
+    annotation*
+    (Implements typeRef (',' typeRef)*)?
+    dtoBody
+    |
+    '->' enumBody
     ;
 
 negativeProp
     :
-    '-' prop = Identifier
+    '-' propName
     ;
 
 userProp
     :
-    (annotations += annotation)*
-    prop = Identifier ':' typeRef
+    annotation*
+    propName ':' typeRef
+    ;
+
+propName
+    :
+    Identifier | Like | Null
     ;
 
 propConfig
     :
     PropConfigName
     (
-        '(' predicate (('and' | 'or') predicate)* ')' |
+        '(' predicate ((And | Or) predicate)* ')' |
         '(' orderItem ((',') orderItem)* ')' |
         '(' Identifier ')' |
         '(' IntegerLiteral (',' IntegerLiteral)? ')'
@@ -127,48 +129,36 @@ compare
 
 compareSymbol
     :
-    '=' | '<>' | '!=' | '<' | '<=' | '>' | '>=' | 'like' | 'ilike'
+    '=' | '<>' | '!=' | '<' | '<=' | '>' | '>=' | Like | Ilike
     ;
 
 nullity
     :
-    qualifiedName 'is' 'not'? 'null'
-    ;
-
-propPath
-    :
-    parts += Identifier ('.' parts += Identifier)*
+    qualifiedName Is Not? Null
     ;
 
 propValue
     :
-    booleanToken = BooleanLiteral |
-    characterToken = CharacterLiteral |
-    stringToken = SqlStringLiteral |
-    integerToken = IntegerLiteral |
-    floatingPointToken = FloatingPointLiteral |
+    BooleanLiteral |
+    CharacterLiteral |
+    SqlStringLiteral |
+    IntegerLiteral |
+    FloatingPointLiteral
     ;
 
 orderItem
     :
-    propPath ('asc' | 'desc')?
+    qualifiedName (Asc | Desc)?
     ;
 
 annotation
     :
-    '@' typeName = qualifiedName ('(' annotationArguments? ')')?
+    '@' qualifiedName ('(' (annotationValue | annotationParameter) (',' annotationParameter)* ')')?
     ;
 
-annotationArguments
+annotationParameter
     :
-    defaultArgument = annotationValue (',' namedArguments += annotationNamedArgument)*
-    |
-    namedArguments += annotationNamedArgument (',' namedArguments += annotationNamedArgument)*
-    ;
-
-annotationNamedArgument
-    :
-    name = Identifier '=' value = annotationValue
+    Identifier '=' annotationValue
     ;
 
 annotationValue
@@ -180,50 +170,90 @@ annotationValue
 
 annotationSingleValue
     :
-    booleanToken = BooleanLiteral |
-    characterToken = CharacterLiteral |
-    stringTokens += StringLiteral ('+' stringTokens += StringLiteral)* |
-    integerToken = IntegerLiteral |
-    floatingPointToken = FloatingPointLiteral |
-    qualifiedPart = qualifiedName classSuffix? |
-    annotationPart = annotation |
-    nestedAnnotationPart = nestedAnnotation
+    BooleanLiteral |
+    CharacterLiteral |
+    StringLiteral ('+' StringLiteral)* |
+    IntegerLiteral |
+    FloatingPointLiteral |
+    qualifiedName classSuffix? |
+    annotation |
+    nestedAnnotation
     ;
 
 annotationArrayValue
     :
-    '{' elements += annotationSingleValue (',' elements += annotationSingleValue)* '}'
+    '{' annotationValue (',' annotationValue)* '}'
     |
-    '[' elements += annotationSingleValue (',' elements += annotationSingleValue)* ']'
+    '[' annotationValue (',' annotationValue)* ']'
     ;
 
 nestedAnnotation
     :
-    typeName = qualifiedName '(' annotationArguments? ')'
+    '@'? qualifiedName '(' (annotationValue | annotationParameter) (',' annotationParameter)* ')'
     ;
 
 enumBody
     :
-    '{' (mappings += enumMapping (','|';')?)+ '}'
+    '{' (enumMapping (','|';')?)+ '}'
     ;
 
 enumMapping
     :
-    constant = Identifier ':' value = (StringLiteral | IntegerLiteral)
+    Identifier ':' (StringLiteral | IntegerLiteral)
     ;
 
 classSuffix
     :
-    '?'? ('.' | '::') 'class'
+    '?'? ('.' | '::') Class
     ;
 
 // Common
 qualifiedName
     :
-    Identifier ('.' parts += Identifier)*
+    qualifiedNamePart ('.' qualifiedNamePart)*
     ;
 
-modifier
+qualifiedNamePart
+    :
+    Identifier
+    ;
+
+typeRef
+    :
+    qualifiedName
+    ('<' genericArgument (',' genericArgument)? '>')?
+    '?'?
+    ;
+
+genericArgument
+    :
+    '*' |
+    Modifier? typeRef
+    ;
+
+// Lexer
+Export: 'export';
+Package: 'package';
+Import: 'import';
+As: 'as';
+Implements: 'implements';
+Like: 'like';
+Ilike: 'ilike';
+Null: 'null';
+And: 'and';
+Or: 'or';
+Is: 'is';
+Not: 'not';
+Asc: 'asc';
+Desc: 'desc';
+Class: 'class';
+
+PropConfigName
+    :
+    '!' Identifier
+    ;
+
+Modifier
     :
     'input' |
     'specification' |
@@ -234,19 +264,6 @@ modifier
     'fuzzy'|
     'out' |
     'in'
-    ;
-
-typeRef
-    :
-    qualifiedName
-    ('<' genericArguments += genericArgument (',' genericArguments += genericArgument)? '>')?
-    (optional = '?')?
-    ;
-
-genericArgument
-    :
-    wildcard = '*' |
-    modifier? typeRef
     ;
 
 // Lexer
@@ -343,9 +360,4 @@ IntegerLiteral
 FloatingPointLiteral
     :
     [0-9]+ '.' [0-9]+
-    ;
-
-PropConfigName
-    :
-    '!' Identifier
     ;
