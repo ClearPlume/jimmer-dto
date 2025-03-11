@@ -14,8 +14,6 @@ object StructureType {
     val AsProperties = AsProperties()
     val FlatProperties = FlatProperties()
     val DTOFileImports = DTOFileImports()
-    val DTOPreludeTypes = DTOPreludeTypes()
-    val DTOFileDtos = DTOFileDtos()
     val AnnotationParameters = AnnotationParameters()
     val NestAnnotationParameters = NestAnnotationParameters()
 }

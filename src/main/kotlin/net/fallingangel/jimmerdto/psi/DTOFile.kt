@@ -19,6 +19,7 @@ import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.psi.element.DTOExportStatement
 import net.fallingangel.jimmerdto.util.findChildNullable
+import net.fallingangel.jimmerdto.util.findChildren
 import net.fallingangel.jimmerdto.util.propPath
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
@@ -78,6 +79,16 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             )
         }
 
+    val dtos: List<String>
+        get() = CachedValuesManager.getCachedValue(this, CACHED_DTO_KEY) {
+            CachedValueProvider.Result.create(
+                findChildren<PsiElement>("/dtoFile/dto/Identifier").map(PsiElement::getText),
+                DumbService.getInstance(project).modificationTracker,
+                ProjectRootModificationTracker.getInstance(project),
+                this,
+            )
+        }
+
     override fun getFileType() = DTOFileType.INSTANCE
 
     override fun toString() = "JimmerDTO File"
@@ -123,5 +134,6 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
 
     companion object {
         private val CACHED_CLASS_KEY = Key<CachedValue<LClass<*>>>("DTO_FILE_CACHED_CLASS")
+        private val CACHED_DTO_KEY = Key<CachedValue<List<String>>>("DTO_FILE_CACHED_DTO")
     }
 }
