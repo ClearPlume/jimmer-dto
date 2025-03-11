@@ -9,7 +9,13 @@ import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOLexer
+import net.fallingangel.jimmerdto.psi.DTOParser
+import net.fallingangel.jimmerdto.psi.element.impl.DTOExportStatementImpl
+import net.fallingangel.jimmerdto.psi.element.impl.DTOQualifiedNameImpl
+import net.fallingangel.jimmerdto.psi.element.impl.DTOQualifiedNamePartImpl
 import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory
+import org.antlr.intellij.adaptor.lexer.RuleIElementType
+import org.antlr.intellij.adaptor.lexer.TokenIElementType
 import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
 class DTOParserDefinition : ParserDefinition {
@@ -43,7 +49,20 @@ class DTOParserDefinition : ParserDefinition {
         )
     }
 
-    override fun createElement(node: ASTNode): PsiElement = ANTLRPsiNode(node)
+    override fun createElement(node: ASTNode): PsiElement {
+        val type = node.elementType
+
+        if (type is TokenIElementType || type !is RuleIElementType) {
+            return ANTLRPsiNode(node)
+        }
+
+        return when (type.ruleIndex) {
+            DTOParser.RULE_exportStatement -> DTOExportStatementImpl(node)
+            DTOParser.RULE_qualifiedName -> DTOQualifiedNameImpl(node)
+            DTOParser.RULE_qualifiedNamePart -> DTOQualifiedNamePartImpl(node)
+            else -> ANTLRPsiNode(node)
+        }
+    }
 
     override fun createFile(viewProvider: FileViewProvider) = DTOFile(viewProvider)
 

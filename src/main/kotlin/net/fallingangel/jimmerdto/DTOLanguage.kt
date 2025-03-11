@@ -5,8 +5,11 @@ import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.structure.BasicType
 import net.fallingangel.jimmerdto.structure.GenericType
 import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory
+import org.antlr.intellij.adaptor.xpath.XPath
 
 object DTOLanguage : Language(Constant.NAME) {
+    val xPath by lazy { XPath(DTOLanguage, "") }
+
     val preludes by lazy {
         val basicTypes = BasicType.types()
         val genericTypes = GenericType.types().map { it.presentation }

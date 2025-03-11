@@ -17,10 +17,10 @@ import net.fallingangel.jimmerdto.DTOFileType
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.lsi.*
+import net.fallingangel.jimmerdto.psi.element.DTOExportStatement
+import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.propPath
-import net.fallingangel.jimmerdto.util.qualified
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 
 class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLanguage) {
     private val implicitPackage: String
@@ -51,17 +51,14 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
 
     val `package`: String
         get() {
-            val export = getChildOfType<DTOExportStatement>()
-            val `package` = export?.getChildOfType<DTOPackageStatement>()
-            return `package`?.qualified
-                ?: export?.qualified?.substringBeforeLast('.')?.let { "$it.dto" }
-                ?: "$implicitPackage.dto"
+            val export = findChildNullable<DTOExportStatement>("/dtoFile/exportStatement")
+            return export?.export?.run { "$simpleName.dto" } ?: "$implicitPackage.dto"
         }
 
     val qualifiedEntity: String
         get() {
-            val export = getChildOfType<DTOExportStatement>()
-            return export?.qualified ?: "$implicitPackage.${originalFile.virtualFile.nameWithoutExtension}"
+            val export = findChildNullable<DTOExportStatement>("/dtoFile/exportStatement")
+            return export?.export?.value ?: "$implicitPackage.${originalFile.virtualFile.nameWithoutExtension}"
         }
 
     override fun getFileType() = DTOFileType.INSTANCE

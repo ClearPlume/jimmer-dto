@@ -13,9 +13,12 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.siblings
+import net.fallingangel.jimmerdto.DTOLanguage.xPath
 import net.fallingangel.jimmerdto.enums.Language
 import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
 import net.fallingangel.jimmerdto.psi.DTOExportStatement
+import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import org.jetbrains.jps.model.java.JavaSourceRootType
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -69,6 +72,24 @@ fun Project.psiClass(qualifiedName: String): PsiClass? {
 fun Project.ktClass(qualifiedName: String): KtClass? {
     val results = KotlinFullClassNameIndex.get(qualifiedName, this, ProjectScope.getContentScope(this))
     return results.toList().takeIf { it.size == 1 }?.get(0) as? KtClass
+}
+
+inline fun <reified T : PsiElement> PsiElement.findChild(path: String): T {
+    return xPath.evaluate(this, xPath.split(path)).toList().first() as T
+}
+
+inline fun <reified T : PsiElement> PsiElement.findChildNullable(path: String): T? {
+    return xPath.evaluate(this, xPath.split(path)).toList().firstOrNull() as T?
+}
+
+inline fun <reified T : PsiElement> PsiElement.findChildren(path: String): List<T> {
+    return xPath.evaluate(this, xPath.split(path)).filterIsInstance<T>()
+}
+
+inline fun <reified T : PsiElement> PsiElement.sibling(forward: Boolean = true, filter: (PsiElement) -> Boolean): T? {
+    return siblings(forward, false)
+            .filterIsInstance<T>()
+            .firstOrNull(filter)
 }
 
 /**
