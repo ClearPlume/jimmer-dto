@@ -61,10 +61,6 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             return export?.export?.value ?: "$implicitPackage.${originalFile.virtualFile.nameWithoutExtension}"
         }
 
-    override fun getFileType() = DTOFileType.INSTANCE
-
-    override fun toString() = "JimmerDTO File"
-
     val clazz: LClass<*>
         get() = CachedValuesManager.getCachedValue(this, CACHED_CLASS_KEY) {
             val processor = LanguageProcessor.analyze(this)
@@ -81,6 +77,10 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
                 *classDependencies.toTypedArray(),
             )
         }
+
+    override fun getFileType() = DTOFileType.INSTANCE
+
+    override fun toString() = "JimmerDTO File"
 
     /**
      * 查找属性所在类定义
