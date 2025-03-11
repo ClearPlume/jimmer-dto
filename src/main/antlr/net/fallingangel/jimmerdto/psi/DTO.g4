@@ -16,14 +16,14 @@ dtoFile
 exportStatement
     :
     Export qualifiedName
-    ('->' Package qualifiedName)?
+    (Arrow Package qualifiedName)?
     ;
 
 importStatement
     :
     Import qualifiedName
     (
-        '.' '{' importedType (',' importedType)* '}' |
+        Dot LBrace importedType (Comma importedType)* RBrace |
         As alias = Identifier
     )?
     ;
@@ -38,45 +38,50 @@ dto
     annotation*
     Modifier*
     Identifier
-    (Implements typeRef (',' typeRef)*)?
+    (Implements typeRef (Comma typeRef)*)?
     dtoBody
     ;
 
 dtoBody
     :
-    '{'
-    ((macro | aliasGroup | positiveProp | negativeProp | userProp) (',' | ';')?)*
-    '}'
+    LBrace
+    ((macro | aliasGroup | positiveProp | negativeProp | userProp) (Comma | SemiColon)?)*
+    RBrace
     ;
 
 macro
     :
-    '#' Identifier
-    ('(' qualifiedName (',' qualifiedName)* ')')?
-    ('?' | '!')?
+    Hash Identifier
+    macroArgs?
+    (QuestionMark | ExclamationMark)?
+    ;
+
+macroArgs
+    :
+    LParen qualifiedName? (Comma qualifiedName)* RParen
     ;
 
 aliasGroup
     :
-    As '(' '^'? Identifier? '$'? '->' Identifier? ')' aliasGroupBody
+    As LParen Caret? Identifier? Dollar? Arrow Identifier? RParen aliasGroupBody
     ;
 
 aliasGroupBody
     :
-    '{' macro* positiveProp* '}'
+    LBrace macro* positiveProp* RBrace
     ;
 
 positiveProp
     :
     (propConfig | annotation)*
-    '+'?
+    Plus?
     Modifier?
     (
         propName
-        ('/' 'i'? '^'? '$'?)?
-        ('(' Identifier (',' Identifier)* ','? ')')?
+        (Slash 'i'? Caret? Dollar?)?
+        (LParen Identifier (Comma Identifier)* Comma? RParen)?
     )
-    ('?' | '!' | '*')?
+    (QuestionMark | ExclamationMark | Star)?
     (As Identifier)?
     propBody?
     ;
@@ -84,21 +89,21 @@ positiveProp
 propBody
     :
     annotation*
-    (Implements typeRef (',' typeRef)*)?
+    (Implements typeRef (Comma typeRef)*)?
     dtoBody
     |
-    '->' enumBody
+    Arrow enumBody
     ;
 
 negativeProp
     :
-    '-' propName
+    Minus propName
     ;
 
 userProp
     :
     annotation*
-    propName ':' typeRef
+    propName Colon typeRef
     ;
 
 propName
@@ -110,10 +115,10 @@ propConfig
     :
     PropConfigName
     (
-        '(' predicate ((And | Or) predicate)* ')' |
-        '(' orderItem ((',') orderItem)* ')' |
-        '(' Identifier ')' |
-        '(' IntegerLiteral (',' IntegerLiteral)? ')'
+        LParen predicate ((And | Or) predicate)* RParen |
+        LParen orderItem ((Comma) orderItem)* RParen |
+        LParen Identifier RParen |
+        LParen IntegerLiteral (Comma IntegerLiteral)? RParen
     )
     ;
 
@@ -129,7 +134,7 @@ compare
 
 compareSymbol
     :
-    '=' | '<>' | '!=' | '<' | '<=' | '>' | '>=' | Like | Ilike
+    Equals | NotEquals1 | NotEquals2 | LessThan | LessThanEquals | GreaterThan | GreaterThanEquals | Like | Ilike
     ;
 
 nullity
@@ -153,12 +158,12 @@ orderItem
 
 annotation
     :
-    '@' qualifiedName ('(' (annotationValue | annotationParameter) (',' annotationParameter)* ')')?
+    At qualifiedName (LParen (annotationValue | annotationParameter) (Comma annotationParameter)* RParen)?
     ;
 
 annotationParameter
     :
-    Identifier '=' annotationValue
+    Identifier Equals annotationValue
     ;
 
 annotationValue
@@ -172,7 +177,7 @@ annotationSingleValue
     :
     BooleanLiteral |
     CharacterLiteral |
-    StringLiteral ('+' StringLiteral)* |
+    StringLiteral (Plus StringLiteral)* |
     IntegerLiteral |
     FloatingPointLiteral |
     qualifiedName classSuffix? |
@@ -182,29 +187,29 @@ annotationSingleValue
 
 annotationArrayValue
     :
-    '{' annotationValue (',' annotationValue)* '}'
+    LBrace annotationValue (Comma annotationValue)* RBrace
     |
-    '[' annotationValue (',' annotationValue)* ']'
+    LBracket annotationValue (Comma annotationValue)* RBracket
     ;
 
 nestedAnnotation
     :
-    '@'? qualifiedName '(' (annotationValue | annotationParameter) (',' annotationParameter)* ')'
+    At? qualifiedName LParen (annotationValue | annotationParameter) (Comma annotationParameter)* RParen
     ;
 
 enumBody
     :
-    '{' (enumMapping (','|';')?)+ '}'
+    LBrace (enumMapping (Comma|SemiColon)?)+ RBrace
     ;
 
 enumMapping
     :
-    Identifier ':' (StringLiteral | IntegerLiteral)
+    Identifier Colon (StringLiteral | IntegerLiteral)
     ;
 
 classSuffix
     :
-    '?'? ('.' | '::') Class
+    QuestionMark? (Dot | DoubleColon) Class
     ;
 
 // Common
@@ -232,6 +237,36 @@ genericArgument
     ;
 
 // Lexer
+Arrow: '->';
+Dot: '.';
+LBrace: '{';
+RBrace: '}';
+Comma: ',';
+SemiColon: ';';
+Hash: '#';
+LParen: '(';
+RParen: ')';
+QuestionMark: '?';
+ExclamationMark: '!';
+Caret: '^';
+Dollar: '$';
+Plus: '+';
+Slash: '/';
+Star: '*';
+Minus: '-';
+Colon: ':';
+Equals: '=';
+NotEquals1: '!=';
+NotEquals2: '<>';
+LessThan: '<';
+LessThanEquals: '<=';
+GreaterThan: '>';
+GreaterThanEquals: '>=';
+At: '@';
+LBracket: '[';
+RBracket: ']';
+DoubleColon: '::';
+
 Export: 'export';
 Package: 'package';
 Import: 'import';
