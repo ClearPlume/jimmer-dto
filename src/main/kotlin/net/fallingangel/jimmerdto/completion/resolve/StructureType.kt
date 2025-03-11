@@ -13,7 +13,6 @@ object StructureType {
     val EnumValues = EnumValues()
     val AsProperties = AsProperties()
     val FlatProperties = FlatProperties()
-    val DTOFileImports = DTOFileImports()
     val AnnotationParameters = AnnotationParameters()
     val NestAnnotationParameters = NestAnnotationParameters()
 }

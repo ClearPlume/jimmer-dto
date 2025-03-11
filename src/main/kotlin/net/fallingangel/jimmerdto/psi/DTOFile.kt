@@ -18,6 +18,7 @@ import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.psi.element.DTOExportStatement
+import net.fallingangel.jimmerdto.psi.element.DTOImportStatement
 import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
 import net.fallingangel.jimmerdto.util.propPath
@@ -89,6 +90,24 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             )
         }
 
+    val imported: List<String>
+        get() = CachedValuesManager.getCachedValue(this, CACHED_IMPORT_KEY) {
+            val imports = findChildren<DTOImportStatement>("/dtoFile/importStatement")
+
+            val normal = imports.filter { it.alias == null && it.subTypes.isEmpty() }.map { it.qualifiedName.simpleName }
+            val grouped = imports.filter { it.subTypes.isNotEmpty() }
+                    .flatMap { it.subTypes }
+                    .map { it.alias ?: it.type }
+            val aliases = imports.mapNotNull(DTOImportStatement::alias)
+
+            CachedValueProvider.Result.create(
+                normal + grouped + aliases,
+                DumbService.getInstance(project).modificationTracker,
+                ProjectRootModificationTracker.getInstance(project),
+                this,
+            )
+        }
+
     override fun getFileType() = DTOFileType.INSTANCE
 
     override fun toString() = "JimmerDTO File"
@@ -135,5 +154,6 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
     companion object {
         private val CACHED_CLASS_KEY = Key<CachedValue<LClass<*>>>("DTO_FILE_CACHED_CLASS")
         private val CACHED_DTO_KEY = Key<CachedValue<List<String>>>("DTO_FILE_CACHED_DTO")
+        private val CACHED_IMPORT_KEY = Key<CachedValue<List<String>>>("DTO_FILE_CACHED_IMPORT")
     }
 }
