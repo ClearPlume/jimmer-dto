@@ -25,6 +25,15 @@ data class LClass<C : PsiElement>(
 
     val methods by methodsHolder
 
+    /**
+     * 以this为起点，走过[propPath]后，属性的LClass
+     */
+    fun walk(propPath: List<String>) = if (propPath.isEmpty()) {
+        this
+    } else {
+        findProperty(propPath).actualType as LClass<*>
+    }
+
     override fun toString() = toDebugString(mutableSetOf())
 
     override fun toDebugString(visited: MutableSet<String>): String {
