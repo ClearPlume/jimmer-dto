@@ -290,7 +290,7 @@ infix fun DTODto.modifiedBy(modifier: Modifier): Boolean {
     return modifier in this.modifierList.toModifier()
 }
 
-fun DTOPositiveProp.hasConfig(config: PropConfigName) = propConfigList.any { it.propConfigName.text == "!${config.text}" }
+fun DTOPositiveProp.hasConfig(config: PropConfigName) = propConfigList.any { it.propConfigName.text == config.text }
 
 fun KtClass.hasAnnotation(vararg annotations: String) = annotations.any { annotationEntries.map(KtAnnotationEntry::qualifiedName).contains(it) }
 
