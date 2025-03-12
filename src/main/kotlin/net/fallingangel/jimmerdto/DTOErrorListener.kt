@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto
 
+import net.fallingangel.jimmerdto.psi.DTOLexer
 import net.fallingangel.jimmerdto.psi.DTOParser
 import org.antlr.intellij.adaptor.parser.SyntaxError
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener
@@ -24,6 +25,19 @@ class DTOErrorListener : SyntaxErrorListener() {
             return
         }
         when (recognizer.context) {
+            is DTOParser.AliasGroupContext -> {
+                if (offendingSymbol.type in listOf(DTOLexer.StringLiteral, DTOLexer.SqlStringLiteral)) {
+                    syntaxErrors += SyntaxError(
+                        recognizer,
+                        offendingSymbol,
+                        line,
+                        charPositionInLine,
+                        "No quotation marks are needed here",
+                        e,
+                    )
+                }
+            }
+
             else -> syntaxErrors += SyntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e)
         }
     }
