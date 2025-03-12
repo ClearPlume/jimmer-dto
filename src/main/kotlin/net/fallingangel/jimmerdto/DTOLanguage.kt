@@ -16,6 +16,8 @@ object DTOLanguage : Language(Constant.NAME) {
         basicTypes + genericTypes
     }
 
+    val availableFetchTypes by lazy { listOf("SELECT", "JOIN_IF_NO_CACHE", "JOIN_ALWAYS") }
+
     init {
         val vocab = DTOParser.VOCABULARY
 
