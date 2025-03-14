@@ -1,52 +1,50 @@
 package net.fallingangel.jimmerdto.highlighting
 
 import com.intellij.openapi.editor.DefaultLanguageHighlighterColors
-import com.intellij.openapi.editor.HighlighterColors
 import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
-import com.intellij.psi.TokenType
 import com.intellij.psi.tree.IElementType
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.psi.DTOLexer
-import net.fallingangel.jimmerdto.psi.DTOTokenTypes
-import net.fallingangel.jimmerdto.psi.DTOTypes
 import org.antlr.intellij.adaptor.lexer.ANTLRLexerAdaptor
+import org.antlr.intellij.adaptor.lexer.TokenIElementType
 
 class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
     override fun getHighlightingLexer() = ANTLRLexerAdaptor(DTOLanguage, DTOLexer(null))
 
     override fun getTokenHighlights(tokenType: IElementType): Array<TextAttributesKey> {
-        return when (tokenType) {
-            DTOTokenTypes.LINE_COMMENT -> arrayOf(LINE_COMMENT)
-            DTOTokenTypes.BLOCK_COMMENT -> arrayOf(BLOCK_COMMENT)
-            DTOTokenTypes.DOC_COMMENT -> arrayOf(DOC_COMMENT)
+        if (tokenType !is TokenIElementType) {
+            return emptyArray()
+        }
+        return when (tokenType.antlrTokenType) {
+            DTOLexer.LineComment -> arrayOf(LINE_COMMENT)
+            DTOLexer.BlockComment -> arrayOf(BLOCK_COMMENT)
+            DTOLexer.DocComment -> arrayOf(DOC_COMMENT)
 
-            DTOTypes.AS,
-            DTOTypes.EXPORT,
-            DTOTypes.PACKAGE,
-            DTOTypes.IMPORT,
-            DTOTypes.CLASS,
-            DTOTypes.IMPLEMENTS,
-            DTOTypes.BOOLEAN,
-            DTOTypes.NULL,
-            DTOTypes.IS,
-            DTOTypes.NOT,
-            DTOTypes.AND,
-            DTOTypes.LIKE,
-            DTOTypes.ILIKE,
-            DTOTypes.OR,
-            DTOTypes.ASC,
-            DTOTypes.DESC -> arrayOf(KEYWORD)
+            DTOLexer.As,
+            DTOLexer.Export,
+            DTOLexer.Package,
+            DTOLexer.Import,
+            DTOLexer.Class,
+            DTOLexer.Implements,
+            DTOLexer.BooleanLiteral,
+            DTOLexer.Null,
+            DTOLexer.Is,
+            DTOLexer.Not,
+            DTOLexer.And,
+            DTOLexer.Like,
+            DTOLexer.Ilike,
+            DTOLexer.Or,
+            DTOLexer.Asc,
+            DTOLexer.Desc -> arrayOf(KEYWORD)
 
-            DTOTypes.MODIFIER -> arrayOf(MODIFIER)
-            DTOTypes.NEGATIVE_PROP -> arrayOf(NEGATIVE_PROP)
+            DTOLexer.Modifier -> arrayOf(MODIFIER)
 
-            DTOTypes.CHAR -> arrayOf(CHAR)
-            DTOTypes.STRING, DTOTypes.SQL_STRING -> arrayOf(STRING)
-            DTOTypes.INT, DTOTypes.FLOAT -> arrayOf(NUMBER)
+            DTOLexer.CharacterLiteral -> arrayOf(CHAR)
+            DTOLexer.StringLiteral, DTOLexer.SqlStringLiteral -> arrayOf(STRING)
+            DTOLexer.IntegerLiteral, DTOLexer.FloatingPointLiteral -> arrayOf(NUMBER)
 
-            TokenType.BAD_CHARACTER -> arrayOf(HighlighterColors.BAD_CHARACTER)
             else -> arrayOf()
         }
     }
@@ -70,8 +68,8 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
         val NEGATIVE_PROP = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NEGATIVE_PROP", CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES)
         val NAMED_PARAMETER_NAME = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NAMED_PARAMETER_NAME")
         val ENUM_INSTANCE = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ENUM_INSTANCE", DefaultLanguageHighlighterColors.STATIC_FIELD)
+        val VALUE = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_VALUE", DefaultLanguageHighlighterColors.INSTANCE_FIELD)
 
-        val NOT_USED = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NOT_USED", CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES)
         val ERROR = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ERROR")
         val DUPLICATION = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_DUPLICATION")
     }
