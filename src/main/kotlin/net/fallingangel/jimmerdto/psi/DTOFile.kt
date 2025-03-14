@@ -19,6 +19,7 @@ import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.psi.element.DTOExportStatement
 import net.fallingangel.jimmerdto.psi.element.DTOImportStatement
+import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
 import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
 import net.fallingangel.jimmerdto.util.propPath
@@ -137,7 +138,7 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
      * 查找属性对应字段定义
      */
     fun findProperty(prop: DTOPositiveProp): LProperty<*> {
-        return findOwnClass(prop).properties.first { it.name == prop.propName.name }
+        return findOwnClass(prop).properties.first { it.name == prop.name.value }
     }
 
     /**
