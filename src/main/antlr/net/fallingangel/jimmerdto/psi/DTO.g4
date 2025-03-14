@@ -63,7 +63,7 @@ macroArgs
 
 aliasGroup
     :
-    As LParen Caret? Identifier? Dollar? Arrow Identifier? RParen aliasGroupBody
+    As LParen Power? Identifier? Dollar? Arrow Identifier? RParen aliasGroupBody
     ;
 
 aliasGroupBody
@@ -76,23 +76,34 @@ positiveProp
     (propConfig | annotation)*
     Plus?
     Modifier?
-    (
-        propName
-        (Slash 'i'? Caret? Dollar?)?
-        (LParen Identifier (Comma Identifier)* Comma? RParen)?
-    )
+    propName
+    propFlag?
+    propArg?
     (QuestionMark | ExclamationMark | Star)?
     (As Identifier)?
     propBody?
+    ;
+
+propFlag
+    :
+    Slash InSensitive? Power? Dollar?
+    ;
+
+propArg
+    :
+    LParen value (Comma value)* Comma? RParen
+    ;
+
+value
+    :
+    Identifier
     ;
 
 propBody
     :
     annotation*
     (Implements typeRef (Comma typeRef)*)?
-    dtoBody
-    |
-    Arrow enumBody
+    dtoBody | Arrow enumBody
     ;
 
 negativeProp
@@ -115,11 +126,25 @@ propConfig
     :
     PropConfigName
     (
-        LParen predicate ((And | Or) predicate)* RParen |
-        LParen orderItem ((Comma) orderItem)* RParen |
-        LParen Identifier RParen |
-        LParen IntegerLiteral (Comma IntegerLiteral)? RParen
+        LParen (Identifier | qualifiedName | intPair) RParen |
+        LParen orderByArgs RParen |
+        LParen whereArgs RParen
     )
+    ;
+
+whereArgs
+    :
+    predicate ((And | Or) predicate)*
+    ;
+
+orderByArgs
+    :
+    orderItem ((Comma) orderItem)*
+    ;
+
+intPair
+    :
+    IntegerLiteral (Comma IntegerLiteral)?
     ;
 
 predicate
@@ -168,9 +193,7 @@ annotationParameter
 
 annotationValue
     :
-    annotationSingleValue
-    |
-    annotationArrayValue
+    annotationSingleValue | annotationArrayValue
     ;
 
 annotationSingleValue
@@ -199,7 +222,7 @@ nestedAnnotation
 
 enumBody
     :
-    LBrace (enumMapping (Comma|SemiColon)?)+ RBrace
+    LBrace (enumMapping (Comma | SemiColon)?)* RBrace
     ;
 
 enumMapping
@@ -226,14 +249,13 @@ qualifiedNamePart
 typeRef
     :
     qualifiedName
-    ('<' genericArgument (',' genericArgument)? '>')?
-    '?'?
+    (LessThan genericArgument (Comma genericArgument)? GreaterThan)?
+    QuestionMark?
     ;
 
 genericArgument
     :
-    '*' |
-    Modifier? typeRef
+    Star | (Modifier? typeRef)
     ;
 
 // Lexer
@@ -248,7 +270,7 @@ LParen: '(';
 RParen: ')';
 QuestionMark: '?';
 ExclamationMark: '!';
-Caret: '^';
+Power: '^';
 Dollar: '$';
 Plus: '+';
 Slash: '/';
@@ -266,6 +288,7 @@ At: '@';
 LBracket: '[';
 RBracket: ']';
 DoubleColon: '::';
+InSensitive: 'i';
 
 Export: 'export';
 Package: 'package';
@@ -301,7 +324,6 @@ Modifier
     'in'
     ;
 
-// Lexer
 Identifier
     :
     [$A-Za-z_][$A-Za-z_0-9]*
