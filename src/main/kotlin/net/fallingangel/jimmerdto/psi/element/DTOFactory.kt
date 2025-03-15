@@ -118,11 +118,17 @@ fun Project.createUserPropType(type: String) = createUserProp("dummy", type).typ
 // }
 
 fun Project.createMacro(argList: List<String> = emptyList()): DTOMacro {
-    val args = argList.joinToString(",")
-    return createDTO("Dummy", macros = listOf("#allScalars($args)"))
+    val args = if (argList.isNotEmpty()) {
+        argList.joinToString(separator = ",", prefix = "(", postfix = ")")
+    } else {
+        ""
+    }
+    return createDTO("Dummy", macros = listOf("#allScalars$args"))
             .dtoBody
             .macros[0]
 }
+
+fun Project.createMacroName() = createMacro().name
 
 fun Project.createMacroArg(arg: String): DTOQualifiedName {
     return createMacro(listOf(arg))

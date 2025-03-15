@@ -6,7 +6,7 @@ import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 interface DTOMacro : DTOElement {
     val hash: PsiElement
 
-    val name: PsiElement
+    val name: DTOMacroName
 
     val args: DTOMacroArgs?
 }

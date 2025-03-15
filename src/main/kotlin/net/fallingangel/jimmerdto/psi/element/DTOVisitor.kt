@@ -63,6 +63,10 @@ open class DTOVisitor : PsiElementVisitor() {
         visitElement(o)
     }
 
+    open fun visitMacroName(o: DTOMacroName) {
+        visitElement(o)
+    }
+
     open fun visitMacroArgs(o: DTOMacroArgs) {
         visitElement(o)
     }

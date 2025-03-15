@@ -56,9 +56,14 @@ dtoBody
 
 macro
     :
-    Hash Identifier
+    Hash macroName
     macroArgs?
     (QuestionMark | ExclamationMark)?
+    ;
+
+macroName
+    :
+    Identifier
     ;
 
 macroArgs

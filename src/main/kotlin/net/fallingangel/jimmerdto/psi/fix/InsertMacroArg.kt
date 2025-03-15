@@ -9,14 +9,15 @@ import com.intellij.openapi.ui.popup.PopupChooserBuilder
 import com.intellij.psi.PsiFile
 import com.intellij.ui.components.JBList
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
-import net.fallingangel.jimmerdto.psi.element.DTOMacroArgs
+import net.fallingangel.jimmerdto.psi.element.DTOMacro
 import net.fallingangel.jimmerdto.psi.element.createMacroArg
 import net.fallingangel.jimmerdto.util.get
 
-class InsertMacroArg(private val element: DTOMacroArgs) : BaseFix() {
+class InsertMacroArg(private val element: DTOMacro) : BaseFix() {
     override fun getText() = "Insert macro arg"
 
     override fun invoke(project: Project, editor: Editor, file: PsiFile) {
+        val args = element.args ?: return
         val macroAvailableArgs = element[StructureType.MacroTypes]
         val argsHolder = JBList(macroAvailableArgs)
 
@@ -31,7 +32,7 @@ class InsertMacroArg(private val element: DTOMacroArgs) : BaseFix() {
                     val arg = project.createMacroArg(selectedArg)
 
                     WriteCommandAction.runWriteCommandAction(project) {
-                        element.node.addChild(arg.node, element.r.node)
+                        args.node.addChild(arg.node, args.r.node)
                     }
                 }
             }

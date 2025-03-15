@@ -73,6 +73,7 @@ class DTOParserDefinition : ParserDefinition {
             DTOParser.RULE_nestedAnnotation -> DTONestAnnotationImpl(node)
 
             DTOParser.RULE_macro -> DTOMacroImpl(node)
+            DTOParser.RULE_macroName -> DTOMacroNameImpl(node)
             DTOParser.RULE_macroArgs -> DTOMacroArgsImpl(node)
 
             DTOParser.RULE_negativeProp -> DTONegativePropImpl(node)

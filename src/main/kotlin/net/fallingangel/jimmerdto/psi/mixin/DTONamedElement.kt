@@ -5,8 +5,6 @@ import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiReference
 
 interface DTONamedElement : PsiNamedElement {
-    fun name(name: String) = name
-
     override fun setName(name: String) = this
 
     // 获取元素中的引用

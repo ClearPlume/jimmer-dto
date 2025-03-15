@@ -5,6 +5,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import net.fallingangel.jimmerdto.psi.element.DTOMacro
 import net.fallingangel.jimmerdto.psi.element.DTOMacroArgs
+import net.fallingangel.jimmerdto.psi.element.DTOMacroName
 import net.fallingangel.jimmerdto.psi.element.DTOVisitor
 import net.fallingangel.jimmerdto.util.findChild
 import net.fallingangel.jimmerdto.util.findChildNullable
@@ -14,8 +15,8 @@ class DTOMacroImpl(node: ASTNode) : ANTLRPsiNode(node), DTOMacro {
     override val hash: PsiElement
         get() = findChild<PsiElement>("/macro/'#'")
 
-    override val name: PsiElement
-        get() = findChild<PsiElement>("/macro/Identifier")
+    override val name: DTOMacroName
+        get() = findChild("/macro/macroName")
 
     override val args: DTOMacroArgs?
         get() = findChildNullable("/macro/macroArgs")

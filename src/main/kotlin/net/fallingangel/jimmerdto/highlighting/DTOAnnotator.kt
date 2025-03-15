@@ -135,13 +135,13 @@ class DTOAnnotator : Annotator {
          */
         override fun visitMacro(o: DTOMacro) {
             val macroName = o.name
-            if (macroName.text == "allScalars") {
+            if (macroName.value == "allScalars") {
                 o.firstChild.style(DTOSyntaxHighlighter.MACRO)
                 macroName.style(DTOSyntaxHighlighter.MACRO)
             } else {
                 macroName.error(
                     "Macro name should be \"allScalars\"",
-                    ReplaceElement(macroName, o.project.createMacro().name),
+                    ReplaceElement(macroName, o.project.createMacroName()),
                 )
             }
         }
@@ -150,9 +150,10 @@ class DTOAnnotator : Annotator {
          * 为宏参数上色
          */
         override fun visitMacroArgs(o: DTOMacroArgs) {
+            val macro = o.parent as? DTOMacro ?: return
             val argList = o.values
             if (argList.isEmpty()) {
-                o.error("Macro arg list cannot be empty", InsertMacroArg(o))
+                o.error("Macro arg list cannot be empty", InsertMacroArg(macro))
                 return
             }
 
@@ -170,7 +171,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 宏可用参数，<this>一定是最后一个
-            val macroAvailableParams = o[StructureType.MacroTypes]
+            val macroAvailableParams = macro[StructureType.MacroTypes]
             for (macroArg in argList) {
                 // 当前元素不在宏可用参数中，即为非法
                 if (macroArg.text !in macroAvailableParams) {
@@ -190,7 +191,7 @@ class DTOAnnotator : Annotator {
 
                 // 当前实体的简单类名和this同时出现
                 // 当前实体的简单类名
-                val propPath = o.parent.propPath()
+                val propPath = macro.propPath()
                 val thisName = o.file.clazz.walk(propPath).name
 
                 // 等价于this的宏参数
