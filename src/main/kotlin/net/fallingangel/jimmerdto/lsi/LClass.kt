@@ -36,6 +36,15 @@ data class LClass<C : PsiElement>(
         findProperty(propPath).actualType as LClass<*>
     }
 
+    /**
+     * 以this为起点，走过[propPath]后的属性
+     */
+    fun property(propPath: List<String>) = if (propPath.isEmpty()) {
+        this
+    } else {
+        findProperty(propPath).actualType as LClass<*>
+    }
+
     override fun toString() = toDebugString(mutableSetOf())
 
     override fun toDebugString(visited: MutableSet<String>): String {

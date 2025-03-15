@@ -9,16 +9,21 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.tree.IElementType
-import com.intellij.psi.util.*
+import com.intellij.psi.util.elementType
+import com.intellij.psi.util.parentOfType
+import com.intellij.psi.util.prevLeafs
+import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.enums.SpecFunction
-import net.fallingangel.jimmerdto.psi.*
+import net.fallingangel.jimmerdto.lsi.findProperty
+import net.fallingangel.jimmerdto.psi.DTOLexer
+import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
 import net.fallingangel.jimmerdto.util.*
+import org.antlr.intellij.adaptor.lexer.TokenIElementType
 
 /**
  * 部分代码结构的高亮
@@ -30,47 +35,113 @@ class DTOAnnotator : Annotator {
 
     private class DTOAnnotatorVisitor(private val holder: AnnotationHolder) : DTOVisitor() {
         /**
-         * 为属性配置上色
+         * 为全限定类名的部分上色
          */
-        override fun visitPropConfig(o: DTOPropConfig) {
-            o.propConfigName.style(DTOSyntaxHighlighter.PROP_CONFIG)
+        override fun visitQualifiedNamePart(o: DTOQualifiedNamePart) {
+            val `package` = o.parent.sibling<PsiElement>(false) {
+                val type = it.elementType
+                type is TokenIElementType && type.antlrTokenType == DTOLexer.Package
+            }
 
-            val propConfigNames = PropConfigName.values().map(PropConfigName::text)
-            if (o.propConfigName.text.substring(1) !in propConfigNames) {
-                val availableNames = propConfigNames.joinToString { "'$it'" }
-                o.propConfigName.error("Incorrect prop-config name, available names are: $availableNames")
+            if (`package` != null || !o.haveParent<DTOExportStatement>() && !o.haveParent<DTOImportStatement>()) {
+                return
+            }
+
+            when (o.parent.parent) {
+                is DTOExportStatement -> o.visitPackage(DTOLexer.Export, Project::allEntities)
+                is DTOImportStatement -> o.visitPackage(DTOLexer.Import, Project::allClasses)
+            }
+        }
+
+        private fun DTOQualifiedNamePart.visitPackage(statementKeyword: Int, classes: Project.(String) -> List<PsiClass>) {
+            val exportedPackage = prevLeafs
+                    .takeWhile {
+                        val type = it.elementType
+                        type is TokenIElementType && type.antlrTokenType != statementKeyword
+                    }
+                    .filter {
+                        val type = it.elementType
+                        type is TokenIElementType && type.antlrTokenType == DTOLexer.Identifier
+                    }
+                    .map { it.text }
+                    .toList()
+                    .asReversed()
+            val curPackage = exportedPackage.joinToString(".")
+            val curPackageClasses = project.classes(curPackage).map { it.name!! }
+            val availablePackages = project.allPackages(curPackage).map { it.name!! }
+
+            if (part !in (curPackageClasses + availablePackages)) {
+                error(
+                    "Unresolved reference: $part",
+                    RenameElement(this, Project::createQualifiedNamePart),
+                )
+                return
+            }
+
+            // 包不能被导入
+            if (nextSibling == null && part !in curPackageClasses) {
+                val packageAction = if (statementKeyword == DTOLexer.Export) {
+                    "exported"
+                } else {
+                    "imported"
+                }
+                error("Packages cannot be $packageAction")
+            }
+        }
+
+        /**
+         * Dto上色
+         */
+        override fun visitDto(o: DTODto) {
+            // 修饰符上色
+            val currentModifiers = o.modifierElements
+            currentModifiers.forEach { modifier ->
+                if (currentModifiers.count { it.text == modifier.text } != 1) {
+                    modifier.error(
+                        "Duplicated modifier `${modifier.text}`",
+                        RemoveElement(modifier.text, modifier),
+                        DTOSyntaxHighlighter.DUPLICATION,
+                    )
+                }
             }
         }
 
         /**
          * 为注解上色
          */
-        override fun visitAnnotationConstructor(o: DTOAnnotationConstructor) {
-            o.style(DTOSyntaxHighlighter.ANNOTATION)
+        override fun visitAnnotation(o: DTOAnnotation) {
+            o.at.style(DTOSyntaxHighlighter.ANNOTATION)
+            o.qualifiedName.style(DTOSyntaxHighlighter.ANNOTATION)
         }
 
         /**
          * 为作为参数的注解上色
          */
         override fun visitNestAnnotation(o: DTONestAnnotation) {
-            if (o.firstChild.elementType == DTOTypes.AT) {
-                o.firstChild.style(DTOSyntaxHighlighter.ANNOTATION)
-            }
-            o.annotationName.style(DTOSyntaxHighlighter.ANNOTATION)
+            o.at?.style(DTOSyntaxHighlighter.ANNOTATION)
+            o.qualifiedName.style(DTOSyntaxHighlighter.ANNOTATION)
+        }
+
+        /**
+         * 为注解参数名上色
+         */
+        override fun visitAnnotationParameter(o: DTOAnnotationParameter) {
+            o.name.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
+            o.eq.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
         }
 
         /**
          * 为宏名称上色
          */
         override fun visitMacro(o: DTOMacro) {
-            val macroName = o.macroName ?: return
+            val macroName = o.name
             if (macroName.text == "allScalars") {
                 o.firstChild.style(DTOSyntaxHighlighter.MACRO)
                 macroName.style(DTOSyntaxHighlighter.MACRO)
             } else {
                 macroName.error(
                     "Macro name should be \"allScalars\"",
-                    ReplaceElement(macroName, o.project.createMacro().macroName!!),
+                    ReplaceElement(macroName, o.project.createMacro().name),
                 )
             }
         }
@@ -79,31 +150,28 @@ class DTOAnnotator : Annotator {
          * 为宏参数上色
          */
         override fun visitMacroArgs(o: DTOMacroArgs) {
-            val argList = o.macroArgList
+            val argList = o.values
             if (argList.isEmpty()) {
-                o.error("Macro arg list cannot be empty", InsertMacroArg(o.parent as DTOMacro))
+                o.error("Macro arg list cannot be empty", InsertMacroArg(o))
                 return
             }
 
             // 不允许出现超过一个<this>
             val thisList = argList.filter { it.text == "this" }
-            thisList.forEach {
-                it.style(DTOSyntaxHighlighter.KEYWORD)
-            }
+            thisList.forEach { it.style(DTOSyntaxHighlighter.KEYWORD) }
             if (thisList.size > 1) {
-                thisList
-                        .forEach {
-                            it.error(
-                                "Only one `this` is allowed",
-                                RemoveElement("this", it),
-                                DTOSyntaxHighlighter.DUPLICATION,
-                            )
-                        }
+                thisList.forEach {
+                    it.error(
+                        "Only one `this` is allowed",
+                        RemoveElement("this", it),
+                        DTOSyntaxHighlighter.DUPLICATION,
+                    )
+                }
             }
 
             // 宏可用参数，<this>一定是最后一个
-            val macroAvailableParams = (o.parent as DTOMacro)[StructureType.MacroTypes]
-            for (macroArg in o.macroArgList) {
+            val macroAvailableParams = o[StructureType.MacroTypes]
+            for (macroArg in argList) {
                 // 当前元素不在宏可用参数中，即为非法
                 if (macroArg.text !in macroAvailableParams) {
                     macroArg.error(
@@ -112,19 +180,21 @@ class DTOAnnotator : Annotator {
                     )
                 }
                 // 当前元素在参数列表中出现过一次以上，即为重复
-                if (o.macroArgList.count { it.text == macroArg.text } != 1) {
+                if (argList.count { it.text == macroArg.text } != 1) {
                     macroArg.error(
                         "Each parameter is only allowed to appear once",
                         RemoveElement(macroArg.text, macroArg),
                         DTOSyntaxHighlighter.DUPLICATION
                     )
                 }
+
                 // 当前实体的简单类名和this同时出现
                 // 当前实体的简单类名
-                val thisName = DTOPsiUtil.resolveMacroThis(o.parent as DTOMacro)?.name ?: return
+                val propPath = o.parent.propPath()
+                val thisName = o.file.clazz.walk(propPath).name
 
                 // 等价于this的宏参数
-                val sameThisArg = o.macroArgList.find { it.text == thisName }
+                val sameThisArg = argList.find { it.text == thisName }
                 if (macroArg.text == "this" && sameThisArg != null) {
                     sameThisArg.error(
                         "Here `$thisName` is equivalent to `this`",
@@ -141,38 +211,26 @@ class DTOAnnotator : Annotator {
         }
 
         /**
+         * 为负属性上色
+         */
+        override fun visitNegativeProp(o: DTONegativeProp) {
+            val properties = o[StructureType.PropNegativeProperties]
+            if (properties.any { it.name == o.name?.value }) {
+                o.style(DTOSyntaxHighlighter.NEGATIVE_PROP)
+            } else {
+                o.name?.error()
+            }
+        }
+
+        /**
          * 为as组上色
-         *
-         * as(original -> replacement) { ... }
          */
         override fun visitAliasGroup(o: DTOAliasGroup) {
-            // 『as』
-            o.firstChild.style(DTOSyntaxHighlighter.FUNCTION)
+            o.`as`.style(DTOSyntaxHighlighter.FUNCTION)
 
             // alias-pattern
-            val aliasPattern = o.aliasPattern
-            if (aliasPattern == null) {
-                var foundParenR = false
-                o.firstChild.nextLeafs
-                        .dropWhile { it.elementType != DTOTypes.PAREN_L }
-                        .takeWhile {
-                            if (foundParenR) {
-                                false
-                            } else {
-                                if (it.elementType == DTOTypes.PAREN_R) {
-                                    foundParenR = true
-                                }
-                                true
-                            }
-                        }
-                        .forEach { it.error("alias-pattern in alias-group cannot be empty") }
-                return
-            }
-
-            // original
-            val original = aliasPattern.original
-            val power = original.aliasPower
-            val dollar = original.aliasDollar
+            val power = o.power
+            val dollar = o.dollar
 
             if (power != null && dollar != null) {
                 power.error(
@@ -185,122 +243,13 @@ class DTOAnnotator : Annotator {
                     RemoveElement("$", dollar)
                 )
             }
-
-            // replacement
-            val stringConstant = aliasPattern.replacement?.string
-            stringConstant?.error(
-                "Unlike the usual case, string literals are not allowed here",
-                ConvertStringToReplacement(stringConstant)
-            )
-        }
-
-        /**
-         * 为属性上色
-         */
-        override fun visitPositiveProp(o: DTOPositiveProp) {
-            val propName = o.propName.text
-            // 当前属性为方法
-            if (o.propArgs != null) {
-                visitFunction(o, propName)
-            }
-            // 当前属性为非方法属性
-            if (o.propArgs == null) {
-                visitProp(o, propName)
-            }
-            // 当前属性为枚举映射属性
-            if (o.enumBody != null) {
-                visitEnumMappingProp(o, propName)
-            }
-        }
-
-        private fun visitFunction(o: DTOPositiveProp, propName: String) {
-            val dto = o.parentOfType<DTODto>() ?: return
-            val availableFunctions = if (dto modifiedBy Modifier.Specification) {
-                val functions = Function.values().map { it.expression }
-                val specFunctions = SpecFunction.values().map { it.expression }
-                functions + specFunctions
-            } else {
-                Function.values().map { it.expression }
-            }
-
-            // 方法名
-            val propArgs = o.propArgs ?: return
-            if (propArgs.valueList.isEmpty()) {
-                propArgs.error("Function arg list cannot be empty")
-                return
-            }
-            if (propName in availableFunctions) {
-                o.propName.style(DTOSyntaxHighlighter.FUNCTION)
-            } else {
-                o.propName.error()
-            }
-
-            // 方法参数
-            val propAvailableArgs = propArgs[StructureType.FunctionArgs].map { it.name }
-            propArgs.valueList.forEach {
-                if (it.text !in propAvailableArgs) {
-                    it.error()
-                }
-            }
-        }
-
-        private fun visitProp(o: DTOPositiveProp, propName: String) {
-            val availableProperties = if (o.haveUpper) {
-                val upper = o.upper
-                if (upper is DTOAliasGroup) {
-                    upper[StructureType.AsProperties]
-                } else {
-                    upper as DTOPositiveProp
-                    if (upper.propName.text == "flat") {
-                        val flatArg = upper.propArgs?.valueList?.get(0) ?: return
-                        flatArg[StructureType.FlatProperties]
-                    } else {
-                        o[StructureType.PropProperties]
-                    }
-                }
-            } else {
-                o[StructureType.PropProperties]
-            }
-            val prop = availableProperties.find { it.name == propName } ?: let {
-                o.propName.error("Prop `$propName` does not exist in the entity")
-                return
-            }
-            if (prop.whetherAssociated && o.propBody == null && o.lastChild.elementType != DTOTypes.ASTERISK) {
-                o.propName.error("Prop `$propName` must have child body")
-            }
-        }
-
-        private fun visitEnumMappingProp(o: DTOPositiveProp, propName: String) {
-            val enumBody = o.enumBody ?: return
-            if (enumBody.enumInstanceMappingList.isEmpty()) {
-                return
-            }
-            val enumInstance = enumBody.enumInstanceMappingList[0].enumInstance
-
-            val availableEnums = enumInstance[StructureType.EnumValues]
-            val currentEnumNames = enumBody.enumInstanceMappingList.map { it.enumInstance.text }
-
-            // 是否已经完成所有枚举值的映射
-            val missedMappings = availableEnums.filter { it !in currentEnumNames }
-            if (missedMappings.isNotEmpty()) {
-                o.error(
-                    if (missedMappings.size == 1) {
-                        val noMappedEnum = missedMappings.first()
-                        "The mapping for `$noMappedEnum` is not defined"
-                    } else {
-                        val allNoMappedEnum = missedMappings.joinToString()
-                        "The mappings for `$allNoMappedEnum` are not defined"
-                    },
-                    GenerateMissedEnumMappings(propName, missedMappings, enumBody)
-                )
-            }
         }
 
         /**
          * 为用户属性上色
          */
         override fun visitUserProp(o: DTOUserProp) {
-            val propName = o.propName
+            val propName = o.name
             val entityProperties = o[StructureType.UserPropProperties]
             entityProperties.find { propName.text == it.name }?.let {
                 propName.error(
@@ -320,59 +269,276 @@ class DTOAnnotator : Annotator {
         }
 
         private fun visitUserPropType(o: DTOTypeDef) {
-            val dtoFile = o.parentOfType<DTOFile>() ?: return
-            val userPropType = o.qualifiedName.text
+            val dtoFile = o.file
+            val type = o.type.value
 
-            val imports = dtoFile[StructureType.DTOFileImports]
-            val preludes = dtoFile[StructureType.DTOPreludeTypes]
-            val dtos = dtoFile[StructureType.DTOFileDtos]
-
-            if (userPropType in dtos) {
-                o.qualifiedName.error(
+            if (type in dtoFile.dtos) {
+                o.type.error(
                     "It is not allowed to use a DTO, as generated by the Jimmer DTO language, as its type when defining user-prop",
-                    RemoveElement(userPropType, o.qualifiedName)
+                    RenameElement(o.type, Project::createUserPropType),
                 )
                 return
             }
 
-            if (userPropType !in imports + preludes) {
-                o.qualifiedName.error("Unresolved reference: $userPropType", ImportClass(o.qualifiedName))
+            if (type !in dtoFile.imported + DTOLanguage.preludes) {
+                o.type.error(
+                    "Unresolved reference: $type",
+                    ImportClass(o.type),
+                )
             }
         }
 
         /**
-         * 为负属性上色
+         * 为属性上色
          */
-        override fun visitNegativeProp(o: DTONegativeProp) {
-            val properties = o[StructureType.PropNegativeProperties]
-            if (properties.find { it.name == o.propName.text } != null) {
-                o.style(DTOSyntaxHighlighter.NOT_USED)
+        override fun visitPositiveProp(o: DTOPositiveProp) {
+            val propName = o.name.value
+            // 当前属性为方法
+            if (o.arg != null) {
+                visitFunction(o, propName)
+            }
+            // 当前属性为非方法属性
+            if (o.arg == null) {
+                visitProp(o, propName)
+            }
+        }
+
+        private fun visitFunction(o: DTOPositiveProp, propName: String) {
+            val dto = o.parentOfType<DTODto>() ?: return
+            val availableFunctions = if (dto modifiedBy Modifier.Specification) {
+                val functions = Function.values().map(Function::expression)
+                val specFunctions = SpecFunction.values().map(SpecFunction::expression)
+                functions + specFunctions
             } else {
-                o.firstChild.style(DTOSyntaxHighlighter.NOT_USED)
-                o.propName.error()
+                Function.values().map { it.expression }
+            }
+
+            // 方法名
+            val arg = o.arg ?: return
+            if (arg.values.isEmpty()) {
+                arg.error("Function arg list cannot be empty")
+                return
+            }
+            if (propName in availableFunctions) {
+                o.name.style(DTOSyntaxHighlighter.FUNCTION)
+            } else {
+                o.name.error()
+            }
+
+            // 方法参数
+            if (propName in SpecFunction.values().map { it.expression } && dto notModifiedBy Modifier.Specification) {
+                o.error("Cannot call the function `$propName` because the current dto type is not specification")
+            }
+
+            val propAvailableArgs = arg[StructureType.FunctionArgs].map { it.name }
+            arg.values.forEach {
+                if (it.text !in propAvailableArgs) {
+                    it.error("`${it.text}` does not exist")
+                }
+            }
+
+            val multiArgFunctions = SpecFunction.values().filter(SpecFunction::whetherMultiArg).map(SpecFunction::expression)
+            if (arg.values.size > 1 && propName !in multiArgFunctions) {
+                arg.values
+                        .drop(1)
+                        .forEach {
+                            it.error(
+                                "`$propName` accepts only one prop",
+                                RemoveElement(it.text, it),
+                            )
+                        }
+            }
+
+            if (propName in multiArgFunctions) {
+                if (arg.values.size > 1) {
+                    o.error("An alias must be specified because `$propName` has multiple arguments")
+                }
+            }
+
+            if (propName == "id") {
+                if (arg.values[0].text in availableFunctions && o.file.clazz.findProperty(o.propPath()).isList) {
+                    if (o.alias == null) {
+                        val prop = arg.values[0].text
+                        o.error("An alias must be specified because the property `$prop` is a list association")
+                    }
+                }
+            }
+        }
+
+        private fun visitProp(o: DTOPositiveProp, propName: String) {
+            val availableProperties = o[StructureType.PropProperties]
+
+            if (availableProperties.isEmpty()) {
+                val upper = o.upper
+                if (upper is DTOPositiveProp) {
+                    upper.name.error("Prop `${upper.name.value}` does not exist")
+                }
+                return
+            }
+
+            val prop = availableProperties.find { it.name == propName } ?: let {
+                o.name.error("`$propName` does not exist")
+                return
+            }
+            if (prop.isEntityAssociation && o.body == null && o.recursive == null) {
+                o.name.error("`$propName` must have child body")
             }
         }
 
         /**
-         * 为注解参数名上色
+         * 为属性配置上色
          */
-        override fun visitAnnotationParameter(o: DTOAnnotationParameter) {
-            o.firstChild.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
-            o.firstChild.next(DTOTypes.EQ).style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
+        override fun visitPropConfig(o: DTOPropConfig) {
+            val configName = o.name.text
+            o.name.style(DTOSyntaxHighlighter.PROP_CONFIG)
+
+            when (configName) {
+                PropConfigName.Where.text -> {
+                    val predicates = o.whereArgs?.predicates
+                    if (predicates == null) {
+                        o.name.error("!where accepts only predicates")
+                    }
+                }
+
+                PropConfigName.OrderBy.text -> {
+                    val orderItems = o.orderByArgs?.orderItems
+                    if (orderItems == null) {
+                        if (o.identifier == null && o.qualifiedName == null) {
+                            o.name.error("!orderBy accepts only orderItems")
+                        }
+                    }
+                }
+
+                PropConfigName.Filter.text -> {
+                    val filter = o.identifier
+                    if (filter == null) {
+                        if (o.qualifiedName == null) {
+                            o.name.error("!filter accepts only one identifier value")
+                        }
+                    }
+                }
+
+                PropConfigName.Recursion.text -> {
+                    val recursion = o.identifier
+                    if (recursion == null) {
+                        if (o.qualifiedName == null) {
+                            o.name.error("!recursion accepts only one identifier value")
+                        }
+                    }
+                }
+
+                PropConfigName.FetchType.text -> {
+                    val fetchType = o.identifier
+                    if (fetchType == null) {
+                        o.name.error("!fetchType accepts only one identifier value")
+                    } else {
+                        fetchType.style(DTOSyntaxHighlighter.VALUE)
+
+                        val fetchTypeValue = fetchType.text
+                        if (fetchTypeValue !in DTOLanguage.availableFetchTypes) {
+                            val availableTypes = DTOLanguage.availableFetchTypes.joinToString()
+                            fetchType.error("Incorrect fetchType `$fetchTypeValue`, available types are: $availableTypes")
+                        }
+                    }
+                }
+
+                PropConfigName.Limit.text -> {
+                    val intPair = o.intPair
+                    if (intPair == null) {
+                        o.name.error("!limit accepts only numeric value")
+                    } else {
+                        val limit = intPair.first
+                        val limitValue = limit.text.toInt()
+                        if (limitValue < 1) {
+                            limit.error("limit cannot be less than 1")
+                        }
+
+                        val offset = intPair.second
+                        if (offset != null) {
+                            val offsetValue = offset.text.toInt()
+                            if (offsetValue < 0) {
+                                offset.error("offset cannot be less than 0")
+                            }
+                        }
+                    }
+                }
+
+                PropConfigName.Batch.text -> {
+                    val intPair = o.intPair
+                    if (intPair == null) {
+                        o.name.error("!batch accepts only numeric value")
+                    } else {
+                        val batch = intPair.first
+                        val batchValue = batch.text.toInt()
+                        if (batchValue < 1) {
+                            batch.error("batch cannot be less than 1")
+                        }
+
+                        intPair.second?.error("!batch accepts only one numeric value")
+                    }
+                }
+
+                PropConfigName.Depth.text -> {
+                    val intPair = o.intPair
+                    if (intPair == null) {
+                        o.name.error("!depth accepts only numeric value")
+                    } else {
+                        val depth = intPair.first
+                        val depthValue = depth.text.toInt()
+                        if (depthValue < 0) {
+                            depth.error("depth cannot be less than 1")
+                        }
+
+                        intPair.second?.error("!depth accepts only one numeric value")
+                    }
+                }
+
+                else -> {
+                    val availableNames = PropConfigName.availableNames
+                    o.name.error("Incorrect prop-config name `$configName`, available names are: $availableNames")
+                }
+            }
+        }
+
+        /**
+         * 为枚举映射体上色
+         */
+        override fun visitEnumBody(o: DTOEnumBody) {
+            val prop = o.parent.parent<DTOPositiveProp>()
+            val availableEnums = prop[StructureType.EnumValues]
+            val currentEnumNames = o.mappings.map { it.constant.text }
+
+            // 是否已经完成所有枚举值的映射
+            val missedMappings = availableEnums.filter { it !in currentEnumNames }
+            if (missedMappings.isNotEmpty()) {
+                o.error(
+                    if (missedMappings.size == 1) {
+                        val noMappedEnum = missedMappings.first()
+                        "The mapping for `$noMappedEnum` is not defined"
+                    } else {
+                        val allNoMappedEnum = missedMappings.joinToString()
+                        "The mappings for `$allNoMappedEnum` are not defined"
+                    },
+                    GenerateMissedEnumMappings(prop.name.value, missedMappings, o),
+                )
+            }
         }
 
         /**
          * 为枚举映射上色
          */
-        override fun visitEnumInstanceMapping(o: DTOEnumInstanceMapping) {
+        override fun visitEnumMapping(o: DTOEnumMapping) {
             val enumBody = o.parent<DTOEnumBody>()
-            val enumInstance = o.enumInstance
-            val enumMappingName = enumInstance.text
-            val enumMappingValue = o.enumInstanceValue
+            val prop = enumBody.parent.parent<DTOPositiveProp>()
+            val enumMappingName = o.constant.text
+            val enumMappingValue = o.string ?: o.int ?: run {
+                o.constant.error("Missing value")
+                return
+            }
 
-            val availableEnums = enumInstance[StructureType.EnumValues]
-            val currentEnumNames = enumBody.enumInstanceMappingList.map { it.enumInstance.text }
-            val currentEnumValues = enumBody.enumInstanceMappingList.mapNotNull { it.enumInstanceValue }
+            val availableEnums = prop[StructureType.EnumValues]
+            val currentEnumNames = enumBody.mappings.mapNotNull { it.constant.text }
+            val currentEnumValues = enumBody.mappings.mapNotNull { it.string ?: it.int }
 
             val allInt = currentEnumValues.all { it.text.matches(Regex("\\d+")) }
             val allString = currentEnumValues.all { it.text.matches(Regex("\".+\"")) }
@@ -380,103 +546,36 @@ class DTOAnnotator : Annotator {
 
             // 枚举映射是否存在于对应枚举中
             if (enumMappingName in availableEnums) {
-                enumInstance.style(DTOSyntaxHighlighter.ENUM_INSTANCE)
+                o.constant.style(DTOSyntaxHighlighter.ENUM_INSTANCE)
             } else {
-                enumInstance.error(
+                o.error(
                     "Illegal enum mapping `$enumMappingName`",
-                    RemoveElement(enumMappingName, o)
+                    RemoveElement(enumMappingName, o),
                 )
             }
             // 枚举映射是否重复定义
             if (currentEnumNames.count { it == enumMappingName } != 1) {
-                enumInstance.error(
+                o.error(
                     "Duplicated enum mapping `$enumMappingName`",
                     RemoveElement(enumMappingName, o),
-                    DTOSyntaxHighlighter.DUPLICATION
+                    DTOSyntaxHighlighter.DUPLICATION,
                 )
             }
             // 枚举映射中的值是否重复定义
-            if (enumMappingValue?.let { currentEnumValues.count { it.text == enumMappingValue.text } != 1 } == true) {
+            if (currentEnumValues.count { it.text == enumMappingValue.text } != 1) {
                 enumMappingValue.error(
                     "Illegal value of enum mapping `$enumMappingName`, its duplicated",
                     RemoveElement(enumMappingValue.text, enumMappingValue),
-                    DTOSyntaxHighlighter.DUPLICATION
+                    DTOSyntaxHighlighter.DUPLICATION,
                 )
             }
             // 枚举映射值是否同一类型
             if (!valueTypeValid) {
-                enumMappingValue?.error(
-                    "Illegal value of enum mapping `$enumMappingName`. Integer value and String value cannot be mixed",
-                    RemoveElement(enumMappingValue.text, enumMappingValue)
+                enumMappingValue.error(
+                    "Illegal value. Integer value and String value cannot be mixed",
+                    RemoveElement(enumMappingValue.text, enumMappingValue),
                 )
             }
-        }
-
-        /**
-         * 为全限定类名的部分上色
-         */
-        override fun visitQualifiedNamePart(o: DTOQualifiedNamePart) {
-            if (o.haveParent<DTOPackageStatement>() || (!o.haveParent<DTOExportStatement>() && !o.haveParent<DTOImportStatement>())) {
-                return
-            }
-
-            when (o.parent.parent.parent) {
-                is DTOExportStatement -> o.visitPackage(DTOTypes.EXPORT, Project::allEntities)
-                is DTOImportStatement -> o.visitPackage(DTOTypes.IMPORT, Project::allClasses)
-            }
-        }
-
-        private fun DTOQualifiedNamePart.visitPackage(statementKeyword: IElementType, classes: Project.(String) -> List<PsiClass>) {
-            val exportedPackage = prevLeafs
-                    .takeWhile { it.elementType != statementKeyword }
-                    .filter { it.parent.elementType == DTOTypes.QUALIFIED_NAME_PART }
-                    .map { it.text }
-                    .toList()
-                    .asReversed()
-            val curPackage = exportedPackage.joinToString(".")
-            val curPackageClasses = project.classes(curPackage).map { it.name!! }
-            val availablePackages = project.allPackages(curPackage).map { it.name!! }
-
-            if (text !in (curPackageClasses + availablePackages)) {
-                error(
-                    "Unresolved reference: $text",
-                    RenameElement(this, Project::createQualifiedNamePart),
-                )
-                return
-            }
-
-            // 包不能被导入
-            if (nextSibling == null && text !in curPackageClasses) {
-                val packageAction = if (statementKeyword == DTOTypes.EXPORT) {
-                    "exported"
-                } else {
-                    "imported"
-                }
-                error("Packages cannot be $packageAction")
-            }
-        }
-
-        /**
-         * Dto修饰符上色
-         */
-        override fun visitModifier(o: DTOModifier) {
-            val parent = o.parent
-            if (parent is DTODto) {
-                val currentModifiers = parent.modifierList.toModifier()
-                val modifier = o.text
-
-                if (currentModifiers.count { it.name.lowercase() == modifier } != 1) {
-                    o.error(
-                        "Duplicated modifier `$modifier`",
-                        RemoveElement(modifier, o),
-                        DTOSyntaxHighlighter.DUPLICATION
-                    )
-                }
-            }
-        }
-
-        private fun PsiElement.next(elementType: IElementType): PsiElement {
-            return nextLeaf { it.elementType == elementType }!!
         }
 
         private fun PsiElement.style(style: TextAttributesKey) = annotator(style, HighlightSeverity.INFORMATION)

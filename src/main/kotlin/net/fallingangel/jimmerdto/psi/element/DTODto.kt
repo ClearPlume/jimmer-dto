@@ -11,7 +11,7 @@ interface DTODto : DTOElement {
 
     val implements: List<DTOTypeDef>
 
-    val name: PsiElement
+    val name: DTODtoName
 
     val dtoBody: DTODtoBody
 

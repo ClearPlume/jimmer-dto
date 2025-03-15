@@ -5,8 +5,8 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.TokenType
-import net.fallingangel.jimmerdto.psi.DTOEnumBody
-import net.fallingangel.jimmerdto.psi.createEnumMappings
+import net.fallingangel.jimmerdto.psi.element.DTOEnumBody
+import net.fallingangel.jimmerdto.psi.element.createEnumMappings
 
 /**
  * @property missedMappings 要添加的映射的名称，形如：[A, B, C]

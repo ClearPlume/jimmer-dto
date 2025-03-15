@@ -1,20 +1,17 @@
 package net.fallingangel.jimmerdto.completion.resolve.structure
 
-import net.fallingangel.jimmerdto.psi.DTOUserProp
-import net.fallingangel.jimmerdto.structure.Property
-import net.fallingangel.jimmerdto.util.*
+import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.psi.element.DTOUserProp
+import net.fallingangel.jimmerdto.util.file
+import net.fallingangel.jimmerdto.util.propPath
 
-class UserPropProperties : Structure<DTOUserProp, List<Property>> {
+class UserPropProperties : Structure<DTOUserProp, List<LProperty<*>>> {
     /**
-     * @param element DTO或关联属性中的负属性元素
+     * @param element 用户属性元素
      *
      * @return 属性对应的实体中的所有属性列表
      */
-    override fun value(element: DTOUserProp): List<Property> {
-        return if (element.haveUpper) {
-            element.virtualFile.properties(element.project, element.upper.propPath())
-        } else {
-            element.virtualFile.properties(element.project)
-        }
+    override fun value(element: DTOUserProp): List<LProperty<*>> {
+        return element.file.clazz.walk(element.propPath()).properties
     }
 }

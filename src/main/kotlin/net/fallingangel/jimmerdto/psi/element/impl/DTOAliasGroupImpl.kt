@@ -23,7 +23,7 @@ class DTOAliasGroupImpl(node: ASTNode) : ANTLRPsiNode(node), DTOAliasGroup {
         get() = findChildNullable("/aliasGroup/'$'")
 
     override val replacement: PsiElement?
-        get() = findChildNullable<PsiElement>("/aliasGroup/Identifier")
+        get() = findChildNullable("/aliasGroup/Identifier")
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {

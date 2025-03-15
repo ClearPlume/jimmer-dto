@@ -1,5 +1,7 @@
 package net.fallingangel.jimmerdto.lsi
 
+import net.fallingangel.jimmerdto.exception.PropertyNotExistException
+
 /**
  * 依据路径查找属性
  * @param tokens user.files.name
@@ -9,7 +11,7 @@ fun LClass<*>.findProperty(tokens: List<String>): LProperty<*> {
         throw IllegalStateException("Property path won't be empty")
     }
     val token = tokens.first()
-    val property = properties.find { it.name == token } ?: throw IllegalStateException("Property $token does not exist")
+    val property = properties.find { it.name == token } ?: throw PropertyNotExistException(token)
 
     if (tokens.size == 1) {
         return property

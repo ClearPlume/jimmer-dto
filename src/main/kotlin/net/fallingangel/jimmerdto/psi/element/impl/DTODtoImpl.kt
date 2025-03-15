@@ -18,8 +18,8 @@ class DTODtoImpl(node: ASTNode) : ANTLRPsiNode(node), DTODto {
     override val implements: List<DTOTypeDef>
         get() = findChildren("/dto/typeRef")
 
-    override val name: PsiElement
-        get() = findChild("/dto/Identifier")
+    override val name: DTODtoName
+        get() = findChild("/dto/dtoName")
 
     override val dtoBody: DTODtoBody
         get() = findChild("/dto/dtoBody")

@@ -27,6 +27,10 @@ open class DTOVisitor : PsiElementVisitor() {
         visitElement(o)
     }
 
+    open fun visitDtoName(o: DTODtoName) {
+        visitElement(o)
+    }
+
     open fun visitDtoBody(o: DTODtoBody) {
         visitElement(o)
     }

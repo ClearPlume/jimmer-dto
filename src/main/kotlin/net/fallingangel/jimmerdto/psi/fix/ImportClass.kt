@@ -6,16 +6,18 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.popup.JBPopupListener
 import com.intellij.openapi.ui.popup.LightweightWindowEvent
 import com.intellij.openapi.ui.popup.PopupChooserBuilder
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.TokenType
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.ui.components.JBList
-import net.fallingangel.jimmerdto.psi.DTODto
-import net.fallingangel.jimmerdto.psi.DTOImportStatement
-import net.fallingangel.jimmerdto.psi.DTOQualifiedName
-import net.fallingangel.jimmerdto.psi.createImport
-import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
+import net.fallingangel.jimmerdto.psi.element.DTODto
+import net.fallingangel.jimmerdto.psi.element.DTOImportStatement
+import net.fallingangel.jimmerdto.psi.element.DTOQualifiedName
+import net.fallingangel.jimmerdto.psi.element.createImport
+import net.fallingangel.jimmerdto.util.findChild
+import net.fallingangel.jimmerdto.util.findChildNullable
 
 class ImportClass(private val element: DTOQualifiedName) : BaseFix() {
     override fun getText() = "Import class"
@@ -39,20 +41,21 @@ class ImportClass(private val element: DTOQualifiedName) : BaseFix() {
         classChooser.addListener(object : JBPopupListener {
             override fun onClosed(event: LightweightWindowEvent) {
                 if (event.isOk) {
+                    val dtoFile = file.findChild<PsiElement>("/dtoFile")
                     val selectedClass = classesHolder.selectedValue
                     val dtoImport = project.createImport(selectedClass)
 
-                    val import = file.getChildOfType<DTOImportStatement>()
+                    val import = file.findChildNullable<DTOImportStatement>("/dtoFile/importStatement")
                     if (import != null) {
                         WriteCommandAction.runWriteCommandAction(project) {
-                            file.node.addChild(dtoImport.node, import.node)
-                            file.node.addLeaf(TokenType.WHITE_SPACE, "\n", import.node)
+                            dtoFile.node.addChild(dtoImport.node, import.node)
+                            dtoFile.node.addLeaf(TokenType.WHITE_SPACE, "\n", import.node)
                         }
                     } else {
-                        val dto = file.getChildOfType<DTODto>()!!
+                        val dto = file.findChild<DTODto>("/dtoFile/dto")
                         WriteCommandAction.runWriteCommandAction(project) {
-                            file.node.addChild(dtoImport.node, dto.node)
-                            file.node.addLeaf(TokenType.WHITE_SPACE, "\n\n", dto.node)
+                            dtoFile.node.addChild(dtoImport.node, dto.node)
+                            dtoFile.node.addLeaf(TokenType.WHITE_SPACE, "\n\n", dto.node)
                         }
                     }
                 }

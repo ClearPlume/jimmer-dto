@@ -78,43 +78,27 @@ val PsiWhiteSpace.upper: PsiElement
 /**
  * 元素是否包含上一层级的属性级结构
  *
- * 元素：宏、属性、负属性、方法等
- * 属性级结构：flat方法、as组等
+ * @receiver macro | aliasGroup | positiveProp | negativeProp | userProp
  */
 val PsiElement.haveUpper: Boolean
-    get() {
-        if (this is DTOFile) {
-            return false
-        }
-        return parent.parent is DTOAliasGroup || parent.parent is DTOPropBody || parent is DTOPropArgs && parent.parent.parent.parent is DTOPropBody
-    }
+    get() = parent.parent is DTOAliasGroup || parent.parent is DTOPropBody
 
+/**
+ * 元素上一层级的属性级结构
+ *
+ * @receiver macro | aliasGroup | positiveProp | negativeProp | userProp
+ */
 val PsiElement.upper: PsiElement
     get() = if (parent.parent is DTOAliasGroup) {
+        // aliasGroup
         parent.parent
-    } else if (parent is DTOPropArgs && parent.parent.parent.parent is DTOPropBody) {
-        parent.parent.parent.parent.parent
     } else {
+        // positiveProp
         parent.parent.parent
     }
 
 val PsiElement.virtualFile: VirtualFile
     get() = containingFile.originalFile.virtualFile
-
-val DTOExportStatement.qualified: String
-    get() = qualifiedType.qualifiedName.qualifiedNamePartList
-            .filter { it.elementType != TokenType.WHITE_SPACE }
-            .joinToString(".", transform = PsiElement::getText)
-
-val DTOPackageStatement.qualified: String
-    get() = qualifiedType.qualifiedName.qualifiedNamePartList
-            .filter { it.elementType != TokenType.WHITE_SPACE }
-            .joinToString(".", transform = PsiElement::getText)
-
-val DTOImportStatement.qualified: String
-    get() = qualifiedType.qualifiedName.qualifiedNamePartList
-            .filter { it.elementType != TokenType.WHITE_SPACE }
-            .joinToString(".", transform = PsiElement::getText)
 
 @Suppress("UnstableApiUsage")
 val PsiClass.icon: Icon
@@ -161,18 +145,18 @@ operator fun <S : PsiElement, R, T : Structure<S, R>> S.get(type: T): R {
     return type.value(this)
 }
 
+/**
+ * @receiver macro | aliasGroup | positiveProp | negativeProp | userProp
+ */
 fun PsiElement.propPath(): List<String> {
     val propName = when (this) {
-        is DTOValue -> listOf(text)
+        is DTONegativeProp -> name?.value?.let(::listOf) ?: emptyList()
 
-        is DTONegativeProp -> listOf(propName.text)
-
-        is DTOPositiveProp -> {
-            val args = propArgs
-            if (args == null) {
-                listOf(propName.text)
-            } else if (args.valueList.size == 1) {
-                listOf(args.valueList[0].text)
+        is DTOPositiveProp -> if (arg == null) {
+            listOf(name.value)
+        } else {
+            if (name.value in listOf("flat", "id")) {
+                listOf(arg!!.values.first().text)
             } else {
                 emptyList()
             }
@@ -181,7 +165,7 @@ fun PsiElement.propPath(): List<String> {
         else -> emptyList()
     }
 
-    if (!haveUpper || parent.parent.parent is DTODto) {
+    if (!haveUpper || parent.parent is DTODto) {
         return propName
     }
     return upper.propPath() + propName
@@ -282,15 +266,15 @@ fun StringPattern.atStart(start: String): StringPattern {
     })
 }
 
-fun DTOModifier.toModifier() = Modifier.valueOf(text.replaceFirstChar { it.titlecase() })
-
-fun List<DTOModifier>.toModifier() = map(DTOModifier::toModifier)
-
 infix fun DTODto.modifiedBy(modifier: Modifier): Boolean {
-    return modifier in this.modifierList.toModifier()
+    return modifier in modifiers
 }
 
-fun DTOPositiveProp.hasConfig(config: PropConfigName) = propConfigList.any { it.propConfigName.text == config.text }
+infix fun DTODto.notModifiedBy(modifier: Modifier): Boolean {
+    return modifier !in modifiers
+}
+
+fun DTOPositiveProp.hasConfig(config: PropConfigName) = configs.any { it.name.text == config.text }
 
 fun KtClass.hasAnnotation(vararg annotations: String) = annotations.any { annotationEntries.map(KtAnnotationEntry::qualifiedName).contains(it) }
 

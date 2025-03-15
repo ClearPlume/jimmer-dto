@@ -1,8 +1,11 @@
 package net.fallingangel.jimmerdto.structure
 
-import net.fallingangel.jimmerdto.enums.RelationType
+import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
+import net.fallingangel.jimmerdto.lsi.annotation.hasExactlyOneAnnotation
+import org.babyfish.jimmer.sql.*
 
-sealed class ArgType(val test: (Property) -> Boolean) {
+sealed class ArgType(val test: (LProperty<*>) -> Boolean) {
     companion object {
         infix fun ArgType.or(other: ArgType) = Or(this, other)
         infix fun ArgType.and(other: ArgType) = And(this, other)
@@ -15,31 +18,23 @@ sealed class ArgType(val test: (Property) -> Boolean) {
     object Prop : ArgType({ true })
 
     // 关联
-    object Scalar : ArgType({ property ->
-        property.simpleAnnotations.none { annotation -> annotation in RelationType.all }
-    })
+    object Scalar : ArgType({ property -> !property.isAssociation })
 
-    object Association : ArgType({ property ->
-        property.simpleAnnotations.any { annotation -> annotation in RelationType.all }
-    })
+    object Association : ArgType(LProperty<*>::isAssociation)
 
-    object SingleAssociation : ArgType({ property ->
-        property.simpleAnnotations.any { annotation -> annotation in RelationType.singles }
-    })
+    object SingleAssociation : ArgType({ it.hasExactlyOneAnnotation(OneToOne::class, ManyToOne::class) })
 
-    object ListAssociation : ArgType({ property ->
-        property.simpleAnnotations.any { annotation -> annotation in RelationType.lists }
-    })
+    object ListAssociation : ArgType({ it.hasExactlyOneAnnotation(OneToMany::class, ManyToMany::class, ManyToManyView::class) })
 
     // 字符串
-    object String : ArgType({ it.type == "String" || it.type == "String?" })
+    object String : ArgType({ it.type.name == "String" || it.type.name == "String?" })
 
     // nullity
     object Null : ArgType({ it.nullable })
     object NotNull : ArgType({ !it.nullable })
 
     // 特性属性
-    object Formula : ArgType({ "Formula" in it.simpleAnnotations })
-    object Id : ArgType({ "Id" in it.simpleAnnotations })
-    object Key : ArgType({ "Key" in it.simpleAnnotations })
+    object Formula : ArgType({ it.hasAnnotation(org.babyfish.jimmer.Formula::class) })
+    object Id : ArgType({ it.hasAnnotation(org.babyfish.jimmer.sql.Id::class) })
+    object Key : ArgType({ it.hasAnnotation(org.babyfish.jimmer.sql.Key::class) })
 }

@@ -2,26 +2,29 @@ package net.fallingangel.jimmerdto.completion.resolve.structure
 
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.SpecFunction
-import net.fallingangel.jimmerdto.psi.DTOPositiveProp
-import net.fallingangel.jimmerdto.psi.DTOPropArgs
-import net.fallingangel.jimmerdto.structure.Property
-import net.fallingangel.jimmerdto.util.*
+import net.fallingangel.jimmerdto.exception.PropertyNotExistException
+import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
+import net.fallingangel.jimmerdto.psi.element.DTOPropArg
+import net.fallingangel.jimmerdto.util.file
+import net.fallingangel.jimmerdto.util.propPath
 
-class FunctionArgs : Structure<DTOPropArgs, List<Property>> {
+class FunctionArgs : Structure<DTOPropArg, List<LProperty<*>>> {
     /**
      * @param element 方法参数元素
      *
      * @return 可用方法参数
      */
-    override fun value(element: DTOPropArgs): List<Property> {
+    override fun value(element: DTOPropArg): List<LProperty<*>> {
         val prop = element.parent as DTOPositiveProp
-        val propPath = if (prop.haveUpper) {
-            prop.upper.propPath()
-        } else {
+        val propPath = prop.propPath().dropLast(1)
+        val propName = prop.name.value
+        val properties = try {
+            element.file.clazz.walk(propPath).properties
+        } catch (_: PropertyNotExistException) {
+            println("Property not found: $propPath")
             emptyList()
         }
-        val propName = prop.propName.text
-        val properties = element.virtualFile.properties(element.project, propPath)
 
         return when (propName) {
             in Function.values().map { it.expression } -> {

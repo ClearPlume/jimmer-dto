@@ -8,5 +8,9 @@ enum class PropConfigName(val text: String) {
     FetchType("!fetchType"),
     Limit("!limit"),
     Batch("!batch"),
-    Depth("!depth"),
+    Depth("!depth");
+
+    companion object {
+        val availableNames = values().map(PropConfigName::text).joinToString { "'$it'" }
+    }
 }

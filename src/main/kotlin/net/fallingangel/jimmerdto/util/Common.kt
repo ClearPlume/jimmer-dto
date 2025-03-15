@@ -38,6 +38,9 @@ val VirtualFile.language: Language
         }
     }
 
+val DTOElement.file: DTOFile
+    get() = containingFile as DTOFile
+
 val DTOElement.root: VirtualFile?
     get() {
         val fileIndex = ProjectRootManager.getInstance(project).fileIndex

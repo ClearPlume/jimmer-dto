@@ -85,7 +85,7 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
     val dtos: List<String>
         get() = CachedValuesManager.getCachedValue(this, CACHED_DTO_KEY) {
             CachedValueProvider.Result.create(
-                findChildren<DTODtoName>("/dtoFile/dto/dtoName").map(DTODtoName::getText),
+                findChildren<DTODtoName>("/dtoFile/dto/dtoName").map(DTODtoName::value),
                 DumbService.getInstance(project).modificationTracker,
                 ProjectRootModificationTracker.getInstance(project),
                 this,
