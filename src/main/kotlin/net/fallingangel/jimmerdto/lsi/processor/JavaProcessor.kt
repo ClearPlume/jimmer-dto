@@ -6,7 +6,13 @@ import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.param.LParam
 import net.fallingangel.jimmerdto.psi.DTOFile
-import net.fallingangel.jimmerdto.util.*
+import net.fallingangel.jimmerdto.util.hasAnnotation
+import net.fallingangel.jimmerdto.util.isInSource
+import net.fallingangel.jimmerdto.util.nullable
+import net.fallingangel.jimmerdto.util.psiClass
+import org.babyfish.jimmer.Immutable
+import org.babyfish.jimmer.sql.Embeddable
+import org.babyfish.jimmer.sql.Entity
 import org.babyfish.jimmer.sql.MappedSuperclass
 
 class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
@@ -40,12 +46,12 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
     override fun parents(clazz: PsiClass): List<LClass<PsiClass>> {
         return clazz.supers
                 .filter { it.qualifiedName != "java.lang.Object" }
-                .filter { it.hasAnnotation(MappedSuperclass::class.qualifiedName!!) }
+                .filter { it.hasAnnotation(MappedSuperclass::class) }
                 .map(::clazz)
     }
 
     override fun properties(clazz: PsiClass): List<LProperty<*>> {
-        return if (clazz.isImmutable) {
+        return if (clazz.hasAnnotation(Immutable::class, Entity::class, Embeddable::class, MappedSuperclass::class)) {
             clazz.methods
                     .filter { !it.isConstructor }
                     .map {
@@ -62,7 +68,7 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
     }
 
     override fun methods(clazz: PsiClass): List<LMethod<*>> {
-        return if (clazz.isImmutable) {
+        return if (clazz.hasAnnotation(Immutable::class, Entity::class, Embeddable::class, MappedSuperclass::class)) {
             emptyList()
         } else {
             clazz.methods

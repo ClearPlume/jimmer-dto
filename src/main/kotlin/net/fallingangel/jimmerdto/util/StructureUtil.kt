@@ -21,16 +21,11 @@ import net.fallingangel.jimmerdto.completion.resolve.structure.Structure
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
-import net.fallingangel.jimmerdto.psi.*
-import org.babyfish.jimmer.Immutable
-import org.babyfish.jimmer.sql.Embeddable
+import net.fallingangel.jimmerdto.psi.element.*
 import org.babyfish.jimmer.sql.Entity
-import org.babyfish.jimmer.sql.MappedSuperclass
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
@@ -52,18 +47,6 @@ val KotlinType.isInSource: Boolean
         val fileIndex = ProjectFileIndex.getInstance(declaration.project)
         return fileIndex.isInSource(declaration.containingFile.virtualFile)
     }
-
-val PsiClass.isSuperEntity: Boolean
-    get() = hasAnnotation(MappedSuperclass::class.qualifiedName!!)
-
-val KtClass.isSuperEntity: Boolean
-    get() = hasAnnotation(MappedSuperclass::class.qualifiedName!!)
-
-val PsiClass.isEntity: Boolean
-    get() = isSuperEntity || hasAnnotation(Entity::class, Immutable::class)
-
-val PsiClass.isImmutable: Boolean
-    get() = isEntity || hasAnnotation(Embeddable::class.qualifiedName!!)
 
 /**
  * 元素是否包含上一层级的属性级结构
@@ -197,7 +180,7 @@ fun Project.allAnnotations(`package`: String? = ""): List<PsiClass> {
  * @param `package` null等同于空字符串
  */
 fun Project.allEntities(`package`: String? = ""): List<PsiClass> {
-    return allClasses(`package` ?: "").filter { it.isInterface && it.hasAnnotation(Entity::class.qualifiedName!!) }
+    return allClasses(`package` ?: "").filter { it.isInterface && it.hasAnnotation(Entity::class) }
 }
 
 fun Project.allPackages(`package`: String): List<PsiPackage> {
@@ -265,8 +248,6 @@ infix fun DTODto.notModifiedBy(modifier: Modifier): Boolean {
 }
 
 fun DTOPositiveProp.hasConfig(config: PropConfigName) = configs.any { it.name.text == config.text }
-
-fun KtClass.hasAnnotation(vararg annotations: String) = annotations.any { annotationEntries.map(KtAnnotationEntry::qualifiedName).contains(it) }
 
 fun PsiModifierListOwner.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
     return annotations.any { anno.mapNotNull(KClass<out Annotation>::qualifiedName).contains(it.qualifiedName) }
