@@ -8,6 +8,9 @@ interface DTOQualifiedName : DTOElement {
     val value: String
         get() = parts.joinToString(".", transform = DTOQualifiedNamePart::part)
 
+    val `package`: String
+        get() = parts.dropLast(1).joinToString(".", transform = DTOQualifiedNamePart::part)
+
     val simpleName: String
         get() = parts.last().part
 }
