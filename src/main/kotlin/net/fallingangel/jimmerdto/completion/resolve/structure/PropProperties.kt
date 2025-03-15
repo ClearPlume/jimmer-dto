@@ -15,7 +15,7 @@ class PropProperties : Structure<DTOPositiveProp, List<LProperty<*>>> {
     override fun value(element: DTOPositiveProp): List<LProperty<*>> {
         val propPath = element.propPath().dropLast(1)
         return try {
-            element.file.clazz.walk(propPath).properties
+            element.file.clazz.walk(propPath).allProperties
         } catch (_: PropertyNotExistException) {
             println("Property not found: $propPath")
             emptyList()

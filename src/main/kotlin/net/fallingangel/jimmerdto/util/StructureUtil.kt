@@ -65,16 +65,6 @@ val PsiClass.isEntity: Boolean
 val PsiClass.isImmutable: Boolean
     get() = isEntity || hasAnnotation(Embeddable::class.qualifiedName!!)
 
-val PsiWhiteSpace.haveUpper: Boolean
-    get() = parent is DTOAliasGroup || parent.parent.parent is DTOPositiveProp
-
-val PsiWhiteSpace.upper: PsiElement
-    get() = if (parent is DTOAliasGroup) {
-        parent
-    } else {
-        parent.parent.parent
-    }
-
 /**
  * 元素是否包含上一层级的属性级结构
  *

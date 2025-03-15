@@ -1,22 +1,17 @@
 package net.fallingangel.jimmerdto.action
 
-import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiWhiteSpace
-import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.parentOfType
 import net.fallingangel.jimmerdto.DTOFileType
-import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
-import net.fallingangel.jimmerdto.psi.DTODtoBody
-import net.fallingangel.jimmerdto.psi.DTOExportStatement
+import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.psi.element.DTODtoBody
 import net.fallingangel.jimmerdto.util.*
-import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 
 class InsertEntityPropAction : AnAction() {
     override fun actionPerformed(e: AnActionEvent) {
@@ -26,60 +21,28 @@ class InsertEntityPropAction : AnAction() {
         val caret = editor.caretModel.currentCaret
         val offset = caret.offset
 
-        val dtoFile = e.getData(CommonDataKeys.PSI_FILE) ?: return
+        val dtoFile = e.getData(CommonDataKeys.PSI_FILE) as? DTOFile ?: return
         val space = dtoFile.findElementAt(offset) as? PsiWhiteSpace ?: return
-        val export = dtoFile.getChildOfType<DTOExportStatement>()
-
         val body = space.parentOfType<DTODtoBody>() ?: return
 
-        val negativeProps = body.negativePropList.map { it.propName.text }
-        val positiveProps = body.positivePropList.map { it.propName.text }
-        val functionProps = body.positivePropList
-                .mapNotNull { it.propArgs }
-                .map { it.valueList.map { value -> value.text } }
+        val negativeProps = body.negativeProps.mapNotNull { it.name?.value }
+        val positiveProps = body.positiveProps.map { it.name.value }
+        val functionProps = body.positiveProps
+                .mapNotNull { it.arg }
+                .map { it.values.map { value -> value.text } }
                 .flatten()
-        val aliasProps = body.aliasGroupList
+        val aliasProps = body.aliasGroups
                 .map {
-                    it.aliasGroupBody
-                            .positivePropList
+                    it.positiveProps
                             .map { prop ->
-                                prop.propName.text
+                                prop.name.value
                             }
                 }
                 .flatten()
         val oldProps = negativeProps + positiveProps + functionProps + aliasProps
 
-        val propPath = if (space.haveUpper) {
-            space.upper.propPath()
-        } else {
-            space.propPath()
-        }
-
-        val entityName = if (export != null) {
-            export.qualified
-        } else {
-            val dtoRoot = dtoRoot(dtoFile)?.path ?: return
-            val dtoPath = dtoFile.virtualFile.parent.path
-            val `package` = dtoPath.substringAfter("$dtoRoot/").replace('/', '.')
-            "${`package`}.${dtoFile.name.removeSuffix(".dto")}"
-        }
-        val entity = JavaPsiFacade.getInstance(project).findClass(entityName, ProjectScope.getProjectScope(project)) ?: return
-
-        val props = when (entity.language) {
-            is JavaLanguage -> entity.virtualFile
-                    .psiClass(project, propPath)
-                    ?.methods()
-                    ?.filter { it.name !in oldProps }
-                    ?.map { it.name }
-
-            is KotlinLanguage -> entity.virtualFile
-                    .ktClass(project, propPath)
-                    ?.properties()
-                    ?.filter { it.name !in oldProps }
-                    ?.map { it.name }
-
-            else -> throw UnsupportedLanguageException("${entity.language} is unsupported")
-        } ?: emptyList()
+        val propPath = space.propPath()
+        val props = dtoFile.clazz.walk(propPath).allProperties.map(LProperty<*>::name).filter { it !in oldProps }
 
         WriteCommandAction.runWriteCommandAction(project) {
             document.insertString(

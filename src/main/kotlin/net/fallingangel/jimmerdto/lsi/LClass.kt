@@ -21,9 +21,13 @@ data class LClass<C : PsiElement>(
 ) : LType(), LElement, LAnnotationOwner, LPsiDependent {
     val parents by parentsHolder
 
-    val allParents = parents + parents.flatMap(LClass<*>::parents)
+    val allParents: List<LClass<out PsiElement>>
+        get() = parents + parents.flatMap(LClass<*>::parents)
 
     val properties by propertiesHolder
+
+    val allProperties: List<LProperty<*>>
+        get() = properties + allParents.flatMap(LClass<*>::properties)
 
     val methods by methodsHolder
 
