@@ -8,11 +8,11 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiFile
 import com.intellij.psi.search.ProjectScope
-import com.intellij.psi.util.PsiTreeUtil
 import net.fallingangel.jimmerdto.DTOFileType
 import net.fallingangel.jimmerdto.DTOPluginDisposable
-import net.fallingangel.jimmerdto.psi.DTODto
-import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.psi.element.DTODto
+import net.fallingangel.jimmerdto.util.file
+import net.fallingangel.jimmerdto.util.findChildren
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 
 class StartupServices : StartupActivity.Background {
@@ -45,15 +45,14 @@ class StartupServices : StartupActivity.Background {
     }
 
     private fun PsiFile.dtoFileChanged(project: Project) {
-        PsiTreeUtil.getChildrenOfTypeAsList(this, DTODto::class.java)
+        findChildren<DTODto>("/dtoFile/dto")
                 .forEach dto@{ dto ->
-                    val dtoFile = dto.containingFile as DTOFile
-                    val dtoName = dto.dtoName.text ?: return@dto
+                    val dtoFile = dto.file
+                    val dtoName = dto.name.value
                     val dtoClass = JavaPsiFacade.getInstance(project).findClass(
                         "${dtoFile.`package`}.$dtoName",
                         ProjectScope.getAllScope(project),
-                    )
-                    dtoClass ?: return
+                    ) ?: return@dto
                     val dtoClassFile = dtoClass.containingFile.virtualFile
                     WriteCommandAction.runWriteCommandAction(project) {
                         dtoClassFile.delete(this@StartupServices)
