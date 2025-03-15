@@ -37,9 +37,14 @@ dto
     :
     annotation*
     Modifier*
-    Identifier
+    dtoName
     (Implements typeRef (Comma typeRef)*)?
     dtoBody
+    ;
+
+dtoName
+    :
+    Identifier
     ;
 
 dtoBody

@@ -17,6 +17,7 @@ import net.fallingangel.jimmerdto.DTOFileType
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.lsi.*
+import net.fallingangel.jimmerdto.psi.element.DTODtoName
 import net.fallingangel.jimmerdto.psi.element.DTOExportStatement
 import net.fallingangel.jimmerdto.psi.element.DTOImportStatement
 import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
@@ -84,7 +85,7 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
     val dtos: List<String>
         get() = CachedValuesManager.getCachedValue(this, CACHED_DTO_KEY) {
             CachedValueProvider.Result.create(
-                findChildren<PsiElement>("/dtoFile/dto/Identifier").map(PsiElement::getText),
+                findChildren<DTODtoName>("/dtoFile/dto/dtoName").map(DTODtoName::getText),
                 DumbService.getInstance(project).modificationTracker,
                 ProjectRootModificationTracker.getInstance(project),
                 this,
