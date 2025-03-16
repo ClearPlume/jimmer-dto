@@ -25,7 +25,7 @@ class DTOFoldingBuilder : FoldingBuilderEx(), DumbAware {
         root.accept(object : PsiRecursiveElementVisitor() {
             override fun visitElement(element: PsiElement) {
                 val type = element.elementType
-                if (type is RuleIElementType) {
+                if (element.text.isNotBlank() && type is RuleIElementType) {
                     if (type.ruleIndex in bodies) {
                         descriptors.add(FoldingDescriptor(element.node, element.textRange))
                     }
