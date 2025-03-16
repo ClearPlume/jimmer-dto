@@ -261,7 +261,7 @@ class DTOAnnotator : Annotator {
             entityProperties.find { propName.text == it.name }?.let {
                 propName.error(
                     "It is prohibited for user-prop and entity prop to have the same name",
-                    RenameElement(propName, Project::createUserPropName),
+                    RenameElement(propName, Project::createPropName),
                 )
             }
         }

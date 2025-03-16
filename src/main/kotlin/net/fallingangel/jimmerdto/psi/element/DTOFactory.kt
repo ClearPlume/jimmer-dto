@@ -95,9 +95,14 @@ fun Project.createUserProp(name: String, type: String): DTOUserProp {
             .userProps[0]
 }
 
-fun Project.createUserPropName(name: String) = createUserProp(name, "String").name
-
 fun Project.createUserPropType(type: String) = createUserProp("dummy", type).type
+
+fun Project.createPropName(name: String): DTOPropName {
+    return createDTO("Dummy", positiveProps = listOf(name))
+            .dtoBody
+            .positiveProps[0]
+            .name
+}
 
 // fun Project.createAnnotation(name: String): DTOAnnotation {
 //     val prop = """@$name
