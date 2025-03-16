@@ -12,8 +12,6 @@ class DTOMacroNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOMacroName 
     override val value: String
         get() = nameIdentifier.text
 
-    override fun getName() = value
-
     override fun getNameIdentifier(): PsiElement {
         return findChild("/macroName/Identifier")
     }

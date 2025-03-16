@@ -21,8 +21,6 @@ class DTOPropNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOPropName {
             return findChild<PsiElement>("/propName/Identifier").text
         }
 
-    override fun getName() = value
-
     override fun setName(name: String): DTOPropName {
         node.treeParent.replaceChild(node, project.createPropName(name).node)
         return this
