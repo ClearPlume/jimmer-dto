@@ -27,11 +27,9 @@ class DTOPropNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOPropName {
 
     override fun getName() = value
 
-    override fun setName(name: String): DTOPropName {
-        node.treeParent.replaceChild(node, project.createPropName(name).node)
-        return this
+    override fun newNameNode(name: String): ASTNode {
+        return project.createPropName(name).node
     }
-
     override fun resolve(): PsiElement? {
         return when (val prop = parent) {
             is DTONegativeProp -> file.clazz.propertyOrNull(prop.propPath())?.source

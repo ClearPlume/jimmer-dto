@@ -12,7 +12,6 @@ import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.DTOQualifiedNamePart
 import net.fallingangel.jimmerdto.psi.element.DTOVisitor
 import net.fallingangel.jimmerdto.psi.element.createQualifiedNamePart
-import net.fallingangel.jimmerdto.psi.mixin.DTONamedElement
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
 import net.fallingangel.jimmerdto.util.findChild
 
@@ -24,9 +23,8 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
         return findChild("/qualifiedNamePart/Identifier")
     }
 
-    override fun setName(name: String): DTONamedElement {
-        node.treeParent.replaceChild(node, project.createQualifiedNamePart(name).node)
-        return this
+    override fun newNameNode(name: String): ASTNode {
+        return project.createQualifiedNamePart(name).node
     }
 
     override fun resolve(): PsiElement? {

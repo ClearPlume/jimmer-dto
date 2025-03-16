@@ -15,8 +15,11 @@ abstract class DTONamedElementImpl(node: ASTNode) : ANTLRPsiNode(node), DTONamed
     override fun getName() = nameIdentifier?.text
 
     override fun setName(name: String): DTONamedElement {
+        newNameNode(name)?.let { node.treeParent.replaceChild(node, it) }
         return this
     }
+
+    protected open fun newNameNode(name: String): ASTNode? = null
 
     override fun resolve(): PsiElement? {
         return null
