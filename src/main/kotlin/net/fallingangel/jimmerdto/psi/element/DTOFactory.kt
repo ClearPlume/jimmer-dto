@@ -1,6 +1,7 @@
 package net.fallingangel.jimmerdto.psi.element
 
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.psi.DTOFile
@@ -16,6 +17,10 @@ fun Project.createImport(qualifiedName: String): DTOImportStatement {
 
 fun Project.createQualifiedNamePart(part: String): DTOQualifiedNamePart {
     return createImport(part).qualifiedName.parts[0]
+}
+
+fun Project.createImportedType(type: String): PsiElement {
+    return createDTOFile("import a.{$type}").findChild("/dtoFile/importStatement/groupedImport/importedType")
 }
 
 fun Project.createDTO(
