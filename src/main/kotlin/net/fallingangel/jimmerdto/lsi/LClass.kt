@@ -37,16 +37,28 @@ data class LClass<C : PsiElement>(
     fun walk(propPath: List<String>) = if (propPath.isEmpty()) {
         this
     } else {
-        findProperty(propPath).actualType as LClass<*>
+        property(propPath).actualType as LClass<*>
     }
 
     /**
      * 以this为起点，走过[propPath]后的属性
+     *
+     * @param propPath 不可为空
      */
-    fun property(propPath: List<String>) = if (propPath.isEmpty()) {
-        this
-    } else {
-        findProperty(propPath).actualType as LClass<*>
+    fun property(propPath: List<String>) = findProperty(propPath)
+
+    /**
+     * 以this为起点，走过[propPath]后的属性
+     */
+    fun propertyOrNull(propPath: List<String>): LProperty<*>? {
+        if (propPath.isEmpty()) {
+            return null
+        }
+        return try {
+            findProperty(propPath)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     override fun toString() = toDebugString(mutableSetOf())
