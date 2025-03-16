@@ -5,6 +5,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.util.findChild
+import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
 import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
@@ -15,8 +16,8 @@ class DTODtoImpl(node: ASTNode) : ANTLRPsiNode(node), DTODto {
     override val modifierElements: List<PsiElement>
         get() = findChildren("/dto/Modifier")
 
-    override val implements: List<DTOTypeDef>
-        get() = findChildren("/dto/typeRef")
+    override val implements: DTOImplements?
+        get() = findChildNullable("/dto/implements")
 
     override val name: DTODtoName
         get() = findChild("/dto/dtoName")

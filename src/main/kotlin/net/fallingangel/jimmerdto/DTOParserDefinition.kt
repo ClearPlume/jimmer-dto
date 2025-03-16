@@ -63,6 +63,7 @@ class DTOParserDefinition : ParserDefinition {
 
             DTOParser.RULE_dto -> DTODtoImpl(node)
             DTOParser.RULE_dtoName -> DTODtoNameImpl(node)
+            DTOParser.RULE_implements -> DTOImplementsImpl(node)
             DTOParser.RULE_dtoBody -> DTODtoBodyImpl(node)
 
             DTOParser.RULE_annotation -> DTOAnnotationImpl(node)
@@ -82,6 +83,7 @@ class DTOParserDefinition : ParserDefinition {
 
             DTOParser.RULE_userProp -> DTOUserPropImpl(node)
             DTOParser.RULE_typeRef -> DTOTypeDefImpl(node)
+            DTOParser.RULE_genericArguments -> DTOGenericArgumentsImpl(node)
             DTOParser.RULE_genericArgument -> DTOGenericArgumentImpl(node)
 
             DTOParser.RULE_positiveProp -> DTOPositivePropImpl(node)

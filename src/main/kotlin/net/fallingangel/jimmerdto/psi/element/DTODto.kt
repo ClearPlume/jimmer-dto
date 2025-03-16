@@ -9,7 +9,7 @@ interface DTODto : DTOElement {
 
     val modifierElements: List<PsiElement>
 
-    val implements: List<DTOTypeDef>
+    val implements: DTOImplements?
 
     val name: DTODtoName
 

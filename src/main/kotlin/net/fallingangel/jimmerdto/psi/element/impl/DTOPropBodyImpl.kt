@@ -11,8 +11,8 @@ class DTOPropBodyImpl(node: ASTNode) : ANTLRPsiNode(node), DTOPropBody {
     override val annotations: List<DTOAnnotation>
         get() = findChildren("/propBody/annotation")
 
-    override val implements: List<DTOTypeDef>
-        get() = findChildren("/propBody/typeRef")
+    override val implements: DTOImplements?
+        get() = findChildNullable("/propBody/implements")
 
     override val dtoBody: DTODtoBody?
         get() = findChildNullable("/propBody/dtoBody")

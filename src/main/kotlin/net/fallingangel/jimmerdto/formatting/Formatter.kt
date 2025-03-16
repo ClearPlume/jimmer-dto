@@ -1,62 +1,66 @@
 package net.fallingangel.jimmerdto.formatting
 
 import com.intellij.formatting.*
-import com.intellij.psi.tree.TokenSet
 import net.fallingangel.jimmerdto.DTOLanguage
-import net.fallingangel.jimmerdto.psi.DTOTokenTypes
-import net.fallingangel.jimmerdto.psi.DTOTypes.*
+import net.fallingangel.jimmerdto.DTOLanguage.rule
+import net.fallingangel.jimmerdto.DTOLanguage.token
+import net.fallingangel.jimmerdto.psi.DTOParser.*
 
 class Formatter : FormattingModelBuilder {
     override fun createModel(context: FormattingContext): FormattingModel {
         val styleSettings = context.codeStyleSettings
-        val dtoProps = TokenSet.create(USER_PROP, MACRO, POSITIVE_PROP, ALIAS_GROUP, NEGATIVE_PROP)
-        val braces = TokenSet.create(PAREN_L, PAREN_R, BRACKET_L, BRACKET_R, LT, GT)
-        val parents = TokenSet.create(DTO_BODY, ALIAS_GROUP_BODY, ENUM_BODY)
+
+        val comments = DTOLanguage.tokenSet(LineComment, BlockComment, DocComment)
+        val dtoProps = DTOLanguage.ruleSet(RULE_userProp, RULE_macro, RULE_positiveProp, RULE_aliasGroup, RULE_negativeProp)
+        val braces = DTOLanguage.tokenSet(LParen, RParen, LBracket, RBracket, LessThan, GreaterThan)
+        val parents = DTOLanguage.ruleSet(RULE_dtoBody, RULE_aliasGroupBody, RULE_enumBody)
 
         val spacingBuilder = SpacingBuilder(styleSettings, DTOLanguage)
                 // special
-                .betweenInside(PAREN_R, ALIAS_GROUP_BODY, ALIAS_GROUP).spaces(1)
+                .betweenInside(token[RParen], rule[RULE_aliasGroupBody], rule[RULE_aliasGroup]).spaces(1)
                 .around(braces).spaces(0)
 
                 // common
-                .around(COMMA, 0, 1)
-                .after(AT).spaces(0)
-                .after(HASH).spaces(0)
-                .around(EQ).spaces(1)
-                .afterInside(MINUS, NEGATIVE_PROP).spaces(0)
-                .around(MINUS).spaces(1)
-                .around(DOT).spaces(0)
-                .around(ARROW).spaces(1)
-                .between(BRACE_L, BRACE_R).spaces(0)
-                .around(MODIFIER).spaces(1)
-                .around(IMPLEMENTS).spaces(1)
-                .around(AS).spaces(1)
-                .after(DTOTokenTypes.comments).emptyLine(0)
+                .around(token[Comma], 0, 1)
+                .around(token[Colon], 0, 1)
+                .after(token[At]).spaces(0)
+                .after(token[Hash]).spaces(0)
+                .around(token[Equals]).spaces(1)
+                .afterInside(token[Minus], rule[RULE_negativeProp]).spaces(0)
+                .around(token[Minus]).spaces(1)
+                .around(token[Dot]).spaces(0)
+                .around(token[Arrow]).spaces(1)
+                .between(token[LBrace], token[RBrace]).spaces(0)
+                .around(token[Modifier]).spaces(1)
+                .around(token[Implements]).spaces(1)
+                .around(token[As]).spaces(1)
+                .after(comments).emptyLine(0)
+                .afterInside(token[LBrace], parents).emptyLine(0)
+                .beforeInside(token[RBrace], parents).emptyLine(0)
 
                 // psi elements
-                .after(EXPORT_STATEMENT).emptyLine(1)
-                .around(EXPORT).spaces(1)
-                .afterInside(QUALIFIED_TYPE, EXPORT).emptyLine(0)
-                .after(PACKAGE).spaces(1)
-                .between(IMPORT_STATEMENT, IMPORT_STATEMENT).emptyLine(0)
-                .around(IMPORT).spaces(1)
-                .between(IMPORT_STATEMENT, DTO).emptyLine(1)
-                .between(DTO, DTO).emptyLine(1)
-                .betweenInside(ANNOTATION, DTO_BODY, PROP_BODY).spaces(1)
-                .after(ANNOTATION).emptyLine(0)
-                .around(ANNOTATION_VALUE).spaces(0)
-                .after(PROP_CONFIG).emptyLine(0)
-                .around(DTO_NAME).spaces(1)
-                .around(INTERFACES).spaces(1)
-                .afterInside(BRACE_L, parents).emptyLine(0)
-                .beforeInside(BRACE_R, parents).emptyLine(0)
+                .after(rule[RULE_exportStatement]).emptyLine(1)
+                .around(token[Export]).spaces(1)
+                .afterInside(rule[RULE_qualifiedName], token[Export]).emptyLine(0)
+                .after(token[Package]).spaces(1)
+                .between(rule[RULE_importStatement], rule[RULE_importStatement]).emptyLine(0)
+                .around(token[Import]).spaces(1)
+                .between(rule[RULE_importStatement], rule[RULE_dto]).emptyLine(1)
+                .between(rule[RULE_dto], rule[RULE_dto]).emptyLine(1)
+                .betweenInside(rule[RULE_annotation], rule[RULE_dtoBody], rule[RULE_propBody]).spaces(1)
+                .between(rule[RULE_annotation], rule[RULE_annotation]).spaces(1)
+                .around(rule[RULE_annotationValue]).spaces(0)
+                .around(rule[RULE_dtoName]).spaces(1)
+                .around(rule[RULE_implements]).spaces(1)
+                .before(rule[RULE_dtoBody]).spaces(1)
                 .around(dtoProps).emptyLine(1)
-                .beforeInside(TokenSet.create(OPTIONAL, REQUIRED, ASTERISK), POSITIVE_PROP).spaces(0)
-                .between(PROP_NAME, PROP_ARGS).spaces(0)
-                .around(PROP_NAME).spaces(1)
-                .betweenInside(QUALIFIED_NAME, GENERIC_ARGS, TYPE_DEF).spaces(0)
-                .before(DTO_BODY).spaces(1)
-                .before(PROP_BODY).spaces(1)
+                .after(rule[RULE_propConfig]).emptyLine(0)
+                .beforeInside(DTOLanguage.tokenSet(QuestionMark, ExclamationMark, Star), rule[RULE_positiveProp]).spaces(0)
+                .between(rule[RULE_propName], rule[RULE_propArg]).spaces(0)
+                .around(rule[RULE_propName]).spaces(1)
+                .betweenInside(rule[RULE_qualifiedName], rule[RULE_genericArguments], rule[RULE_typeRef]).spaces(0)
+                .before(rule[RULE_propBody]).spaces(1)
+                .after(rule[RULE_enumMapping]).emptyLine(0)
 
         return FormattingModelProvider.createFormattingModelForPsiFile(
             context.containingFile,

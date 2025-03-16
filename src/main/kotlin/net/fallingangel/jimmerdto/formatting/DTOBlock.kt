@@ -4,29 +4,28 @@ import com.intellij.formatting.*
 import com.intellij.lang.ASTNode
 import com.intellij.psi.TokenType
 import com.intellij.psi.formatter.common.AbstractBlock
-import com.intellij.psi.tree.TokenSet
-import net.fallingangel.jimmerdto.psi.DTOTypes.*
+import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.DTOLanguage.rule
+import net.fallingangel.jimmerdto.DTOLanguage.token
+import net.fallingangel.jimmerdto.psi.DTOParser.*
 
 class DTOBlock(
     private val spacingBuilder: SpacingBuilder,
     node: ASTNode,
     wrap: Wrap?,
-    alignment: Alignment?
+    alignment: Alignment?,
 ) : AbstractBlock(node, wrap, alignment) {
     // 缩进体
-    private val parents = TokenSet.create(DTO_BODY, ALIAS_GROUP_BODY, ENUM_BODY)
+    private val parents = DTOLanguage.ruleSet(RULE_dtoBody, RULE_aliasGroupBody, RULE_enumBody)
+
     // 父级为缩进体，但本身不需要缩进
-    private val parentSymbols = TokenSet.create(BRACE_L, BRACE_R, ARROW)
+    private val parentSymbols = DTOLanguage.tokenSet(LBrace, RBrace, Arrow)
 
     override fun getIndent(): Indent? {
         if (node.treeParent?.elementType in parents && node.elementType !in parentSymbols) {
             return Indent.getNormalIndent()
         }
-        if (
-            node.treeParent?.elementType == EXPORT_STATEMENT &&
-            (node.treePrev?.elementType == TokenType.WHITE_SPACE && node.treePrev?.treePrev?.elementType == QUALIFIED_TYPE ||
-                    node.treePrev?.elementType == QUALIFIED_TYPE)
-        ) {
+        if (node.elementType == token[Arrow] && node.treeParent?.elementType == rule[RULE_exportStatement]) {
             return Indent.getNormalIndent()
         }
         return Indent.getNoneIndent()

@@ -6,7 +6,7 @@ import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 interface DTOTypeDef : DTOElement {
     val type: DTOQualifiedName
 
-    val args: List<DTOGenericArgument>
+    val arguments: DTOGenericArguments?
 
     val questionMark: PsiElement?
 }

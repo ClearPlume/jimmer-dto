@@ -7,16 +7,12 @@ package net.fallingangel.jimmerdto.psi;
 // Parser
 dtoFile
     :
-    exportStatement?
-    importStatement*
-    dto*
-    EOF
+    exportStatement? importStatement* dto* EOF
     ;
 
 exportStatement
     :
-    Export qualifiedName
-    (Arrow Package qualifiedName)?
+    Export qualifiedName (Arrow Package qualifiedName)?
     ;
 
 importStatement
@@ -38,13 +34,18 @@ dto
     annotation*
     Modifier*
     dtoName
-    (Implements typeRef (Comma typeRef)*)?
+    implements?
     dtoBody
     ;
 
 dtoName
     :
     Identifier
+    ;
+
+implements
+    :
+    Implements typeRef (Comma typeRef)*
     ;
 
 dtoBody
@@ -56,9 +57,7 @@ dtoBody
 
 macro
     :
-    Hash macroName
-    macroArgs?
-    (QuestionMark | ExclamationMark)?
+    Hash macroName macroArgs? (QuestionMark | ExclamationMark)?
     ;
 
 macroName
@@ -111,9 +110,7 @@ value
 
 propBody
     :
-    annotation*
-    (Implements typeRef (Comma typeRef)*)?
-    dtoBody | Arrow enumBody
+    annotation* implements? (dtoBody | Arrow enumBody)
     ;
 
 negativeProp
@@ -123,8 +120,7 @@ negativeProp
 
 userProp
     :
-    annotation*
-    propName Colon typeRef
+    annotation* propName Colon typeRef
     ;
 
 propName
@@ -179,11 +175,7 @@ nullity
 
 propValue
     :
-    BooleanLiteral |
-    CharacterLiteral |
-    SqlStringLiteral |
-    IntegerLiteral |
-    FloatingPointLiteral
+    BooleanLiteral | CharacterLiteral | SqlStringLiteral | IntegerLiteral | FloatingPointLiteral
     ;
 
 orderItem
@@ -259,8 +251,13 @@ qualifiedNamePart
 typeRef
     :
     qualifiedName
-    (LessThan genericArgument (Comma genericArgument)? GreaterThan)?
+    genericArguments?
     QuestionMark?
+    ;
+
+genericArguments
+    :
+    LessThan genericArgument (Comma genericArgument)? GreaterThan
     ;
 
 genericArgument

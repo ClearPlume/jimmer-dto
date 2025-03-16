@@ -31,6 +31,10 @@ open class DTOVisitor : PsiElementVisitor() {
         visitElement(o)
     }
 
+    open fun visitImplements(o: DTOImplements) {
+        visitElement(o)
+    }
+
     open fun visitDtoBody(o: DTODtoBody) {
         visitElement(o)
     }
@@ -84,6 +88,10 @@ open class DTOVisitor : PsiElementVisitor() {
     }
 
     open fun visitTypeDef(o: DTOTypeDef) {
+        visitElement(o)
+    }
+
+    open fun visitGenericArguments(o: DTOGenericArguments) {
         visitElement(o)
     }
 

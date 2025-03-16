@@ -2,6 +2,7 @@ package net.fallingangel.jimmerdto
 
 import com.intellij.lang.Language
 import com.intellij.psi.tree.IElementType
+import com.intellij.psi.tree.TokenSet
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.structure.BasicType
 import net.fallingangel.jimmerdto.structure.GenericType
@@ -36,6 +37,14 @@ object DTOLanguage : Language(Constant.NAME) {
             Array(vocab.maxTokenType + 1) { vocab.getDisplayName(it) },
             DTOParser.ruleNames,
         )
+    }
+
+    fun tokenSet(vararg tokens: Int): TokenSet {
+        return TokenSet.create(*tokens.map(token::get).toTypedArray())
+    }
+
+    fun ruleSet(vararg rules: Int): TokenSet {
+        return TokenSet.create(*rules.map(rule::get).toTypedArray())
     }
 
     private fun readResolve(): Any = DTOLanguage
