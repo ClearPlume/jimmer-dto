@@ -5,6 +5,7 @@
 ### Added
 
 * Added support for k2 mode
+* When the imported class is annotation, apply annotation highlighting to it
 
 ### Deprecated
 

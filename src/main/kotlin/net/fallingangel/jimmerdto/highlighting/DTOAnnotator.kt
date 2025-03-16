@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.prevLeafs
@@ -80,18 +81,27 @@ class DTOAnnotator : Annotator {
                 }
                 error("Packages cannot be $packageAction")
             }
+
+            val clazz = JavaPsiFacade.getInstance(project).findClass("$curPackage.$part", ProjectScope.getAllScope(project)) ?: return
+            if (clazz.isAnnotationType) {
+                style(DTOSyntaxHighlighter.ANNOTATION)
+            }
         }
 
         override fun visitImportedType(o: DTOImportedType) {
             val project = o.project
             val import = o.parent.parent<DTOImportStatement>()
-            val classes = JavaPsiFacade.getInstance(project)
+            val clazz = JavaPsiFacade.getInstance(project)
                     .findPackage(import.qualifiedName.value)
                     ?.classes
-                    ?.mapNotNull { it.name } ?: return
+                    ?.find { it.name == o.type.text }
             val type = o.type.text
-            if (type !in classes) {
+            if (clazz == null) {
                 o.type.error("Unresolved reference: $type")
+            } else {
+                if (clazz.isAnnotationType) {
+                    o.style(DTOSyntaxHighlighter.ANNOTATION)
+                }
             }
         }
 
