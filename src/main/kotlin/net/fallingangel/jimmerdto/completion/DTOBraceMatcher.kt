@@ -4,21 +4,18 @@ import com.intellij.lang.BracePair
 import com.intellij.lang.PairedBraceMatcher
 import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
-import net.fallingangel.jimmerdto.psi.DTOTypes
+import net.fallingangel.jimmerdto.DTOLanguage.token
+import net.fallingangel.jimmerdto.psi.DTOLexer
 
 class DTOBraceMatcher : PairedBraceMatcher {
     override fun getPairs() = arrayOf(
-        BracePair(DTOTypes.BRACE_L, DTOTypes.BRACE_R, true),
-        BracePair(DTOTypes.PAREN_L, DTOTypes.PAREN_R, false),
-        BracePair(DTOTypes.BRACKET_L, DTOTypes.BRACKET_R, false),
-        BracePair(DTOTypes.LT, DTOTypes.GT, false)
+        BracePair(token[DTOLexer.LBrace], token[DTOLexer.RBrace], true),
+        BracePair(token[DTOLexer.LParen], token[DTOLexer.RParen], true),
+        BracePair(token[DTOLexer.LBracket], token[DTOLexer.RBracket], true),
+        BracePair(token[DTOLexer.LessThan], token[DTOLexer.GreaterThan], true),
     )
 
     override fun isPairedBracesAllowedBeforeType(lbraceType: IElementType, contextType: IElementType?) = true
 
-    override fun getCodeConstructStart(file: PsiFile, openingBraceOffset: Int): Int {
-        println("getCodeConstructStart: $openingBraceOffset")
-        println(file.text)
-        return openingBraceOffset
-    }
+    override fun getCodeConstructStart(file: PsiFile, openingBraceOffset: Int) = openingBraceOffset
 }
