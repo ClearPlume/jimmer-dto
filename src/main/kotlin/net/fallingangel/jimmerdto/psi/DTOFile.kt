@@ -99,7 +99,7 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             val normal = imports.filter { it.alias == null && it.groupedImport == null }.map { it.qualifiedName.simpleName }
             val grouped = imports.filter { it.groupedImport != null }
                     .flatMap { it.groupedImport!!.types }
-                    .map { it.alias ?: it.type }
+                    .map { it.alias?.text ?: it.type.text }
             val aliases = imports.mapNotNull(DTOImportStatement::alias)
 
             CachedValueProvider.Result.create(

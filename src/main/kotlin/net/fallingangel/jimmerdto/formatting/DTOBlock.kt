@@ -16,7 +16,7 @@ class DTOBlock(
     alignment: Alignment?,
 ) : AbstractBlock(node, wrap, alignment) {
     // 缩进体
-    private val parents = DTOLanguage.ruleSet(RULE_dtoBody, RULE_aliasGroupBody, RULE_enumBody)
+    private val parents = DTOLanguage.ruleSet(RULE_dtoBody, RULE_groupedImport, RULE_aliasGroupBody, RULE_enumBody)
 
     // 父级为缩进体，但本身不需要缩进
     private val parentSymbols = DTOLanguage.tokenSet(LBrace, RBrace, Arrow)

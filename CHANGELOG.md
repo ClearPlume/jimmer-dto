@@ -10,6 +10,10 @@
 
 * Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
 
+### Fixed
+
+* Issue [#44](https://github.com/ClearPlume/jimmer-dto/issues/44): Correct package prompts when importing group
+
 ## [0.0.7.40] - 2025-03-07
 
 ### Added

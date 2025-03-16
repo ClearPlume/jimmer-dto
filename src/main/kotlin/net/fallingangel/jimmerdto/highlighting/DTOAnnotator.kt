@@ -7,6 +7,7 @@ import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.project.Project
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
@@ -19,11 +20,10 @@ import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.enums.SpecFunction
 import net.fallingangel.jimmerdto.lsi.findProperty
-import net.fallingangel.jimmerdto.psi.DTOLexer
+import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
 import net.fallingangel.jimmerdto.util.*
-import org.antlr.intellij.adaptor.lexer.TokenIElementType
 
 /**
  * 部分代码结构的高亮
@@ -39,8 +39,7 @@ class DTOAnnotator : Annotator {
          */
         override fun visitQualifiedNamePart(o: DTOQualifiedNamePart) {
             val `package` = o.parent.sibling<PsiElement>(false) {
-                val type = it.elementType
-                type is TokenIElementType && type.antlrTokenType == DTOLexer.Package
+                it.elementType == DTOLanguage.token[DTOParser.Package]
             }
 
             if (`package` != null || !o.haveParent<DTOExportStatement>() && !o.haveParent<DTOImportStatement>()) {
@@ -48,21 +47,15 @@ class DTOAnnotator : Annotator {
             }
 
             when (o.parent.parent) {
-                is DTOExportStatement -> o.visitPackage(DTOLexer.Export, Project::allEntities)
-                is DTOImportStatement -> o.visitPackage(DTOLexer.Import, Project::allClasses)
+                is DTOExportStatement -> o.visitPackage(DTOParser.Export, Project::allEntities)
+                is DTOImportStatement -> o.visitPackage(DTOParser.Import, Project::allClasses)
             }
         }
 
         private fun DTOQualifiedNamePart.visitPackage(statementKeyword: Int, classes: Project.(String) -> List<PsiClass>) {
             val exportedPackage = prevLeafs
-                    .takeWhile {
-                        val type = it.elementType
-                        type is TokenIElementType && type.antlrTokenType != statementKeyword
-                    }
-                    .filter {
-                        val type = it.elementType
-                        type is TokenIElementType && type.antlrTokenType == DTOLexer.Identifier
-                    }
+                    .takeWhile { it.elementType != DTOLanguage.token[statementKeyword] }
+                    .filter { it.elementType == DTOLanguage.token[DTOParser.Identifier] }
                     .map { it.text }
                     .toList()
                     .asReversed()
@@ -79,13 +72,26 @@ class DTOAnnotator : Annotator {
             }
 
             // 包不能被导入
-            if (nextSibling == null && part !in curPackageClasses) {
-                val packageAction = if (statementKeyword == DTOLexer.Export) {
+            if (nextSibling == null && part !in curPackageClasses && (parent.parent as? DTOImportStatement)?.groupedImport == null) {
+                val packageAction = if (statementKeyword == DTOParser.Export) {
                     "exported"
                 } else {
                     "imported"
                 }
                 error("Packages cannot be $packageAction")
+            }
+        }
+
+        override fun visitImportedType(o: DTOImportedType) {
+            val project = o.project
+            val import = o.parent.parent<DTOImportStatement>()
+            val classes = JavaPsiFacade.getInstance(project)
+                    .findPackage(import.qualifiedName.value)
+                    ?.classes
+                    ?.mapNotNull { it.name } ?: return
+            val type = o.type.text
+            if (type !in classes) {
+                o.type.error("Unresolved reference: $type")
             }
         }
 

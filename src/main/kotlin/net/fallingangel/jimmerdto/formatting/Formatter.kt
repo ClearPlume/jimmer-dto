@@ -13,7 +13,7 @@ class Formatter : FormattingModelBuilder {
         val comments = DTOLanguage.tokenSet(LineComment, BlockComment, DocComment)
         val dtoProps = DTOLanguage.ruleSet(RULE_userProp, RULE_macro, RULE_positiveProp, RULE_aliasGroup, RULE_negativeProp)
         val braces = DTOLanguage.tokenSet(LParen, RParen, LBracket, RBracket, LessThan, GreaterThan)
-        val parents = DTOLanguage.ruleSet(RULE_dtoBody, RULE_aliasGroupBody, RULE_enumBody)
+        val parents = DTOLanguage.ruleSet(RULE_dtoBody, RULE_groupedImport, RULE_aliasGroupBody, RULE_enumBody)
 
         val spacingBuilder = SpacingBuilder(styleSettings, DTOLanguage)
                 // special
