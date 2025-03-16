@@ -7,5 +7,5 @@ interface DTOImportStatement : DTOElement {
 
     val alias: String?
 
-    val subTypes: List<DTOImportedType>
+    val groupedImport: DTOGroupedImport?
 }

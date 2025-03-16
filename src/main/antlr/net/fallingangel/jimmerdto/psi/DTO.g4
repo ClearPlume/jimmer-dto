@@ -17,11 +17,12 @@ exportStatement
 
 importStatement
     :
-    Import qualifiedName
-    (
-        Dot LBrace importedType (Comma importedType)* RBrace |
-        As alias = Identifier
-    )?
+    Import qualifiedName (Dot groupedImport | As alias = Identifier)?
+    ;
+
+groupedImport
+    :
+    LBrace importedType (Comma importedType)* RBrace
     ;
 
 importedType

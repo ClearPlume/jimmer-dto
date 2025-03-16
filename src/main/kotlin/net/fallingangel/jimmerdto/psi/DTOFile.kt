@@ -96,9 +96,9 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
         get() = CachedValuesManager.getCachedValue(this, CACHED_IMPORT_KEY) {
             val imports = findChildren<DTOImportStatement>("/dtoFile/importStatement")
 
-            val normal = imports.filter { it.alias == null && it.subTypes.isEmpty() }.map { it.qualifiedName.simpleName }
-            val grouped = imports.filter { it.subTypes.isNotEmpty() }
-                    .flatMap { it.subTypes }
+            val normal = imports.filter { it.alias == null && it.groupedImport == null }.map { it.qualifiedName.simpleName }
+            val grouped = imports.filter { it.groupedImport != null }
+                    .flatMap { it.groupedImport!!.types }
                     .map { it.alias ?: it.type }
             val aliases = imports.mapNotNull(DTOImportStatement::alias)
 

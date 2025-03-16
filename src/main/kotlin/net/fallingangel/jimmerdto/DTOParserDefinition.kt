@@ -57,6 +57,7 @@ class DTOParserDefinition : ParserDefinition {
         return when (type.ruleIndex) {
             DTOParser.RULE_exportStatement -> DTOExportStatementImpl(node)
             DTOParser.RULE_importStatement -> DTOImportStatementImpl(node)
+            DTOParser.RULE_groupedImport -> DTOGroupedImportImpl(node)
             DTOParser.RULE_importedType -> DTOImportedTypeImpl(node)
             DTOParser.RULE_qualifiedName -> DTOQualifiedNameImpl(node)
             DTOParser.RULE_qualifiedNamePart -> DTOQualifiedNamePartImpl(node)

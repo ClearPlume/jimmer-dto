@@ -18,7 +18,7 @@ class DTOImportedTypeImpl(node: ASTNode) : ANTLRPsiNode(node), DTOImportedType {
         get() = findChild<PsiElement>("/importedType/Identifier").text
 
     override val alias: String?
-        get() = findChildNullable<PsiElement>("/importedType/As")
+        get() = findChildNullable<PsiElement>("/importedType/'as'")
                 ?.sibling<PsiElement> {
                     val type = it.elementType
                     type is TokenIElementType && type.antlrTokenType == DTOLexer.Identifier

@@ -11,6 +11,10 @@ open class DTOVisitor : PsiElementVisitor() {
         visitElement(o)
     }
 
+    open fun visitGroupedImport(o: DTOGroupedImport) {
+        visitElement(o)
+    }
+
     open fun visitImportedType(o: DTOImportedType) {
         visitElement(o)
     }
