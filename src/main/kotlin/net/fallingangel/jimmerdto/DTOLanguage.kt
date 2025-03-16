@@ -1,6 +1,7 @@
 package net.fallingangel.jimmerdto
 
 import com.intellij.lang.Language
+import com.intellij.psi.tree.IElementType
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.structure.BasicType
 import net.fallingangel.jimmerdto.structure.GenericType
@@ -8,15 +9,24 @@ import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory
 import org.antlr.intellij.adaptor.xpath.XPath
 
 object DTOLanguage : Language(Constant.NAME) {
-    val xPath by lazy { XPath(DTOLanguage, "") }
+    val xPath: XPath
+        get() = XPath(DTOLanguage, "")
 
-    val preludes by lazy {
-        val basicTypes = BasicType.types()
-        val genericTypes = GenericType.types().map { it.presentation }
-        basicTypes + genericTypes
-    }
+    val token: List<IElementType>
+        get() = PSIElementTypeFactory.getTokenIElementTypes(DTOLanguage)
 
-    val availableFetchTypes by lazy { listOf("SELECT", "JOIN_IF_NO_CACHE", "JOIN_ALWAYS") }
+    val rule: List<IElementType>
+        get() = PSIElementTypeFactory.getRuleIElementTypes(DTOLanguage)
+
+    val preludes: List<String>
+        get() {
+            val basicTypes = BasicType.types()
+            val genericTypes = GenericType.types().map { it.presentation }
+            return basicTypes + genericTypes
+        }
+
+    val availableFetchTypes: List<String>
+        get() = listOf("SELECT", "JOIN_IF_NO_CACHE", "JOIN_ALWAYS")
 
     init {
         val vocab = DTOParser.VOCABULARY
