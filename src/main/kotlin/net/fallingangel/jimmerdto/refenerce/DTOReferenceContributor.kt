@@ -12,7 +12,7 @@ class DTOReferenceContributor : PsiReferenceContributor() {
             object : PsiReferenceProvider() {
                 override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
                     element as DTONamedElement
-                    return element()
+                    return arrayOf(DTOReference(element, element.firstChild.textRangeInParent))
                 }
             },
         )

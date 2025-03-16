@@ -10,9 +10,13 @@ import net.fallingangel.jimmerdto.util.findChild
 
 class DTOMacroNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOMacroName {
     override val value: String
-        get() = findChild<PsiElement>("/macroName/Identifier").text
+        get() = nameIdentifier.text
 
     override fun getName() = value
+
+    override fun getNameIdentifier(): PsiElement {
+        return findChild("/macroName/Identifier")
+    }
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {
