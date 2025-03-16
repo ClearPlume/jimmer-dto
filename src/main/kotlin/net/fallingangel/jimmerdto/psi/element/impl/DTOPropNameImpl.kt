@@ -21,13 +21,15 @@ class DTOPropNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOPropName {
             return findChild<PsiElement>("/propName/Identifier").text
         }
 
+    override fun getNameIdentifier(): PsiElement {
+        return findChildNullable("/propName/QuotedSymbol") ?: findChild("/propName/Identifier")
+    }
+
+    override fun getName() = value
+
     override fun setName(name: String): DTOPropName {
         node.treeParent.replaceChild(node, project.createPropName(name).node)
         return this
-    }
-
-    override fun getNameIdentifier(): PsiElement {
-        return findChildNullable("/propName/QuotedSymbol") ?: findChild("/propName/Identifier")
     }
 
     override fun resolve(): PsiElement? {
