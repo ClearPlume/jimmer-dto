@@ -285,6 +285,10 @@ class DTOAnnotator : Annotator {
         }
 
         private fun visitUserPropType(o: DTOTypeDef) {
+            if (o.type.parts.size > 1) {
+                return
+            }
+
             val dtoFile = o.file
             val type = o.type.value
 

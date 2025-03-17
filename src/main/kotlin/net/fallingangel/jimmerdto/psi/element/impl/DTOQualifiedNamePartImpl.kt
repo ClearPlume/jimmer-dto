@@ -6,14 +6,15 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.elementType
-import com.intellij.psi.util.prevLeafs
+import com.intellij.psi.util.parentOfType
+import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.psi.DTOParser
-import net.fallingangel.jimmerdto.psi.element.DTOQualifiedNamePart
-import net.fallingangel.jimmerdto.psi.element.DTOVisitor
-import net.fallingangel.jimmerdto.psi.element.createQualifiedNamePart
+import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
+import net.fallingangel.jimmerdto.util.file
 import net.fallingangel.jimmerdto.util.findChild
+import net.fallingangel.jimmerdto.util.propPath
 
 class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQualifiedNamePart {
     override val part: String
@@ -28,20 +29,29 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
     }
 
     override fun resolve(): PsiElement? {
-        val value = part
-        val `package` = prevLeafs
-                .takeWhile { it.elementType !in DTOLanguage.tokenSet(DTOParser.Export, DTOParser.Package, DTOParser.Import) }
-                .filter { it.elementType == DTOLanguage.token[DTOParser.Identifier] }
+        val parent = parent
+        if (parent is DTOQualifiedName) {
+            if (parent.parts.size == 1) {
+                return file.imported[part] ?: file.importedAlias[part]?.first
+            }
+        }
+
+        // 全限定结构
+        val qualified = siblings(forward = false)
+                .filter { it.elementType == DTOLanguage.rule[DTOParser.RULE_qualifiedNamePart] }
+                .map(PsiElement::getText)
                 .toList()
                 .asReversed()
-                .joinToString(".") { it.text }
-        val qualified = if (`package`.isEmpty()) {
-            value
-        } else {
-            "$`package`.$value"
+
+
+        val config = parentOfType<DTOPropConfig>()
+        if (config != null) {
+            return config.resolvePropPath(qualified)
         }
+
         val psiFacade = JavaPsiFacade.getInstance(project)
-        return psiFacade.findClass(qualified, ProjectScope.getAllScope(project)) ?: psiFacade.findPackage(qualified)
+        val clazz = psiFacade.findClass(qualified.joinToString("."), ProjectScope.getAllScope(project))
+        return clazz ?: psiFacade.findPackage(qualified.joinToString("."))
     }
 
     override fun accept(visitor: PsiElementVisitor) {
@@ -50,5 +60,12 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
         } else {
             super.accept(visitor)
         }
+    }
+
+    private fun DTOPropConfig.resolvePropPath(qualified: List<String>): PsiElement {
+        val prop = parent as DTOPositiveProp
+        val propPath = prop.propPath()
+        val property = file.clazz.property(propPath + qualified)
+        return property.source
     }
 }
