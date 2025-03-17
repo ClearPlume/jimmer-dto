@@ -56,7 +56,7 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
     val `package`: String
         get() {
             val export = findChildNullable<DTOExportStatement>("/dtoFile/exportStatement")
-            return export?.export?.run { "$`package`.dto" } ?: "$implicitPackage.dto"
+            return export?.`package`?.value ?: "$implicitPackage.dto"
         }
 
     val qualifiedEntity: String

@@ -19,7 +19,7 @@ class DTOExportStatementImpl(node: ASTNode) : ANTLRPsiNode(node), DTOExportState
         get() = findChild("/exportStatement/qualifiedName")
 
     override val `package`: DTOQualifiedName?
-        get() = findChildNullable<PsiElement>("/exportStatement/Package")
+        get() = findChildNullable<PsiElement>("/exportStatement/'package'")
                 ?.sibling {
                     val type = it.elementType
                     type is RuleIElementType && type.ruleIndex == DTOParser.RULE_qualifiedName
