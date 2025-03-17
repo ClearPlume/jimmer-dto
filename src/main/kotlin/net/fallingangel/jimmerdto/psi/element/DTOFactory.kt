@@ -19,8 +19,8 @@ fun Project.createQualifiedNamePart(part: String): DTOQualifiedNamePart {
     return createImport(part).qualifiedName.parts[0]
 }
 
-fun Project.createImportedType(type: String): PsiElement {
-    return createDTOFile("import a.{$type}").findChild("/dtoFile/importStatement/groupedImport/importedType")
+fun Project.createImported(type: String): DTOImported {
+    return createDTOFile("import a.{$type}").findChild("/dtoFile/importStatement/groupedImport/importedType/imported")
 }
 
 fun Project.createDTO(
@@ -107,6 +107,13 @@ fun Project.createPropName(name: String): DTOPropName {
             .dtoBody
             .positiveProps[0]
             .name
+}
+
+fun Project.createAlias(alias: String): DTOAlias {
+    return createDTO("Dummy", positiveProps = listOf("dummy as $alias"))
+            .dtoBody
+            .positiveProps[0]
+            .alias!!
 }
 
 // fun Project.createAnnotation(name: String): DTOAnnotation {

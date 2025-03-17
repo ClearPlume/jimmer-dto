@@ -94,8 +94,8 @@ class DTOAnnotator : Annotator {
             val clazz = JavaPsiFacade.getInstance(project)
                     .findPackage(import.qualifiedName.value)
                     ?.classes
-                    ?.find { it.name == o.type.text }
-            val type = o.type.text
+                    ?.find { it.name == o.type.value }
+            val type = o.type.value
             if (clazz == null) {
                 o.type.error("Unresolved reference: $type")
             } else {
@@ -297,7 +297,7 @@ class DTOAnnotator : Annotator {
                 return
             }
 
-            if (type !in dtoFile.imported + DTOLanguage.preludes) {
+            if (type !in dtoFile.imported.keys + dtoFile.importedAlias.keys + DTOLanguage.preludes) {
                 o.type.error(
                     "Unresolved reference: $type",
                     ImportClass(o.type),

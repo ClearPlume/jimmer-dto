@@ -17,7 +17,7 @@ exportStatement
 
 importStatement
     :
-    Import qualifiedName (Dot groupedImport | As alias = Identifier)?
+    Import qualifiedName (Dot groupedImport | As alias)?
     ;
 
 groupedImport
@@ -27,7 +27,7 @@ groupedImport
 
 importedType
     :
-    Identifier (As Identifier)?
+    imported (As alias)?
     ;
 
 dto
@@ -90,7 +90,7 @@ positiveProp
     propFlag?
     propArg?
     (QuestionMark | ExclamationMark | Star)?
-    (As Identifier)?
+    (As alias)?
     propBody?
     ;
 
@@ -264,6 +264,16 @@ genericArguments
 genericArgument
     :
     Star | (Modifier? typeRef)
+    ;
+
+imported
+    :
+    Identifier
+    ;
+
+alias
+    :
+    Identifier
     ;
 
 // Lexer

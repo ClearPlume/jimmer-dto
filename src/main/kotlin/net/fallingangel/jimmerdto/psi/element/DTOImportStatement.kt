@@ -5,7 +5,7 @@ import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 interface DTOImportStatement : DTOElement {
     val qualifiedName: DTOQualifiedName
 
-    val alias: String?
+    val alias: DTOAlias?
 
     val groupedImport: DTOGroupedImport?
 }

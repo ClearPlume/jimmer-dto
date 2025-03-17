@@ -19,6 +19,14 @@ open class DTOVisitor : PsiElementVisitor() {
         visitElement(o)
     }
 
+    open fun visitImported(o: DTOImported) {
+        visitElement(o)
+    }
+
+    open fun visitAlias(o: DTOAlias) {
+        visitElement(o)
+    }
+
     open fun visitQualifiedName(o: DTOQualifiedName) {
         visitElement(o)
     }

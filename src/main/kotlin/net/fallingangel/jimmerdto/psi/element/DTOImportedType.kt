@@ -1,10 +1,9 @@
 package net.fallingangel.jimmerdto.psi.element
 
-import com.intellij.psi.PsiElement
-import net.fallingangel.jimmerdto.psi.mixin.DTONamedElement
+import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 
-interface DTOImportedType : DTONamedElement {
-    val type: PsiElement
+interface DTOImportedType : DTOElement {
+    val type: DTOImported
 
-    val alias: PsiElement?
+    val alias: DTOAlias?
 }
