@@ -61,7 +61,8 @@
         <lang.formatter language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.formatting.Formatter"/>
         <lang.foldingBuilder language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOFoldingBuilder"/>
         <lang.documentationProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.DTODocumentationProvider"/>
-        <vetoRenameCondition implementation="net.fallingangel.jimmerdto.DTORenameCondition"/>
+        <lang.refactoringSupport language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.refactor.DTORefactoringSupport"/>
+        <vetoRenameCondition implementation="net.fallingangel.jimmerdto.refactor.DTORenameCondition"/>
 
         <colorSettingsPage implementation="net.fallingangel.jimmerdto.highlighting.DTOColorSettingsPage"/>
         <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>

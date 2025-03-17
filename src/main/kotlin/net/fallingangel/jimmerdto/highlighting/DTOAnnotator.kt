@@ -13,7 +13,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
-import com.intellij.psi.util.prevLeafs
+import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.Function
@@ -54,9 +54,8 @@ class DTOAnnotator : Annotator {
         }
 
         private fun DTOQualifiedNamePart.visitPackage(statementKeyword: Int, classes: Project.(String) -> List<PsiClass>) {
-            val exportedPackage = prevLeafs
-                    .takeWhile { it.elementType != DTOLanguage.token[statementKeyword] }
-                    .filter { it.elementType == DTOLanguage.token[DTOParser.Identifier] }
+            val exportedPackage = siblings(forward = false, withSelf = false)
+                    .filter { it.elementType == DTOLanguage.rule[DTOParser.RULE_qualifiedNamePart] }
                     .map { it.text }
                     .toList()
                     .asReversed()
