@@ -5,7 +5,6 @@ import com.intellij.lang.documentation.DocumentationMarkup.*
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.psi.element.DTOMacro
-import net.fallingangel.jimmerdto.psi.element.DTOQualifiedName
 import net.fallingangel.jimmerdto.util.file
 import net.fallingangel.jimmerdto.util.get
 import net.fallingangel.jimmerdto.util.propPath
@@ -14,7 +13,7 @@ class DTODocumentationProvider : AbstractDocumentationProvider() {
     override fun generateDoc(element: PsiElement, originalElement: PsiElement?): String? {
         val macro = element.parent as? DTOMacro ?: return null
         val macroClass = macro.file.clazz.walk(macro.propPath())
-        val argList = macro.args?.values?.map(DTOQualifiedName::value) ?: macro[StructureType.MacroTypes]
+        val argList = macro.args?.values?.map(PsiElement::getText) ?: macro[StructureType.MacroTypes]
         val containThisProp = argList.any { it in listOf("this", macroClass.name) }
 
         val thisPropList = if (containThisProp) {

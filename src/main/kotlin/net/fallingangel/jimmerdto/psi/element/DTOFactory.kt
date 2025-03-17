@@ -140,7 +140,7 @@ fun Project.createMacro(argList: List<String> = emptyList()): DTOMacro {
 
 fun Project.createMacroName() = createMacro().name
 
-fun Project.createMacroArg(arg: String): DTOQualifiedName {
+fun Project.createMacroArg(arg: String): PsiElement {
     return createMacro(listOf(arg))
             .args!!
             .values[0]

@@ -68,7 +68,7 @@ macroName
 
 macroArgs
     :
-    LParen qualifiedName? (Comma qualifiedName)* RParen
+    LParen Identifier? (Comma Identifier)* RParen
     ;
 
 aliasGroup
