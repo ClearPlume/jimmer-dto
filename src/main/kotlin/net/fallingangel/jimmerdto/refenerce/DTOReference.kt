@@ -7,4 +7,8 @@ import net.fallingangel.jimmerdto.psi.mixin.DTONamedElement
 
 class DTOReference(private val element: DTONamedElement, textRange: TextRange) : PsiReferenceBase<PsiElement>(element, textRange) {
     override fun resolve() = element.resolve()
+
+    override fun handleElementRename(newElementName: String): PsiElement {
+        return element.setName(newElementName)
+    }
 }
