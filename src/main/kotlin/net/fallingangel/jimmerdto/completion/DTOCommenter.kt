@@ -2,13 +2,13 @@ package net.fallingangel.jimmerdto.completion
 
 import com.intellij.lang.CodeDocumentationAwareCommenter
 import com.intellij.psi.PsiComment
-import com.intellij.psi.tree.IElementType
-import net.fallingangel.jimmerdto.psi.DTOTokenTypes
+import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.psi.DTOParser
 
 class DTOCommenter : CodeDocumentationAwareCommenter {
     override fun getLineCommentPrefix() = "//"
 
-    override fun getLineCommentTokenType(): IElementType = DTOTokenTypes.LINE_COMMENT
+    override fun getLineCommentTokenType() = DTOLanguage.token[DTOParser.LineComment]
 
     override fun getBlockCommentPrefix() = "/*"
 
@@ -18,7 +18,7 @@ class DTOCommenter : CodeDocumentationAwareCommenter {
 
     override fun getCommentedBlockCommentSuffix() = ""
 
-    override fun getBlockCommentTokenType(): IElementType = DTOTokenTypes.BLOCK_COMMENT
+    override fun getBlockCommentTokenType() = DTOLanguage.token[DTOParser.BlockComment]
 
     override fun getDocumentationCommentPrefix() = "/**"
 
@@ -26,7 +26,7 @@ class DTOCommenter : CodeDocumentationAwareCommenter {
 
     override fun getDocumentationCommentSuffix() = "*/"
 
-    override fun getDocumentationCommentTokenType(): IElementType = DTOTokenTypes.DOC_COMMENT
+    override fun getDocumentationCommentTokenType() = DTOLanguage.token[DTOParser.DocComment]
 
-    override fun isDocumentationComment(element: PsiComment) = element.tokenType == DTOTokenTypes.DOC_COMMENT
+    override fun isDocumentationComment(element: PsiComment) = element.tokenType == DTOLanguage.token[DTOParser.DocComment]
 }
