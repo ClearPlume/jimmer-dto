@@ -14,7 +14,7 @@ class DTOUserPropImpl(node: ASTNode) : ANTLRPsiNode(node), DTOUserProp {
     override val name: DTOPropName
         get() = findChild("/userProp/propName")
 
-    override val type: DTOTypeDef
+    override val type: DTOTypeRef
         get() = findChild("/userProp/typeRef")
 
     override fun accept(visitor: PsiElementVisitor) {

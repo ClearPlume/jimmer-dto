@@ -8,5 +8,5 @@ interface DTOGenericArgument : DTOElement {
 
     val modifier: PsiElement?
 
-    val type: DTOTypeDef?
+    val type: DTOTypeRef?
 }

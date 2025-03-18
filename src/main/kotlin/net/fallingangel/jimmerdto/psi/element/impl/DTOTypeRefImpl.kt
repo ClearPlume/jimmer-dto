@@ -5,13 +5,13 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import net.fallingangel.jimmerdto.psi.element.DTOGenericArguments
 import net.fallingangel.jimmerdto.psi.element.DTOQualifiedName
-import net.fallingangel.jimmerdto.psi.element.DTOTypeDef
+import net.fallingangel.jimmerdto.psi.element.DTOTypeRef
 import net.fallingangel.jimmerdto.psi.element.DTOVisitor
 import net.fallingangel.jimmerdto.util.findChild
 import net.fallingangel.jimmerdto.util.findChildNullable
 import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
-class DTOTypeDefImpl(node: ASTNode) : ANTLRPsiNode(node), DTOTypeDef {
+class DTOTypeRefImpl(node: ASTNode) : ANTLRPsiNode(node), DTOTypeRef {
     override val type: DTOQualifiedName
         get() = findChild("/typeRef/qualifiedName")
 

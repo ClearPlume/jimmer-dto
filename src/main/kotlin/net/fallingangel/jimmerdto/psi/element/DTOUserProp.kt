@@ -7,5 +7,5 @@ interface DTOUserProp : DTOElement {
 
     val name: DTOPropName
 
-    val type: DTOTypeDef
+    val type: DTOTypeRef
 }

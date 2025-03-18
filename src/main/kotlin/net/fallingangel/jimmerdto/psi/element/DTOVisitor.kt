@@ -103,7 +103,7 @@ open class DTOVisitor : PsiElementVisitor() {
         visitElement(o)
     }
 
-    open fun visitTypeDef(o: DTOTypeDef) {
+    open fun visitTypeDef(o: DTOTypeRef) {
         visitElement(o)
     }
 
