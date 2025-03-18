@@ -113,7 +113,7 @@ class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType
                         LType.EnumType(
                             name,
                             fqName,
-                            false,
+                            nullable,
                             descriptor.unsubstitutedMemberScope
                                     .getContributedDescriptors()
                                     .filterIsInstance<ClassDescriptor>()
