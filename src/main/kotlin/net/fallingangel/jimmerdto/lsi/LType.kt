@@ -1,5 +1,7 @@
 package net.fallingangel.jimmerdto.lsi
 
+import com.intellij.psi.PsiElement
+
 sealed class LType {
     abstract val name: String
     abstract val nullable: Boolean
@@ -19,7 +21,7 @@ sealed class LType {
         is ScalarType -> "ScalarType(name=$name, nullable=$nullable)"
         is ArrayType -> "ArrayType(nullable=$nullable, elementType=${elementType.toDebugString(visited)})"
         is CollectionType -> "CollectionType(nullable=$nullable, kind=$kind, elementType=${elementType.toDebugString(visited)})"
-        is EnumType -> "EnumType(name=$name, canonicalName=$canonicalName, nullable=$nullable, values=$values)"
+        is EnumType<*> -> "EnumType(name=$name, canonicalName=$canonicalName, nullable=$nullable, values=$values)"
         is MapType -> "MapType(nullable=$nullable, keyType=${keyType.toDebugString(visited)}, valueType=${valueType.toDebugString(visited)})"
         is LClass<*> -> toDebugString(visited)
     }
@@ -65,11 +67,11 @@ sealed class LType {
     /**
      * @param name 枚举类型名称
      */
-    data class EnumType(
+    data class EnumType<E : PsiElement>(
         override val name: String,
         override val canonicalName: String,
         override val nullable: Boolean,
-        val values: List<String>,
+        val values: Map<String, E>,
     ) : LType()
 
     data class MapType(

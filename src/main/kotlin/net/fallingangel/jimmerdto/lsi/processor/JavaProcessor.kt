@@ -110,7 +110,9 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
                             type.name,
                             type.canonicalText,
                             false,
-                            typeClass.fields.filterIsInstance<PsiEnumConstant>().map { it.name },
+                            typeClass.fields
+                                    .filterIsInstance<PsiEnumConstant>()
+                                    .associateBy { it.name },
                         )
                     }
 

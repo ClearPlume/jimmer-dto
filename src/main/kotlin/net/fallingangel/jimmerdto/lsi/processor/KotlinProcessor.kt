@@ -118,7 +118,7 @@ class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType
                                     .getContributedDescriptors()
                                     .filterIsInstance<ClassDescriptor>()
                                     .filter { it.kind == ClassKind.ENUM_ENTRY }
-                                    .map { it.name.asString() },
+                                    .associate { it.name.asString() to DescriptorToSourceUtils.getSourceFromDescriptor(it)!! },
                         )
                     }
 
