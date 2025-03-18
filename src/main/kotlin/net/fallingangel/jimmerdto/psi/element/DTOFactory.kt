@@ -1,7 +1,6 @@
 package net.fallingangel.jimmerdto.psi.element
 
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.psi.DTOFile
@@ -154,7 +153,7 @@ fun Project.createMacro(argList: List<String> = emptyList()): DTOMacro {
 
 fun Project.createMacroName() = createMacro().name
 
-fun Project.createMacroArg(arg: String): PsiElement {
+fun Project.createMacroArg(arg: String): DTOMacroArg {
     return createMacro(listOf(arg))
             .args!!
             .values[0]

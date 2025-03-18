@@ -87,6 +87,10 @@ open class DTOVisitor : PsiElementVisitor() {
         visitElement(o)
     }
 
+    open fun visitMacroArg(o: DTOMacroArg) {
+        visitElement(o)
+    }
+
     open fun visitNegativeProp(o: DTONegativeProp) {
         visitElement(o)
     }

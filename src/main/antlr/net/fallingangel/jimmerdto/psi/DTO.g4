@@ -68,7 +68,12 @@ macroName
 
 macroArgs
     :
-    LParen Identifier? (Comma Identifier)* RParen
+    LParen macroArg? (Comma macroArg)* RParen
+    ;
+
+macroArg
+    :
+    Identifier
     ;
 
 aliasGroup
