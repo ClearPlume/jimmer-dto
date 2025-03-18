@@ -14,7 +14,7 @@ class EnumValues : Structure<DTOPositiveProp, List<String>> {
      */
     override fun value(element: DTOPositiveProp): List<String> {
         val propPath = element.propPath()
-        val enumType = element.file.clazz.findProperty(propPath).type as LType.EnumType
-        return enumType.values
+        val enumType = element.file.clazz.findProperty(propPath).type as LType.EnumType<*, *>
+        return enumType.values.keys.toList()
     }
 }
