@@ -113,6 +113,7 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
                             typeClass.fields
                                     .filterIsInstance<PsiEnumConstant>()
                                     .associateBy { it.name },
+                            typeClass,
                         )
                     }
 

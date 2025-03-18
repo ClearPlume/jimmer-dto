@@ -21,7 +21,7 @@ sealed class LType {
         is ScalarType -> "ScalarType(name=$name, nullable=$nullable)"
         is ArrayType -> "ArrayType(nullable=$nullable, elementType=${elementType.toDebugString(visited)})"
         is CollectionType -> "CollectionType(nullable=$nullable, kind=$kind, elementType=${elementType.toDebugString(visited)})"
-        is EnumType<*> -> "EnumType(name=$name, canonicalName=$canonicalName, nullable=$nullable, values=$values)"
+        is EnumType<*, *> -> "EnumType(name=$name, canonicalName=$canonicalName, nullable=$nullable, values=$values)"
         is MapType -> "MapType(nullable=$nullable, keyType=${keyType.toDebugString(visited)}, valueType=${valueType.toDebugString(visited)})"
         is LClass<*> -> toDebugString(visited)
     }
@@ -67,12 +67,20 @@ sealed class LType {
     /**
      * @param name 枚举类型名称
      */
-    data class EnumType<E : PsiElement>(
+    data class EnumType<E : PsiElement, EP : PsiElement>(
         override val name: String,
         override val canonicalName: String,
         override val nullable: Boolean,
-        val values: Map<String, E>,
-    ) : LType()
+        val values: Map<String, EP>,
+        override val source: E,
+    ) : LType(), LPsiDependent {
+        override fun collectPsiElements(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
+            if (!visited.add(this)) {
+                return
+            }
+            result.add(source)
+        }
+    }
 
     data class MapType(
         override val nullable: Boolean,

@@ -57,6 +57,8 @@ data class LProperty<P : PsiElement>(
         annotations.forEach { it.collectPsiElements(result, visited) }
         if (type is LClass<*>) {
             type.collectPsiElements(result, visited)
+        } else if (type is LType.EnumType<*, *>) {
+            type.collectPsiElements(result, visited)
         }
     }
 

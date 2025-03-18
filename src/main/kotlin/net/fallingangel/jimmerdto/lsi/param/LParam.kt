@@ -18,6 +18,8 @@ data class LParam<P: PsiElement?>(
         source?.let(result::add)
         if (type is LClass<*>) {
             type.collectPsiElements(result, visited)
+        } else if (type is LType.EnumType<*, *>) {
+            type.collectPsiElements(result, visited)
         }
     }
 }

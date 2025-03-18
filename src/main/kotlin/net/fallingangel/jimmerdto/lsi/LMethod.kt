@@ -39,6 +39,8 @@ data class LMethod<M : PsiElement>(
         returnType.annotations.forEach { it.collectPsiElements(result, visited) }
         if (returnType.type is LClass<*>) {
             returnType.type.collectPsiElements(result, visited)
+        } else if (returnType.type is LType.EnumType<*, *>) {
+            returnType.type.collectPsiElements(result, visited)
         }
     }
 
