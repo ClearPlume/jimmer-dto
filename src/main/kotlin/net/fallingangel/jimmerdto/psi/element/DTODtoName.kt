@@ -1,7 +1,7 @@
 package net.fallingangel.jimmerdto.psi.element
 
-import net.fallingangel.jimmerdto.psi.mixin.DTOElement
+import net.fallingangel.jimmerdto.psi.mixin.DTONamedElement
 
-interface DTODtoName : DTOElement {
+interface DTODtoName : DTONamedElement {
     val value: String
 }

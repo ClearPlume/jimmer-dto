@@ -54,26 +54,9 @@ fun Project.createDTO(
     return dtoFile.findChild("/dtoFile/dto")
 }
 
-// fun Project.createDTOName(name: String): DTODtoName {
-//     return createDTO(name).name
-// }
-
-// fun Project.createAliasGroup(
-//     pattern: String,
-//     userProps: List<String> = emptyList(),
-//     macros: List<String> = emptyList()
-// ): DTOAliasGroup {
-//     val userProp = userProps.joinToString(System.lineSeparator())
-//     val macro = macros.joinToString(System.lineSeparator())
-//
-//     val aliasGroup = """as($pattern) {
-//         |   $userProp
-//         |   $macro
-//         |}""".trimMargin()
-//     return createDTO("Dummy", aliasGroups = listOf(aliasGroup))
-//             .dtoBody
-//             .aliasGroups[0]
-// }
+fun Project.createDTOName(name: String): DTODtoName {
+    return createDTO(name).name
+}
 
 fun Project.createEnumMappingProp(name: String, mappings: List<String>): DTOPositiveProp {
     val mapping = mappings.joinToString(System.lineSeparator())
