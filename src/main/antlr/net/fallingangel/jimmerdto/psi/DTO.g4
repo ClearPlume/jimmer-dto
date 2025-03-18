@@ -230,7 +230,12 @@ enumBody
 
 enumMapping
     :
-    Identifier Colon (StringLiteral | IntegerLiteral)
+    enumMappingConstant Colon (StringLiteral | IntegerLiteral)
+    ;
+
+enumMappingConstant
+    :
+    Identifier
     ;
 
 classSuffix

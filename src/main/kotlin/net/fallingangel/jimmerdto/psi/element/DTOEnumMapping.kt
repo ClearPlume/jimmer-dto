@@ -4,7 +4,7 @@ import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 
 interface DTOEnumMapping : DTOElement {
-    val constant: PsiElement
+    val constant: DTOEnumMappingConstant
 
     val string: PsiElement?
 

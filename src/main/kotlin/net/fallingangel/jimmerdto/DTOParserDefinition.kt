@@ -107,6 +107,7 @@ class DTOParserDefinition : ParserDefinition {
             DTOParser.RULE_propBody -> DTOPropBodyImpl(node)
             DTOParser.RULE_enumBody -> DTOEnumBodyImpl(node)
             DTOParser.RULE_enumMapping -> DTOEnumMappingImpl(node)
+            DTOParser.RULE_enumMappingConstant -> DTOEnumMappingConstantImpl(node)
             else -> ANTLRPsiNode(node)
         }
     }

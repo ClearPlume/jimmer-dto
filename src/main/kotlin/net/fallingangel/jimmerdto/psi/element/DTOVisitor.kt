@@ -182,4 +182,8 @@ open class DTOVisitor : PsiElementVisitor() {
     open fun visitEnumMapping(o: DTOEnumMapping) {
         visitElement(o)
     }
+
+    open fun visitEnumMappingConstant(o: DTOEnumMappingConstant) {
+        visitElement(o)
+    }
 }
