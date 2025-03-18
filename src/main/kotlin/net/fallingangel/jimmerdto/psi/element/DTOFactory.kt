@@ -132,13 +132,13 @@ fun Project.createAlias(alias: String): DTOAlias {
 //             .annotations[0]
 // }
 
-// fun Project.createValue(value: String): DTOValue {
-//     return createDTO("Dummy", positiveProps = listOf("id($value)"))
-//             .dtoBody
-//             .positiveProps[0]
-//             .arg!!
-//             .values[0]
-// }
+fun Project.createValue(value: String): DTOValue {
+    return createDTO("Dummy", positiveProps = listOf("id($value)"))
+            .dtoBody
+            .positiveProps[0]
+            .arg!!
+            .values[0]
+}
 
 fun Project.createMacro(argList: List<String> = emptyList()): DTOMacro {
     val args = if (argList.isNotEmpty()) {
