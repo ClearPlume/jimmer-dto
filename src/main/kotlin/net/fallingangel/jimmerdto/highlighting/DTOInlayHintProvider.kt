@@ -1,28 +1,31 @@
 package net.fallingangel.jimmerdto.highlighting
 
 import com.intellij.codeInsight.hints.*
+import com.intellij.codeInsight.hints.presentation.PresentationFactory
 import com.intellij.lang.Language
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.ui.components.Label
 import net.fallingangel.jimmerdto.DTOLanguage
-import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.psi.DTOFile
-import net.fallingangel.jimmerdto.psi.DTONegativeProp
-import net.fallingangel.jimmerdto.psi.DTOPositiveProp
-import net.fallingangel.jimmerdto.psi.DTOPropName
-import net.fallingangel.jimmerdto.util.get
+import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
+import net.fallingangel.jimmerdto.psi.element.DTOPropName
+import net.fallingangel.jimmerdto.psi.element.DTOValue
+import net.fallingangel.jimmerdto.util.file
+import net.fallingangel.jimmerdto.util.propPath
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 
 @Suppress("UnstableApiUsage")
 class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
     override val key: SettingsKey<NoSettings>
         get() = SettingsKey("NoSettings")
+
     override val name: String
         get() = "JimmerDTOPropNullabilityHint"
-    override val previewText: String
-        get() = ""
+
+    override val previewText: String?
+        get() = null
 
     override fun createConfigurable(settings: NoSettings) = object : ImmediateConfigurable {
         override fun createComponent(listener: ChangeListener) = Label("NoSettings")
@@ -39,46 +42,50 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
                     if (element.project.isDefault || !element.isValid) {
                         return false
                     }
-                    if (element !is DTOPropName) {
-                        return true
-                    }
 
-                    if (element.parent is DTONegativeProp) {
-                        return false
-                    }
-
-                    val elementProp = element.parent as? DTOPositiveProp ?: return false
-                    // 不是方法才走这个逻辑
-                    val propArgs = elementProp.propArgs
-                    if (propArgs == null) {
-                        val properties = elementProp[StructureType.PropProperties]
-                        val prop = properties.find { it.name == element.text } ?: return false
-                        if (prop.nullable) {
-                            sink.addInlineElement(
-                                element.endOffset,
-                                true,
-                                factory.roundWithBackgroundAndSmallInset(factory.text("?")),
-                                false
-                            )
-                        }
-                    } else if (element.text in arrayOf("flat", "id")) {
-                        val properties = elementProp[StructureType.PropProperties]
-                        for (arg in propArgs.valueList) {
-                            val prop = properties.find { it.name == arg.text } ?: continue
-                            if (prop.nullable) {
-                                sink.addInlineElement(
-                                    arg.endOffset,
-                                    true,
-                                    factory.roundWithBackgroundAndSmallInset(factory.text("?")),
-                                    false
-                                )
+                    when (element) {
+                        is DTOPropName -> {
+                            val prop = element.parent
+                            if (prop is DTOPositiveProp) {
+                                prop.collect(sink, factory)
                             }
                         }
+
+                        is DTOValue -> {
+                            element.collect(sink, factory)
+                        }
                     }
-                    return false
+
+                    return true
                 }
             }
         }
         return null
+    }
+
+    private fun DTOPositiveProp.collect(sink: InlayHintsSink, factory: PresentationFactory) {
+        if (arg == null) {
+            val property = file.clazz.propertyOrNull(propPath()) ?: return
+            if (property.nullable) {
+                sink.addInlineElement(
+                    name.endOffset,
+                    true,
+                    factory.roundWithBackgroundAndSmallInset(factory.text("?")),
+                    false,
+                )
+            }
+        }
+    }
+
+    private fun DTOValue.collect(sink: InlayHintsSink, factory: PresentationFactory) {
+        val property = file.clazz.propertyOrNull(parent.parent.propPath() + text) ?: return
+        if (property.nullable) {
+            sink.addInlineElement(
+                endOffset,
+                true,
+                factory.roundWithBackgroundAndSmallInset(factory.text("?")),
+                false,
+            )
+        }
     }
 }
