@@ -278,13 +278,13 @@ class DTOAnnotator : Annotator {
         /**
          * 为类型定义上色
          */
-        override fun visitTypeDef(o: DTOTypeDef) {
+        override fun visitTypeDef(o: DTOTypeRef) {
             if (o.haveParent<DTOUserProp>()) {
                 visitUserPropType(o)
             }
         }
 
-        private fun visitUserPropType(o: DTOTypeDef) {
+        private fun visitUserPropType(o: DTOTypeRef) {
             if (o.type.parts.size > 1) {
                 return
             }
