@@ -28,7 +28,11 @@ class DTOMacroArgImpl(node: ASTNode) : DTONamedElementImpl(node), DTOMacroArg {
     override fun resolve(): PsiElement? {
         val macro = parent.parent<DTOMacro>()
         val clazz = file.clazz.walk(macro.propPath())
-        return clazz.allParents.find { it.name == value.text }?.source
+        return if (value.text == "this" || value.text == clazz.name) {
+            clazz.source
+        } else {
+            clazz.allParents.find { it.name == value.text }?.source
+        }
     }
 
     override fun accept(visitor: PsiElementVisitor) {
