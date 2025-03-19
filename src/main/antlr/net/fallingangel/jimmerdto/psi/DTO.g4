@@ -439,10 +439,16 @@ HexDigit
 
 IntegerLiteral
 	:
-	'0' | [1-9][0-9]*
+	'-'? Digits
 	;
 
 FloatingPointLiteral
     :
-    [0-9]+ '.' [0-9]+
+    '-'? Digits '.' Digits
+    ;
+
+fragment
+Digits
+    :
+    '0' | [1-9][0-9]*
     ;
