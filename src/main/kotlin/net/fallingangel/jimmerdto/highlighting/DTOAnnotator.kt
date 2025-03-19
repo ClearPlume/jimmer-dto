@@ -521,6 +521,16 @@ class DTOAnnotator : Annotator {
         }
 
         /**
+         * 为属性名称上色
+         */
+        override fun visitPropName(o: DTOPropName) {
+            val parent = o.parent
+            if (parent is DTOPositiveProp && parent.arg == null) {
+                o.style(DTOSyntaxHighlighter.IDENTIFIER)
+            }
+        }
+
+        /**
          * 为枚举映射体上色
          */
         override fun visitEnumBody(o: DTOEnumBody) {

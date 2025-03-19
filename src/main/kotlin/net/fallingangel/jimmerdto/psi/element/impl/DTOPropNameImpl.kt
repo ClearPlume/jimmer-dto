@@ -6,23 +6,14 @@ import com.intellij.psi.PsiElementVisitor
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
 import net.fallingangel.jimmerdto.util.file
-import net.fallingangel.jimmerdto.util.findChild
-import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.propPath
 
 class DTOPropNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOPropName {
     override val value: String
-        get() {
-            val quoted = findChildNullable<PsiElement>("/propName/QuotedSymbol")
-            if (quoted != null) {
-                val text = quoted.text
-                return text.substring(1, text.length - 1)
-            }
-            return findChild<PsiElement>("/propName/Identifier").text
-        }
+        get() = text
 
     override fun getNameIdentifier(): PsiElement {
-        return findChildNullable("/propName/QuotedSymbol") ?: findChild("/propName/Identifier")
+        return this
     }
 
     override fun getName() = value
@@ -30,6 +21,7 @@ class DTOPropNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOPropName {
     override fun newNameNode(name: String): ASTNode {
         return project.createPropName(name).node
     }
+
     override fun resolve(): PsiElement? {
         return when (val prop = parent) {
             is DTONegativeProp -> file.clazz.propertyOrNull(prop.propPath())?.source

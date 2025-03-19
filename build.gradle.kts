@@ -17,7 +17,7 @@ version = "0.0.7.40"
 
 val since by extra("223.7571.182")
 val until by extra("251.*")
-val jimmerVersion by extra("0.9.61")
+val jimmerVersion by extra("0.9.67")
 val antlrVersion by extra("4.13.2")
 
 val certificateChainValue = findProperty("certificateChainValue") as String?

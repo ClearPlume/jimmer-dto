@@ -131,7 +131,7 @@ userProp
 
 propName
     :
-    Identifier | Like | Null
+    Identifier | Like | Null | Desc | Asc
     ;
 
 propConfig
