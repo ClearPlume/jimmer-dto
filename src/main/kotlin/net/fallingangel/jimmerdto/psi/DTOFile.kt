@@ -106,10 +106,6 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
                     .mapNotNull { facade.findClass(it.qualifiedName.value, scope) }
                     .map { it.name!! to it }
 
-            val aliasImports = imports
-                    .filter { it.alias != null }
-                    .mapNotNull { import -> facade.findClass(import.qualifiedName.value, scope)?.let { import.qualifiedName.simpleName to it } }
-
             val groupedImports = imports
                     .filter { it.groupedImport != null }
                     .map { import -> import.qualifiedName.value to import.groupedImport!!.types.filter { it.alias == null } }
@@ -120,18 +116,8 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
                         facade.findClass(qualified, scope)?.let { type to it }
                     }
 
-            val groupedAliasImports = imports
-                    .filter { it.groupedImport != null }
-                    .map { import -> import.qualifiedName.value to import.groupedImport!!.types.filter { it.alias != null } }
-                    .flatMap { (`package`, subTypes) -> subTypes.map { `package` to it } }
-                    .mapNotNull { (`package`, subType) ->
-                        val type = subType.type.value
-                        val qualified = "$`package`.$type"
-                        facade.findClass(qualified, scope)?.let { type to it }
-                    }
-
             CachedValueProvider.Result.create(
-                (singleImports + aliasImports + groupedImports + groupedAliasImports).toMap(),
+                (singleImports + groupedImports).toMap(),
                 DumbService.getInstance(project).modificationTracker,
                 ProjectRootModificationTracker.getInstance(project),
                 this,
