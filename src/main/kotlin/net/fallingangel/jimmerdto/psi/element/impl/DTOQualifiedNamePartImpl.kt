@@ -9,6 +9,7 @@ import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
@@ -29,6 +30,19 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
     }
 
     override fun resolve(): PsiElement? {
+        val qualified = siblings(forward = false)
+                .filter { it.elementType == DTOLanguage.rule[DTOParser.RULE_qualifiedNamePart] }
+                .map(PsiElement::getText)
+                .toList()
+                .asReversed()
+
+        // 属性配置
+        val config = parentOfType<DTOPropConfig>()
+        if (config != null) {
+            return config.resolveConfigParam(qualified)
+        }
+
+        // 类型使用
         val parent = parent
         if (parent is DTOQualifiedName) {
             if (parent.parts.size == 1) {
@@ -37,18 +51,6 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
         }
 
         // 全限定结构
-        val qualified = siblings(forward = false)
-                .filter { it.elementType == DTOLanguage.rule[DTOParser.RULE_qualifiedNamePart] }
-                .map(PsiElement::getText)
-                .toList()
-                .asReversed()
-
-
-        val config = parentOfType<DTOPropConfig>()
-        if (config != null) {
-            return config.resolveConfigParam(qualified)
-        }
-
         val psiFacade = JavaPsiFacade.getInstance(project)
         val clazz = psiFacade.findClass(qualified.joinToString("."), ProjectScope.getAllScope(project))
         return clazz ?: psiFacade.findPackage(qualified.joinToString("."))
@@ -62,7 +64,14 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
         }
     }
 
-    private fun DTOPropConfig.resolveConfigParam(qualified: List<String>): PsiElement {
+    private fun DTOPropConfig.resolveConfigParam(qualified: List<String>): PsiElement? {
+        if (name.text == PropConfigName.FetchType.text) {
+            val scope = ProjectScope.getAllScope(project)
+            val fetchTypeQualified = "org.babyfish.jimmer.sql.fetcher.ReferenceFetchType"
+            val fetchType = JavaPsiFacade.getInstance(project).findClass(fetchTypeQualified, scope) ?: return null
+            return fetchType.findFieldByName(qualified.first(), false)
+        }
+
         val prop = parent as DTOPositiveProp
         val propPath = prop.propPath()
         val property = file.clazz.property(propPath + qualified)
