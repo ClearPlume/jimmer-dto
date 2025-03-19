@@ -138,7 +138,7 @@ propConfig
     :
     PropConfigName
     (
-        LParen (Identifier | qualifiedName | intPair) RParen |
+        LParen (qualifiedName | intPair) RParen |
         LParen orderByArgs RParen |
         LParen whereArgs RParen
     )

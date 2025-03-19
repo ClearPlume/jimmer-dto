@@ -21,9 +21,6 @@ class DTOPropConfigImpl(node: ASTNode) : ANTLRPsiNode(node), DTOPropConfig {
     override val qualifiedName: DTOQualifiedName?
         get() = findChildNullable("/propConfig/qualifiedName")
 
-    override val identifier: PsiElement?
-        get() = findChildNullable("/propConfig/Identifier")
-
     override val intPair: DTOIntPair?
         get() = findChildNullable("/propConfig/intPair")
 

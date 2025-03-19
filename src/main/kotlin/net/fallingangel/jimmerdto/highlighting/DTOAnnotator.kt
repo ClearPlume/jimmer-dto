@@ -423,38 +423,32 @@ class DTOAnnotator : Annotator {
                 PropConfigName.OrderBy.text -> {
                     val orderItems = o.orderByArgs?.orderItems
                     if (orderItems == null) {
-                        if (o.identifier == null && o.qualifiedName == null) {
+                        if (o.qualifiedName == null) {
                             o.name.error("!orderBy accepts only orderItems")
                         }
                     }
                 }
 
                 PropConfigName.Filter.text -> {
-                    val filter = o.identifier
-                    if (filter == null) {
-                        if (o.qualifiedName == null) {
-                            o.name.error("!filter accepts only one identifier value")
-                        }
+                    if (o.qualifiedName == null) {
+                        o.name.error("!filter accepts only one identifier value")
                     }
                 }
 
                 PropConfigName.Recursion.text -> {
-                    val recursion = o.identifier
-                    if (recursion == null) {
-                        if (o.qualifiedName == null) {
-                            o.name.error("!recursion accepts only one identifier value")
-                        }
+                    if (o.qualifiedName == null) {
+                        o.name.error("!recursion accepts only one identifier value")
                     }
                 }
 
                 PropConfigName.FetchType.text -> {
-                    val fetchType = o.identifier
+                    val fetchType = o.qualifiedName
                     if (fetchType == null) {
                         o.name.error("!fetchType accepts only one identifier value")
                     } else {
                         fetchType.style(DTOSyntaxHighlighter.VALUE)
 
-                        val fetchTypeValue = fetchType.text
+                        val fetchTypeValue = fetchType.value
                         if (fetchTypeValue !in DTOLanguage.availableFetchTypes) {
                             val availableTypes = DTOLanguage.availableFetchTypes.joinToString()
                             fetchType.error("Incorrect fetchType `$fetchTypeValue`, available types are: $availableTypes")

@@ -12,7 +12,5 @@ interface DTOPropConfig : DTOElement {
 
     val qualifiedName: DTOQualifiedName?
 
-    val identifier: PsiElement?
-
     val intPair: DTOIntPair?
 }

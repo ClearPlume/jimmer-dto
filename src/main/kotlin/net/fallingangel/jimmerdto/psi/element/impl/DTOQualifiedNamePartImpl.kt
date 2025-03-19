@@ -46,7 +46,7 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
 
         val config = parentOfType<DTOPropConfig>()
         if (config != null) {
-            return config.resolvePropPath(qualified)
+            return config.resolveConfigParam(qualified)
         }
 
         val psiFacade = JavaPsiFacade.getInstance(project)
@@ -62,7 +62,7 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
         }
     }
 
-    private fun DTOPropConfig.resolvePropPath(qualified: List<String>): PsiElement {
+    private fun DTOPropConfig.resolveConfigParam(qualified: List<String>): PsiElement {
         val prop = parent as DTOPositiveProp
         val propPath = prop.propPath()
         val property = file.clazz.property(propPath + qualified)
