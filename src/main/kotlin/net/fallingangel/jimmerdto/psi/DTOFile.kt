@@ -53,6 +53,9 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             }
         }
 
+    val hasExport: Boolean
+        get() = findChildNullable<DTOExportStatement>("/dtoFile/exportStatement") != null
+
     val `package`: String
         get() {
             val export = findChildNullable<DTOExportStatement>("/dtoFile/exportStatement")
