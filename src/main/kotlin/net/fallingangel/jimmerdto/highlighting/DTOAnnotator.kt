@@ -370,7 +370,7 @@ class DTOAnnotator : Annotator {
             }
 
             if (propName in multiArgFunctions) {
-                if (arg.values.size > 1) {
+                if (arg.values.size > 1 && o.alias == null) {
                     o.error("An alias must be specified because `$propName` has multiple arguments")
                 }
             }
