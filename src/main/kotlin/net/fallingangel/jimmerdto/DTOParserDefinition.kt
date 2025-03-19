@@ -86,7 +86,7 @@ class DTOParserDefinition : ParserDefinition {
             DTOParser.RULE_aliasGroup -> DTOAliasGroupImpl(node)
 
             DTOParser.RULE_userProp -> DTOUserPropImpl(node)
-            DTOParser.RULE_typeRef -> DTOTypeDefImpl(node)
+            DTOParser.RULE_typeRef -> DTOTypeRefImpl(node)
             DTOParser.RULE_genericArguments -> DTOGenericArgumentsImpl(node)
             DTOParser.RULE_genericArgument -> DTOGenericArgumentImpl(node)
 
