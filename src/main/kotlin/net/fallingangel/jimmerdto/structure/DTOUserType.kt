@@ -25,9 +25,9 @@ sealed class GenericType(private vararg val generics: String) {
     open val lookup: LookupInfo
         get() = LookupInfo(
             name,
-            tail,
-            "$name$tail",
             "$name<>",
+            "$name$tail",
+            tail,
             -1
         )
 

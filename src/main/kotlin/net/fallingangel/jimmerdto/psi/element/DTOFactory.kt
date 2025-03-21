@@ -105,15 +105,15 @@ fun Project.createAlias(alias: String): DTOAlias {
             .alias!!
 }
 
-// fun Project.createAnnotation(name: String): DTOAnnotation {
-//     val prop = """@$name
-//         dummy
-//     """.trimIndent()
-//     return createDTO("Dummy", positiveProps = listOf(prop))
-//             .dtoBody
-//             .positiveProps[0]
-//             .annotations[0]
-// }
+fun Project.createAnnotation(name: String): DTOAnnotation {
+    val prop = """@$name
+        dummy
+    """.trimIndent()
+    return createDTO("Dummy", positiveProps = listOf(prop))
+            .dtoBody
+            .positiveProps[0]
+            .annotations[0]
+}
 
 fun Project.createValue(value: String): DTOValue {
     return createDTO("Dummy", positiveProps = listOf("id($value)"))

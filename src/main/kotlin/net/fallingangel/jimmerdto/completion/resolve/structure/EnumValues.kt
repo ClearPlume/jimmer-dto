@@ -1,7 +1,6 @@
 package net.fallingangel.jimmerdto.completion.resolve.structure
 
 import net.fallingangel.jimmerdto.lsi.LType
-import net.fallingangel.jimmerdto.lsi.findProperty
 import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
 import net.fallingangel.jimmerdto.util.file
 import net.fallingangel.jimmerdto.util.propPath
@@ -14,7 +13,8 @@ class EnumValues : Structure<DTOPositiveProp, List<String>> {
      */
     override fun value(element: DTOPositiveProp): List<String> {
         val propPath = element.propPath()
-        val enumType = element.file.clazz.findProperty(propPath).type as LType.EnumType<*, *>
+        val property = element.file.clazz.propertyOrNull(propPath) ?: return listOf()
+        val enumType = property.type as LType.EnumType<*, *>
         return enumType.values.keys.toList()
     }
 }

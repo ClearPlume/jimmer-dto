@@ -11,8 +11,4 @@ object StructureType {
     val MacroTypes = MacroTypes()
     val FunctionArgs = FunctionArgs()
     val EnumValues = EnumValues()
-    val AsProperties = AsProperties()
-    val FlatProperties = FlatProperties()
-    val AnnotationParameters = AnnotationParameters()
-    val NestAnnotationParameters = NestAnnotationParameters()
 }

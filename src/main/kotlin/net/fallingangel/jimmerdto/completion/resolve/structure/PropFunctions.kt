@@ -3,8 +3,8 @@ package net.fallingangel.jimmerdto.completion.resolve.structure
 import com.intellij.psi.util.parentOfType
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.SpecFunction
-import net.fallingangel.jimmerdto.psi.DTODto
-import net.fallingangel.jimmerdto.psi.DTOPropName
+import net.fallingangel.jimmerdto.psi.element.DTODto
+import net.fallingangel.jimmerdto.psi.element.DTOPropName
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.util.modifiedBy
 
@@ -17,8 +17,8 @@ class PropFunctions : Structure<DTOPropName, List<LookupInfo>> {
     override fun value(element: DTOPropName): List<LookupInfo> {
         val dto = element.parentOfType<DTODto>() ?: return emptyList()
         val functions = listOf(
-            LookupInfo("id", "(<association>)", "function", "id()", -1),
-            LookupInfo("flat", "(<association>) { ... }", "function", "flat() {}", -4)
+            LookupInfo("id", "id()", "function", "(<association>)", -1),
+            LookupInfo("flat", "flat() {}", "function", "(<association>) { ... }", -4)
         )
         val specFunctions = if (dto modifiedBy Modifier.Specification) {
             SpecFunction.values()
@@ -31,9 +31,9 @@ class PropFunctions : Structure<DTOPropName, List<LookupInfo>> {
                             }
                             LookupInfo(
                                 expression,
-                                "($argPresentation)",
-                                "function",
                                 "$expression()",
+                                "function",
+                                "($argPresentation)",
                                 -1
                             )
                         }
