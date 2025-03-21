@@ -54,23 +54,32 @@ val KotlinType.isInSource: Boolean
 /**
  * 元素是否包含上一层级的属性级结构
  *
- * @receiver macro | aliasGroup | positiveProp | negativeProp | userProp
+ * @receiver macro | aliasGroup | positiveProp(value) | negativeProp | userProp
  */
 val PsiElement.haveUpper: Boolean
-    get() = parent.parent is DTOAliasGroup || parent.parent is DTOPropBody
+    get() = parent.parent is DTOPositiveProp || parent.parent is DTOAliasGroup || parent.parent is DTOPropBody
 
 /**
  * 元素上一层级的属性级结构
  *
- * @receiver macro | aliasGroup | positiveProp | negativeProp | userProp
+ * @receiver macro | aliasGroup | positiveProp(value) | negativeProp | userProp
  */
 val PsiElement.upper: PsiElement
-    get() = if (parent.parent is DTOAliasGroup) {
-        // aliasGroup
-        parent.parent
-    } else {
-        // positiveProp
-        parent.parent.parent
+    get() = when (parent.parent) {
+        is DTOAliasGroup -> {
+            // aliasGroup
+            parent.parent
+        }
+
+        is DTOPositiveProp -> {
+            // value
+            parent.parent
+        }
+
+        else -> {
+            // positiveProp
+            parent.parent.parent
+        }
     }
 
 val PsiElement.virtualFile: VirtualFile
@@ -122,7 +131,7 @@ operator fun <S : PsiElement, R, T : Structure<S, R>> S.get(type: T): R {
 }
 
 /**
- * @receiver macro | aliasGroup | positiveProp | negativeProp | userProp
+ * @receiver macro | aliasGroup | positiveProp(value) | negativeProp | userProp
  */
 fun PsiElement.propPath(): List<String> {
     val propName = when (this) {
@@ -131,12 +140,10 @@ fun PsiElement.propPath(): List<String> {
         is DTOPositiveProp -> if (arg == null) {
             listOf(name.value)
         } else {
-            if (name.value in listOf("flat", "id")) {
-                listOf(arg!!.values.first().text)
-            } else {
-                emptyList()
-            }
+            listOf()
         }
+
+        is DTOValue -> listOf(text)
 
         else -> emptyList()
     }
