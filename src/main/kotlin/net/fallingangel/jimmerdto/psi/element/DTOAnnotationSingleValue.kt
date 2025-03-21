@@ -4,8 +4,6 @@ import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 
 interface DTOAnnotationSingleValue : DTOElement {
-    val annotation: DTOAnnotation?
-
     val nestAnnotation: DTONestAnnotation?
 
     val qualifiedName: DTOQualifiedName?

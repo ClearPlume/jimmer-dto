@@ -13,6 +13,7 @@ data class LClass<C : PsiElement>(
     override val name: String,
     override val canonicalName: String,
     override val nullable: Boolean,
+    override val isAnnotation: Boolean,
     override val annotations: List<LAnnotation<*>>,
     val parentsHolder: Lazy<List<LClass<C>>>,
     val propertiesHolder: Lazy<List<LProperty<*>>>,
@@ -76,7 +77,19 @@ data class LClass<C : PsiElement>(
 
         visited -= id // 离开当前节点时，解除标记（允许其它路径访问）
 
-        return "LClass(name=$name, canonicalName=$canonicalName, nullable=$nullable, annotations=$annotationStr, parents=$parentsStr, properties=$propertiesStr, methods=$methodsStr, source=$source)"
+        return buildString {
+            append("LClass(")
+            append("name=$name, ")
+            append("canonicalName=$canonicalName, ")
+            append("nullable=$nullable, ")
+            append("isAnnotation=$isAnnotation, ")
+            append("annotations=$annotationStr, ")
+            append("parents=$parentsStr, ")
+            append("properties=$propertiesStr, ")
+            append("methods=$methodsStr, ")
+            append("source=$source, ")
+            append(")")
+        }
     }
 
     override fun collectPsiElements(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {

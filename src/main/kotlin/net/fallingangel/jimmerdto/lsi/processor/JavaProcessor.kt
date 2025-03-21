@@ -1,6 +1,7 @@
 package net.fallingangel.jimmerdto.lsi.processor
 
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.project.Project
 import com.intellij.psi.*
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
@@ -16,7 +17,13 @@ import org.babyfish.jimmer.sql.Entity
 import org.babyfish.jimmer.sql.MappedSuperclass
 
 class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
+    lateinit var project: Project
+
     override val resolvedType = mutableMapOf<String, LClass<PsiClass>>()
+
+    override fun init(project: Project) {
+        this.project = project
+    }
 
     override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == JavaLanguage.INSTANCE
 
@@ -33,6 +40,7 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
                 name,
                 qualifiedName,
                 false,
+                clazz.isAnnotationType,
                 clazz.annotations.map(::resolve),
                 lazy { parents(clazz) },
                 lazy { properties(clazz) },
@@ -163,13 +171,22 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
     }
 
     override fun resolve(annotation: PsiAnnotation): LAnnotation<*> {
-        val qualifiedName = annotation.qualifiedName!!
-        val methods = annotation.resolveAnnotationType()?.methods ?: throw IllegalStateException("PsiAnnotation must resolve to a PsiClass")
+        val clazz = annotation.resolveAnnotationType() ?: throw IllegalStateException("PsiAnnotation must resolve to a PsiClass")
+        return annotation(clazz)
+    }
+
+    override fun annotation(qualifiedName: String): LAnnotation<*> {
+        val clazz = project.psiClass(qualifiedName) ?: throw IllegalStateException("Can't find $qualifiedName")
+        return annotation(clazz)
+    }
+
+    override fun annotation(clazz: PsiClass): LAnnotation<*> {
+        val methods = clazz.methods
 
         return LAnnotation(
-            qualifiedName.substringAfterLast('.'),
-            qualifiedName,
-            annotation.resolveAnnotationType(),
+            clazz.name!!,
+            clazz.qualifiedName!!,
+            clazz,
             methods.map { LParam(it.name, resolve(it.returnType!!), it) },
         )
     }

@@ -17,6 +17,9 @@ sealed class LType {
             }
         }
 
+    open val isAnnotation: Boolean
+        get() = false
+
     open fun toDebugString(visited: MutableSet<String>): String = when (this) {
         is ScalarType -> "ScalarType(name=$name, nullable=$nullable)"
         is ArrayType -> "ArrayType(nullable=$nullable, elementType=${elementType.toDebugString(visited)})"

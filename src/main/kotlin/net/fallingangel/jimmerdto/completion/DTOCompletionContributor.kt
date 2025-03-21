@@ -24,6 +24,7 @@ import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.LType
+import net.fallingangel.jimmerdto.lsi.LanguageProcessor
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.DTOParser.*
@@ -370,7 +371,8 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeAnnotation() {
         completePackage(
             identifier.withParent(DTOQualifiedNamePart::class.java)
-                    .withSuperParent(3, DTOAnnotation::class.java),
+                    .withSuperParent(3, DTOAnnotation::class.java)
+                    .andNot(identifier.withSuperParent(4, DTOAnnotationSingleValue::class.java)),
             Project::allAnnotations,
             true,
         )
@@ -446,21 +448,31 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeAnnotationParamValue() {
         complete(
             { parameters, result ->
-                val parameter = parameters.position.parent.parent.parent.parent.parent<DTOAnnotationParameter>()
+                val parameter = if (parameters.position.parent.parent.parent is DTONestAnnotation) {
+                    parameters.position.parent.parent.parent.parent.parent.parent<DTOAnnotationParameter>()
+                } else {
+                    parameters.position.parent.parent.parent.parent.parent<DTOAnnotationParameter>()
+                }
+                val project = parameter.project
                 val annotation = parameter.parent<DTOAnnotation>()
                 val annotationClass = annotation.qualifiedName.clazz ?: return@complete
+                val anno = LanguageProcessor.analyze(parameter.file).annotation(annotationClass.qualifiedName!!)
+                val paramType = anno.params.filter { it.type.isAnnotation }.find { it.name == parameter.name.text }?.type ?: return@complete
                 result.addAllElements(
                     listOfNotNull(
-                        annotationClass.methods
-                                .find { it.name == parameter.name.text }
-                                ?.returnType
-                                ?.clazz()
-                                ?.takeIf { it.isAnnotationType }
+                        JavaPsiFacade.getInstance(project)
+                                .findClass(
+                                    paramType.canonicalName,
+                                    ProjectScope.getAllScope(project),
+                                )
                     ).lookUp()
                 )
             },
-            identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)
-                    .withSuperParent(5, DTOAnnotationParameter::class.java),
+            or(
+                identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)
+                        .withSuperParent(5, DTOAnnotationParameter::class.java),
+                identifier.withSuperParent(3, DTONestAnnotation::class.java),
+            )
         )
     }
 

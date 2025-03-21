@@ -212,7 +212,6 @@ annotationSingleValue
     IntegerLiteral |
     FloatingPointLiteral |
     qualifiedName classSuffix? |
-    annotation |
     nestedAnnotation
     ;
 
