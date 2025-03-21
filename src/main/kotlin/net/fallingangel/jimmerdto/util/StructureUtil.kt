@@ -26,6 +26,9 @@ import org.babyfish.jimmer.sql.Entity
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.util.findAnnotation
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
@@ -251,4 +254,8 @@ fun DTOPositiveProp.hasConfig(config: PropConfigName) = configs.any { it.name.te
 
 fun PsiModifierListOwner.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
     return annotations.any { anno.mapNotNull(KClass<out Annotation>::qualifiedName).contains(it.qualifiedName) }
+}
+
+fun KtAnnotated.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
+    return anno.mapNotNull(KClass<out Annotation>::qualifiedName).any { findAnnotation(FqName(it)) != null }
 }
