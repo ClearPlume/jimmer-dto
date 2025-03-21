@@ -14,15 +14,15 @@ import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
 import net.fallingangel.jimmerdto.util.file
-import net.fallingangel.jimmerdto.util.findChild
+import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.propPath
 
 class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQualifiedNamePart {
     override val part: String
-        get() = nameIdentifier.text
+        get() = nameIdentifier?.text ?: ""
 
-    override fun getNameIdentifier(): PsiElement {
-        return findChild("/qualifiedNamePart/Identifier")
+    override fun getNameIdentifier(): PsiElement? {
+        return findChildNullable("/qualifiedNamePart/Identifier")
     }
 
     override fun newNameNode(name: String): ASTNode {
@@ -65,16 +65,29 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
     }
 
     private fun DTOPropConfig.resolveConfigParam(qualified: List<String>): PsiElement? {
-        if (name.text == PropConfigName.FetchType.text) {
-            val scope = ProjectScope.getAllScope(project)
-            val fetchTypeQualified = "org.babyfish.jimmer.sql.fetcher.ReferenceFetchType"
-            val fetchType = JavaPsiFacade.getInstance(project).findClass(fetchTypeQualified, scope) ?: return null
-            return fetchType.findFieldByName(qualified.first(), false)
-        }
-
+        val scope = ProjectScope.getAllScope(project)
+        val firstPart = qualified.first()
         val prop = parent as DTOPositiveProp
         val propPath = prop.propPath()
-        val property = file.clazz.property(propPath + qualified)
-        return property.source
+
+        return if (qualified.size == 1) {
+            when (name.text) {
+                PropConfigName.FetchType.text -> {
+                    val fetchTypeQualified = "org.babyfish.jimmer.sql.fetcher.ReferenceFetchType"
+                    val fetchType = JavaPsiFacade.getInstance(project).findClass(fetchTypeQualified, scope) ?: return null
+                    fetchType.findFieldByName(firstPart, false)
+                }
+
+                PropConfigName.Filter.text, PropConfigName.Recursion.text -> {
+                    file.imported[firstPart] ?: file.importedAlias[firstPart]?.second ?: JavaPsiFacade.getInstance(project).findPackage(firstPart)
+                }
+
+                else -> file.clazz.propertyOrNull(propPath + firstPart)?.source
+            }
+        } else {
+            val resolvedProperty = file.clazz.propertyOrNull(propPath + qualified)?.source
+            val resolvedPackage = resolvedProperty ?: JavaPsiFacade.getInstance(project).findPackage(qualified.joinToString("."))
+            resolvedPackage ?: JavaPsiFacade.getInstance(project).findClass(qualified.joinToString("."), scope)
+        }
     }
 }
