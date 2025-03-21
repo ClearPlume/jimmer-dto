@@ -53,14 +53,17 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             }
         }
 
+    val export: DTOExportStatement?
+        get() = findChildNullable<DTOExportStatement>("/dtoFile/exportStatement")
+
     val hasExport: Boolean
-        get() = findChildNullable<DTOExportStatement>("/dtoFile/exportStatement") != null
+        get() = export != null
 
     val `package`: String
-        get() {
-            val export = findChildNullable<DTOExportStatement>("/dtoFile/exportStatement")
-            return export?.`package`?.value ?: export?.export?.let { it.`package` + ".dto" } ?: "$implicitPackage.dto"
-        }
+        get() = export?.`package`?.value ?: export?.export?.let { it.`package` + ".dto" } ?: "$implicitPackage.dto"
+
+    val imports: List<DTOImportStatement>
+        get() = findChildren<DTOImportStatement>("/dtoFile/importStatement")
 
     val qualifiedEntity: String
         get() {
@@ -99,7 +102,6 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
         get() = CachedValuesManager.getCachedValue(this, CACHED_IMPORT_KEY) {
             val facade = JavaPsiFacade.getInstance(project)
             val scope = ProjectScope.getAllScope(project)
-            val imports = findChildren<DTOImportStatement>("/dtoFile/importStatement")
 
             val singleImports = imports
                     .filter { it.groupedImport == null && it.alias == null }
@@ -128,7 +130,6 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
         get() = CachedValuesManager.getCachedValue(this, CACHED_IMPORT_ALIAS_KEY) {
             val facade = JavaPsiFacade.getInstance(project)
             val scope = ProjectScope.getAllScope(project)
-            val imports = findChildren<DTOImportStatement>("/dtoFile/importStatement")
 
             val aliasImports = imports
                     .filter { it.alias != null }
