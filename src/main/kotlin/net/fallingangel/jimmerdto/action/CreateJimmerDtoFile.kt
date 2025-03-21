@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto.action
 
+import com.intellij.lang.java.JavaLanguage
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
@@ -8,7 +9,10 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiClass
 import net.fallingangel.jimmerdto.util.*
+import org.babyfish.jimmer.sql.Entity
+import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 
 class CreateJimmerDtoFile : AnAction() {
@@ -41,13 +45,26 @@ class CreateJimmerDtoFile : AnAction() {
     }
 
     override fun update(event: AnActionEvent) {
+        val project = event.project ?: return
         val selectedFile = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
         if (selectedFile.isDirectory) {
             event.presentation.isVisible = false
             return
         }
-        val annotations = selectedFile.annotations(event.project!!)
-        event.presentation.isVisible = "org.babyfish.jimmer.sql.Entity" in annotations
+        val psiFile = selectedFile.toPsiFile(project) ?: return
+        event.presentation.isVisible = when (psiFile.language) {
+            JavaLanguage.INSTANCE -> {
+                val clazz = psiFile.getChildOfType<PsiClass>() ?: return
+                clazz.hasAnnotation(Entity::class)
+            }
+
+            KotlinLanguage.INSTANCE -> {
+                val clazz = psiFile.getChildOfType<KtClass>() ?: return
+                clazz.hasAnnotation(Entity::class)
+            }
+
+            else -> false
+        }
     }
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT
