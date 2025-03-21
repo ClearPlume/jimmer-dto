@@ -359,6 +359,15 @@ class DTOAnnotator : Annotator {
                     }
                 }
             }
+
+            if (propName == "flat") {
+                val value = arg.values[0]
+                if (dto notModifiedBy Modifier.Specification) {
+                    if (value.resolve() != null && o.file.clazz.findProperty(value.propPath()).isList) {
+                        o.error("`flat` can only handle collection associations in specific modified dto")
+                    }
+                }
+            }
         }
 
         private fun visitProp(o: DTOPositiveProp, propName: String) {
