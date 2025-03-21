@@ -1,33 +1,42 @@
 package net.fallingangel.jimmerdto.util
 
+import com.intellij.icons.AllIcons
+import com.intellij.lang.java.JavaLanguage
+import com.intellij.lang.jvm.JvmModifier
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.module.ModuleUtil
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ModuleRootManager
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
+import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.siblings
+import com.intellij.util.indexing.FileBasedIndex
+import net.fallingangel.jimmerdto.ANNOTATION_CLASS_INDEX
 import net.fallingangel.jimmerdto.DTOLanguage.xPath
-import net.fallingangel.jimmerdto.enums.Language
-import net.fallingangel.jimmerdto.exception.IllegalFileFormatException
-import net.fallingangel.jimmerdto.psi.DTOExportStatement
+import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
-import org.jetbrains.jps.model.java.JavaSourceRootType
+import net.fallingangel.jimmerdto.structure.JavaNullableType
+import org.babyfish.jimmer.sql.Entity
+import org.jetbrains.kotlin.asJava.classes.KtLightClass
+import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
+import org.jetbrains.kotlin.idea.util.findAnnotation
+import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
+import org.jetbrains.kotlin.types.KotlinType
+import org.jetbrains.kotlinx.serialization.compiler.resolve.toClassDescriptor
+import javax.swing.Icon
+import kotlin.reflect.KClass
+
+val PsiElement.virtualFile: VirtualFile
+    get() = containingFile.originalFile.virtualFile
 
 val PsiElement.contentRoot: VirtualFile?
     get() {
@@ -38,41 +47,72 @@ val PsiElement.contentRoot: VirtualFile?
 val DTOElement.file: DTOFile
     get() = containingFile as DTOFile
 
-val DTOElement.root: VirtualFile?
+val PsiClass.isInSource: Boolean
     get() {
-        val fileIndex = ProjectRootManager.getInstance(project).fileIndex
-        return fileIndex.getContentRootForFile(virtualFile)
+        val fileIndex = ProjectFileIndex.getInstance(project)
+        return fileIndex.isInSource(containingFile.virtualFile)
     }
 
-val DTOElement.fqe: String
+val KotlinType.isInSource: Boolean
     get() {
-        // src/main绝对路径
-        val root = root?.path ?: throw IllegalStateException("Source root is null")
-        val export = containingFile.getChildOfType<DTOExportStatement>()
-
-        // dto文件对应类全限定名
-        return export?.qualified
-            ?: containingFile.virtualFile.path // dto文件
-                    // dto文件相对根路径的子路径
-                    .removePrefix("$root/")
-                    // 移除『dto/』前缀
-                    .substringAfter('/')
-                    // 移除『.dto』后缀
-                    .substringBeforeLast('.')
-                    .replace('/', '.')
+        val descriptor = toClassDescriptor ?: return false
+        val declaration = DescriptorToSourceUtils.getSourceFromDescriptor(descriptor) as? KtElement ?: return false
+        val fileIndex = ProjectFileIndex.getInstance(declaration.project)
+        return fileIndex.isInSource(declaration.containingFile.virtualFile)
     }
 
-val DTOElement.fqeClass: PsiClass?
-    get() = JavaPsiFacade.getInstance(project).findClass(fqe, ProjectScope.getAllScope(project))
+@Suppress("UnstableApiUsage")
+val PsiClass.icon: Icon
+    get() = when (language) {
+        is JavaLanguage -> when {
+            isAnnotationType -> AllIcons.Nodes.Annotationtype
+            isInterface -> AllIcons.Nodes.Interface
+            isRecord -> AllIcons.Nodes.Record
+            isEnum -> AllIcons.Nodes.Enum
 
-fun Project.psiClass(qualifiedName: String): PsiClass? {
-    return JavaPsiFacade.getInstance(this).findClass(qualifiedName, ProjectScope.getAllScope(this))
-}
+            else -> if (hasModifier(JvmModifier.ABSTRACT)) {
+                AllIcons.Nodes.AbstractClass
+            } else {
+                AllIcons.Nodes.Class
+            }
+        }
 
-fun Project.ktClass(qualifiedName: String): KtClass? {
-    val results = KotlinFullClassNameIndex.get(qualifiedName, this, ProjectScope.getContentScope(this))
-    return results.toList().takeIf { it.size == 1 }?.get(0) as? KtClass
-}
+        is KotlinLanguage -> (this as KtLightClass).icon
+
+        else -> throw UnsupportedLanguageException("$language is unsupported")
+    }
+
+@Suppress("UnstableApiUsage")
+val KtLightClass.icon: Icon
+    get() = if (kotlinOrigin is KtObjectDeclaration) {
+        KotlinIcons.OBJECT
+    } else {
+        when {
+            isAnnotationType -> KotlinIcons.ANNOTATION
+            isInterface -> KotlinIcons.INTERFACE
+            isEnum -> KotlinIcons.ENUM
+
+            else -> if (hasModifier(JvmModifier.ABSTRACT)) {
+                KotlinIcons.ABSTRACT_CLASS
+            } else {
+                KotlinIcons.CLASS
+            }
+        }
+    }
+
+val PsiType.nullable: Boolean
+    get() = presentableText in JavaNullableType.values().map { it.name }
+
+/**
+ * 获取KtAnnotationEntry对应注解的全限定名
+ */
+val KtAnnotationEntry.qualifiedName: String
+    get() {
+        // 解析注解条目，获取上下文
+        val context = analyze()
+        // 获取注解全限定类名
+        return context[BindingContext.ANNOTATION, this]?.fqName?.asString() ?: ""
+    }
 
 inline fun <reified T : PsiElement> PsiElement.findChild(path: String): T {
     return xPath.evaluate(this, xPath.split(path)).toList().first() as T
@@ -92,61 +132,12 @@ inline fun <reified T : PsiElement> PsiElement.sibling(forward: Boolean = true, 
             .firstOrNull(filter)
 }
 
-/**
- * 从PsiClass定义中，依据字段路径寻找它的Psi元素
- *
- * @param propPath 字段路径
- */
-fun PsiClass.element(propPath: List<String>): PsiElement? {
-    if (propPath.isEmpty()) {
-        return null
-    }
-    return if (language == KotlinLanguage.INSTANCE) {
-        val ktClass = PsiTreeUtil.findChildOfType(containingFile.virtualFile.toPsiFile(project), KtClass::class.java) ?: return null
-        var e = ktClass.properties().find { it.name == propPath[0] } ?: return null
-        propPath
-                .drop(1)
-                .forEach {
-                    e = e.analyze()[BindingContext.TYPE, e.typeReference]
-                            ?.clazz()
-                            ?.getProperties()
-                            ?.find { property -> property.name == it } ?: return null
-                }
-        e
-    } else {
-        var e = methods().find { it.name == propPath[0] } ?: return null
-        propPath
-                .drop(1)
-                .forEach {
-                    e = e.returnType
-                            ?.clazz()
-                            ?.methods
-                            ?.find { method -> method.name == it } ?: return null
-                }
-        e
-    }
+inline fun <reified P> PsiElement.parent(): P {
+    return parent as P
 }
 
-fun sourceRoot(element: PsiElement): VirtualFile? {
-    val sourceRoot by lazy {
-        root(element).firstOrNull { file -> "src" in file.path }
-    }
-    return sourceRoot
-}
-
-fun dtoRoot(element: PsiElement): VirtualFile? {
-    val dtoRootPath = sourceRoot(element)?.toNioPath()?.resolveSibling("dto") ?: return null
-    return VirtualFileManager.getInstance().findFileByNioPath(dtoRootPath)
-}
-
-fun root(element: PsiElement): List<VirtualFile> {
-    val roots by lazy {
-        val module = ModuleUtil.findModuleForPsiElement(element) ?: return@lazy emptyList()
-        ModuleRootManager
-                .getInstance(module)
-                .getSourceRoots(JavaSourceRootType.SOURCE)
-    }
-    return roots
+inline fun <reified P> PsiElement.parentUnSure(): P? {
+    return parent as? P
 }
 
 fun Project.notification(content: String, type: NotificationType = NotificationType.INFORMATION) {
@@ -154,4 +145,56 @@ fun Project.notification(content: String, type: NotificationType = NotificationT
             .getNotificationGroup("JimmerDTO Notification Group")
             .createNotification(content, type)
             .notify(this)
+}
+
+fun Project.psiClass(qualifiedName: String): PsiClass? {
+    return JavaPsiFacade.getInstance(this).findClass(qualifiedName, ProjectScope.getAllScope(this))
+}
+
+fun Project.ktClass(qualifiedName: String): KtClass? {
+    val results = KotlinFullClassNameIndex.get(qualifiedName, this, ProjectScope.getContentScope(this))
+    return results.toList().takeIf { it.size == 1 }?.get(0) as? KtClass
+}
+
+/**
+ * @param `package` null等同于空字符串
+ */
+fun Project.allClasses(`package`: String? = ""): List<PsiClass> {
+    val classes = JavaPsiFacade.getInstance(this).findPackage(`package` ?: "")?.classes ?: emptyArray()
+    return classes.filter { it !is KtLightClass || (it.kotlinOrigin != null) }
+}
+
+/**
+ * @param `package` null为获取所有包下所有类
+ */
+fun Project.allAnnotations(`package`: String? = ""): List<PsiClass> {
+    return if (`package` == null) {
+        val psiFacade = JavaPsiFacade.getInstance(this)
+        val scope = ProjectScope.getAllScope(this)
+
+        FileBasedIndex.getInstance()
+                .getAllKeys(ANNOTATION_CLASS_INDEX, this)
+                .mapNotNull { psiFacade.findClass(it, scope) }
+    } else {
+        JavaPsiFacade.getInstance(this).findPackage(`package`)?.classes?.filter { it.isAnnotationType } ?: emptyList()
+    }
+}
+
+/**
+ * @param `package` null等同于空字符串
+ */
+fun Project.allEntities(`package`: String? = ""): List<PsiClass> {
+    return allClasses(`package` ?: "").filter { it.isInterface && it.hasAnnotation(Entity::class) }
+}
+
+fun Project.allPackages(`package`: String): List<PsiPackage> {
+    return JavaPsiFacade.getInstance(this).findPackage(`package`)?.subPackages?.toList() ?: emptyList()
+}
+
+fun PsiModifierListOwner.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
+    return annotations.any { anno.mapNotNull(KClass<out Annotation>::qualifiedName).contains(it.qualifiedName) }
+}
+
+fun KtAnnotated.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
+    return anno.mapNotNull(KClass<out Annotation>::qualifiedName).any { findAnnotation(FqName(it)) != null }
 }
