@@ -21,6 +21,7 @@ import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.psi.element.*
+import net.fallingangel.jimmerdto.util.contentRoot
 import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
 import net.fallingangel.jimmerdto.util.propPath
@@ -30,8 +31,7 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
     private val implicitPackage: String
         get() {
             val virtualFile = originalFile.virtualFile
-            val fileIndex = ProjectRootManager.getInstance(project).fileIndex
-            val root = fileIndex.getContentRootForFile(virtualFile)?.path ?: throw IllegalStateException("Source root is null")
+            val root = contentRoot?.path ?: throw IllegalStateException("Source root is null")
             return virtualFile.path // dto文件
                     // dto文件相对根路径的子路径
                     .removePrefix("$root/")

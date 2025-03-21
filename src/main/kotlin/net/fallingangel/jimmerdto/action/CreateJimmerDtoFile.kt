@@ -30,7 +30,7 @@ class CreateJimmerDtoFile : AnAction() {
         val entityName = entityClass.name ?: return
         val dtoFileName = entityClass.qualifiedName?.replaceAfterLast('.', "dto") ?: return
 
-        val dtoRoot = dtoRoot(entityClass) ?: return
+        val dtoRoot = entityClass.contentRoot?.findDirectory("dto") ?: return
         val dtoFile = dtoRoot.findFile(dtoFileName)
 
         if (dtoFile != null) {

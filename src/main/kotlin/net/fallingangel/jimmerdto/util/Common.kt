@@ -29,13 +29,10 @@ import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 import org.jetbrains.kotlin.resolve.BindingContext
 
-val VirtualFile.language: Language
+val PsiElement.contentRoot: VirtualFile?
     get() {
-        return when (val fileType = extension) {
-            "java" -> Language.Java
-            "kt" -> Language.Kotlin
-            else -> throw IllegalFileFormatException(fileType ?: "<no-type>")
-        }
+        val fileIndex = ProjectRootManager.getInstance(project).fileIndex
+        return fileIndex.getContentRootForFile(virtualFile)
     }
 
 val DTOElement.file: DTOFile
