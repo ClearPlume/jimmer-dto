@@ -10,10 +10,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.search.ProjectScope
+import com.intellij.psi.PsiPackage
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
-import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.Function
@@ -43,47 +42,24 @@ class DTOAnnotator : Annotator {
                 it.elementType == DTOLanguage.token[DTOParser.Package]
             }
 
-            if (`package` != null || !o.haveParent<DTOExportStatement>() && !o.haveParent<DTOImportStatement>()) {
+            if (`package` != null) {
                 return
             }
 
-            when (o.parent.parent) {
-                is DTOExportStatement -> o.visitPackage(DTOParser.Export, Project::allEntities)
-                is DTOImportStatement -> o.visitPackage(DTOParser.Import, Project::allClasses)
-            }
-        }
-
-        private fun DTOQualifiedNamePart.visitPackage(statementKeyword: Int, classes: Project.(String) -> List<PsiClass>) {
-            val exportedPackage = siblings(forward = false, withSelf = false)
-                    .filter { it.elementType == DTOLanguage.rule[DTOParser.RULE_qualifiedNamePart] }
-                    .map { it.text }
-                    .toList()
-                    .asReversed()
-            val curPackage = exportedPackage.joinToString(".")
-            val curPackageClasses = project.classes(curPackage).map { it.name!! }
-            val availablePackages = project.allPackages(curPackage).map { it.name!! }
-
-            if (part !in (curPackageClasses + availablePackages)) {
-                error(
-                    "Unresolved reference: $part",
-                    RenameElement(this, Project::createQualifiedNamePart),
-                )
-                return
-            }
-
-            // 包不能被导入
-            if (nextSibling == null && part !in curPackageClasses && (parent.parent as? DTOImportStatement)?.groupedImport == null) {
-                val packageAction = if (statementKeyword == DTOParser.Export) {
-                    "exported"
-                } else {
-                    "imported"
+            val resolved = o.resolve()
+            if (resolved == null && !o.text.endsWith("Id")) {
+                o.error("Unresolved reference: ${o.part}")
+            } else if ((resolved as? PsiClass)?.isAnnotationType == true) {
+                o.style(DTOSyntaxHighlighter.ANNOTATION)
+            } else if (resolved is PsiPackage && o.nextSibling == null && o.parent.parent is DTOAnnotation) {
+                o.error("Not annotation: ${o.part}")
+            } else if (resolved is PsiPackage && o.nextSibling == null && o.parent.nextSibling == null && o.parent.parent !is DTOAnnotation) {
+                val packageAction = when (o.parent.parent) {
+                    is DTOExportStatement -> "exported"
+                    is DTOImportStatement -> "imported"
+                    else -> throw IllegalStateException("There shouldn't be a third type here")
                 }
-                error("Packages cannot be $packageAction")
-            }
-
-            val clazz = JavaPsiFacade.getInstance(project).findClass("$curPackage.$part", ProjectScope.getAllScope(project)) ?: return
-            if (clazz.isAnnotationType) {
-                style(DTOSyntaxHighlighter.ANNOTATION)
+                o.error("Packages cannot be $packageAction")
             }
         }
 
