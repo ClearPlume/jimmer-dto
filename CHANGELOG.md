@@ -5,7 +5,20 @@
 ### Added
 
 * Added support for k2 mode
+
+### Deprecated
+
+* Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
+
+## [0.0.7.41] - 2025-03-21
+
+### Added
+
 * When the imported class is annotation, apply annotation highlighting to it
+
+### Changed
+
+* Use ANTLR to replace BNF, improve syntax parsing and code prompting capabilities
 
 ### Deprecated
 
@@ -14,6 +27,9 @@
 ### Fixed
 
 * Issue [#44](https://github.com/ClearPlume/jimmer-dto/issues/44): Correct package prompts when importing group
+* Issue [#54](https://github.com/ClearPlume/jimmer-dto/issues/54): `prop-function` arg reference analysis failed except id and flat
+* Issue [#48](https://github.com/ClearPlume/jimmer-dto/issues/48): Type judgment error when using empty strings in `enum-mapping`
+* Issue [#47](https://github.com/ClearPlume/jimmer-dto/issues/47): Generic parameter mismatch
 
 ## [0.0.7.40] - 2025-03-07
 
