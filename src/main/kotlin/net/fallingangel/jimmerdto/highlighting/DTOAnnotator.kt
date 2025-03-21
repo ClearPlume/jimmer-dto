@@ -326,9 +326,8 @@ class DTOAnnotator : Annotator {
                 o.error("Cannot call the function `$propName` because the current dto type is not specification")
             }
 
-            val propAvailableArgs = arg[StructureType.FunctionArgs].map { it.name }
             arg.values.forEach {
-                if (it.text !in propAvailableArgs) {
+                if (it.resolve() == null) {
                     it.error("`${it.text}` does not exist")
                 }
             }
@@ -352,9 +351,10 @@ class DTOAnnotator : Annotator {
             }
 
             if (propName == "id") {
-                if (arg.values[0].text in availableFunctions && o.file.clazz.findProperty(o.propPath()).isList) {
+                val value = arg.values[0]
+                if (value.resolve() != null && o.file.clazz.findProperty(value.propPath()).isList) {
                     if (o.alias == null) {
-                        val prop = arg.values[0].text
+                        val prop = value.text
                         o.error("An alias must be specified because the property `$prop` is a list association")
                     }
                 }
