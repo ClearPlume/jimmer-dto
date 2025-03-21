@@ -186,8 +186,16 @@ class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType
     }
 
     override fun annotation(qualifiedName: String): LAnnotation<*> {
-        val ktClass = project.ktClass(qualifiedName) ?: throw IllegalStateException("Can't find $qualifiedName")
-        return annotation(ktClass)
+        val ktClass = project.ktClass(qualifiedName)
+
+        return if (ktClass != null) {
+            annotation(ktClass)
+        } else {
+            // 有些注解没有kt版本，需要从java版本解析
+            val processor = LanguageProcessor.extensionPointName.findFirstSafe { it is JavaProcessor }!!
+            processor.init(project)
+            processor.annotation(qualifiedName)
+        }
     }
 
     override fun annotation(clazz: KtClass): LAnnotation<*> {

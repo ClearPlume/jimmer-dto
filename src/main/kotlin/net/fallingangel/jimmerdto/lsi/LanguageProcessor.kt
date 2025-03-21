@@ -40,8 +40,9 @@ interface LanguageProcessor<C : PsiElement, A : PsiElement, T> {
     fun annotation(clazz: C): LAnnotation<*>
 
     companion object {
+        val extensionPointName = ExtensionPointName.create<LanguageProcessor<*, *, *>>("net.fallingangel.languageProcessor")
+
         fun analyze(dtoFile: DTOFile): LanguageProcessor<*, *, *> {
-            val extensionPointName = ExtensionPointName.create<LanguageProcessor<*, *, *>>("net.fallingangel.languageProcessor")
             val processor = extensionPointName.findFirstSafe { it.supports(dtoFile) }
             return processor?.apply { init(dtoFile.project) }
                 ?: throw UnsupportedLanguageException("Unsupported language: ${dtoFile.projectLanguage}")
