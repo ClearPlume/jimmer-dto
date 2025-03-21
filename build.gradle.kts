@@ -81,9 +81,7 @@ intellijPlatform {
     }
 
     pluginVerification {
-        ides {
-            ide("IC", since, false)
-        }
+        ides.recommended()
     }
 
     publishing {
