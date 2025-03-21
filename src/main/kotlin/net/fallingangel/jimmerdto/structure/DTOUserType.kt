@@ -17,7 +17,7 @@ enum class BasicType {
  * @param generics 类型泛型列表
  */
 @Suppress("unused")
-sealed class GenericType(private vararg val generics: String) {
+sealed class GenericType(vararg val generics: String) {
     private val name: String = this::class.simpleName!!
 
     private val tail: String = generics.joinToString(prefix = "<", postfix = ">")
@@ -34,6 +34,10 @@ sealed class GenericType(private vararg val generics: String) {
     companion object {
         fun types(): kotlin.collections.List<LookupInfo> {
             return GenericType::class.sealedSubclasses.map { it.createInstance().lookup }
+        }
+
+        operator fun get(type: String): GenericType? {
+            return GenericType::class.sealedSubclasses.find { it.simpleName == type }?.createInstance()
         }
     }
 

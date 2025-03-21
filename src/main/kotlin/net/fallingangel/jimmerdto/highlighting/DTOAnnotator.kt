@@ -23,6 +23,7 @@ import net.fallingangel.jimmerdto.lsi.findProperty
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
+import net.fallingangel.jimmerdto.structure.GenericType
 import net.fallingangel.jimmerdto.util.*
 
 /**
@@ -47,7 +48,7 @@ class DTOAnnotator : Annotator {
             }
 
             val resolved = o.resolve()
-            if (resolved == null && !o.text.endsWith("Id")) {
+            if (resolved == null && !o.text.endsWith("Id") && o.parent.parent !is DTOTypeRef) {
                 o.error("Unresolved reference: ${o.part}")
             } else if ((resolved as? PsiClass)?.isAnnotationType == true) {
                 o.style(DTOSyntaxHighlighter.ANNOTATION)
@@ -255,8 +256,24 @@ class DTOAnnotator : Annotator {
          * 为类型定义上色
          */
         override fun visitTypeDef(o: DTOTypeRef) {
-            if (o.haveParent<DTOUserProp>()) {
+            if (o.parent is DTOUserProp) {
                 visitUserPropType(o)
+            }
+
+            val type = o.type.value
+            val clazz = o.type.clazz
+
+            if (clazz == null && type !in DTOLanguage.preludes) {
+                o.type.error(
+                    "Unresolved reference ffs: $type",
+                    ImportClass(o.type),
+                )
+                return
+            }
+
+            val exceptedTypeParamNumber = GenericType[type]?.generics?.size ?: clazz?.typeParameters?.size ?: 0
+            if ((o.arguments?.values?.size ?: 0) != exceptedTypeParamNumber) {
+                o.type.error("Generic parameter mismatch")
             }
         }
 
@@ -274,13 +291,6 @@ class DTOAnnotator : Annotator {
                     RenameElement(o.type, Project::createUserPropType),
                 )
                 return
-            }
-
-            if (type !in dtoFile.imported.keys + dtoFile.importedAlias.keys + DTOLanguage.preludes) {
-                o.type.error(
-                    "Unresolved reference: $type",
-                    ImportClass(o.type),
-                )
             }
         }
 
