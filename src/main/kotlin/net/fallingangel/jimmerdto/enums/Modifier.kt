@@ -10,6 +10,6 @@ enum class Modifier(val level: Level) {
     Fuzzy(Level.Both);
 
     enum class Level {
-        Both, Dto, Prop
+        Both, Dto
     }
 }
