@@ -12,10 +12,11 @@ import org.babyfish.jimmer.sql.MappedSuperclass
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
-import org.jetbrains.kotlin.idea.structuralsearch.resolveKotlinType
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
@@ -203,7 +204,7 @@ class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType
                 .map {
                     LParam(
                         it.name!!,
-                        resolve(it.resolveKotlinType()!!),
+                        resolve((it.resolveToDescriptorIfAny() as? CallableDescriptor)?.returnType!!),
                         DescriptorToSourceUtils.getSourceFromDescriptor(it.descriptor!!),
                     )
                 }
