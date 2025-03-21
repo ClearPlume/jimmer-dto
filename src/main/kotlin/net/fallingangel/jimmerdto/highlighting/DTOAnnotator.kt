@@ -550,7 +550,7 @@ class DTOAnnotator : Annotator {
             val currentEnumValues = enumBody.mappings.mapNotNull { it.string ?: it.int }
 
             val allInt = currentEnumValues.all { it.text.matches(Regex("\\d+")) }
-            val allString = currentEnumValues.all { it.text.matches(Regex("\".+\"")) }
+            val allString = currentEnumValues.all { it.text.matches(Regex("\".*\"")) }
             val valueTypeValid = allInt || allString
 
             // 枚举映射是否存在于对应枚举中
