@@ -25,8 +25,6 @@ val privateKeyValue = findProperty("privateKeyValue") as String?
 val passwordValue = findProperty("passwordValue") as String?
 val tokenValue = findProperty("tokenValue") as String?
 
-sourceSets["main"].java.srcDir("src/main/gen")
-
 repositories {
     mavenCentral()
 
