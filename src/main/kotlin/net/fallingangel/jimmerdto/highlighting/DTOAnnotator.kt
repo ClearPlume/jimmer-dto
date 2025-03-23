@@ -48,7 +48,7 @@ class DTOAnnotator : Annotator {
             }
 
             val resolved = o.resolve()
-            if (resolved == null && !o.text.endsWith("Id") && o.parent.parent !is DTOTypeRef) {
+            if (resolved == null && !o.text.endsWith("Id") && o.parent.parent !is DTOTypeRef && o.text !in DTOLanguage.preludes) {
                 o.error("Unresolved reference: ${o.part}")
             } else if ((resolved as? PsiClass)?.isAnnotationType == true) {
                 o.style(DTOSyntaxHighlighter.ANNOTATION)
