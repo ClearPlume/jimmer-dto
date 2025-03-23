@@ -41,7 +41,7 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
                 qualifiedName,
                 false,
                 clazz.isAnnotationType,
-                clazz.annotations.map(::resolve),
+                clazz.annotations.mapNotNull(::resolve),
                 lazy { parents(clazz) },
                 lazy { properties(clazz) },
                 lazy { methods(clazz) },
@@ -63,13 +63,13 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
             clazz.methods
                     .filter { !it.isConstructor }
                     .map {
-                        val annotations = it.annotations.map(::resolve)
+                        val annotations = it.annotations.mapNotNull(::resolve)
                         LProperty(it.name, annotations, resolve(it.returnType!!), it)
                     }
         } else {
             clazz.fields
                     .map {
-                        val annotations = it.annotations.map(::resolve)
+                        val annotations = it.annotations.mapNotNull(::resolve)
                         LProperty(it.name, annotations, resolve(it.type), it)
                     }
         }
@@ -83,7 +83,7 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
                     .filter { !it.isConstructor }
                     .map { method ->
                         val params = method.parameterList.parameters.map { LParam(it.name, resolve(it.type), it) }
-                        val annotations = method.annotations.map(::resolve)
+                        val annotations = method.annotations.mapNotNull(::resolve)
                         val returnType = method.returnType ?: throw IllegalStateException("Method must have return type")
 
                         LMethod(
@@ -92,7 +92,7 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
                             params,
                             LMethod.LReturnType(
                                 resolve(returnType),
-                                returnType.annotations.map(::resolve),
+                                returnType.annotations.mapNotNull(::resolve),
                                 annotations,
                             ),
                             method,
@@ -111,7 +111,7 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
             }
 
             is PsiClassType -> {
-                val typeClass = type.resolve() ?: throw IllegalStateException("PsiClassType must resolve to a PsiClass")
+                val typeClass = type.resolve() ?: return LType.ScalarType(type.name, type.nullable)
                 when {
                     typeClass.isEnum -> {
                         LType.EnumType(
@@ -170,8 +170,8 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
         }
     }
 
-    override fun resolve(annotation: PsiAnnotation): LAnnotation<*> {
-        val clazz = annotation.resolveAnnotationType() ?: throw IllegalStateException("PsiAnnotation must resolve to a PsiClass")
+    override fun resolve(annotation: PsiAnnotation): LAnnotation<*>? {
+        val clazz = annotation.resolveAnnotationType() ?: return null
         return annotation(clazz)
     }
 

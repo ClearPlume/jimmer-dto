@@ -33,7 +33,7 @@ interface LanguageProcessor<C : PsiElement, A : PsiElement, T> {
 
     fun resolve(type: T): LType
 
-    fun resolve(annotation: A): LAnnotation<*>
+    fun resolve(annotation: A): LAnnotation<*>?
 
     fun annotation(qualifiedName: String): LAnnotation<*>
 
