@@ -78,7 +78,7 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
     }
 
     private fun DTOValue.collect(sink: InlayHintsSink, factory: PresentationFactory) {
-        val property = file.clazz.propertyOrNull(propPath()) ?: return
+        val property = file.clazz.propertyOrNull(parent.parent.propPath()) ?: return
         if (property.nullable) {
             sink.addInlineElement(
                 endOffset,

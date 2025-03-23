@@ -10,25 +10,20 @@ import net.fallingangel.jimmerdto.psi.element.*
 /**
  * 元素是否包含上一层级的属性级结构
  *
- * @receiver macro | aliasGroup | positiveProp(value) | negativeProp | userProp
+ * @receiver macro | aliasGroup | positiveProp | negativeProp | userProp
  */
 val PsiElement.haveUpper: Boolean
-    get() = parent.parent is DTOPositiveProp || parent.parent is DTOAliasGroup || parent.parent is DTOPropBody
+    get() = parent.parent is DTOAliasGroup || parent.parent is DTOPropBody
 
 /**
  * 元素上一层级的属性级结构
  *
- * @receiver macro | aliasGroup | positiveProp(value) | negativeProp | userProp
+ * @receiver macro | aliasGroup | positiveProp | negativeProp | userProp
  */
 val PsiElement.upper: PsiElement
     get() = when (parent.parent) {
         is DTOAliasGroup -> {
             // aliasGroup
-            parent.parent
-        }
-
-        is DTOPositiveProp -> {
-            // value
             parent.parent
         }
 
@@ -45,19 +40,24 @@ operator fun <S : PsiElement, R, T : Structure<S, R>> S.get(type: T): R {
 }
 
 /**
- * @receiver macro | aliasGroup | positiveProp(value) | negativeProp | userProp
+ * @receiver macro | aliasGroup | positiveProp | negativeProp | userProp
  */
 fun PsiElement.propPath(): List<String> {
     val propName = when (this) {
         is DTONegativeProp -> name?.value?.let(::listOf) ?: emptyList()
 
-        is DTOPositiveProp -> if (arg == null) {
-            listOf(name.value)
-        } else {
-            listOf()
+        is DTOPositiveProp -> {
+            val arg = arg
+            if (arg == null) {
+                listOf(name.value)
+            } else {
+                if (name.value in listOf("flat", "id")) {
+                    listOf(arg.values[0].text)
+                } else {
+                    listOf()
+                }
+            }
         }
-
-        is DTOValue -> listOf(text)
 
         else -> emptyList()
     }

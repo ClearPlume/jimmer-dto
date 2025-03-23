@@ -21,7 +21,7 @@ class DTOValueImpl(node: ASTNode) : DTONamedElementImpl(node), DTOValue {
     }
 
     override fun resolve(): PsiElement? {
-        return file.clazz.propertyOrNull(propPath())?.source
+        return file.clazz.propertyOrNull(parent.parent.propPath())?.source
     }
 
     override fun accept(visitor: PsiElementVisitor) {

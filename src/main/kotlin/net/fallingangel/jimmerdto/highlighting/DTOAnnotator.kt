@@ -362,7 +362,7 @@ class DTOAnnotator : Annotator {
 
             if (propName == "id") {
                 val value = arg.values[0]
-                if (value.resolve() != null && o.file.clazz.findProperty(value.propPath()).isList) {
+                if (value.resolve() != null && o.file.clazz.findProperty(value.parent.parent.propPath()).isList) {
                     if (o.alias == null) {
                         val prop = value.text
                         o.error("An alias must be specified because the property `$prop` is a list association")
@@ -373,7 +373,7 @@ class DTOAnnotator : Annotator {
             if (propName == "flat") {
                 val value = arg.values[0]
                 if (dto notModifiedBy Modifier.Specification) {
-                    if (value.resolve() != null && o.file.clazz.findProperty(value.propPath()).isList) {
+                    if (value.resolve() != null && o.file.clazz.findProperty(value.parent.parent.propPath()).isList) {
                         o.error("`flat` can only handle collection associations in specific modified dto")
                     }
                 }
