@@ -23,17 +23,15 @@ In the future, these features will be added:
 
 ## DEMO
 
-> doc comment、block comment、end of line comment、allScalars、flat、alias group、modifier
+> basic
 
-![all-flat-as-recursive](https://media.githubusercontent.com/media/ClearPlume/jimmer-dto/orphan/doc/static/image/dto/all-flat-as-recursive.webp "all-flat-as-recursive")
+![user](https://github.com/user-attachments/assets/204246a8-0f17-48a5-82b8-f827300f7d5a)
 
-> package import、annotation
+![employee](https://github.com/user-attachments/assets/012721a8-554f-4ed1-a6e7-528111569f92)
 
-![annotation](https://media.githubusercontent.com/media/ClearPlume/jimmer-dto/orphan/doc/static/image/dto/annotation.webp "annotation")
+![transform](https://github.com/user-attachments/assets/216860d0-f49d-41ac-9cd4-de2c47875a22)
 
-> allScalars、id、alias
-
-![id](https://media.githubusercontent.com/media/ClearPlume/jimmer-dto/orphan/doc/static/image/dto/id.webp "id")
+![department](https://github.com/user-attachments/assets/4709e7a5-eca7-49a6-b286-9aeb99d354ac)
 
 > references resolve
 
@@ -73,4 +71,4 @@ The plugin supports both the community and ultimate editions of IDEA, from versi
 
 You can directly search for "JimmerDTO" in the IDEA plugin market.
 
-![installation](https://raw.githubusercontent.com/ClearPlume/jimmer-dto/orphan/doc/static/image/introduction/install.webp "installation")
+![installation](https://github.com/user-attachments/assets/6dced294-6838-4c02-9f6f-c6f6f179c9be "installation")
