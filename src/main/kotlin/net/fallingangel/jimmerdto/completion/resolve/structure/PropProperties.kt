@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto.completion.resolve.structure
 
+import com.intellij.codeInsight.completion.CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED
 import net.fallingangel.jimmerdto.exception.PropertyNotExistException
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
@@ -13,7 +14,7 @@ class PropProperties : Structure<DTOPositiveProp, List<LProperty<*>>> {
      * @return 属性对应的实体中的所有属性列表
      */
     override fun value(element: DTOPositiveProp): List<LProperty<*>> {
-        val propPath = element.propPath().dropLast(1)
+        val propPath = element.propPath().dropLastWhile { it == DUMMY_IDENTIFIER_TRIMMED }
         return try {
             element.file.clazz.walk(propPath).allProperties
         } catch (_: PropertyNotExistException) {

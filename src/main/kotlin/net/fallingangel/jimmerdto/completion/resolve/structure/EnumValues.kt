@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto.completion.resolve.structure
 
+import com.intellij.codeInsight.completion.CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED
 import net.fallingangel.jimmerdto.lsi.LType
 import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
 import net.fallingangel.jimmerdto.util.file
@@ -12,7 +13,7 @@ class EnumValues : Structure<DTOPositiveProp, List<String>> {
      * @return 枚举可用实例
      */
     override fun value(element: DTOPositiveProp): List<String> {
-        val propPath = element.propPath()
+        val propPath = element.propPath().dropLastWhile { it == DUMMY_IDENTIFIER_TRIMMED }
         val property = element.file.clazz.propertyOrNull(propPath) ?: return listOf()
         val enumType = property.type as LType.EnumType<*, *>
         return enumType.values.keys.toList()

@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto.completion.resolve.structure
 
+import com.intellij.codeInsight.completion.CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.psi.element.DTOUserProp
 import net.fallingangel.jimmerdto.util.file
@@ -12,6 +13,7 @@ class UserPropProperties : Structure<DTOUserProp, List<LProperty<*>>> {
      * @return 属性对应的实体中的所有属性列表
      */
     override fun value(element: DTOUserProp): List<LProperty<*>> {
-        return element.file.clazz.walk(element.propPath()).properties
+        val propPath = element.propPath().dropLastWhile { it == DUMMY_IDENTIFIER_TRIMMED }
+        return element.file.clazz.walk(propPath).properties
     }
 }

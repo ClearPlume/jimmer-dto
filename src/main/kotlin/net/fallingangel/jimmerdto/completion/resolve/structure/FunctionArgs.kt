@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto.completion.resolve.structure
 
+import com.intellij.codeInsight.completion.CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.SpecFunction
 import net.fallingangel.jimmerdto.exception.PropertyNotExistException
@@ -17,7 +18,7 @@ class FunctionArgs : Structure<DTOPropArg, List<LProperty<*>>> {
      */
     override fun value(element: DTOPropArg): List<LProperty<*>> {
         val prop = element.parent as DTOPositiveProp
-        val propPath = prop.propPath().dropLast(1)
+        val propPath = prop.propPath().dropLastWhile { it == DUMMY_IDENTIFIER_TRIMMED }
         val propName = prop.name.value
         val properties = try {
             element.file.clazz.walk(propPath).properties
