@@ -36,7 +36,7 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        create("IC", since, false)
+        intellijIdeaCommunity(since, false)
         bundledPlugins("com.intellij.java", "org.jetbrains.kotlin")
 
         testFramework(TestFrameworkType.Platform)
