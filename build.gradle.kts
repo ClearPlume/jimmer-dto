@@ -1,13 +1,14 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     java
     antlr
 
-    id("org.jetbrains.kotlin.jvm") version "1.8.22"
+    id("org.jetbrains.kotlin.jvm") version "2.1.20"
     id("org.jetbrains.intellij.platform") version "2.3.0"
     id("org.jetbrains.changelog") version "2.2.1"
 }
@@ -49,6 +50,18 @@ dependencies {
     implementation("org.babyfish.jimmer:jimmer-core:$jimmerVersion")
 
     testImplementation("junit:junit:4.13.2")
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.JVM_17
+        freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 changelog {
@@ -95,25 +108,15 @@ intellijPlatform {
 }
 
 tasks {
-    // Set the JVM compatibility versions
-    withType<JavaCompile> {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
-    }
-
     withType<KotlinCompile> {
         dependsOn("generateGrammarSource")
-        kotlinOptions {
-            jvmTarget = "17"
-            freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-        }
-    }
-
-    test {
-        systemProperty("idea.home.path", intellijPlatform.sandboxContainer.get().toString())
     }
 
     runIde {
         jvmArgs("-Xms128m", "-Xmx4096m", "-XX:ReservedCodeCacheSize=512m")
+    }
+
+    test {
+        systemProperty("idea.home.path", intellijPlatform.sandboxContainer.get().toString())
     }
 }
