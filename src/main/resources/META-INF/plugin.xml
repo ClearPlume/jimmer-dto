@@ -60,6 +60,7 @@
         <lang.documentationProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.DTODocumentationProvider"/>
         <lang.refactoringSupport language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.refactor.DTORefactoringSupport"/>
         <vetoRenameCondition implementation="net.fallingangel.jimmerdto.refactor.DTORenameCondition"/>
+        <lang.quoteHandler language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOQuoteHandler"/>
 
         <colorSettingsPage implementation="net.fallingangel.jimmerdto.highlighting.DTOColorSettingsPage"/>
         <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>

@@ -316,6 +316,8 @@ LBracket: '[';
 RBracket: ']';
 DoubleColon: '::';
 InSensitive: 'i';
+SingleQuote: '\'';
+DoubleQuote: '"';
 
 Export: 'export';
 Package: 'package';
@@ -378,7 +380,7 @@ LineComment
 
 SqlStringLiteral
     :
-    '\'' ( ~'\'' | '\'\'' )* '\''
+    SingleQuote ( ~'\'' | '\'\'' )* SingleQuote
     ;
 
 BooleanLiteral
@@ -388,9 +390,9 @@ BooleanLiteral
 
 CharacterLiteral
 	:
-	'\'' SingleCharacter '\''
+	SingleQuote SingleCharacter SingleQuote
 	|
-	'\'' EscapeSequence '\''
+	SingleQuote EscapeSequence SingleQuote
 	;
 
 fragment
@@ -401,7 +403,7 @@ SingleCharacter
 
 StringLiteral
 	:
-	'"' StringCharacters? '"'
+	DoubleQuote StringCharacters? DoubleQuote
 	;
 
 fragment
