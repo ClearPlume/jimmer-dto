@@ -1,21 +1,20 @@
 package net.fallingangel.jimmerdto.psi.element.impl
 
 import com.intellij.lang.ASTNode
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiElementVisitor
+import com.intellij.lang.java.JavaLanguage
+import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.enums.PropConfigName
+import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
-import net.fallingangel.jimmerdto.util.file
-import net.fallingangel.jimmerdto.util.findChildNullable
-import net.fallingangel.jimmerdto.util.propPath
+import net.fallingangel.jimmerdto.util.*
+import org.jetbrains.kotlin.idea.KotlinLanguage
 
 class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQualifiedNamePart {
     override val part: String
@@ -44,15 +43,58 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
 
         // 类型使用
         val parent = parent
-        if (parent is DTOQualifiedName) {
+        val psiFacade = JavaPsiFacade.getInstance(project)
+        val scope = ProjectScope.getAllScope(project)
+        if (parent is DTOQualifiedName && parent.parent !is DTOImportStatement) {
             if (parent.parts.size == 1) {
-                return file.imported[part] ?: file.importedAlias[part]?.first
+                // 类型定义和使用
+                val imported = file.imported[part] ?: file.importedAlias[part]?.first
+                if (imported == null && part in DTOLanguage.preludes) {
+                    return when (file.projectLanguage) {
+                        JavaLanguage.INSTANCE -> {
+                            when (part) {
+                                "Int" -> project.psiClass("java.lang.Integer")
+                                "Char" -> project.psiClass("java.lang.Character")
+                                else -> project.psiClass("java.lang.$part") ?: run {
+                                    if (part.startsWith("Mutable")) {
+                                        project.psiClass("java.util.${part.substring(7)}")
+                                    } else {
+                                        project.psiClass("java.util.$part")
+                                    }
+                                }
+                            }
+                        }
+
+                        KotlinLanguage.INSTANCE -> {
+                            val prelude = project.ktClass("kotlin.$part")
+                                    .filter { "org.jetbrains.kotlin/kotlin-stdlib" in it.virtualFile.path }
+                                    .getOrNull(0)
+                            prelude ?: run {
+                                project.ktClass("kotlin.collections.$part")
+                                        .filter { "org.jetbrains.kotlin/kotlin-stdlib" in it.virtualFile.path }
+                                        .getOrNull(0)
+                            }
+                        }
+
+                        else -> null
+                    }
+                }
+                return imported
+            } else if (parent.parts.size == 2 && parent.parent !is DTOTypeRef) {
+                // 枚举字面量
+                return if (this == parent.parts[0]) {
+                    file.imported[part] ?: file.importedAlias[part]?.second
+                } else {
+                    val enum = parent.parts[0].resolve() as? PsiClass ?: return null
+                    enum.fields
+                            .filterIsInstance<PsiEnumConstant>()
+                            .find { it.name == part }
+                }
             }
         }
 
         // 全限定结构
-        val psiFacade = JavaPsiFacade.getInstance(project)
-        val clazz = psiFacade.findClass(qualified.joinToString("."), ProjectScope.getAllScope(project))
+        val clazz = psiFacade.findClass(qualified.joinToString("."), scope)
         return clazz ?: psiFacade.findPackage(qualified.joinToString("."))
     }
 
@@ -82,10 +124,10 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
                     file.imported[firstPart] ?: file.importedAlias[firstPart]?.second ?: JavaPsiFacade.getInstance(project).findPackage(firstPart)
                 }
 
-                else -> file.clazz.propertyOrNull(propPath + firstPart)?.source
+                else -> file.clazz.findPropertyOrNull(propPath + firstPart)?.source
             }
         } else {
-            val resolvedProperty = file.clazz.propertyOrNull(propPath + qualified)?.source
+            val resolvedProperty = file.clazz.findPropertyOrNull(propPath + qualified)?.source
             val resolvedPackage = resolvedProperty ?: JavaPsiFacade.getInstance(project).findPackage(qualified.joinToString("."))
             resolvedPackage ?: JavaPsiFacade.getInstance(project).findClass(qualified.joinToString("."), scope)
         }

@@ -5,8 +5,6 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
-import net.fallingangel.jimmerdto.util.file
-import net.fallingangel.jimmerdto.util.propPath
 
 class DTOPropNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOPropName {
     override val value: String
@@ -24,14 +22,8 @@ class DTOPropNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOPropName {
 
     override fun resolve(): PsiElement? {
         return when (val prop = parent) {
-            is DTONegativeProp -> file.clazz.propertyOrNull(prop.propPath())?.source
-
-            is DTOPositiveProp -> if (prop.arg == null) {
-                file.clazz.propertyOrNull(prop.propPath())?.source
-            } else {
-                null
-            }
-
+            is DTONegativeProp -> prop.property?.source
+            is DTOPositiveProp -> prop.property?.source
             else -> null
         }
     }
