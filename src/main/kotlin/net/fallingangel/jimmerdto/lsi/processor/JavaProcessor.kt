@@ -64,7 +64,15 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
                     .filter { !it.isConstructor }
                     .map {
                         val annotations = it.annotations.mapNotNull(::resolve)
-                        LProperty(it.name, annotations, resolve(it.returnType!!), it)
+                        // TODO 属性类型为Boolean时，jimmer.keepIsPrefix
+                        val methodName = it.name
+                        val name = if (methodName.startsWith("get") && methodName.length > 3 && methodName[3].isUpperCase()) {
+                            methodName[3].lowercaseChar() + methodName.substring(4)
+                        } else {
+                            methodName
+                        }
+
+                        LProperty(name, annotations, resolve(it.returnType!!), it)
                     }
         } else {
             clazz.fields
