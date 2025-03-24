@@ -19,12 +19,9 @@ import net.fallingangel.jimmerdto.DTOLanguage.preludes
 import net.fallingangel.jimmerdto.DTOLanguage.rule
 import net.fallingangel.jimmerdto.DTOLanguage.token
 import net.fallingangel.jimmerdto.completion.pattern.lsiElement
-import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
-import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.LType
-import net.fallingangel.jimmerdto.lsi.LanguageProcessor
+import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.DTOParser.*
@@ -142,16 +139,9 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 result.addAllElements(bodyLookups())
-                val propName = parameters.position.parent<DTOPropName>()
-                result.addAllElements(
-                    propName[StructureType.PropFunctions].lookUp {
-                        PrioritizedLookupElement.withPriority(
-                            bold(),
-                            90.0
-                        )
-                    }
-                )
-                result.addAllElements(propName.parent<DTOPositiveProp>()[StructureType.PropProperties].lookUp())
+                val prop = parameters.position.parent.parent<DTOPositiveProp>()
+                result.addAllElements(prop.functions().lookUp())
+                result.addAllElements(prop.allSiblings().lookUp())
             },
             identifier.withParent(DTOPropName::class.java)
                     .withSuperParent(2, DTOPositiveProp::class.java),
@@ -165,7 +155,7 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 val propName = parameters.position.parent<DTOPropName>()
-                result.addAllElements(propName.parent<DTONegativeProp>()[StructureType.PropNegativeProperties].lookUp())
+                result.addAllElements(propName.parent<DTONegativeProp>().allSiblings().lookUp())
             },
             identifier.withParent(DTOPropName::class.java)
                     .withSuperParent(2, DTONegativeProp::class.java),
@@ -178,7 +168,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeMacro() {
         complete(
             { _, result ->
-                result.addAllElements(listOf("allScalars").lookUp())
+                result.addAllElements(listOf("allScalars", "allReferences").lookUp())
             },
             identifier.withParent(DTOMacroName::class.java),
         )
@@ -197,8 +187,8 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeEnum() {
         complete(
             { parameters, result ->
-                val prop = parameters.position.parent.parent.parent.parent.parent<DTOPositiveProp>()
-                result.addAllElements(prop[StructureType.EnumValues].lookUp())
+                val prop = parameters.position.parent.parent.parent<DTOEnumBody>()
+                result.addAllElements(prop.values.lookUp())
             },
             identifier.withParent(DTOEnumMappingConstant::class.java)
                     .withSuperParent(3, lsiElement(DTOEnumBody::class.java))
@@ -213,7 +203,7 @@ class DTOCompletionContributor : CompletionContributor() {
             { parameters, result ->
                 val dto = parameters.position.parent.parent<DTODto>()
                 result.addAllElements(
-                    dto[StructureType.DtoModifiers]
+                    dto.availableModifiers
                             .map { LookupInfo(it, "$it ") }
                             .lookUp {
                                 PrioritizedLookupElement.withPriority(bold(), 100.0)
@@ -236,8 +226,8 @@ class DTOCompletionContributor : CompletionContributor() {
                 if (dto modifiedBy Modifier.Input) {
                     val prop = position.parent.parent<DTOPositiveProp>()
                     val propPath = prop.propPath()
-                    val proceedPropPath = propPath.drop(1) + propPath.last().removePrefix(DUMMY_IDENTIFIER_TRIMMED)
-                    val nullable = prop.file.clazz.propertyOrNull(proceedPropPath)?.nullable ?: return@complete
+                    val proceedPropPath = propPath.dropLast(1) + propPath.last().replace(DUMMY_IDENTIFIER_TRIMMED, "")
+                    val nullable = prop.file.clazz.findPropertyOrNull(proceedPropPath)?.nullable ?: return@complete
                     if (nullable) {
                         result.addAllElements(
                             Modifier.values()
@@ -271,7 +261,7 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 val propArgs = parameters.position.parent.parent<DTOPropArg>()
-                result.addAllElements(propArgs[StructureType.FunctionArgs].lookUp())
+                result.addAllElements(propArgs.args.lookUp())
             },
             identifier.withParent(DTOValue::class.java)
                     .withSuperParent(2, lsiElement(DTOPropArg::class.java)),
@@ -554,8 +544,11 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 val prop = parameters.position.parent.parent<DTOPositiveProp>()
-                val clazz = prop.file.findOwnClass(prop)
-                val property = prop.file.findProperty(prop)
+                val propPath = prop.propPath()
+                val proceedPropPath = propPath.drop(1) + propPath.last().replace(DUMMY_IDENTIFIER_TRIMMED, "")
+
+                val clazz = prop.file.clazz.findPropertyOrNull(proceedPropPath)?.actualType as? LClass<*> ?: return@complete
+                val property = prop.file.clazz.findPropertyOrNull(proceedPropPath) ?: return@complete
 
                 val haveFilter = prop.hasConfig(PropConfigName.Filter)
                 val haveWhere = prop.hasConfig(PropConfigName.Where)
@@ -619,21 +612,16 @@ class DTOCompletionContributor : CompletionContributor() {
                 val error = parameters.position.parentUnSure<PsiErrorElement>()
                 val prop = if (error == null) {
                     val expression = parameters.position.parent.parent<DTOQualifiedName>()
-                    if (expression.parent.parent is DTOOrderByArgs) {
-                        expression.parent.parent.parent.parent<DTOPositiveProp>()
-                    } else {
-                        expression.parent.parent.parent.parent.parent<DTOPositiveProp>()
+                    when (expression.parent.parent) {
+                        is DTOOrderByArgs -> expression.parent.parent.parent.parent<DTOPositiveProp>()
+                        is DTOPositiveProp -> expression.parent.parent<DTOPositiveProp>()
+                        else -> expression.parent.parent.parent.parent.parent<DTOPositiveProp>()
                     }
                 } else {
                     error.parent.parent<DTOPositiveProp>()
                 }
 
-                val childPath = parameters.position.parent.siblings(forward = false, withSelf = false)
-                        .filter { it.elementType == rule[RULE_qualifiedNamePart] }
-                        .map(PsiElement::getText)
-                        .toList()
-                        .asReversed()
-                val properties = prop.file.findPropertyChildren(prop, childPath, false)
+                val properties = prop.allSiblings(true)
 
                 val scalars = properties
                         .filter { it.type is LType.ScalarType }
@@ -679,6 +667,17 @@ class DTOCompletionContributor : CompletionContributor() {
                             ),
                 ),
                 identifier.withParent(error.afterSibling(lsiElement(DTOWhereArgs::class.java))),
+                identifier.withSuperParent(
+                    2,
+                    lsiElement(DTOQualifiedName::class.java)
+                            .afterSiblingSkipping(
+                                lsiElement(token[LParen]),
+                                or(
+                                    lsiElement(token[ParserPropConfig]).withText("!where"),
+                                    lsiElement(token[ParserPropConfig]).withText("!orderBy"),
+                                ),
+                            ),
+                ),
             ),
         )
     }

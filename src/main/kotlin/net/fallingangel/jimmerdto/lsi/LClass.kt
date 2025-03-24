@@ -32,34 +32,15 @@ data class LClass<C : PsiElement>(
 
     val methods by methodsHolder
 
-    /**
-     * 以this为起点，走过[propPath]后，属性的LClass
-     */
-    fun walk(propPath: List<String>) = if (propPath.isEmpty()) {
-        this
-    } else {
-        property(propPath).actualType as LClass<*>
-    }
-
-    /**
-     * 以this为起点，走过[propPath]后的属性
-     *
-     * @param propPath 不可为空
-     */
-    fun property(propPath: List<String>) = findProperty(propPath)
-
-    /**
-     * 以this为起点，走过[propPath]后的属性
-     */
-    fun propertyOrNull(propPath: List<String>): LProperty<*>? {
-        if (propPath.isEmpty()) {
-            return null
+    override fun collectPsiElements(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
+        if (!visited.add(this)) {
+            return
         }
-        return try {
-            findProperty(propPath)
-        } catch (e: Exception) {
-            null
-        }
+        result.add(source)
+        annotations.forEach { it.collectPsiElements(result, visited) }
+        parents.forEach { it.collectPsiElements(result, visited) }
+        properties.forEach { it.collectPsiElements(result, visited) }
+        methods.forEach { it.collectPsiElements(result, visited) }
     }
 
     override fun toString() = toDebugString(mutableSetOf())
@@ -90,16 +71,5 @@ data class LClass<C : PsiElement>(
             append("source=$source, ")
             append(")")
         }
-    }
-
-    override fun collectPsiElements(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
-        if (!visited.add(this)) {
-            return
-        }
-        result.add(source)
-        annotations.forEach { it.collectPsiElements(result, visited) }
-        parents.forEach { it.collectPsiElements(result, visited) }
-        properties.forEach { it.collectPsiElements(result, visited) }
-        methods.forEach { it.collectPsiElements(result, visited) }
     }
 }

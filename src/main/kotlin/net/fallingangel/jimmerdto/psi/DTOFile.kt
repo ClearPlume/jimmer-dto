@@ -19,12 +19,15 @@ import com.intellij.psi.util.CachedValuesManager
 import net.fallingangel.jimmerdto.DTOFileType
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
-import net.fallingangel.jimmerdto.lsi.*
-import net.fallingangel.jimmerdto.psi.element.*
+import net.fallingangel.jimmerdto.lsi.LClass
+import net.fallingangel.jimmerdto.lsi.LanguageProcessor
+import net.fallingangel.jimmerdto.psi.element.DTOAlias
+import net.fallingangel.jimmerdto.psi.element.DTODtoName
+import net.fallingangel.jimmerdto.psi.element.DTOExportStatement
+import net.fallingangel.jimmerdto.psi.element.DTOImportStatement
 import net.fallingangel.jimmerdto.util.contentRoot
 import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
-import net.fallingangel.jimmerdto.util.propPath
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLanguage) {
@@ -159,45 +162,6 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
     override fun getFileType() = DTOFileType.INSTANCE
 
     override fun toString() = "JimmerDTO File"
-
-    /**
-     * 查找属性所在类定义
-     *
-     * @param lastPathExcluded 是否将最后一个节点抛弃
-     *
-     * @return prop containing LClass
-     */
-    fun findOwnClass(prop: DTOPositiveProp, childPath: List<String> = emptyList(), lastPathExcluded: Boolean = childPath.isEmpty()): LClass<*> {
-        val tokens = prop.propPath() + childPath
-        return if (tokens.size == 1 && lastPathExcluded) {
-            clazz
-        } else {
-            val type = clazz.findProperty(tokens.dropLast(if (lastPathExcluded) 1 else 0)).type
-            if (type is LType.CollectionType) {
-                type.elementType as LClass<*>
-            } else {
-                type as LClass<*>
-            }
-        }
-    }
-
-    /**
-     * 查找属性对应字段定义
-     */
-    fun findProperty(prop: DTOPositiveProp): LProperty<*> {
-        return findOwnClass(prop).properties.first { it.name == prop.name.value }
-    }
-
-    /**
-     * 查找属性子级属性
-     */
-    fun findPropertyChildren(
-        prop: DTOPositiveProp,
-        childPath: List<String> = emptyList(),
-        lastPathExcluded: Boolean = childPath.isEmpty(),
-    ): List<LProperty<*>> {
-        return findOwnClass(prop, childPath, lastPathExcluded).properties
-    }
 
     companion object {
         private val CACHED_CLASS_KEY = Key<CachedValue<LClass<*>>>("DTO_FILE_CACHED_CLASS")

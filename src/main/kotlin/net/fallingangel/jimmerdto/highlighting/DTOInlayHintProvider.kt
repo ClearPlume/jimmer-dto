@@ -8,6 +8,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.ui.components.Label
 import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
 import net.fallingangel.jimmerdto.psi.element.DTOPropName
@@ -65,7 +66,7 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
 
     private fun DTOPositiveProp.collect(sink: InlayHintsSink, factory: PresentationFactory) {
         if (arg == null) {
-            val property = file.clazz.propertyOrNull(propPath()) ?: return
+            val property = file.clazz.findPropertyOrNull(propPath()) ?: return
             if (property.nullable) {
                 sink.addInlineElement(
                     name.endOffset,
@@ -78,7 +79,7 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
     }
 
     private fun DTOValue.collect(sink: InlayHintsSink, factory: PresentationFactory) {
-        val property = file.clazz.propertyOrNull(parent.parent.propPath()) ?: return
+        val property = file.clazz.findPropertyOrNull(parent.parent.propPath() + text) ?: return
         if (property.nullable) {
             sink.addInlineElement(
                 endOffset,

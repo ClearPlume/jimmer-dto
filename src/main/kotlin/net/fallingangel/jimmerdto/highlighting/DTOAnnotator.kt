@@ -15,7 +15,6 @@ import com.intellij.psi.PsiPackage
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import net.fallingangel.jimmerdto.DTOLanguage
-import net.fallingangel.jimmerdto.completion.resolve.StructureType
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
@@ -217,8 +216,7 @@ class DTOAnnotator : Annotator {
          * 为负属性上色
          */
         override fun visitNegativeProp(o: DTONegativeProp) {
-            val properties = o[StructureType.PropNegativeProperties]
-            if (properties.any { it.name == o.name?.value }) {
+            if (o.property != null) {
                 o.style(DTOSyntaxHighlighter.NEGATIVE_PROP)
             } else {
                 o.name?.error()
@@ -253,8 +251,9 @@ class DTOAnnotator : Annotator {
          */
         override fun visitUserProp(o: DTOUserProp) {
             val propName = o.name
-            val entityProperties = o[StructureType.UserPropProperties]
-            entityProperties.find { propName.text == it.name }?.let {
+            o.name.style(DTOSyntaxHighlighter.IDENTIFIER)
+
+            o.allSiblings(true).find { propName.value == it.name }?.let {
                 propName.error(
                     "It is prohibited for user-prop and entity prop to have the same name",
                     RenameElement(propName, Project::createPropName),
@@ -275,7 +274,7 @@ class DTOAnnotator : Annotator {
 
             if (clazz == null && type !in DTOLanguage.preludes) {
                 o.type.error(
-                    "Unresolved reference ffs: $type",
+                    "Unresolved reference: $type",
                     ImportClass(o.type),
                 )
                 return
@@ -372,7 +371,7 @@ class DTOAnnotator : Annotator {
 
             if (propName == "id") {
                 val value = arg.values[0]
-                if (value.resolve() != null && o.file.clazz.findProperty(value.parent.parent.propPath()).isList) {
+                if (value.resolve() != null && o.file.clazz.findProperty(value.parent.parent.propPath() + value.text).isList) {
                     if (o.alias == null) {
                         val prop = value.text
                         o.error("An alias must be specified because the property `$prop` is a list association")
@@ -391,8 +390,7 @@ class DTOAnnotator : Annotator {
         }
 
         private fun visitProp(o: DTOPositiveProp, propName: String) {
-            val availableProperties = o[StructureType.PropProperties]
-
+            val availableProperties = o.allSiblings()
             if (availableProperties.isEmpty()) {
                 val upper = o.upper
                 if (upper is DTOPositiveProp) {
@@ -537,7 +535,7 @@ class DTOAnnotator : Annotator {
          */
         override fun visitEnumBody(o: DTOEnumBody) {
             val prop = o.parent.parent<DTOPositiveProp>()
-            val availableEnums = prop[StructureType.EnumValues]
+            val availableEnums = o.values
             val currentEnumNames = o.mappings.map { it.constant.text }
 
             // 是否已经完成所有枚举值的映射
@@ -561,14 +559,13 @@ class DTOAnnotator : Annotator {
          */
         override fun visitEnumMapping(o: DTOEnumMapping) {
             val enumBody = o.parent<DTOEnumBody>()
-            val prop = enumBody.parent.parent<DTOPositiveProp>()
             val enumMappingName = o.constant.text
             val enumMappingValue = o.string ?: o.int ?: run {
                 o.constant.error("Missing value")
                 return
             }
 
-            val availableEnums = prop[StructureType.EnumValues]
+            val availableEnums = enumBody.values
             val currentEnumNames = enumBody.mappings.mapNotNull { it.constant.text }
             val currentEnumValues = enumBody.mappings.mapNotNull { it.string ?: it.int }
 

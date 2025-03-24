@@ -10,7 +10,9 @@ import com.intellij.psi.util.parentOfType
 import net.fallingangel.jimmerdto.DTOFileType
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.psi.element.DTOAliasGroup
 import net.fallingangel.jimmerdto.psi.element.DTODtoBody
+import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
 import net.fallingangel.jimmerdto.util.*
 
 class InsertEntityPropAction : AnAction() {
@@ -41,8 +43,18 @@ class InsertEntityPropAction : AnAction() {
                 .flatten()
         val oldProps = negativeProps + positiveProps + functionProps + aliasProps
 
-        val propPath = space.propPath()
-        val props = dtoFile.clazz.walk(propPath).allProperties.map(LProperty<*>::name).filter { it !in oldProps }
+        val properties = if (space.haveUpper) {
+            val spaceUpper = space.upper
+            if (spaceUpper is DTOPositiveProp) {
+                spaceUpper.allSiblings(true)
+            } else {
+                val upperProp = spaceUpper as DTOAliasGroup
+                upperProp.allSiblings(true)
+            }
+        } else {
+            dtoFile.clazz.allProperties
+        }
+        val props = properties.map(LProperty<*>::name).filter { it !in oldProps }
 
         WriteCommandAction.runWriteCommandAction(project) {
             document.insertString(

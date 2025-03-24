@@ -2,7 +2,7 @@ package net.fallingangel.jimmerdto.util
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
-import net.fallingangel.jimmerdto.completion.resolve.structure.Structure
+import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.psi.element.*
@@ -35,10 +35,6 @@ val PsiElement.upper: PsiElement
 
 inline fun <reified T : PsiElement> PsiElement.haveParent() = parentOfType<T>() != null
 
-operator fun <S : PsiElement, R, T : Structure<S, R>> S.get(type: T): R {
-    return type.value(this)
-}
-
 /**
  * @receiver macro | aliasGroup | positiveProp | negativeProp | userProp
  */
@@ -51,10 +47,11 @@ fun PsiElement.propPath(): List<String> {
             if (arg == null) {
                 listOf(name.value)
             } else {
-                if (name.value in listOf("flat", "id")) {
+                // flat可能是中间节点，无法提前判断是否提取方法参数，只能将其认为特殊情况
+                if (name.value == Function.Flat.expression) {
                     listOf(arg.values[0].text)
                 } else {
-                    listOf()
+                    emptyList()
                 }
             }
         }
