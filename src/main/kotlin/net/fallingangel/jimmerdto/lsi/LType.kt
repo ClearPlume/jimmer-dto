@@ -1,6 +1,8 @@
 package net.fallingangel.jimmerdto.lsi
 
 import com.intellij.psi.PsiElement
+import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
+import org.babyfish.jimmer.sql.Embeddable
 
 sealed class LType {
     abstract val name: String
@@ -11,7 +13,20 @@ sealed class LType {
 
     val presentableName: String
         get() = buildString {
+            when {
+                this@LType is EnumType<*, *> -> append("Enum<")
+                this@LType is LClass<*> && this@LType.hasAnnotation(Embeddable::class) -> append("Embeddable<")
+                else -> append("")
+            }
+
             append(name)
+
+            when {
+                this@LType is EnumType<*, *> -> append(">")
+                this@LType is LClass<*> && this@LType.hasAnnotation(Embeddable::class) -> append(">")
+                else -> append("")
+            }
+
             if (nullable) {
                 append("?")
             }
