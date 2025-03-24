@@ -353,6 +353,11 @@ Modifier
     'in'
     ;
 
+BooleanLiteral
+    :
+    'true' | 'false'
+    ;
+
 Identifier
     :
     [$A-Za-z_][$A-Za-z_0-9]*
@@ -381,11 +386,6 @@ LineComment
 SqlStringLiteral
     :
     SingleQuote ( ~'\'' | '\'\'' )* SingleQuote
-    ;
-
-BooleanLiteral
-    :
-    'true' | 'false'
     ;
 
 CharacterLiteral
