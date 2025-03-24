@@ -20,6 +20,8 @@ sealed class ArgType(val test: (LProperty<*>) -> Boolean) {
     // 关联
     object Scalar : ArgType({ property -> !property.isAssociation })
 
+    object Embeddable : ArgType(({ it.doesTypeHaveAnnotation(org.babyfish.jimmer.sql.Embeddable::class) }))
+
     object Association : ArgType(LProperty<*>::isAssociation)
 
     object SingleAssociation : ArgType({ it.hasExactlyOneAnnotation(OneToOne::class, ManyToOne::class) })
