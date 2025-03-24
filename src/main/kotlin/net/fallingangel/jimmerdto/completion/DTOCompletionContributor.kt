@@ -185,7 +185,7 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 val macroArgs = parameters.position.parent.parent.parent<DTOMacro>()
-                result.addAllElements(macroArgs[StructureType.MacroTypes].lookUp())
+                result.addAllElements(macroArgs.types.lookUp())
             },
             identifier.withParent(DTOMacroArg::class.java),
         )

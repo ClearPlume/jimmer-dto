@@ -127,13 +127,13 @@ class DTOAnnotator : Annotator {
          */
         override fun visitMacro(o: DTOMacro) {
             val macroName = o.name
-            if (macroName.value == "allScalars") {
+            if (macroName.value in listOf("allScalars", "allReferences")) {
                 o.firstChild.style(DTOSyntaxHighlighter.MACRO)
                 macroName.style(DTOSyntaxHighlighter.MACRO)
             } else {
                 macroName.error(
-                    "Macro name should be \"allScalars\"",
-                    ReplaceElement(macroName, o.project.createMacroName()),
+                    "Macro name should be \"allScalars\" or \"allReferences\"",
+                    ChooseMacro(macroName),
                 )
             }
         }
@@ -163,7 +163,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 宏可用参数，<this>一定是最后一个
-            val macroAvailableParams = macro[StructureType.MacroTypes]
+            val macroAvailableParams = macro.types
             for (macroArg in argList) {
                 // 当前元素不在宏可用参数中，即为非法
                 if (macroArg.text !in macroAvailableParams) {
@@ -183,8 +183,7 @@ class DTOAnnotator : Annotator {
 
                 // 当前实体的简单类名和this同时出现
                 // 当前实体的简单类名
-                val propPath = macro.propPath()
-                val thisName = o.file.clazz.walk(propPath).name
+                val thisName = macro.clazz.name
 
                 // 等价于this的宏参数
                 val sameThisArg = argList.find { it.text == thisName }
