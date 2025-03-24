@@ -111,7 +111,8 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeUserPropType() {
         complete(
             { parameters, result ->
-                result.addAllElements(findUserPropType(parameters.originalFile as DTOFile))
+                val text = parameters.position.text.substringBefore(DUMMY_IDENTIFIER_TRIMMED)
+                result.addAllElements(findUserPropType(text, parameters.originalFile as DTOFile))
             },
             identifier.withParent(DTOQualifiedNamePart::class.java)
                     .withSuperParent(3, DTOTypeRef::class.java)
@@ -125,7 +126,8 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeUserPropGenericType() {
         complete(
             { parameters, result ->
-                result.addAllElements(findUserPropType(parameters.originalFile as DTOFile, true))
+                val text = parameters.position.text.substringBefore(DUMMY_IDENTIFIER_TRIMMED)
+                result.addAllElements(findUserPropType(text, parameters.originalFile as DTOFile, true))
             },
             identifier.withParent(DTOQualifiedNamePart::class.java)
                     .withSuperParent(3, DTOTypeRef::class.java)
@@ -699,10 +701,11 @@ class DTOCompletionContributor : CompletionContributor() {
         )
     }
 
-    private fun findUserPropType(file: DTOFile, isGeneric: Boolean = false): List<LookupElement> {
+    private fun findUserPropType(prefix: String, file: DTOFile, isGeneric: Boolean = false): List<LookupElement> {
         val cache = PsiShortNamesCache.getInstance(file.project)
         val classes = cache
                 .allClassNames
+                .filter { it.startsWith(prefix) }
                 .flatMap { cache.getClassesByName(it, ProjectScope.getAllScope(file.project)).toList() }
                 .toList()
                 .lookUp()
