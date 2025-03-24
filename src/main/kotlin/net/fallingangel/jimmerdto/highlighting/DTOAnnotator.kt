@@ -36,6 +36,16 @@ class DTOAnnotator : Annotator {
 
     private class DTOAnnotatorVisitor(private val holder: AnnotationHolder) : DTOVisitor() {
         /**
+         * 为全限定类名上色
+         */
+        override fun visitQualifiedName(o: DTOQualifiedName) {
+            // 枚举字面量
+            if (o.parts.size == 2 && o.parent is DTOAnnotationSingleValue) {
+                o.parts[1].style(DTOSyntaxHighlighter.ENUM_INSTANCE)
+            }
+        }
+
+        /**
          * 为全限定类名的部分上色
          */
         override fun visitQualifiedNamePart(o: DTOQualifiedNamePart) {
