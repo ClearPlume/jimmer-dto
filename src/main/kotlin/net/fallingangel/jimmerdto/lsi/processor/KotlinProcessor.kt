@@ -12,7 +12,6 @@ import org.babyfish.jimmer.sql.MappedSuperclass
 import org.jetbrains.kotlin.builtins.DefaultBuiltIns
 import org.jetbrains.kotlin.builtins.KotlinBuiltIns
 import org.jetbrains.kotlin.descriptors.*
-import org.jetbrains.kotlin.descriptors.CallableDescriptor
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
@@ -73,9 +72,9 @@ class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType
     override fun properties(clazz: KtClass): List<LProperty<*>> {
         return clazz.getProperties()
                 .map {
-                    val context = it.analyze(BodyResolveMode.PARTIAL)
                     val annotations = it.annotationEntries.map(::resolve)
-                    LProperty(it.name!!, annotations, resolve(context[BindingContext.TYPE, it.typeReference]!!), it)
+                    val type = (it.resolveToDescriptorIfAny() as? CallableDescriptor)?.returnType!!
+                    LProperty(it.name!!, annotations, resolve(type), it)
                 }
     }
 
