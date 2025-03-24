@@ -30,9 +30,12 @@ class DTODocumentationProvider : AbstractDocumentationProvider() {
                 .mapValues { entry -> entry.value.map { it.second } }
                 .map { (clazz, props) ->
                     val propsString = props.joinToString("\n") {
+                        val type = it.presentableType
+                                .replace("<", "&lt;")
+                                .replace(">", "&gt;")
                         """
                             $SECTION_HEADER_START
-                            ${it.presentableType}
+                            $type
                             $SECTION_SEPARATOR
                             <p>
                             ${it.name}
