@@ -20,7 +20,12 @@ data class LProperty<P : PsiElement>(
         type
     }
 
-    val presentableType = type.presentableName
+    val presentableType = buildString {
+        append(type.presentableName)
+        if (nullable) {
+            append("?")
+        }
+    }
 
     val isEntityAssociation = doesTypeHaveAnnotation(Entity::class)
 

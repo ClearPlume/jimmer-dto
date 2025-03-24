@@ -26,10 +26,6 @@ sealed class LType {
                 this@LType is LClass<*> && this@LType.hasAnnotation(Embeddable::class) -> append(">")
                 else -> append("")
             }
-
-            if (nullable) {
-                append("?")
-            }
         }
 
     open val isAnnotation: Boolean
