@@ -11,12 +11,20 @@ fun LClass<*>.findProperty(tokens: List<String>): LProperty<*> {
         throw IllegalStateException("Property path won't be empty")
     }
     val token = tokens.first()
-    val property = properties.find { it.name == token } ?: throw PropertyNotExistException(token)
+    val property = allProperties.find { it.name == token } ?: throw PropertyNotExistException(token)
 
     if (tokens.size == 1) {
         return property
     }
     return property.type.findProperty(tokens.drop(1))
+}
+
+fun LClass<*>.findPropertyOrNull(tokens: List<String>): LProperty<*>? {
+    return try {
+        findProperty(tokens)
+    } catch (_: PropertyNotExistException) {
+        null
+    }
 }
 
 private fun LType.findProperty(tokens: List<String>): LProperty<*> {
