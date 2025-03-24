@@ -11,12 +11,4 @@ interface LNullableAware : LAnnotationOwner {
 
     val nullable: Boolean
         get() = hasNullableAnnotation || type.nullable
-
-    val presentableType: String
-        get() = buildString {
-            append(type.presentableName)
-            if (hasNullableAnnotation) {
-                append("?")
-            }
-        }
 }

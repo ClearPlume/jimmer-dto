@@ -20,6 +20,8 @@ data class LProperty<P : PsiElement>(
         type
     }
 
+    val presentableType = type.presentableName
+
     val isEntityAssociation = doesTypeHaveAnnotation(Entity::class)
 
     val isAssociation = doesTypeHaveAnnotation(Immutable::class) ||
