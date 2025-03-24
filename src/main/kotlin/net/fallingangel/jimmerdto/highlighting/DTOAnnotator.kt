@@ -2,6 +2,7 @@ package net.fallingangel.jimmerdto.highlighting
 
 import com.intellij.codeInsight.intention.impl.BaseIntentionAction
 import com.intellij.codeInspection.ProblemHighlightType
+import com.intellij.diagnostic.PluginException
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
@@ -395,7 +396,10 @@ class DTOAnnotator : Annotator {
             if (availableProperties.isEmpty()) {
                 val upper = o.upper
                 if (upper is DTOPositiveProp) {
-                    upper.name.error("Prop `${upper.name.value}` does not exist")
+                    try {
+                        upper.name.error("Prop `${upper.name.value}` does not exist")
+                    } catch (_: PluginException) {
+                    }
                 }
                 return
             }
