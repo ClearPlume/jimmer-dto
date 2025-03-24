@@ -123,21 +123,21 @@ fun Project.createValue(value: String): DTOValue {
             .values[0]
 }
 
-fun Project.createMacro(argList: List<String> = emptyList()): DTOMacro {
+fun Project.createMacro(name: String, argList: List<String> = emptyList()): DTOMacro {
     val args = if (argList.isNotEmpty()) {
         argList.joinToString(separator = ",", prefix = "(", postfix = ")")
     } else {
         ""
     }
-    return createDTO("Dummy", macros = listOf("#allScalars$args"))
+    return createDTO("Dummy", macros = listOf("#$name$args"))
             .dtoBody
             .macros[0]
 }
 
-fun Project.createMacroName() = createMacro().name
+fun Project.createMacroName(name: String) = createMacro(name).name
 
 fun Project.createMacroArg(arg: String): DTOMacroArg {
-    return createMacro(listOf(arg))
+    return createMacro("allScalars", listOf(arg))
             .args!!
             .values[0]
 }
