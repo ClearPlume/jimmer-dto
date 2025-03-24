@@ -24,15 +24,15 @@ class DTOMacroArgImpl(node: ASTNode) : DTONamedElementImpl(node), DTOMacroArg {
             CachedValueProvider.Result.create(clazz, virtualFile, DumbService.getInstance(project).modificationTracker)
         }
 
-    override val value: PsiElement
+    override val value: PsiElement?
         get() = nameIdentifier
 
-    override fun getNameIdentifier(): PsiElement {
-        return findChild("/macroArg/Identifier")
+    override fun getNameIdentifier(): PsiElement? {
+        return findChildNullable("/macroArg/Identifier")
     }
 
     override fun newNameNode(name: String): ASTNode? {
-        if ((value.text == "this" || value.text == clazz.name) && !file.hasExport) {
+        if ((value?.text == "this" || value?.text == clazz.name) && !file.hasExport) {
             return WriteCommandAction.runWriteCommandAction(
                 project,
                 Computable {
@@ -45,10 +45,10 @@ class DTOMacroArgImpl(node: ASTNode) : DTONamedElementImpl(node), DTOMacroArg {
     }
 
     override fun resolve(): PsiElement? {
-        return if (value.text == "this" || value.text == clazz.name) {
+        return if (value?.text == "this" || value?.text == clazz.name) {
             clazz.source
         } else {
-            clazz.allParents.find { it.name == value.text }?.source
+            clazz.allParents.find { it.name == value?.text }?.source
         }
     }
 
