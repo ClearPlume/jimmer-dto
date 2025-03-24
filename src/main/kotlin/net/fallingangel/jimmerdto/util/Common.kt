@@ -151,9 +151,9 @@ fun Project.psiClass(qualifiedName: String): PsiClass? {
     return JavaPsiFacade.getInstance(this).findClass(qualifiedName, ProjectScope.getAllScope(this))
 }
 
-fun Project.ktClass(qualifiedName: String): KtClass? {
+fun Project.ktClass(qualifiedName: String): List<KtClass> {
     val results = KotlinFullClassNameIndex.get(qualifiedName, this, ProjectScope.getAllScope(this))
-    return results.toList().takeIf { it.size == 1 }?.get(0) as? KtClass
+    return results.filterIsInstance<KtClass>().toList()
 }
 
 /**

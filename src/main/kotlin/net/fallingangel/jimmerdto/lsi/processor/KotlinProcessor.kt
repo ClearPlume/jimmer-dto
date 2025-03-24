@@ -39,7 +39,8 @@ class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType
     override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == KotlinLanguage.INSTANCE
 
     override fun clazz(dtoFile: DTOFile): LClass<KtClass> {
-        val ktClass = dtoFile.project.ktClass(dtoFile.qualifiedEntity) ?: throw IllegalStateException("Entity class for $dtoFile not found")
+        val ktClass = dtoFile.project.ktClass(dtoFile.qualifiedEntity).getOrNull(0)
+        ktClass ?: throw IllegalStateException("Entity class for $dtoFile not found")
         return clazz(ktClass)
     }
 
@@ -187,7 +188,7 @@ class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType
     }
 
     override fun annotation(qualifiedName: String): LAnnotation<*> {
-        val ktClass = project.ktClass(qualifiedName)
+        val ktClass = project.ktClass(qualifiedName).getOrNull(0)
 
         return if (ktClass != null) {
             annotation(ktClass)
