@@ -2,10 +2,6 @@
 
 ## Unreleased
 
-### Added
-
-* Added support for k2 mode
-
 ### Deprecated
 
 * Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
