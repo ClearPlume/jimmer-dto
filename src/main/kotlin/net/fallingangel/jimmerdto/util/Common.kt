@@ -20,18 +20,16 @@ import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.JavaNullableType
 import org.babyfish.jimmer.sql.Entity
+import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolOrigin
+import org.jetbrains.kotlin.analysis.api.types.KaType
+import org.jetbrains.kotlin.analysis.api.types.symbol
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlinx.serialization.compiler.resolve.toClassDescriptor
 import javax.swing.Icon
 import kotlin.reflect.KClass
 
@@ -53,13 +51,8 @@ val PsiClass.isInSource: Boolean
         return fileIndex.isInSource(containingFile.virtualFile)
     }
 
-val KotlinType.isInSource: Boolean
-    get() {
-        val descriptor = toClassDescriptor ?: return false
-        val declaration = DescriptorToSourceUtils.getSourceFromDescriptor(descriptor) as? KtElement ?: return false
-        val fileIndex = ProjectFileIndex.getInstance(declaration.project)
-        return fileIndex.isInSource(declaration.containingFile.virtualFile)
-    }
+val KaType.isInSource: Boolean
+    get() = symbol?.origin?.let { it in listOf(KaSymbolOrigin.SOURCE, KaSymbolOrigin.JAVA_SOURCE) } ?: false
 
 @Suppress("UnstableApiUsage")
 val PsiClass.icon: Icon
@@ -103,17 +96,6 @@ val KtLightClass.icon: Icon
 val PsiType.nullable: Boolean
     get() = presentableText in JavaNullableType.values().map { it.name }
 
-/**
- * 获取KtAnnotationEntry对应注解的全限定名
- */
-val KtAnnotationEntry.qualifiedName: String
-    get() {
-        // 解析注解条目，获取上下文
-        val context = analyze()
-        // 获取注解全限定类名
-        return context[BindingContext.ANNOTATION, this]?.fqName?.asString() ?: ""
-    }
-
 inline fun <reified T : PsiElement> PsiElement.findChild(path: String): T {
     return xPath.evaluate(this, xPath.split(path)).toList().first() as T
 }
@@ -152,7 +134,7 @@ fun Project.psiClass(qualifiedName: String): PsiClass? {
 }
 
 fun Project.ktClass(qualifiedName: String): List<KtClass> {
-    val results = KotlinFullClassNameIndex.get(qualifiedName, this, ProjectScope.getAllScope(this))
+    val results = KotlinFullClassNameIndex[qualifiedName, this, ProjectScope.getAllScope(this)]
     return results.filterIsInstance<KtClass>().toList()
 }
 

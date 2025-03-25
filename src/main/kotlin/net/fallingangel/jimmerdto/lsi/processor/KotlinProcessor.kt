@@ -7,26 +7,20 @@ import net.fallingangel.jimmerdto.lsi.param.LParam
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.isInSource
 import net.fallingangel.jimmerdto.util.ktClass
-import net.fallingangel.jimmerdto.util.qualifiedName
 import org.babyfish.jimmer.sql.MappedSuperclass
-import org.jetbrains.kotlin.builtins.DefaultBuiltIns
-import org.jetbrains.kotlin.builtins.KotlinBuiltIns
-import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.analysis.api.KaSession
+import org.jetbrains.kotlin.analysis.api.analyze
+import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotation
+import org.jetbrains.kotlin.analysis.api.symbols.KaClassKind
+import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaEnumEntrySymbol
+import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
+import org.jetbrains.kotlin.analysis.api.types.*
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
-import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlinx.serialization.compiler.resolve.toClassDescriptor
 
-class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType> {
+class KotlinProcessor : LanguageProcessor<KtClass> {
     lateinit var project: Project
 
     override val resolvedType = mutableMapOf<String, LClass<KtClass>>()
@@ -44,6 +38,10 @@ class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType
     }
 
     override fun clazz(clazz: KtClass): LClass<KtClass> {
+        val annotations = analyze(clazz) {
+            clazz.symbol.annotations.map { resolve(it) }
+        }
+
         val qualifiedName = clazz.fqName?.asString()!!
         return resolvedType.getOrPut(qualifiedName) {
             LClass(
@@ -51,7 +49,7 @@ class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType
                 qualifiedName,
                 false,
                 clazz.isAnnotation(),
-                clazz.annotationEntries.map(::resolve),
+                annotations,
                 lazy { parents(clazz) },
                 lazy { properties(clazz) },
                 lazy { methods(clazz) },
@@ -61,20 +59,25 @@ class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType
     }
 
     override fun parents(clazz: KtClass): List<LClass<KtClass>> {
-        val mappedSuperclass = FqName(MappedSuperclass::class.qualifiedName!!)
-        return clazz.superTypeListEntries
-                .mapNotNull { it.analyze(BodyResolveMode.PARTIAL)[BindingContext.TYPE, it.typeReference]?.toClassDescriptor }
-                .filter { it.annotations.hasAnnotation(mappedSuperclass) }
-                .mapNotNull { DescriptorToSourceUtils.getSourceFromDescriptor(it) as? KtClass }
-                .map(::clazz)
+        val mappedSuperclass = ClassId.fromString(MappedSuperclass::class.qualifiedName!!)
+
+        return analyze(clazz) {
+            val symbol = clazz.symbol as? KaClassSymbol ?: return emptyList()
+            symbol.superTypes
+                    .filter { mappedSuperclass in it.annotations }
+                    .mapNotNull { it.symbol?.psi as? KtClass }
+                    .map(::clazz)
+        }
     }
 
     override fun properties(clazz: KtClass): List<LProperty<*>> {
         return clazz.getProperties()
-                .map {
-                    val annotations = it.annotationEntries.map(::resolve)
-                    val type = (it.resolveToDescriptorIfAny() as? CallableDescriptor)?.returnType!!
-                    LProperty(it.name!!, annotations, resolve(type), it)
+                .map { property ->
+                    analyze(property) {
+                        val annotations = property.symbol.annotations.map { resolve(it) }
+                        val type = resolve(property.symbol.returnType)
+                        LProperty(property.name!!, annotations, type, property)
+                    }
                 }
     }
 
@@ -83,136 +86,109 @@ class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType
         return classBody
                 .functions
                 .map { function ->
-                    val context = function.analyze(BodyResolveMode.PARTIAL)
+                    analyze(function) {
+                        val symbol = function.symbol
+                        val annotations = symbol.annotations.map { resolve(it) }
+                        symbol.valueParameters.map { resolve(it) }
 
-                    val params = function.valueParameters
-                            .map { LParam(it.name!!, resolve(context[BindingContext.TYPE, it.typeReference]!!), it) }
-                    val annotations = function.annotationEntries.map(::resolve)
-                    val returnType = context[BindingContext.FUNCTION, function]?.returnType!!
-
-                    LMethod(
-                        function.name!!,
-                        annotations,
-                        params,
-                        LMethod.LReturnType(
-                            resolve(returnType),
-                            function.typeReference?.annotationEntries?.map(::resolve) ?: emptyList(),
+                        LMethod(
+                            function.name!!,
                             annotations,
-                        ),
-                        function,
-                    )
-                }
-    }
-
-    override fun resolve(type: KotlinType): LType {
-        val builtIns = DefaultBuiltIns.Instance
-
-        val nullable = type.isMarkedNullable
-        val descriptor = type.toClassDescriptor!!
-        val ktClass = DescriptorToSourceUtils.getSourceFromDescriptor(descriptor) as? KtClass
-        val fqName = descriptor.fqNameSafe.asString()
-        val name = descriptor.name.asString()
-
-        return when {
-            KotlinBuiltIns.isPrimitiveType(type) -> LType.ScalarType(name, nullable)
-
-            KotlinBuiltIns.isArray(type) -> LType.ArrayType(nullable, resolve(builtIns.getArrayElementType(type)))
-
-            else -> {
-                when {
-                    descriptor.kind.isEnumClass -> {
-                        LType.EnumType(
-                            name,
-                            fqName,
-                            nullable,
-                            descriptor.unsubstitutedMemberScope
-                                    .getContributedDescriptors()
-                                    .filterIsInstance<ClassDescriptor>()
-                                    .filter { it.kind == ClassKind.ENUM_ENTRY }
-                                    .associate { it.name.asString() to DescriptorToSourceUtils.getSourceFromDescriptor(it)!! },
-                            DescriptorToSourceUtils.getSourceFromDescriptor(descriptor)!!,
+                            symbol.valueParameters.map { resolve(it) },
+                            LMethod.LReturnType(
+                                resolve(symbol.returnType),
+                                function.returnType.annotations.map { resolve(it) },
+                                annotations,
+                            ),
+                            function,
                         )
                     }
-
-                    descriptor.kind.isClass || descriptor.kind.isInterface -> {
-                        when (fqName) {
-                            "kotlin.collections.List", "java.util.List" -> {
-                                val argType = type.arguments.first().type
-                                LType.CollectionType(
-                                    nullable,
-                                    resolve(argType),
-                                    LType.CollectionType.CollectionKind.List,
-                                )
-                            }
-
-                            "kotlin.collections.Set", "java.util.Set" -> {
-                                val argType = type.arguments.first().type
-                                LType.CollectionType(
-                                    nullable,
-                                    resolve(argType),
-                                    LType.CollectionType.CollectionKind.Set,
-                                )
-                            }
-
-                            "kotlin.collections.Map", "java.util.Map" -> {
-                                val keyType = type.arguments[0].type
-                                val valueType = type.arguments[1].type
-                                LType.MapType(
-                                    nullable,
-                                    resolve(keyType),
-                                    resolve(valueType),
-                                )
-                            }
-
-                            else -> {
-                                if (type.isInSource && ktClass != null) {
-                                    clazz(ktClass)
-                                } else {
-                                    LType.ScalarType(name, nullable)
-                                }
-                            }
-                        }
-                    }
-
-                    type.isInSource && ktClass != null -> clazz(ktClass)
-
-                    else -> LType.ScalarType(name, nullable)
                 }
+    }
+
+    fun KaSession.resolve(type: KaType): LType {
+        val nullable = type.isMarkedNullable
+        val symbol = type.symbol!!
+        val classId = symbol.classId!!
+        val name = symbol.name!!.asString()
+        val fqName = classId.asFqNameString()
+
+        return when {
+            symbol is KaClassSymbol && symbol.classKind == KaClassKind.ENUM_CLASS -> {
+                LType.EnumType(
+                    name,
+                    fqName,
+                    nullable,
+                    symbol.staticDeclaredMemberScope
+                            .declarations
+                            .filterIsInstance<KaEnumEntrySymbol>()
+                            .associate { it.name.asString() to it.psi!! },
+                    symbol.psi!!,
+                )
             }
-        }
-    }
 
-    override fun resolve(annotation: KtAnnotationEntry): LAnnotation<*> {
-        return annotation(annotation.qualifiedName)
-    }
-
-    override fun annotation(qualifiedName: String): LAnnotation<*> {
-        val ktClass = project.ktClass(qualifiedName).getOrNull(0)
-
-        return if (ktClass != null) {
-            annotation(ktClass)
-        } else {
-            // 有些注解没有kt版本，需要从java版本解析
-            val processor = LanguageProcessor.extensionPointName.findFirstSafe { it is JavaProcessor }!!
-            processor.init(project)
-            processor.annotation(qualifiedName)
-        }
-    }
-
-    override fun annotation(clazz: KtClass): LAnnotation<*> {
-        val params = clazz.primaryConstructorParameters
-                .map {
-                    LParam(
-                        it.name!!,
-                        resolve((it.resolveToDescriptorIfAny() as? CallableDescriptor)?.returnType!!),
-                        DescriptorToSourceUtils.getSourceFromDescriptor(it.descriptor!!),
+            type is KaClassType -> when (fqName) {
+                "kotlin.collections.List", "java.util.List" -> {
+                    val argType = type.typeArguments.first()
+                    LType.CollectionType(
+                        nullable,
+                        resolve(argType),
+                        LType.CollectionType.CollectionKind.List,
                     )
                 }
+
+                "kotlin.collections.Set", "java.util.Set" -> {
+                    val argType = type.typeArguments.first()
+                    LType.CollectionType(
+                        nullable,
+                        resolve(argType),
+                        LType.CollectionType.CollectionKind.Set,
+                    )
+                }
+
+                "kotlin.collections.Map", "java.util.Map" -> {
+                    val keyType = type.typeArguments[0]
+                    val valueType = type.typeArguments[1]
+                    LType.MapType(
+                        nullable,
+                        resolve(keyType),
+                        resolve(valueType),
+                    )
+                }
+
+                else -> if (type.isInSource) {
+                    when (val psi = symbol.psi) {
+                        is KtClass -> clazz(psi)
+                        else -> LType.ScalarType(name, nullable)
+                    }
+                } else {
+                    LType.ScalarType(name, nullable)
+                }
+            }
+
+            else -> LType.ScalarType(name, nullable)
+        }
+    }
+
+    fun KaSession.resolve(type: KaTypeProjection): LType {
+        return when (type) {
+            is KaStarTypeProjection -> LType.ScalarType("*", false)
+            is KaTypeArgumentWithVariance -> resolve(type.type)
+        }
+    }
+
+    fun KaSession.resolve(annotation: KaAnnotation): LAnnotation<*> {
+        val constructor = annotation.constructorSymbol!!
+        val classId = annotation.classId!!
         return LAnnotation(
-            clazz.name!!,
-            clazz.fqName!!.asString(),
-            clazz,
-            params,
+            classId.shortClassName.asString(),
+            classId.asFqNameString(),
+            annotation.psi,
+            constructor.valueParameters.map { resolve(it) },
         )
+    }
+
+    fun KaSession.resolve(param: KaValueParameterSymbol): LParam<*> {
+        return LParam(param.name.asString(), resolve(param.returnType), param.psi)
     }
 }

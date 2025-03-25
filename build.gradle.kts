@@ -116,7 +116,6 @@ tasks {
         jvmArgs(
             "-Xms128m",
             "-Xmx4096m",
-            "-XX:ReservedCodeCacheSize=512m",
             "-Didea.ProcessCanceledException=disabled",
             "-Didea.kotlin.plugin.use.k2=true",
         )

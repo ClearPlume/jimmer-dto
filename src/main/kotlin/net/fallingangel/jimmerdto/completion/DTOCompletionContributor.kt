@@ -21,7 +21,10 @@ import net.fallingangel.jimmerdto.DTOLanguage.token
 import net.fallingangel.jimmerdto.completion.pattern.lsiElement
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
-import net.fallingangel.jimmerdto.lsi.*
+import net.fallingangel.jimmerdto.lsi.LClass
+import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.LType
+import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.DTOParser.*
@@ -445,20 +448,13 @@ class DTOCompletionContributor : CompletionContributor() {
                 } else {
                     parameters.position.parent.parent.parent.parent.parent<DTOAnnotationParameter>()
                 }
-                val project = parameter.project
                 val annotation = parameter.parent<DTOAnnotation>()
                 val annotationClass = annotation.qualifiedName.clazz ?: return@complete
-                val anno = LanguageProcessor.analyze(parameter.file).annotation(annotationClass.qualifiedName!!)
-                val paramType = anno.params.filter { it.type.isAnnotation }.find { it.name == parameter.name.text }?.type ?: return@complete
-                result.addAllElements(
-                    listOfNotNull(
-                        JavaPsiFacade.getInstance(project)
-                                .findClass(
-                                    paramType.canonicalName,
-                                    ProjectScope.getAllScope(project),
-                                )
-                    ).lookUp()
-                )
+                val paramType = annotationClass.methods.find { it.name == parameter.name.text }?.returnType ?: return@complete
+                when (paramType) {
+                    is PsiArrayType -> result.addAllElements(listOfNotNull((paramType.componentType as PsiClassType).resolve()).lookUp())
+                    is PsiClassType -> result.addAllElements(listOfNotNull(paramType.resolve()).lookUp())
+                }
             },
             or(
                 identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)

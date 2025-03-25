@@ -16,7 +16,7 @@ import org.babyfish.jimmer.sql.Embeddable
 import org.babyfish.jimmer.sql.Entity
 import org.babyfish.jimmer.sql.MappedSuperclass
 
-class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
+class JavaProcessor : LanguageProcessor<PsiClass> {
     lateinit var project: Project
 
     override val resolvedType = mutableMapOf<String, LClass<PsiClass>>()
@@ -41,7 +41,7 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
                 qualifiedName,
                 false,
                 clazz.isAnnotationType,
-                clazz.annotations.mapNotNull(::resolve),
+                clazz.annotations.map(::resolve),
                 lazy { parents(clazz) },
                 lazy { properties(clazz) },
                 lazy { methods(clazz) },
@@ -63,7 +63,7 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
             clazz.methods
                     .filter { !it.isConstructor }
                     .map {
-                        val annotations = it.annotations.mapNotNull(::resolve)
+                        val annotations = it.annotations.map(::resolve)
                         // TODO 属性类型为Boolean时，jimmer.keepIsPrefix
                         val methodName = it.name
                         val name = if (methodName.startsWith("get") && methodName.length > 3 && methodName[3].isUpperCase()) {
@@ -77,7 +77,7 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
         } else {
             clazz.fields
                     .map {
-                        val annotations = it.annotations.mapNotNull(::resolve)
+                        val annotations = it.annotations.map(::resolve)
                         LProperty(it.name, annotations, resolve(it.type), it)
                     }
         }
@@ -91,7 +91,7 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
                     .filter { !it.isConstructor }
                     .map { method ->
                         val params = method.parameterList.parameters.map { LParam(it.name, resolve(it.type), it) }
-                        val annotations = method.annotations.mapNotNull(::resolve)
+                        val annotations = method.annotations.map(::resolve)
                         val returnType = method.returnType ?: throw IllegalStateException("Method must have return type")
 
                         LMethod(
@@ -100,7 +100,7 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
                             params,
                             LMethod.LReturnType(
                                 resolve(returnType),
-                                returnType.annotations.mapNotNull(::resolve),
+                                returnType.annotations.map(::resolve),
                                 annotations,
                             ),
                             method,
@@ -109,7 +109,7 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
         }
     }
 
-    override fun resolve(type: PsiType): LType {
+    fun resolve(type: PsiType): LType {
         return when (type) {
             is PsiPrimitiveType -> LType.ScalarType(type.name, type.nullable)
 
@@ -178,17 +178,8 @@ class JavaProcessor : LanguageProcessor<PsiClass, PsiAnnotation, PsiType> {
         }
     }
 
-    override fun resolve(annotation: PsiAnnotation): LAnnotation<*>? {
-        val clazz = annotation.resolveAnnotationType() ?: return null
-        return annotation(clazz)
-    }
-
-    override fun annotation(qualifiedName: String): LAnnotation<*> {
-        val clazz = project.psiClass(qualifiedName) ?: throw IllegalStateException("Can't find $qualifiedName")
-        return annotation(clazz)
-    }
-
-    override fun annotation(clazz: PsiClass): LAnnotation<*> {
+    fun resolve(annotation: PsiAnnotation): LAnnotation<*> {
+        val clazz = annotation.resolveAnnotationType() ?: throw IllegalStateException("Can't find annotation type ${annotation.qualifiedName}")
         val methods = clazz.methods
 
         return LAnnotation(
