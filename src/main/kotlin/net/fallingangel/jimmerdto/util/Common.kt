@@ -20,6 +20,7 @@ import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.JavaNullableType
 import org.babyfish.jimmer.sql.Entity
+import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationList
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolOrigin
 import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.analysis.api.types.symbol
@@ -120,6 +121,10 @@ inline fun <reified P> PsiElement.parent(): P {
 
 inline fun <reified P> PsiElement.parentUnSure(): P? {
     return parent as? P
+}
+
+operator fun KaAnnotationList.contains(annotation: KClass<out Annotation>): Boolean {
+    return annotation.qualifiedName in map { it.classId!!.asFqNameString() }
 }
 
 fun Project.notification(content: String, type: NotificationType = NotificationType.INFORMATION) {

@@ -5,6 +5,7 @@ import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.param.LParam
 import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.util.contains
 import net.fallingangel.jimmerdto.util.isInSource
 import net.fallingangel.jimmerdto.util.ktClass
 import org.babyfish.jimmer.sql.MappedSuperclass
@@ -17,7 +18,6 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaEnumEntrySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.analysis.api.types.*
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClass
 
 class KotlinProcessor : LanguageProcessor<KtClass> {
@@ -59,12 +59,10 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
     }
 
     override fun parents(clazz: KtClass): List<LClass<KtClass>> {
-        val mappedSuperclass = ClassId.fromString(MappedSuperclass::class.qualifiedName!!)
-
         return analyze(clazz) {
             val symbol = clazz.symbol as? KaClassSymbol ?: return emptyList()
             symbol.superTypes
-                    .filter { mappedSuperclass in it.annotations }
+                    .filter { MappedSuperclass::class in it.symbol!!.annotations }
                     .mapNotNull { it.symbol?.psi as? KtClass }
                     .map(::clazz)
         }
