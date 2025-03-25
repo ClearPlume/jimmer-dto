@@ -16,7 +16,7 @@ plugins {
 group = "net.fallingangel"
 version = "0.0.7.41"
 
-val since by extra("223.7571.182")
+val since by extra("242.24807.4")
 val until by extra("251.*")
 val jimmerVersion by extra("0.9.67")
 val antlrVersion by extra("4.13.2")
@@ -54,14 +54,14 @@ dependencies {
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_17
+        jvmTarget = JvmTarget.JVM_21
         freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
     }
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 changelog {
@@ -113,7 +113,13 @@ tasks {
     }
 
     runIde {
-        jvmArgs("-Xms128m", "-Xmx4096m", "-XX:ReservedCodeCacheSize=512m")
+        jvmArgs(
+            "-Xms128m",
+            "-Xmx4096m",
+            "-XX:ReservedCodeCacheSize=512m",
+            "-Didea.ProcessCanceledException=disabled",
+            "-Didea.kotlin.plugin.use.k2=true",
+        )
     }
 
     test {
