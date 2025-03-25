@@ -431,7 +431,7 @@ class DTOCompletionContributor : CompletionContributor() {
             },
             or(
                 identifier.withParent(DTOAnnotationParameter::class.java),
-                // 注解第一个参数
+                // 注解value参数
                 identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java),
             ),
         )
@@ -444,13 +444,29 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 val parameter = if (parameters.position.parent.parent.parent is DTONestAnnotation) {
-                    parameters.position.parent.parent.parent.parent.parent.parent<DTOAnnotationParameter>()
+                    val value = parameters.position.parent.parent.parent.parent.parent.parent
+                    // 数组参数中的嵌套注解层级更多
+                    if (value is DTOAnnotationParameter) {
+                        value
+                    } else {
+                        value.parent.parent as DTOAnnotationParameter
+                    }
                 } else {
-                    parameters.position.parent.parent.parent.parent.parent<DTOAnnotationParameter>()
+                    val value = parameters.position.parent.parent.parent.parent.parent
+                    // 数组参数中的嵌套注解层级更多
+                    if (value is DTOAnnotationParameter) {
+                        value
+                    } else {
+                        value.parent as DTOAnnotationParameter
+                    }
                 }
-                val annotation = parameter.parent<DTOAnnotation>()
-                val annotationClass = annotation.qualifiedName.clazz ?: return@complete
-                val paramType = annotationClass.methods.find { it.name == parameter.name.text }?.returnType ?: return@complete
+                val anno = parameter.parent
+                val annotationClass = if (anno is DTOAnnotation) {
+                    anno.qualifiedName.clazz
+                } else {
+                    parameter.parent<DTONestAnnotation>().qualifiedName.clazz
+                }
+                val paramType = annotationClass?.methods?.find { it.name == parameter.name.text }?.returnType ?: return@complete
                 when (paramType) {
                     is PsiArrayType -> result.addAllElements(listOfNotNull((paramType.componentType as PsiClassType).resolve()).lookUp())
                     is PsiClassType -> result.addAllElements(listOfNotNull(paramType.resolve()).lookUp())
@@ -459,8 +475,13 @@ class DTOCompletionContributor : CompletionContributor() {
             or(
                 identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)
                         .withSuperParent(5, DTOAnnotationParameter::class.java),
-                identifier.withSuperParent(3, DTONestAnnotation::class.java),
-            )
+                or(
+                    identifier.withSuperParent(3, DTONestAnnotation::class.java)
+                            .withSuperParent(6, DTOAnnotationParameter::class.java),
+                    identifier.withSuperParent(3, DTONestAnnotation::class.java)
+                            .withSuperParent(8, DTOAnnotationParameter::class.java),
+                ),
+            ),
         )
     }
 
