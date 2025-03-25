@@ -68,7 +68,7 @@ changelog {
     keepUnreleasedSection = false
     unreleasedTerm = "Unreleased"
     groups = listOf("Added", "Changed", "Deprecated", "Removed", "Fixed")
-    headerParserRegex = """^((0|[1-9]\d*)(\.(0|[1-9]\d*)){2,3}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)${'$'}"""
+    headerParserRegex = """^((0|[1-9]\d*)(\.(0|[1-9]\d*)){2,3}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)$"""
 }
 
 intellijPlatform {
@@ -113,7 +113,12 @@ tasks {
     }
 
     runIde {
-        jvmArgs("-Xms128m", "-Xmx4096m", "-XX:ReservedCodeCacheSize=512m")
+        jvmArgs(
+            "-Xms128m",
+            "-Xmx4096m",
+            "-XX:ReservedCodeCacheSize=512m",
+            "-Didea.ProcessCanceledException=disabled",
+        )
     }
 
     test {
