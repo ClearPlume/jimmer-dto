@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "net.fallingangel"
-version = "0.0.7.41-k1"
+version = "0.0.7.42-k1"
 
 val since by extra("223.7571.182")
 val until by extra("251.*")
@@ -54,21 +54,21 @@ dependencies {
 
 kotlin {
     compilerOptions {
-        jvmTarget = JvmTarget.JVM_17
+        jvmTarget = JvmTarget.JVM_21
         freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
     }
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 changelog {
     keepUnreleasedSection = false
     unreleasedTerm = "Unreleased"
     groups = listOf("Added", "Changed", "Deprecated", "Removed", "Fixed")
-    headerParserRegex = """^((0|[1-9]\d*)(\.(0|[1-9]\d*)){2,3}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)$"""
+    headerParserRegex = """^((0|[1-9]\d*)(\.(0|[1-9]\d*)){2,3}(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?)${'$'}"""
 }
 
 intellijPlatform {
@@ -116,8 +116,8 @@ tasks {
         jvmArgs(
             "-Xms128m",
             "-Xmx4096m",
-            "-XX:ReservedCodeCacheSize=512m",
             "-Didea.ProcessCanceledException=disabled",
+            "-Didea.kotlin.plugin.use.k2=true",
         )
     }
 

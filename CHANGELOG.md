@@ -10,6 +10,30 @@
 
 * Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
 
+## [0.0.7.42] - 2025-03-26
+
+### Added
+
+* Annotation parameter value hints (annotation type parameters)
+
+### Deprecated
+
+* Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
+
+### Fixed
+
+* Issue [#58](https://github.com/ClearPlume/jimmer-dto/issues/58): Adjust the way to determine the language of the project
+
+## [0.0.7.412] - 2025-03-25
+
+### Added
+
+* Added support for k2 mode
+
+### Deprecated
+
+* Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
+
 ## [0.0.7.41] - 2025-03-21
 
 ### Added
