@@ -1,6 +1,5 @@
 package net.fallingangel.jimmerdto.lsi.processor
 
-import com.intellij.openapi.project.Project
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.param.LParam
@@ -15,7 +14,6 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
-import org.jetbrains.kotlin.idea.search.usagesSearch.descriptor
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
@@ -26,14 +24,8 @@ import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlinx.serialization.compiler.resolve.toClassDescriptor
 
-class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType> {
-    lateinit var project: Project
-
+class KotlinProcessor : LanguageProcessor<KtClass> {
     override val resolvedType = mutableMapOf<String, LClass<KtClass>>()
-
-    override fun init(project: Project) {
-        this.project = project
-    }
 
     override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == KotlinLanguage.INSTANCE
 
@@ -104,7 +96,7 @@ class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType
                 }
     }
 
-    override fun resolve(type: KotlinType): LType {
+    fun resolve(type: KotlinType): LType {
         val builtIns = DefaultBuiltIns.Instance
 
         val nullable = type.isMarkedNullable
@@ -182,36 +174,22 @@ class KotlinProcessor : LanguageProcessor<KtClass, KtAnnotationEntry, KotlinType
         }
     }
 
-    override fun resolve(annotation: KtAnnotationEntry): LAnnotation<*> {
-        return annotation(annotation.qualifiedName)
-    }
+    fun resolve(annotation: KtAnnotationEntry): LAnnotation<*> {
+        val qualifiedName = annotation.qualifiedName
+        val annotationType = annotation.analyze(BodyResolveMode.PARTIAL)[BindingContext.TYPE, annotation.typeReference]
+        annotationType ?: throw IllegalStateException("KtAnnotationEntry must resolve to a KotlinType")
+        val descriptor = annotationType.toClassDescriptor!!
 
-    override fun annotation(qualifiedName: String): LAnnotation<*> {
-        val ktClass = project.ktClass(qualifiedName).getOrNull(0)
+        val params = descriptor
+                .unsubstitutedMemberScope
+                .getContributedDescriptors()
+                .filterIsInstance<PropertyDescriptor>()
+                .map { LParam(it.name.asString(), resolve(it.type), DescriptorToSourceUtils.getSourceFromDescriptor(it)) }
 
-        return if (ktClass != null) {
-            annotation(ktClass)
-        } else {
-            // 有些注解没有kt版本，需要从java版本解析
-            val processor = LanguageProcessor.extensionPointName.findFirstSafe { it is JavaProcessor }!!
-            processor.init(project)
-            processor.annotation(qualifiedName)
-        }
-    }
-
-    override fun annotation(clazz: KtClass): LAnnotation<*> {
-        val params = clazz.primaryConstructorParameters
-                .map {
-                    LParam(
-                        it.name!!,
-                        resolve((it.resolveToDescriptorIfAny() as? CallableDescriptor)?.returnType!!),
-                        DescriptorToSourceUtils.getSourceFromDescriptor(it.descriptor!!),
-                    )
-                }
         return LAnnotation(
-            clazz.name!!,
-            clazz.fqName!!.asString(),
-            clazz,
+            qualifiedName.substringAfterLast('.'),
+            qualifiedName,
+            DescriptorToSourceUtils.getSourceFromDescriptor(descriptor),
             params,
         )
     }
