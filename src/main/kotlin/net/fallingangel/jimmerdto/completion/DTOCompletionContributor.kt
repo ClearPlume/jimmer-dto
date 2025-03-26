@@ -430,48 +430,86 @@ class DTOCompletionContributor : CompletionContributor() {
             },
             or(
                 identifier.withParent(DTOAnnotationParameter::class.java),
-                // 注解value参数
+                // value参数
                 identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java),
             ),
         )
     }
 
     /**
-     * 注解参数值提示
+     * 注解参数值提示(目前只有注解类型的参数实现了提示)
      */
     private fun completeAnnotationParamValue() {
         complete(
             { parameters, result ->
-                val parameter = if (parameters.position.parent.parent.parent is DTONestAnnotation) {
-                    val value = parameters.position.parent.parent.parent.parent.parent.parent
-                    // 数组参数中的嵌套注解层级更多
-                    value as? DTOAnnotationParameter ?: value.parent.parent as DTOAnnotationParameter
+                val tripe = parameters.position.parent.parent.parent
+
+                // @anno(param = dummy)
+                val (param, anno) = if (tripe is DTOAnnotationSingleValue) {
+                    // SingleValue往上二级或者三级是Parameter
+                    val upper = tripe.parent.parent
+                    val param = upper as? DTOAnnotationParameter ?: upper.parent.parent as DTOAnnotationParameter
+                    // Parameter父级是Annotation
+                    param.name.text to param.parent as DTOAnnotation
                 } else {
-                    val value = parameters.position.parent.parent.parent.parent.parent
-                    // 数组参数中的嵌套注解层级更多
-                    value as? DTOAnnotationParameter ?: value.parent as DTOAnnotationParameter
+                    val nestAnno = tripe as DTONestAnnotation
+                    val upper = nestAnno.parent.parent
+                    // NestAnnotation往上二级
+                    when (upper) {
+                        is DTOAnnotationParameter -> upper.name.text to upper.parent as DTOAnnotation
+
+                        is DTOAnnotationValue -> when {
+                            // value父级为注解
+                            upper.parent is DTOAnnotation -> "value" to upper.parent as DTOAnnotation
+
+                            // value父级为数组
+                            upper.parent is DTOAnnotationArrayValue -> if (upper.parent.parent.parent is DTOAnnotation) {
+                                "value" to upper.parent.parent.parent as DTOAnnotation
+                            } else {
+                                val param = upper.parent.parent.parent as DTOAnnotationParameter
+                                param.name.text to param.parent as DTOAnnotation
+                            }
+
+                            // value父级为param
+                            else -> {
+                                val param = upper.parent as DTOAnnotationParameter
+                                param.name.text to param.parent as DTOAnnotation
+                            }
+                        }
+
+                        else -> {
+                            val param = upper.parent.parent as DTOAnnotationParameter
+                            param.name.text to param.parent as DTOAnnotation
+                        }
+                    }
                 }
-                val anno = parameter.parent
-                val annotationClass = if (anno is DTOAnnotation) {
-                    anno.qualifiedName.clazz
-                } else {
-                    parameter.parent<DTONestAnnotation>().qualifiedName.clazz
-                }
-                val paramType = annotationClass?.methods?.find { it.name == parameter.name.text }?.returnType ?: return@complete
+
+                val annotationClass = anno.qualifiedName.clazz
+                val paramType = annotationClass?.methods?.find { it.name == param }?.returnType ?: return@complete
                 when (paramType) {
                     is PsiArrayType -> result.addAllElements(listOfNotNull((paramType.componentType as PsiClassType).resolve()).lookUp())
                     is PsiClassType -> result.addAllElements(listOfNotNull(paramType.resolve()).lookUp())
                 }
             },
             or(
+                // @Anno(param = <caret>)
                 identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)
                         .withSuperParent(5, DTOAnnotationParameter::class.java),
-                or(
-                    identifier.withSuperParent(3, DTONestAnnotation::class.java)
-                            .withSuperParent(6, DTOAnnotationParameter::class.java),
-                    identifier.withSuperParent(3, DTONestAnnotation::class.java)
-                            .withSuperParent(8, DTOAnnotationParameter::class.java),
-                ),
+                // @Anno(param = [<caret>])
+                identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)
+                        .withSuperParent(7, DTOAnnotationParameter::class.java),
+                // @Anno(param = Ne<caret>st())
+                identifier.withSuperParent(3, DTONestAnnotation::class.java)
+                        .withSuperParent(6, DTOAnnotationParameter::class.java),
+                // @Anno(param = [Ne<caret>st()])
+                identifier.withSuperParent(3, DTONestAnnotation::class.java)
+                        .withSuperParent(8, DTOAnnotationParameter::class.java),
+                // @Anno(Ne<caret>st())
+                identifier.withSuperParent(3, DTONestAnnotation::class.java)
+                        .withSuperParent(5, DTOAnnotationValue::class.java),
+                // @Anno([Ne<caret>st()])
+                identifier.withSuperParent(3, DTONestAnnotation::class.java)
+                        .withSuperParent(7, DTOAnnotationValue::class.java),
             ),
         )
     }
