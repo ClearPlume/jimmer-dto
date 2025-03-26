@@ -26,7 +26,6 @@ import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.LType
 import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.DTOFile
-import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.DTOParser.*
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.structure.LookupInfo
@@ -446,19 +445,11 @@ class DTOCompletionContributor : CompletionContributor() {
                 val parameter = if (parameters.position.parent.parent.parent is DTONestAnnotation) {
                     val value = parameters.position.parent.parent.parent.parent.parent.parent
                     // 数组参数中的嵌套注解层级更多
-                    if (value is DTOAnnotationParameter) {
-                        value
-                    } else {
-                        value.parent.parent as DTOAnnotationParameter
-                    }
+                    value as? DTOAnnotationParameter ?: value.parent.parent as DTOAnnotationParameter
                 } else {
                     val value = parameters.position.parent.parent.parent.parent.parent
                     // 数组参数中的嵌套注解层级更多
-                    if (value is DTOAnnotationParameter) {
-                        value
-                    } else {
-                        value.parent as DTOAnnotationParameter
-                    }
+                    value as? DTOAnnotationParameter ?: value.parent as DTOAnnotationParameter
                 }
                 val anno = parameter.parent
                 val annotationClass = if (anno is DTOAnnotation) {
@@ -616,7 +607,7 @@ class DTOCompletionContributor : CompletionContributor() {
                             .lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
                 )
             },
-            lsiElement(token[DTOParser.PropConfigName]),
+            lsiElement(token[ParserPropConfig]),
         )
     }
 
