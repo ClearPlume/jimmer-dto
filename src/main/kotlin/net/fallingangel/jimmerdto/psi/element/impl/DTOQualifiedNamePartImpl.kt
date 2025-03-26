@@ -15,6 +15,7 @@ import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
 import net.fallingangel.jimmerdto.util.*
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.nj2k.replace
 
 class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQualifiedNamePart {
     override val part: String
@@ -125,9 +126,11 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
                 }
 
                 else -> file.clazz.findPropertyOrNull(propPath + firstPart)?.source
+                    ?: file.clazz.findPropertyOrNull(propPath + firstPart.removeSuffix("Id"))?.source
             }
         } else {
             val resolvedProperty = file.clazz.findPropertyOrNull(propPath + qualified)?.source
+                ?: file.clazz.findPropertyOrNull(propPath + qualified.replace(qualified.last(), qualified.last().removeSuffix("Id")))?.source
             val resolvedPackage = resolvedProperty ?: JavaPsiFacade.getInstance(project).findPackage(qualified.joinToString("."))
             resolvedPackage ?: JavaPsiFacade.getInstance(project).findClass(qualified.joinToString("."), scope)
         }
