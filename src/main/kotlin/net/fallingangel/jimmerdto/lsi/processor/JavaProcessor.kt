@@ -1,7 +1,6 @@
 package net.fallingangel.jimmerdto.lsi.processor
 
 import com.intellij.lang.java.JavaLanguage
-import com.intellij.openapi.project.Project
 import com.intellij.psi.*
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
@@ -17,13 +16,7 @@ import org.babyfish.jimmer.sql.Entity
 import org.babyfish.jimmer.sql.MappedSuperclass
 
 class JavaProcessor : LanguageProcessor<PsiClass> {
-    lateinit var project: Project
-
     override val resolvedType = mutableMapOf<String, LClass<PsiClass>>()
-
-    override fun init(project: Project) {
-        this.project = project
-    }
 
     override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == JavaLanguage.INSTANCE
 

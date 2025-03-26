@@ -1,7 +1,6 @@
 package net.fallingangel.jimmerdto.lsi
 
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.psi.DTOFile
@@ -13,8 +12,6 @@ interface LanguageProcessor<C : PsiElement> {
     val resolvedType: MutableMap<String, LClass<C>>
 
     fun clearTypeCache() = resolvedType.clear()
-
-    fun init(project: Project)
 
     fun supports(dtoFile: DTOFile): Boolean
 
@@ -33,8 +30,7 @@ interface LanguageProcessor<C : PsiElement> {
 
         fun analyze(dtoFile: DTOFile): LanguageProcessor<*> {
             val processor = extensionPointName.findFirstSafe { it.supports(dtoFile) }
-            return processor?.apply { init(dtoFile.project) }
-                ?: throw UnsupportedLanguageException("Unsupported language: ${dtoFile.projectLanguage}")
+            return processor ?: throw UnsupportedLanguageException("Unsupported language: ${dtoFile.projectLanguage}")
         }
     }
 }

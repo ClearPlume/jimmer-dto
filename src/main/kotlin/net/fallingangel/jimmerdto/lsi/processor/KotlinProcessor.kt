@@ -1,6 +1,5 @@
 package net.fallingangel.jimmerdto.lsi.processor
 
-import com.intellij.openapi.project.Project
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.param.LParam
@@ -21,13 +20,7 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtClass
 
 class KotlinProcessor : LanguageProcessor<KtClass> {
-    lateinit var project: Project
-
     override val resolvedType = mutableMapOf<String, LClass<KtClass>>()
-
-    override fun init(project: Project) {
-        this.project = project
-    }
 
     override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == KotlinLanguage.INSTANCE
 
