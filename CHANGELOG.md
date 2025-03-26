@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+* Annotation parameter value hints (annotation type parameters)
+
 ### Deprecated
 
 * Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
