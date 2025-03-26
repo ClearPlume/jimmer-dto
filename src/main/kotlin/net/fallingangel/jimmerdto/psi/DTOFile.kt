@@ -3,11 +3,10 @@ package net.fallingangel.jimmerdto.psi
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.Key
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
@@ -28,6 +27,7 @@ import net.fallingangel.jimmerdto.psi.element.DTOImportStatement
 import net.fallingangel.jimmerdto.util.contentRoot
 import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
+import net.fallingangel.jimmerdto.util.notification
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLanguage) {
@@ -47,12 +47,25 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
 
     val projectLanguage: Language
         get() {
-            val fileIndex = ProjectRootManager.getInstance(project).fileIndex
-            val root = fileIndex.getContentRootForFile(originalFile.virtualFile) ?: throw IllegalStateException("Source root is null")
+            val firstLine = text.lines().first { it.isNotBlank() }
+            val hasExport = firstLine.matches(Regex("""export \w+(\.\w+)*"""))
+
+            val entity = if (hasExport) {
+                firstLine.substringAfter("export ")
+            } else {
+                "$implicitPackage.${originalFile.virtualFile.nameWithoutExtension}"
+            }
+
+            val entityClass = JavaPsiFacade.getInstance(project).findClass(entity, ProjectScope.getContentScope(project))
+            entityClass ?: run {
+                project.notification("Can't retrieve the entity `$entity` DTO correspondence, please check!", NotificationType.ERROR)
+                throw IllegalStateException("Entity class $entity is null")
+            }
+
             return when {
-                root.findChild("java") != null -> JavaLanguage.INSTANCE
-                root.findChild("kotlin") != null -> KotlinLanguage.INSTANCE
-                else -> throw UnsupportedLanguageException(root.children.joinToString(prefix = "[", postfix = "]", transform = VirtualFile::getName))
+                entityClass.language is JavaLanguage -> JavaLanguage.INSTANCE
+                entityClass.language is KotlinLanguage -> KotlinLanguage.INSTANCE
+                else -> throw UnsupportedLanguageException("Unsupported language ${entityClass.language}")
             }
         }
 
