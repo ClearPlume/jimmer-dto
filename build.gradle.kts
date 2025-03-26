@@ -17,7 +17,7 @@ group = "net.fallingangel"
 version = "0.0.7.42-k1"
 
 val since by extra("223.7571.182")
-val until by extra("251.*")
+val until by extra("241.*")
 val jimmerVersion by extra("0.9.67")
 val antlrVersion by extra("4.13.2")
 
