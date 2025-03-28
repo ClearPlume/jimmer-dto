@@ -7,7 +7,6 @@ import net.fallingangel.jimmerdto.psi.element.DTOAlias
 import net.fallingangel.jimmerdto.psi.element.DTOVisitor
 import net.fallingangel.jimmerdto.psi.element.createAlias
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
-import net.fallingangel.jimmerdto.refenerce.DTOReference
 import net.fallingangel.jimmerdto.util.findChild
 
 class DTOAliasImpl(node: ASTNode) : DTONamedElementImpl(node), DTOAlias {
@@ -21,8 +20,6 @@ class DTOAliasImpl(node: ASTNode) : DTONamedElementImpl(node), DTOAlias {
     override fun newNameNode(name: String): ASTNode {
         return project.createAlias(name).node
     }
-
-    override fun getReference() = DTOReference(this, textRangeInParent)
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {
