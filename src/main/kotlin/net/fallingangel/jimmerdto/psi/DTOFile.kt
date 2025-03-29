@@ -96,12 +96,22 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             val classDependencies = mutableSetOf<PsiElement>()
             clazz.collectPsiElements(classDependencies)
 
-            CachedValueProvider.Result.create(
-                clazz,
-                DumbService.getInstance(project).modificationTracker,
-                ProjectRootModificationTracker.getInstance(project),
-                *classDependencies.toTypedArray(),
-            )
+            if (export == null) {
+                CachedValueProvider.Result.create(
+                    clazz,
+                    DumbService.getInstance(project).modificationTracker,
+                    ProjectRootModificationTracker.getInstance(project),
+                    *classDependencies.toTypedArray(),
+                )
+            } else {
+                CachedValueProvider.Result.create(
+                    clazz,
+                    DumbService.getInstance(project).modificationTracker,
+                    ProjectRootModificationTracker.getInstance(project),
+                    *classDependencies.toTypedArray(),
+                    export,
+                )
+            }
         }
 
     val dtos: List<String>
