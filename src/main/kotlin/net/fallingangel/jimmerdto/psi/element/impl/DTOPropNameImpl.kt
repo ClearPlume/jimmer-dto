@@ -14,8 +14,6 @@ class DTOPropNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOPropName {
         return this
     }
 
-    override fun getName() = value
-
     override fun newNameNode(name: String): ASTNode {
         return project.createPropName(name).node
     }
