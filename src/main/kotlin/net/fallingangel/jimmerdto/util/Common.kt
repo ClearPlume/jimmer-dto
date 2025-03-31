@@ -152,7 +152,7 @@ fun Project.psiClass(qualifiedName: String): PsiClass? {
 }
 
 fun Project.ktClass(qualifiedName: String): List<KtClass> {
-    val results = KotlinFullClassNameIndex.get(qualifiedName, this, ProjectScope.getAllScope(this))
+    val results = KotlinFullClassNameIndex[qualifiedName, this, ProjectScope.getAllScope(this)]
     return results.filterIsInstance<KtClass>().toList()
 }
 
