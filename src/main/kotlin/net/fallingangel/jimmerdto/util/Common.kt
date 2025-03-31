@@ -30,7 +30,9 @@ import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 import org.jetbrains.kotlin.idea.util.findAnnotation
 import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtAnnotated
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import javax.swing.Icon
 import kotlin.reflect.KClass
 
@@ -53,7 +55,7 @@ val PsiClass.isInSource: Boolean
     }
 
 val KaType.isInSource: Boolean
-    get() = symbol?.origin?.let { it in listOf(KaSymbolOrigin.SOURCE, KaSymbolOrigin.JAVA_SOURCE) } ?: false
+    get() = symbol?.origin?.let { it in listOf(KaSymbolOrigin.SOURCE, KaSymbolOrigin.JAVA_SOURCE) } == true
 
 @Suppress("UnstableApiUsage")
 val PsiClass.icon: Icon
