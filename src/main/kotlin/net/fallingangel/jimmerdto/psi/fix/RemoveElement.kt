@@ -1,17 +1,25 @@
 package net.fallingangel.jimmerdto.psi.fix
 
-import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.project.Project
+import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModPsiUpdater
+import com.intellij.modcommand.PsiUpdateModCommandAction
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 
-class RemoveElement(private val name: String, private val element: PsiElement) : BaseFix() {
-    override fun getText() = "Remove `$name`"
+/**
+ * @param targetSelector 纯函数
+ * @param relatedElementsFinder 纯函数
+ */
+@Suppress("UnstableApiUsage")
+class RemoveElement(
+    private val displayName: String,
+    anchor: PsiElement,
+    private val targetSelector: (PsiElement) -> PsiElement = { it },
+    private val relatedElementsFinder: (PsiElement) -> List<PsiElement> = { emptyList() },
+) : PsiUpdateModCommandAction<PsiElement>(anchor) {
+    override fun getFamilyName() = "Remove `$displayName`"
 
-    override fun invoke(project: Project, editor: Editor, file: PsiFile) {
-        WriteCommandAction.runWriteCommandAction(project) {
-            element.parent.node.removeChild(element.node)
-        }
+    override fun invoke(context: ActionContext, element: PsiElement, updater: ModPsiUpdater) {
+        relatedElementsFinder(element).forEach(PsiElement::delete)
+        targetSelector(element).delete()
     }
 }
