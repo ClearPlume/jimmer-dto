@@ -47,14 +47,13 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
 
     val projectLanguage: Language
         get() {
-            val firstLine = text.lines().first { it.isNotBlank() }
-            val hasExport = firstLine.matches(Regex("""export \w+(\.\w+)*"""))
-
-            val entity = if (hasExport) {
-                firstLine.substringAfter("export ")
-            } else {
-                "$implicitPackage.${originalFile.virtualFile.nameWithoutExtension}"
+            val exportLine = Regex("""export\s+\w+(\s*\.\s*\w+)*""").find(text)?.value
+            val entity = exportLine?.let {
+                generateSequence(Regex("""\w+""").find(it, 6), MatchResult::next)
+                        .map { it.value }
+                        .joinToString(separator = ".")
             }
+                ?: "$implicitPackage.${originalFile.virtualFile.nameWithoutExtension}"
 
             val entityClass = JavaPsiFacade.getInstance(project).findClass(entity, ProjectScope.getContentScope(project))
             entityClass ?: run {

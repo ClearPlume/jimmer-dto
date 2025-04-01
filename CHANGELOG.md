@@ -7,6 +7,10 @@
 * Annotation parameter value hints (annotation type parameters)
 * Annotation parameter reference parsing, prompting, verification, refactoring, and quick fixing
 
+### Fixed
+
+* Issue [#59](https://github.com/ClearPlume/jimmer-dto/issues/59): Fixed when the first statement is not at the beginning of the DTO file, it cannot be extracted correctly
+
 ### Deprecated
 
 * Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
