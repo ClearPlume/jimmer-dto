@@ -416,22 +416,55 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeAnnotationParam() {
         complete(
             { parameters, result ->
-                val annotationClass = when (val parent = parameters.position.parent.parent) {
-                    is DTOAnnotation -> parent.qualifiedName.clazz
-                    is DTONestAnnotation -> parent.qualifiedName.clazz
-                    else -> when (val p = parameters.position.parent.parent.parent.parent.parent) {
-                        is DTOAnnotation -> p.qualifiedName.clazz
-                        is DTONestAnnotation -> p.qualifiedName.clazz
-                        else -> null
+                val (annotationClass, params) = when (val parent = parameters.position.parent.parent) {
+                    is DTOAnnotation -> parent.qualifiedName.clazz to parent.params.map { it.name.text }
+                    is DTONestAnnotation -> parent.qualifiedName.clazz to parent.params.map { it.name.text }
+                    else -> when (val anno = parameters.position.parent.parent.parent.parent.parent) {
+                        is DTOAnnotation -> anno.qualifiedName.clazz to anno.params.map { it.name.text }
+                        is DTONestAnnotation -> anno.qualifiedName.clazz to anno.params.map { it.name.text }
+                        else -> null to emptyList()
                     }
                 }
                 annotationClass ?: return@complete
-                result.addAllElements(annotationClass.methods.toList().lookUp())
+                val project = annotationClass.project
+                val stringType = project.stringType
+                val elements = annotationClass.methods
+                        .filter { it.name !in params }
+                        .map {
+                            val paramType = it.returnType
+                            val default = when {
+                                parameters.position.parent is DTOAnnotationParameter -> ""
+                                paramType == stringType -> " = \"\""
+                                paramType is PsiArrayType && paramType.componentType == stringType -> " = [\"\"]"
+                                paramType == PsiTypes.charType() -> " = ''"
+                                paramType is PsiArrayType && paramType.componentType == PsiTypes.charType() -> " = ['']"
+                                else -> " = "
+                            }
+                            LookupElementBuilder.create(it.name + default)
+                                    .withIcon(AllIcons.Nodes.Property)
+                                    .withPresentableText(it.name)
+                                    .withTailText(default, true)
+                                    .withTypeText(paramType?.canonicalText, true)
+                                    .withInsertHandler { context, element ->
+                                        val offset = if (default in listOf(" = ", "")) {
+                                            0
+                                        } else {
+                                            if (paramType is PsiArrayType) {
+                                                2
+                                            } else {
+                                                1
+                                            }
+                                        }
+                                        context.editor.caretModel.moveToOffset(context.tailOffset - offset)
+                                    }
+                        }
+                result.addAllElements(elements)
             },
             or(
                 identifier.withParent(DTOAnnotationParameter::class.java),
-                // value参数
-                identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java),
+                // 还没有输入参数时的情况
+                identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)
+                        .andNot(identifier.withParent(PsiErrorElement::class.java)),
             ),
         )
     }
@@ -442,6 +475,10 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeAnnotationParamValue() {
         complete(
             { parameters, result ->
+                if (parameters.position.parent is DTOAnnotationParameter) {
+                    return@complete
+                }
+
                 val tripe = parameters.position.parent.parent.parent
 
                 // @anno(param = dummy)
@@ -485,19 +522,23 @@ class DTOCompletionContributor : CompletionContributor() {
                 }
 
                 val annotationClass = anno.qualifiedName.clazz
-                val paramType = annotationClass?.methods?.find { it.name == param }?.returnType ?: return@complete
-                when (paramType) {
-                    is PsiArrayType -> result.addAllElements(listOfNotNull((paramType.componentType as PsiClassType).resolve()).lookUp())
-                    is PsiClassType -> result.addAllElements(listOfNotNull(paramType.resolve()).lookUp())
+                val paramType = annotationClass?.methods?.find { it.name == param }?.returnType?.extract ?: return@complete
+                if (paramType is PsiClassType) {
+                    val clazz = paramType.resolve()
+                    if (clazz?.isAnnotationType == true) {
+                        result.addAllElements(listOf(clazz).lookUp())
+                    }
                 }
             },
             or(
                 // @Anno(param = <caret>)
                 identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)
-                        .withSuperParent(5, DTOAnnotationParameter::class.java),
+                        .withSuperParent(5, DTOAnnotationParameter::class.java)
+                        .andNot(identifier.withParent(PsiErrorElement::class.java)),
                 // @Anno(param = [<caret>])
                 identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)
-                        .withSuperParent(7, DTOAnnotationParameter::class.java),
+                        .withSuperParent(7, DTOAnnotationParameter::class.java)
+                        .andNot(identifier.withParent(PsiErrorElement::class.java)),
                 // @Anno(param = Ne<caret>st())
                 identifier.withSuperParent(3, DTONestAnnotation::class.java)
                         .withSuperParent(6, DTOAnnotationParameter::class.java),
@@ -860,14 +901,6 @@ class DTOCompletionContributor : CompletionContributor() {
                         FileContentUtilCore.reparseFiles(file.virtualFile)
                     }
                 }
-                .customizer()
-    }
-
-    @JvmName("lookupPsiMethod")
-    private fun List<PsiMethod>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }) = map {
-        LookupElementBuilder.create(it.name)
-                .withIcon(AllIcons.Nodes.Property)
-                .withTypeText(it.returnType?.canonicalText, true)
                 .customizer()
     }
 
