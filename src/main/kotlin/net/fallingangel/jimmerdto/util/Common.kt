@@ -104,26 +104,29 @@ val KtLightClass.icon: Icon
 val PsiType.nullable: Boolean
     get() = presentableText in JavaNullableType.values().map { it.name }
 
-/**
- * 仅限于枚举参数类型
- */
 val PsiType?.defaultValue: String
     get() = when (this) {
         is PsiPrimitiveType -> when (this) {
+            PsiType.BYTE -> "0"
+            PsiType.SHORT -> "0"
+            PsiType.INT -> "0"
             PsiType.LONG -> "0L"
             PsiType.DOUBLE -> "0.0D"
             PsiType.FLOAT -> "0.0"
             PsiType.BOOLEAN -> "false"
             PsiType.CHAR -> "''"
-            else -> "0"
+            PsiType.NULL -> "null"
+            else -> "void"
         }
 
         is PsiArrayType -> "[${componentType.defaultValue}]"
 
-        is PsiClassType -> if (canonicalText == "java.lang.String") {
-            "\"\""
-        } else {
-            "null"
+        is PsiClassType -> when (canonicalText) {
+            "java.lang.String" -> "\"\""
+            "java.util.List" -> "[${parameters[0].defaultValue}]"
+            "java.util.Set" -> "[${parameters[0].defaultValue}]"
+            "java.util.Queue" -> "[${parameters[0].defaultValue}]"
+            else -> "null"
         }
 
         else -> "null"
@@ -157,6 +160,20 @@ val PsiType.regex: String?
 
 val Project.stringType: PsiClassType
     get() = PsiClassType.getTypeByName("java.lang.String", this, ProjectScope.getAllScope(this))
+
+val PsiType.extract: PsiType
+    get() = when (this) {
+        is PsiArrayType -> componentType.extract
+
+        is PsiClassType -> when (canonicalText) {
+            "java.util.List" -> parameters[0].extract
+            "java.util.Set" -> parameters[0].extract
+            "java.util.Queue" -> parameters[0].extract
+            else -> this
+        }
+
+        else -> this
+    }
 
 /**
  * 获取KtAnnotationEntry对应注解的全限定名
