@@ -1,6 +1,6 @@
 package net.fallingangel.jimmerdto.highlighting
 
-import com.intellij.codeInsight.intention.impl.BaseIntentionAction
+import com.intellij.codeInsight.intention.CommonIntentionAction
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.diagnostic.PluginException
 import com.intellij.lang.annotation.AnnotationHolder
@@ -8,12 +8,10 @@ import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.project.Project
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiPackage
+import com.intellij.psi.*
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
+import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
@@ -23,6 +21,7 @@ import net.fallingangel.jimmerdto.lsi.findProperty
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
+import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.GenericType
 import net.fallingangel.jimmerdto.util.*
 
@@ -102,7 +101,7 @@ class DTOAnnotator : Annotator {
                     modifier.error(
                         "Duplicated modifier `${modifier.text}`",
                         RemoveElement(modifier.text, modifier),
-                        DTOSyntaxHighlighter.DUPLICATION,
+                        style = DTOSyntaxHighlighter.DUPLICATION,
                     )
                 }
             }
@@ -114,6 +113,9 @@ class DTOAnnotator : Annotator {
         override fun visitAnnotation(o: DTOAnnotation) {
             o.at.style(DTOSyntaxHighlighter.ANNOTATION)
             o.qualifiedName.style(DTOSyntaxHighlighter.ANNOTATION)
+
+            val clazz = o.qualifiedName.clazz ?: return
+            visitAnnotationParams(o, clazz, o.params, o.value != null)
         }
 
         /**
@@ -122,14 +124,142 @@ class DTOAnnotator : Annotator {
         override fun visitNestAnnotation(o: DTONestAnnotation) {
             o.at?.style(DTOSyntaxHighlighter.ANNOTATION)
             o.qualifiedName.style(DTOSyntaxHighlighter.ANNOTATION)
+
+            val clazz = o.qualifiedName.clazz ?: return
+            visitAnnotationParams(o, clazz, o.params, o.value != null)
+        }
+
+        /**
+         * @param haveValue 是否存在value参数
+         */
+        fun visitAnnotationParams(o: DTOElement, clazz: PsiClass, params: List<DTOAnnotationParameter>, haveValue: Boolean) {
+            if (params.any { it.value == null }) {
+                return
+            }
+
+            // 必要参数是否给全
+            val allParams = clazz.methods
+                    .filterIsInstance<PsiAnnotationMethod>()
+                    .filter { it.defaultValue == null }
+                    .associateBy { it.name }
+                    .toSortedMap()
+            val currParams = params.map { it.name.text }.sorted()
+            val notGivenParams = allParams - currParams - if (haveValue) listOf("value") else emptyList()
+            if (notGivenParams.isNotEmpty()) {
+                if (o is DTOAnnotation) {
+                    o.qualifiedName.error(
+                        "Not all the parameters required for `${o.qualifiedName.value}` are given",
+                        GenerateMissingAnnotationParam(o, notGivenParams.values),
+                    )
+                } else {
+                    o as DTONestAnnotation
+                    o.qualifiedName.error(
+                        "Not all the parameters required for `${o.qualifiedName.value}` are given",
+                        GenerateMissingAnnotationParam(o, notGivenParams.values),
+                    )
+                }
+            }
+
+            // 参数类型是否匹配
+            params.forEach { param ->
+                val method = param.resolve() as? PsiAnnotationMethod ?: return@forEach
+                val type = method.returnType ?: return@forEach
+                // 开头第一行已经针对任意参数没有value的情况处理，所以可以直接『!!』
+                val value = param.value!!
+                val regex = type.regex?.toRegex()
+                if (regex != null && !value.text.matches(regex)) {
+                    value.error("`${value.text}` cannot be applied to `${type.canonicalText}`")
+                } else if (type is PsiClassType) {
+                    val actualValue = processValue(value) ?: return@forEach
+                    val valueClass = (actualValue.nestAnnotation?.qualifiedName ?: actualValue.qualifiedName)?.clazz
+                    if (valueClass != type.resolve()) {
+                        value.error("`${value.text}` cannot be applied to `${type.canonicalText}`")
+                    }
+                }
+            }
+        }
+
+        private fun processValue(value: DTOAnnotationValue): DTOAnnotationSingleValue? {
+            val singleValue = value.singleValue
+            val arrayValue = value.arrayValue
+
+            if (singleValue != null) {
+                return singleValue
+            }
+            if (arrayValue != null) {
+                val arrayValue = arrayValue.values.firstOrNull() ?: return null
+                return processValue(arrayValue)
+            }
+
+            throw IllegalStateException("Both 'singleValue' and 'arrayValue' are null")
+        }
+
+        /**
+         * 为注解参数上色
+         */
+        override fun visitAnnotationValue(o: DTOAnnotationValue) {
+            val at = o.sibling<PsiElement>(false) { it.elementType == DTOLanguage.token[DTOParser.At] }
+            if (at != null) {
+                val prevSibling = o.siblings(forward = false, withSelf = false)
+                        .filter { it.elementType != TokenType.WHITE_SPACE }
+                        .first()
+                if (prevSibling.elementType != DTOLanguage.token[DTOParser.LParen]) {
+                    val anno = o.parent
+                    val params = if (anno is DTOAnnotation) {
+                        anno.params
+                    } else {
+                        anno as DTONestAnnotation
+                        anno.params
+                    }
+                    if (params.any { it.value == null }) {
+                        return
+                    }
+                    if (params.any { it.name.text == "value" }) {
+                        return
+                    }
+                    o.error(
+                        "value shorthand must be first or written as 'value = '",
+                        MoveAnnotationParam(o),
+                        AddValueParameterName(o),
+                    )
+                }
+            }
         }
 
         /**
          * 为注解参数名上色
          */
         override fun visitAnnotationParameter(o: DTOAnnotationParameter) {
-            o.name.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
-            o.eq.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
+            if (o.value == null) {
+                o.eq.error("Missing value after '='")
+            }
+            if (o.resolve() != null) {
+                o.name.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
+                o.eq.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
+            } else if (o.value != null) {
+                val name = o.name.text
+                o.name.error(
+                    "No param with name '$name' found",
+                    RemoveElement(
+                        name,
+                        o.parent,
+                        { anno ->
+                            anno.children
+                                    .filterIsInstance<DTOAnnotationParameter>()
+                                    .find { it.name.text == name }!!
+                        },
+                        { anno ->
+                            listOf(
+                                anno.children
+                                        .filterIsInstance<DTOAnnotationParameter>()
+                                        .find { it.name.text == name }!!
+                                        .nextSibling
+                            )
+                        },
+                    ),
+                    SelectAnnotationParam(o),
+                )
+            }
         }
 
         /**
@@ -167,7 +297,7 @@ class DTOAnnotator : Annotator {
                     it.error(
                         "Only one `this` is allowed",
                         RemoveElement("this", it),
-                        DTOSyntaxHighlighter.DUPLICATION,
+                        style = DTOSyntaxHighlighter.DUPLICATION,
                     )
                 }
             }
@@ -187,7 +317,7 @@ class DTOAnnotator : Annotator {
                     macroArg.error(
                         "Each parameter is only allowed to appear once",
                         RemoveElement(macroArg.text, macroArg),
-                        DTOSyntaxHighlighter.DUPLICATION
+                        style = DTOSyntaxHighlighter.DUPLICATION
                     )
                 }
 
@@ -201,12 +331,12 @@ class DTOAnnotator : Annotator {
                     sameThisArg.error(
                         "Here `$thisName` is equivalent to `this`",
                         RemoveElement(sameThisArg.text, sameThisArg),
-                        DTOSyntaxHighlighter.DUPLICATION
+                        style = DTOSyntaxHighlighter.DUPLICATION
                     )
                     macroArg.error(
                         "Here `this` is equivalent to `$thisName`",
                         RemoveElement("this", macroArg),
-                        DTOSyntaxHighlighter.DUPLICATION
+                        style = DTOSyntaxHighlighter.DUPLICATION
                     )
                 }
             }
@@ -587,7 +717,7 @@ class DTOAnnotator : Annotator {
                 o.error(
                     "Duplicated enum mapping `$enumMappingName`",
                     RemoveElement(enumMappingName, o),
-                    DTOSyntaxHighlighter.DUPLICATION,
+                    style = DTOSyntaxHighlighter.DUPLICATION,
                 )
             }
             // 枚举映射中的值是否重复定义
@@ -595,7 +725,7 @@ class DTOAnnotator : Annotator {
                 enumMappingValue.error(
                     "Illegal value of enum mapping `$enumMappingName`, its duplicated",
                     RemoveElement(enumMappingValue.text, enumMappingValue),
-                    DTOSyntaxHighlighter.DUPLICATION,
+                    style = DTOSyntaxHighlighter.DUPLICATION,
                 )
             }
             // 枚举映射值是否同一类型
@@ -618,21 +748,13 @@ class DTOAnnotator : Annotator {
                     .create()
         }
 
-        // private fun PsiElement.warning(style: TextAttributesKey, message: String? = null, fix: BaseIntentionAction? = null) {
-        //     if (message == null || fix == null) {
-        //         annotator(style, HighlightSeverity.WARNING)
-        //     } else {
-        //         fix(style, HighlightSeverity.WARNING, ProblemHighlightType.WARNING, message, fix)
-        //     }
-        // }
-
         private fun PsiElement.error(
             message: String,
-            fix: BaseIntentionAction? = null,
+            vararg fixes: CommonIntentionAction,
             style: TextAttributesKey = DTOSyntaxHighlighter.ERROR,
             highlightType: ProblemHighlightType = ProblemHighlightType.GENERIC_ERROR
         ) {
-            fix(style, HighlightSeverity.ERROR, highlightType, message, fix)
+            fix(style, HighlightSeverity.ERROR, highlightType, message, *fixes)
         }
 
         private fun PsiElement.fix(
@@ -640,15 +762,17 @@ class DTOAnnotator : Annotator {
             severity: HighlightSeverity,
             highlightType: ProblemHighlightType,
             message: String,
-            fix: BaseIntentionAction? = null
+            vararg fixes: CommonIntentionAction,
         ) {
-            val annotationBuilder = holder.newAnnotation(severity, message)
-            annotationBuilder
+            val fixerBuilder = holder.newAnnotation(severity, message)
+            fixerBuilder
                     .range(this)
                     .textAttributes(style)
                     .highlightType(highlightType)
-            fix?.let { annotationBuilder.withFix(fix) }
-            annotationBuilder.create()
+            fixes.forEach { fix ->
+                fixerBuilder.withFix(fix)
+            }
+            fixerBuilder.create()
         }
     }
 }

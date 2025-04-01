@@ -20,6 +20,7 @@ import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.JavaNullableType
 import org.babyfish.jimmer.sql.Entity
+import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -102,6 +103,58 @@ val KtLightClass.icon: Icon
 
 val PsiType.nullable: Boolean
     get() = presentableText in JavaNullableType.values().map { it.name }
+
+/**
+ * 仅限于枚举参数类型
+ */
+val PsiType?.defaultValue: String
+    get() = when (this) {
+        is PsiPrimitiveType -> when (this) {
+            PsiType.LONG -> "0L"
+            PsiType.DOUBLE -> "0.0D"
+            PsiType.FLOAT -> "0.0"
+            PsiType.BOOLEAN -> "false"
+            PsiType.CHAR -> "''"
+            else -> "0"
+        }
+
+        is PsiArrayType -> "[${componentType.defaultValue}]"
+
+        is PsiClassType -> if (canonicalText == "java.lang.String") {
+            "\"\""
+        } else {
+            "null"
+        }
+
+        else -> "null"
+    }
+
+/**
+ * 仅限于枚举参数类型
+ */
+val PsiType.regex: String?
+    @Language("RegExp")
+    get() = when (this) {
+        is PsiPrimitiveType -> when (this) {
+            PsiType.LONG -> "[+-]?\\d+L"
+            PsiType.DOUBLE -> "[+-]?\\d+\\.\\d+D"
+            PsiType.FLOAT -> "[+-]?\\d+\\.\\d+F"
+            PsiType.BOOLEAN -> "false|true"
+            PsiType.CHAR -> "'.*'"
+            else -> "[+-]?\\d+"
+        }
+
+        is PsiArrayType -> "\\[${componentType.regex}]"
+
+        is PsiClassType -> if (canonicalText == "java.lang.String") {
+            "\".*\""
+        } else {
+            null
+        }
+
+        else -> null
+    }
+
 
 /**
  * 获取KtAnnotationEntry对应注解的全限定名

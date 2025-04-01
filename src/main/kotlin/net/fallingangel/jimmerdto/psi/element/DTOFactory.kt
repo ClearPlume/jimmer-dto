@@ -1,6 +1,7 @@
 package net.fallingangel.jimmerdto.psi.element
 
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.psi.DTOFile
@@ -8,6 +9,13 @@ import net.fallingangel.jimmerdto.util.findChild
 
 fun Project.createDTOFile(content: String = ""): DTOFile {
     return PsiFileFactory.getInstance(this).createFileFromText(DTOLanguage, content) as DTOFile
+}
+
+fun Project.createComma(): PsiElement {
+    return createDTOFile(",")
+            .firstChild
+            .firstChild
+            .firstChild
 }
 
 fun Project.createImport(qualifiedName: String): DTOImportStatement {
@@ -105,14 +113,30 @@ fun Project.createAlias(alias: String): DTOAlias {
             .alias!!
 }
 
-fun Project.createAnnotation(name: String): DTOAnnotation {
-    val prop = """@$name
+fun Project.createAnnotation(name: String, params: List<String> = emptyList()): DTOAnnotation {
+    val prop = if (params.isEmpty()) {
+        """@$name
         dummy
-    """.trimIndent()
+        """.trimIndent()
+    } else {
+        val paramStr = params.joinToString(prefix = "(", postfix = ")")
+        """@$name$paramStr
+        dummy
+        """.trimIndent()
+    }
     return createDTO("Dummy", positiveProps = listOf(prop))
             .dtoBody
             .positiveProps[0]
             .annotations[0]
+}
+
+fun Project.createAnnotationValue(value: String): DTOAnnotationValue {
+    return createAnnotation("Dummy", listOf(value)).value!!
+}
+
+fun Project.createAnnotationParameter(name: String, value: String = "dummy"): DTOAnnotationParameter {
+    return createAnnotation("Dummy", listOf("$name = $value"))
+            .params[0]
 }
 
 fun Project.createValue(value: String): DTOValue {

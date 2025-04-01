@@ -196,7 +196,7 @@ annotation
 
 annotationParameter
     :
-    Identifier Equals annotationValue
+    Identifier Equals annotationValue?
     ;
 
 annotationValue
