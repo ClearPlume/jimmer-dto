@@ -20,6 +20,7 @@ import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.JavaNullableType
 import org.babyfish.jimmer.sql.Entity
+import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationList
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolOrigin
 import org.jetbrains.kotlin.analysis.api.types.KaType
@@ -98,6 +99,58 @@ val KtLightClass.icon: Icon
 
 val PsiType.nullable: Boolean
     get() = presentableText in JavaNullableType.values().map { it.name }
+
+/**
+ * 仅限于枚举参数类型
+ */
+val PsiType?.defaultValue: String
+    get() = when (this) {
+        is PsiPrimitiveType -> when (this) {
+            PsiTypes.longType() -> "0L"
+            PsiTypes.doubleType() -> "0.0D"
+            PsiTypes.floatType() -> "0.0"
+            PsiTypes.booleanType() -> "false"
+            PsiTypes.charType() -> "''"
+            else -> "0"
+        }
+
+        is PsiArrayType -> "[${componentType.defaultValue}]"
+
+        is PsiClassType -> if (canonicalText == "java.lang.String") {
+            "\"\""
+        } else {
+            "null"
+        }
+
+        else -> "null"
+    }
+
+/**
+ * 仅限于枚举参数类型
+ */
+val PsiType.regex: String?
+    @Language("RegExp")
+    get() = when (this) {
+        is PsiPrimitiveType -> when (this) {
+            PsiTypes.longType() -> "[+-]?\\d+L"
+            PsiTypes.doubleType() -> "[+-]?\\d+\\.\\d+D"
+            PsiTypes.floatType() -> "[+-]?\\d+\\.\\d+F"
+            PsiTypes.booleanType() -> "false|true"
+            PsiTypes.charType() -> "'.*'"
+            else -> "[+-]?\\d+"
+        }
+
+        is PsiArrayType -> "\\[${componentType.regex}]"
+
+        is PsiClassType -> if (canonicalText == "java.lang.String") {
+            "\".*\""
+        } else {
+            null
+        }
+
+        else -> null
+    }
+
 
 inline fun <reified T : PsiElement> PsiElement.findChild(path: String): T {
     return xPath.evaluate(this, xPath.split(path)).toList().first() as T

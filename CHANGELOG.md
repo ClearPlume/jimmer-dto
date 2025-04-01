@@ -5,6 +5,7 @@
 ### Added
 
 * Annotation parameter value hints (annotation type parameters)
+* Annotation parameter reference parsing, prompting, verification, refactoring, and quick fixing
 
 ### Deprecated
 
