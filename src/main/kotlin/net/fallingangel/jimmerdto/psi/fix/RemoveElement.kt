@@ -6,12 +6,22 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 
-class RemoveElement(private val name: String, private val element: PsiElement) : BaseFix() {
-    override fun getText() = "Remove `$name`"
+/**
+ * @param targetSelector 纯函数
+ * @param relatedElementsFinder 纯函数
+ */
+class RemoveElement(
+    private val displayName: String,
+    private val anchor: PsiElement,
+    private val targetSelector: (PsiElement) -> PsiElement = { it },
+    private val relatedElementsFinder: (PsiElement) -> List<PsiElement> = { emptyList() },
+) : BaseFix() {
+    override fun getText() = "Remove `$displayName`"
 
     override fun invoke(project: Project, editor: Editor, file: PsiFile) {
         WriteCommandAction.runWriteCommandAction(project) {
-            element.parent.node.removeChild(element.node)
+            relatedElementsFinder(anchor).forEach(PsiElement::delete)
+            targetSelector(anchor).delete()
         }
     }
 }

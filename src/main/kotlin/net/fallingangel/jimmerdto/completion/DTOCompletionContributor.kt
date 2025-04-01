@@ -436,8 +436,8 @@ class DTOCompletionContributor : CompletionContributor() {
                                 parameters.position.parent is DTOAnnotationParameter -> ""
                                 paramType == stringType -> " = \"\""
                                 paramType is PsiArrayType && paramType.componentType == stringType -> " = [\"\"]"
-                                paramType == PsiTypes.charType() -> " = ''"
-                                paramType is PsiArrayType && paramType.componentType == PsiTypes.charType() -> " = ['']"
+                                paramType == PsiType.CHAR -> " = ''"
+                                paramType is PsiArrayType && paramType.componentType == PsiType.CHAR -> " = ['']"
                                 else -> " = "
                             }
                             LookupElementBuilder.create(it.name + default)

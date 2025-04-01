@@ -1,6 +1,5 @@
 package net.fallingangel.jimmerdto.highlighting
 
-import com.intellij.codeInsight.intention.CommonIntentionAction
 import com.intellij.codeInspection.ProblemHighlightType
 import com.intellij.diagnostic.PluginException
 import com.intellij.lang.annotation.AnnotationHolder
@@ -751,7 +750,7 @@ class DTOAnnotator : Annotator {
 
         private fun PsiElement.error(
             message: String,
-            vararg fixes: CommonIntentionAction,
+            vararg fixes: BaseFix,
             style: TextAttributesKey = DTOSyntaxHighlighter.ERROR,
             highlightType: ProblemHighlightType = ProblemHighlightType.GENERIC_ERROR
         ) {
@@ -763,7 +762,7 @@ class DTOAnnotator : Annotator {
             severity: HighlightSeverity,
             highlightType: ProblemHighlightType,
             message: String,
-            vararg fixes: CommonIntentionAction,
+            vararg fixes: BaseFix,
         ) {
             val fixerBuilder = holder.newAnnotation(severity, message)
             fixerBuilder
