@@ -151,6 +151,8 @@ val PsiType.regex: String?
         else -> null
     }
 
+val Project.stringType: PsiClassType
+    get() = PsiClassType.getTypeByName("java.lang.String", this, ProjectScope.getAllScope(this))
 
 inline fun <reified T : PsiElement> PsiElement.findChild(path: String): T {
     return xPath.evaluate(this, xPath.split(path)).toList().first() as T
