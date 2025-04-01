@@ -100,26 +100,29 @@ val KtLightClass.icon: Icon
 val PsiType.nullable: Boolean
     get() = presentableText in JavaNullableType.values().map { it.name }
 
-/**
- * 仅限于枚举参数类型
- */
 val PsiType?.defaultValue: String
     get() = when (this) {
         is PsiPrimitiveType -> when (this) {
+            PsiTypes.byteType() -> "0"
+            PsiTypes.shortType() -> "0"
+            PsiTypes.intType() -> "0"
             PsiTypes.longType() -> "0L"
             PsiTypes.doubleType() -> "0.0D"
-            PsiTypes.floatType() -> "0.0"
+            PsiTypes.floatType() -> "0.0F"
             PsiTypes.booleanType() -> "false"
             PsiTypes.charType() -> "''"
-            else -> "0"
+            PsiTypes.nullType() -> "null"
+            else -> "void"
         }
 
         is PsiArrayType -> "[${componentType.defaultValue}]"
 
-        is PsiClassType -> if (canonicalText == "java.lang.String") {
-            "\"\""
-        } else {
-            "null"
+        is PsiClassType -> when (canonicalText) {
+            "java.lang.String" -> "\"\""
+            "java.util.List" -> "[${parameters[0].defaultValue}]"
+            "java.util.Set" -> "[${parameters[0].defaultValue}]"
+            "java.util.Queue" -> "[${parameters[0].defaultValue}]"
+            else -> "null"
         }
 
         else -> "null"
@@ -153,6 +156,20 @@ val PsiType.regex: String?
 
 val Project.stringType: PsiClassType
     get() = PsiClassType.getTypeByName("java.lang.String", this, ProjectScope.getAllScope(this))
+
+val PsiType.extract: PsiType
+    get() = when (this) {
+        is PsiArrayType -> componentType.extract
+
+        is PsiClassType -> when (canonicalText) {
+            "java.util.List" -> parameters[0].extract
+            "java.util.Set" -> parameters[0].extract
+            "java.util.Queue" -> parameters[0].extract
+            else -> this
+        }
+
+        else -> this
+    }
 
 inline fun <reified T : PsiElement> PsiElement.findChild(path: String): T {
     return xPath.evaluate(this, xPath.split(path)).toList().first() as T
