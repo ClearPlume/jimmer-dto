@@ -155,6 +155,8 @@ val PsiType.regex: String?
         else -> null
     }
 
+val Project.stringType: PsiClassType
+    get() = PsiClassType.getTypeByName("java.lang.String", this, ProjectScope.getAllScope(this))
 
 /**
  * 获取KtAnnotationEntry对应注解的全限定名
