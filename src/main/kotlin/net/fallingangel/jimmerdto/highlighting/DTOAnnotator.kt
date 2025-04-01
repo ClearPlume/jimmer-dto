@@ -161,6 +161,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 参数类型是否匹配
+            val project = o.project
             params.forEach { param ->
                 val method = param.resolve() as? PsiAnnotationMethod ?: return@forEach
                 val type = method.returnType ?: return@forEach
@@ -169,7 +170,7 @@ class DTOAnnotator : Annotator {
                 val regex = type.regex?.toRegex()
                 if (regex != null && !value.text.matches(regex)) {
                     value.error("`${value.text}` cannot be applied to `${type.canonicalText}`")
-                } else if (type is PsiClassType) {
+                } else if (type is PsiClassType && type != project.stringType) {
                     val actualValue = processValue(value) ?: return@forEach
                     val valueClass = (actualValue.nestAnnotation?.qualifiedName ?: actualValue.qualifiedName)?.clazz
                     if (valueClass != type.resolve()) {
