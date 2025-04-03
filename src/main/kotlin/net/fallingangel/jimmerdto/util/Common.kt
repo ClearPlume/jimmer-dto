@@ -165,7 +165,7 @@ val PsiType.extract: PsiType
     get() = when (this) {
         is PsiArrayType -> componentType.extract
 
-        is PsiClassType -> when (canonicalText) {
+        is PsiClassType -> when (rawType().canonicalText) {
             "java.util.List" -> parameters[0].extract
             "java.util.Set" -> parameters[0].extract
             "java.util.Queue" -> parameters[0].extract
