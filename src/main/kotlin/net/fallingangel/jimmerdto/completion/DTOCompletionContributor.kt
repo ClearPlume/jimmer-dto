@@ -287,10 +287,7 @@ class DTOCompletionContributor : CompletionContributor() {
                         3,
                         lsiElement().withFirstNonWhitespaceChild(
                             lsiElement(DTODto::class.java)
-                                    .withChild(
-                                        lsiElement(DTODtoName::class.java)
-                                                .withText(DUMMY_IDENTIFIER_TRIMMED),
-                                    ),
+                                    .withChild(lsiElement(DTODtoName::class.java)),
                         ),
                     ),
         )
