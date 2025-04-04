@@ -19,6 +19,8 @@ import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.JavaNullableType
+import org.babyfish.jimmer.Immutable
+import org.babyfish.jimmer.sql.Embeddable
 import org.babyfish.jimmer.sql.Entity
 import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationList
@@ -245,7 +247,7 @@ fun Project.allAnnotations(`package`: String? = ""): List<PsiClass> {
  * @param `package` null等同于空字符串
  */
 fun Project.allEntities(`package`: String? = ""): List<PsiClass> {
-    return allClasses(`package` ?: "").filter { it.isInterface && it.hasAnnotation(Entity::class) }
+    return allClasses(`package` ?: "").filter { it.isInterface && it.hasAnnotation(Entity::class, Embeddable::class, Immutable::class) }
 }
 
 fun Project.allPackages(`package`: String): List<PsiPackage> {
