@@ -22,9 +22,10 @@ In the future, these features will be added:
 - Safe Delete
 - Structure View
 - Navigation Bar﻿
-- Code checking.
+- Code checking
   ![dac4f7dcee64c9551b6a306feec27dee](https://github.com/user-attachments/assets/e5fbefff-60fd-4215-8c20-4ef01fba3c44)
-- Syntax detection.
+  ![f81927c5d0b15054e044fdf95428bc18](https://github.com/user-attachments/assets/dfa62487-b2a7-46ed-9aae-c5cb0f546228)
+- Syntax detection
   ![7a1a0d931cf5f99ce212100d30e9ee07](https://github.com/user-attachments/assets/5f8a0d95-f7de-4728-90e1-c617766fbe66)
   ![88c95b7bf670f26509e7538dd0789d8f](https://github.com/user-attachments/assets/79916f4f-b93f-4f32-bab6-c6bf3127657c)
 
