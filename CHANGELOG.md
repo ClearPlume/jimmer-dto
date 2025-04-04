@@ -6,6 +6,11 @@
 
 * Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
 
+### Fixed
+
+* Issue [#49](https://github.com/ClearPlume/jimmer-dto/issues/49): An error message is added when the type of `user-prop` is non-null and its default
+  value cannot be inferred
+
 ## [0.0.7.43] - 2025-04-01
 
 ### Added
