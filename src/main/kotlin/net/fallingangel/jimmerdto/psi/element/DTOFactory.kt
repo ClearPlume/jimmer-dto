@@ -32,6 +32,7 @@ fun Project.createImported(type: String): DTOImported {
 
 fun Project.createDTO(
     name: String,
+    modifiers: List<String> = emptyList(),
     implements: List<String> = emptyList(),
     userProps: List<String> = emptyList(),
     macros: List<String> = emptyList(),
@@ -39,6 +40,7 @@ fun Project.createDTO(
     positiveProps: List<String> = emptyList(),
     negativeProps: List<String> = emptyList()
 ): DTODto {
+    val modifiers = modifiers.joinToString(" ")
     val implement = if (implements.isEmpty()) {
         ""
     } else {
@@ -51,7 +53,7 @@ fun Project.createDTO(
     val negativeProp = negativeProps.joinToString(System.lineSeparator())
 
     val dtoFile = createDTOFile(
-        """$name $implement {
+        """$modifiers $name $implement {
         |   $userProp
         |   $macro
         |   $aliasGroup
@@ -60,6 +62,10 @@ fun Project.createDTO(
         |}""".trimMargin()
     )
     return dtoFile.findChild("/dtoFile/dto")
+}
+
+fun Project.createModifier(modifier: String): PsiElement {
+    return createDTO("Dummy", modifiers = listOf(modifier)).modifierElements[0]
 }
 
 fun Project.createDTOName(name: String): DTODtoName {
