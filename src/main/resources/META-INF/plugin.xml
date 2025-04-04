@@ -69,6 +69,8 @@
         <lang.braceMatcher language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOBraceMatcher"/>
         <lang.commenter language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCommenter"/>
         <completion.contributor language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCompletionContributor"/>
+        <completion.contributor language="JAVA" implementationClass="net.fallingangel.jimmerdto.completion.JavaCompletionContributor"/>
+        <psi.referenceContributor language="JAVA" implementation="net.fallingangel.jimmerdto.refenerce.JavaReferenceContributor"/>
 
         <codeInsight.lineMarkerProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.DTOLineMarkerProvider"/>
         <codeInsight.inlayProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOInlayHintProvider"/>
@@ -77,6 +79,16 @@
         <notificationGroup id="JimmerDTO Notification Group" displayType="BALLOON"/>
 
         <fileBasedIndex implementation="net.fallingangel.jimmerdto.AnnotationClassIndex"/>
+
+        <localInspection language="JAVA"
+                         bundle="inspection"
+                         key="inspection.dto.prop.display.name"
+                         groupPath="Jimmer"
+                         groupBundle="inspection"
+                         groupKey="inspection.dto"
+                         enabledByDefault="true"
+                         level="ERROR"
+                         implementationClass="net.fallingangel.jimmerdto.inspection.ManyToManyInspection"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
