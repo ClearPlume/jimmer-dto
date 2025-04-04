@@ -72,6 +72,7 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
 
         val IDENTIFIER = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_IDENTIFIER", DefaultLanguageHighlighterColors.IDENTIFIER)
         val ERROR = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ERROR")
+        val WEAK_WARNING = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_WEAK_WARNING")
         val DUPLICATION = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_DUPLICATION")
     }
 }

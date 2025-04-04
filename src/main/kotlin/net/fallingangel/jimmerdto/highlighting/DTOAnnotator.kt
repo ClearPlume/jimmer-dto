@@ -96,6 +96,7 @@ class DTOAnnotator : Annotator {
         override fun visitDto(o: DTODto) {
             // 修饰符上色
             val currentModifiers = o.modifierElements
+            // 修饰符重复
             currentModifiers.forEach { modifier ->
                 if (currentModifiers.count { it.text == modifier.text } != 1) {
                     modifier.error(
@@ -104,6 +105,78 @@ class DTOAnnotator : Annotator {
                         style = DTOSyntaxHighlighter.DUPLICATION,
                     )
                 }
+            }
+
+            // `input` and `specification`
+            if (o modifiedBy Modifier.Input && o modifiedBy Modifier.Specification) {
+                currentModifiers.filter { it.text in listOf(Modifier.Specification.name.lowercase(), Modifier.Input.name.lowercase()) }
+                        .forEach {
+                            it.error(
+                                "`input` and `specification` cannot appear at the same time",
+                                RemoveElement(it.text, it),
+                            )
+                        }
+            }
+
+            // `unsafe` and `specification`
+            if (o modifiedBy Modifier.Unsafe && o modifiedBy Modifier.Specification) {
+                currentModifiers.filter { it.text in listOf(Modifier.Specification.name.lowercase(), Modifier.Unsafe.name.lowercase()) }
+                        .forEach {
+                            it.error(
+                                "`unsafe` cannot be used with `specification`",
+                                RemoveElement(it.text, it),
+                            )
+                        }
+            }
+
+            // `specification`只允许对实体使用
+            if (o modifiedBy Modifier.Specification && !o.file.classIsEntity) {
+                currentModifiers.find { it.text == Modifier.Specification.name.lowercase() }
+                        ?.let {
+                            it.error(
+                                "`specification` can only be used to decorate entity type",
+                                RemoveElement(it.text, it),
+                            )
+                        }
+            }
+
+            // InputStrategyModifier只允许针对input dto使用
+            val inputModifiers = currentModifiers.zip(o.modifiers).filter { it.second.level == Modifier.Level.Both }
+            if (o notModifiedBy Modifier.Input) {
+                inputModifiers
+                        .forEach { (element, _) ->
+                            element.error(
+                                "`${element.text}` can only be used for input",
+                                RemoveElement(element.text, element),
+                            )
+                        }
+            }
+
+            // InputStrategyModifier只允许单个使用
+            if (inputModifiers.size > 1) {
+                inputModifiers
+                        .forEach { (element, _) ->
+                            element.error(
+                                "InputStrategyModifier can only appear once",
+                                RemoveElement(element.text, element),
+                            )
+                        }
+                return
+            }
+
+            // 修饰符排序
+            val orders = o.modifiers.map(Modifier::order)
+            if (orders != orders.sorted()) {
+                currentModifiers
+                        .forEach {
+                            it.fix(
+                                DTOSyntaxHighlighter.WEAK_WARNING,
+                                HighlightSeverity.WEAK_WARNING,
+                                ProblemHighlightType.WEAK_WARNING,
+                                "Non-canonical modifier order",
+                                ReorderingModifier(o),
+                            )
+                        }
             }
         }
 
