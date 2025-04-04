@@ -89,10 +89,19 @@
                          enabledByDefault="true"
                          level="ERROR"
                          implementationClass="net.fallingangel.jimmerdto.inspection.ManyToManyInspection"/>
+        <localInspection language="JAVA"
+                         bundle="inspection"
+                         key="inspection.entity.unloaded.usage"
+                         groupPath="Jimmer"
+                         groupBundle="inspection"
+                         groupKey="inspection.entity"
+                         enabledByDefault="true"
+                         level="ERROR"
+                         implementationClass="net.fallingangel.jimmerdto.inspection.EntityUnloadedPropInspection"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
-        <supportsKotlinPluginMode supportsK1="false" supportsK2="true" />
+        <supportsKotlinPluginMode supportsK1="false" supportsK2="true"/>
     </extensions>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
