@@ -403,6 +403,7 @@ class DTOAnnotator : Annotator {
             val type = o.type.value
             val clazz = o.type.clazz
 
+            // 类型解析
             if (clazz == null && type !in DTOLanguage.preludes) {
                 o.type.error(
                     "Unresolved reference: $type",
@@ -411,6 +412,7 @@ class DTOAnnotator : Annotator {
                 return
             }
 
+            // 泛型校验
             val exceptedTypeParamNumber = GenericType[type]?.generics?.size ?: clazz?.typeParameters?.size ?: 0
             if ((o.arguments?.values?.size ?: 0) != exceptedTypeParamNumber) {
                 o.type.error("Generic parameter mismatch")
@@ -431,6 +433,12 @@ class DTOAnnotator : Annotator {
                     RenameElement(o.type, Project::createUserPropType),
                 )
                 return
+            }
+
+            // 默认值校验
+            val dto = o.parentOfType<DTODto>() ?: return
+            if (o.questionMark == null && dto notModifiedBy Modifier.Specification && type !in DTOLanguage.preludes) {
+                o.type.error("Type is not null and its default value cannot be determined")
             }
         }
 
