@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Deprecated
+
+* Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
+
+## [0.0.7.44] - 2025-04-07
+
 ### Added
 
 * Issue [#55](https://github.com/ClearPlume/jimmer-dto/issues/55): Add semantic check and quick fixes to DTO modifiers
