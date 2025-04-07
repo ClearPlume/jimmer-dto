@@ -14,6 +14,7 @@
 
 * Issue [#49](https://github.com/ClearPlume/jimmer-dto/issues/49): An error message is added when the type of `user-prop` is non-null and its default
   value cannot be inferred
+* Issue [#51](https://github.com/ClearPlume/jimmer-dto/issues/51): Alias definition for direct children is prohibited in `alias-group`
 
 ## [0.0.7.43] - 2025-04-01
 

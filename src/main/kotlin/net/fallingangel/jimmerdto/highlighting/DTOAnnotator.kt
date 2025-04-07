@@ -601,6 +601,7 @@ class DTOAnnotator : Annotator {
         }
 
         private fun visitProp(o: DTOPositiveProp, propName: String) {
+            // 父级属性是否存在
             val availableProperties = o.allSiblings()
             if (availableProperties.isEmpty()) {
                 val upper = o.upper
@@ -613,12 +614,35 @@ class DTOAnnotator : Annotator {
                 return
             }
 
+            // 属性是否存在
             val prop = availableProperties.find { it.name == propName } ?: let {
                 o.name.error("`$propName` does not exist")
                 return
             }
+
+            // 关联属性需要指定body
             if (prop.isEntityAssociation && o.body == null && o.recursive == null) {
                 o.name.error("`$propName` must have child body")
+            }
+
+            // as组中不允许直接子级使用as别名
+            val alias = o.alias
+            if (alias != null && o.parent.elementType == DTOLanguage.rule[DTOParser.RULE_aliasGroupBody]) {
+                o.error(
+                    "Alias definition for direct children is prohibited in `alias-group`",
+                    RemoveElement(
+                        "Alias `${alias.text}` for $propName",
+                        o,
+                        targetSelector = {
+                            it as DTOPositiveProp
+                            it.alias!!
+                        },
+                        relatedElementsFinder = {
+                            it as DTOPositiveProp
+                            listOfNotNull(it.`as`)
+                        },
+                    ),
+                )
             }
         }
 

@@ -32,6 +32,9 @@ class DTOPositivePropImpl(node: ASTNode) : ANTLRPsiNode(node), DTOPositiveProp {
     override val body: DTOPropBody?
         get() = findChildNullable("/positiveProp/propBody")
 
+    override val `as`: PsiElement?
+        get() = findChildNullable("/positiveProp/'as'")
+
     override val alias: DTOAlias?
         get() = findChildNullable("/positiveProp/alias")
 
