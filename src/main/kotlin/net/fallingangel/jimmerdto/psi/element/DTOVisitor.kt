@@ -115,6 +115,10 @@ open class DTOVisitor : PsiElementVisitor() {
         visitElement(o)
     }
 
+    open fun visitDefaultValue(o: DTODefaultValue) {
+        visitElement(o)
+    }
+
     open fun visitPositiveProp(o: DTOPositiveProp) {
         visitElement(o)
     }
