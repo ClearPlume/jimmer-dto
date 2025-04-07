@@ -1,25 +1,22 @@
 package net.fallingangel.jimmerdto.psi.fix
 
-import com.intellij.modcommand.ActionContext
-import com.intellij.modcommand.ModPsiUpdater
-import com.intellij.modcommand.PsiUpdateModCommandAction
+import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiFile
 import net.fallingangel.jimmerdto.psi.element.DTOQualifiedName
 import net.fallingangel.jimmerdto.psi.element.createQualifiedNamePart
 
-@Suppress("UnstableApiUsage")
-class ReplaceIdAccessorToView(
-    element: DTOQualifiedName,
-    private val old: String,
-    private val new: String,
-) : PsiUpdateModCommandAction<DTOQualifiedName>(element) {
-    override fun getFamilyName() = "Replace `$old` to `$new`"
+class ReplaceIdAccessorToView(private val element: DTOQualifiedName, private val old: String, private val new: String) : BaseFix() {
+    override fun getText() = "Replace `$old` to `$new`"
 
-    override fun invoke(context: ActionContext, element: DTOQualifiedName, updater: ModPsiUpdater) {
-        val project = context.project
+    override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
         val newPart = project.createQualifiedNamePart(new)
 
-        element.parts.last().prevSibling.delete()
-        element.parts.last().delete()
-        element.parts.last().replace(newPart)
+        WriteCommandAction.runWriteCommandAction(project) {
+            element.parts.last().prevSibling.delete()
+            element.parts.last().delete()
+            element.parts.last().replace(newPart)
+        }
     }
 }
