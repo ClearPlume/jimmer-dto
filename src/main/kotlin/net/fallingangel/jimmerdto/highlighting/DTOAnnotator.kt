@@ -17,13 +17,17 @@ import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.enums.SpecFunction
+import net.fallingangel.jimmerdto.lsi.LClass
+import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.lsi.findProperty
+import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.GenericType
 import net.fallingangel.jimmerdto.util.*
+import org.babyfish.jimmer.sql.Id
 
 /**
  * 部分代码结构的高亮
@@ -41,6 +45,22 @@ class DTOAnnotator : Annotator {
             // 枚举字面量
             if (o.parts.size == 2 && o.parent is DTOAnnotationSingleValue) {
                 o.parts[1].style(DTOSyntaxHighlighter.ENUM_INSTANCE)
+            }
+
+            if (o.parentOfType<DTOPropConfig>() != null && o.parts.size >= 2) {
+                val prop = o.parentOfType<DTOPositiveProp>() ?: return
+                val propType = prop.property?.actualType as? LClass<*> ?: return
+                val relationProp = propType.findPropertyOrNull(o.parts.dropLast(1).map { it.text }) ?: return
+                val idView = propType.findPropertyOrNull(o.parts.map { it.text }) ?: return
+
+                if (relationProp.isReference && relationProp.isEntityAssociation && idView.hasAnnotation(Id::class)) {
+                    val old = "${relationProp.name}.${idView.name}"
+                    val new = "${relationProp.name}Id"
+                    o.error(
+                        "Please replace \"friend.id\" to \"friendId\"",
+                        ReplaceIdAccessorToView(o, old, new),
+                    )
+                }
             }
         }
 
