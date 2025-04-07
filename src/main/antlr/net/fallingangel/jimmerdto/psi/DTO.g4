@@ -126,7 +126,12 @@ negativeProp
 
 userProp
     :
-    annotation* propName Colon typeRef
+    annotation* propName Colon typeRef (Equals defaultValue)?
+    ;
+
+defaultValue
+    :
+    BooleanLiteral | IntegerLiteral | StringLiteral | FloatingPointLiteral | Null
     ;
 
 propName

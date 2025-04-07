@@ -537,6 +537,41 @@ class DTOAnnotator : Annotator {
         }
 
         /**
+         * 为用户属性默认值上色
+         */
+        override fun visitDefaultValue(o: DTODefaultValue) {
+            val prop = o.parent as DTOUserProp
+            val type = prop.type
+            val typeText = type.text
+            val value = o.text
+
+            // 可空类型，但排除数字布尔字符串
+            if (type.questionMark != null && type.type.value !in listOf("Boolean", "Int", "String", "Float") && value != "null") {
+                o.error("`$value` does not match the type `$typeText`")
+                return
+            }
+
+            // 数字布尔字符串
+            when (type.type.value) {
+                "Boolean" -> if (!value.matches(Regex("true|false"))) {
+                    o.error("`$value` does not match the type `$typeText`")
+                }
+
+                "Int" -> if (!value.matches(Regex("-?\\d+"))) {
+                    o.error("`$value` does not match the type `$typeText`")
+                }
+
+                "String" -> if (!value.matches(Regex("\".*\""))) {
+                    o.error("`$value` does not match the type `$typeText`")
+                }
+
+                "Float" -> if (!value.matches(Regex("-?\\d+\\.\\d+"))) {
+                    o.error("`$value` does not match the type `$typeText`")
+                }
+            }
+        }
+
+        /**
          * 为属性上色
          */
         override fun visitPositiveProp(o: DTOPositiveProp) {
