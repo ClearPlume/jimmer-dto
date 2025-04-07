@@ -23,14 +23,12 @@ import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.LType
 import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser.*
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.util.*
-import org.babyfish.jimmer.sql.Embeddable
 import net.fallingangel.jimmerdto.psi.DTOParser.Modifier as ParserModifier
 import net.fallingangel.jimmerdto.psi.DTOParser.PropConfigName as ParserPropConfig
 
@@ -693,37 +691,20 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completePropConfigArg() {
         complete(
             { parameters, result ->
-                val error = parameters.position.parentUnSure<PsiErrorElement>()
-                val prop = if (error == null) {
-                    val expression = parameters.position.parent.parent<DTOQualifiedName>()
-                    when (expression.parent.parent) {
-                        is DTOOrderByArgs -> expression.parent.parent.parent.parent<DTOPositiveProp>()
-                        is DTOPositiveProp -> expression.parent.parent<DTOPositiveProp>()
-                        else -> expression.parent.parent.parent.parent.parent<DTOPositiveProp>()
-                    }
-                } else {
-                    error.parent.parent<DTOPositiveProp>()
-                }
-
-                val properties = prop.allSiblings(true)
-
-                val scalars = properties
-                        .filter { it.type is LType.ScalarType }
-                        .map { it.name to it.presentableType }
-                val associations = properties
-                        .filter { it.isReference && it.isEntityAssociation }
-                        .map { it.name to it.presentableType }
-                val views = properties
-                        .filter { it.isReference && it.isEntityAssociation }
-                        .map { "${it.name}Id" to it.presentableType }
-                val embeddable = properties
-                        .filter { it.doesTypeHaveAnnotation(Embeddable::class) }
-                        .map { it.name to it.presentableType }
-
+                val prop = parameters.position.parentOfType<DTOPositiveProp>() ?: return@complete
+                val path = parameters.position.parent
+                        .siblings(forward = false, withSelf = false)
+                        .filter { it.elementType == rule[RULE_qualifiedNamePart] }
+                        .map { it.text }
+                        .toList()
+                        .asReversed()
+                val properties = prop.childProps(path)
                 result.addAllElements(
-                    (scalars + associations + views + embeddable)
+                    properties
                             .map { (name, type) ->
-                                LookupElementBuilder.create(name).withTypeText(type, true)
+                                LookupElementBuilder.create(name)
+                                        .withIcon(AllIcons.Nodes.Property)
+                                        .withTypeText(type, true)
                             }
                 )
             },
@@ -761,6 +742,10 @@ class DTOCompletionContributor : CompletionContributor() {
                                     lsiElement(token[ParserPropConfig]).withText("!orderBy"),
                                 ),
                             ),
+                ),
+                identifier.withSuperParent(
+                    4,
+                    lsiElement(DTOPredicate::class.java)
                 ),
             ),
         )
