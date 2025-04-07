@@ -29,6 +29,8 @@ interface DTOPositiveProp : DTOElement {
 
     val body: DTOPropBody?
 
+    val `as`: PsiElement?
+
     val alias: DTOAlias?
 
     val optional: PsiElement?
