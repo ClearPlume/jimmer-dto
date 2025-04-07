@@ -450,16 +450,10 @@ HexDigit
 
 IntegerLiteral
 	:
-	'-'? Digits
+	'-'? ('0' | [1-9][0-9]*)
 	;
 
 FloatingPointLiteral
     :
-    '-'? Digits '.' Digits
-    ;
-
-fragment
-Digits
-    :
-    '0' | [1-9][0-9]*
+    '-'? [0-9]+ '.' [0-9]+
     ;
