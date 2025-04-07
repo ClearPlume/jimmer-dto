@@ -5,6 +5,7 @@
 ### Added
 
 * Issue [#55](https://github.com/ClearPlume/jimmer-dto/issues/55): Add semantic check and quick fixes to DTO modifiers
+* In `prop-path`, the direct access to the ID is replaced with the view
 
 ### Deprecated
 
