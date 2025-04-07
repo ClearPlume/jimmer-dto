@@ -511,7 +511,7 @@ class DTOAnnotator : Annotator {
             // 默认值校验
             val dto = o.parentOfType<DTODto>() ?: return
             if (o.questionMark == null && dto notModifiedBy Modifier.Specification && type !in DTOLanguage.preludes) {
-                o.type.error("Type is not null and its default value cannot be determined")
+                o.type.error("Type `${o.text}` is not null and its default value cannot be determined")
             }
         }
 
