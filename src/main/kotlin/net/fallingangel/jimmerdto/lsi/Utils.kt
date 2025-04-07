@@ -16,7 +16,7 @@ fun LClass<*>.findProperty(tokens: List<String>): LProperty<*> {
     if (tokens.size == 1) {
         return property
     }
-    return property.type.findProperty(tokens.drop(1))
+    return property.type.findProperty(tokens.drop(1)) ?: throw PropertyNotExistException(token)
 }
 
 fun LClass<*>.findPropertyOrNull(tokens: List<String>): LProperty<*>? {
@@ -27,11 +27,12 @@ fun LClass<*>.findPropertyOrNull(tokens: List<String>): LProperty<*>? {
     }
 }
 
-private fun LType.findProperty(tokens: List<String>): LProperty<*> {
+private fun LType.findProperty(tokens: List<String>): LProperty<*>? {
     return when (this) {
         is LClass<*> -> findProperty(tokens)
         is LType.CollectionType -> elementType.findProperty(tokens)
         is LType.ArrayType -> elementType.findProperty(tokens)
-        else -> throw IllegalStateException("Unsupported operation in $name")
+        // 属性没有子级属性了
+        else -> null
     }
 }
