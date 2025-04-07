@@ -265,7 +265,7 @@ qualifiedName
 
 qualifiedNamePart
     :
-    Identifier
+    Identifier | Like | Null | Desc | Asc
     ;
 
 typeRef
