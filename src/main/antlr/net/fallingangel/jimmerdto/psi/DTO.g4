@@ -161,7 +161,17 @@ intPair
 
 predicate
     :
-    compare | nullity
+    LParen orPredicate RParen | compare | nullity
+    ;
+
+orPredicate
+    :
+    andPredicate (Or andPredicate)*
+    ;
+
+andPredicate
+    :
+    predicate (And predicate)*
     ;
 
 compare
