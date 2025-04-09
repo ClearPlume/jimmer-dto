@@ -17,6 +17,8 @@ import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.enums.SpecFunction
 import net.fallingangel.jimmerdto.lsi.LClass
+import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.LanguageProcessor
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.lsi.findProperty
 import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
@@ -91,6 +93,14 @@ class DTOAnnotator : Annotator {
                     else -> throw IllegalStateException("There shouldn't be a third type here")
                 }
                 o.error("Packages cannot be $packageAction")
+            } else if (o.parentOfType<DTOPropConfig>() != null) {
+                resolved ?: return
+                val target = LanguageProcessor.analyze(o.file).resolve(resolved)
+                if (target is LProperty<*>) {
+                    if (target.isEntityAssociation && !target.isReference) {
+                        o.error("Illegal property: Table joins are not permitted here")
+                    }
+                }
             }
         }
 

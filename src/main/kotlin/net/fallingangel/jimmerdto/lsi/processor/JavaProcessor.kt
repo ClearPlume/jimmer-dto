@@ -4,6 +4,7 @@ import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.*
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.lsi.param.LParam
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.hasAnnotation
@@ -34,7 +35,7 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
                 qualifiedName,
                 false,
                 clazz.isAnnotationType,
-                clazz.annotations.mapNotNull(::resolve),
+                clazz.annotations.map(::resolve),
                 lazy { parents(clazz) },
                 lazy { properties(clazz) },
                 lazy { methods(clazz) },
@@ -55,22 +56,11 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
         return if (clazz.hasAnnotation(Immutable::class, Entity::class, Embeddable::class, MappedSuperclass::class)) {
             clazz.methods
                     .filter { !it.isConstructor }
-                    .map {
-                        val annotations = it.annotations.mapNotNull(::resolve)
-                        // TODO 属性类型为Boolean时，jimmer.keepIsPrefix
-                        val methodName = it.name
-                        val name = if (methodName.startsWith("get") && methodName.length > 3 && methodName[3].isUpperCase()) {
-                            methodName[3].lowercaseChar() + methodName.substring(4)
-                        } else {
-                            methodName
-                        }
-
-                        LProperty(name, annotations, resolve(it.returnType!!), it)
-                    }
+                    .map(::resolve)
         } else {
             clazz.fields
                     .map {
-                        val annotations = it.annotations.mapNotNull(::resolve)
+                        val annotations = it.annotations.map(::resolve)
                         LProperty(it.name, annotations, resolve(it.type), it)
                     }
         }
@@ -84,7 +74,7 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
                     .filter { !it.isConstructor }
                     .map { method ->
                         val params = method.parameterList.parameters.map { LParam(it.name, resolve(it.type), it) }
-                        val annotations = method.annotations.mapNotNull(::resolve)
+                        val annotations = method.annotations.map(::resolve)
                         val returnType = method.returnType ?: throw IllegalStateException("Method must have return type")
 
                         LMethod(
@@ -93,13 +83,34 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
                             params,
                             LMethod.LReturnType(
                                 resolve(returnType),
-                                returnType.annotations.mapNotNull(::resolve),
+                                returnType.annotations.map(::resolve),
                                 annotations,
                             ),
                             method,
                         )
                     }
         }
+    }
+
+    override fun resolve(element: PsiElement): LAnnotationOwner? {
+        return when (element) {
+            is PsiClass -> clazz(element)
+            is PsiMethod -> resolve(element)
+            else -> null
+        }
+    }
+
+    fun resolve(method: PsiMethod): LProperty<*> {
+        val annotations = method.annotations.map(::resolve)
+        // TODO 属性类型为Boolean时，jimmer.keepIsPrefix
+        val methodName = method.name
+        val name = if (methodName.startsWith("get") && methodName.length > 3 && methodName[3].isUpperCase()) {
+            methodName[3].lowercaseChar() + methodName.substring(4)
+        } else {
+            methodName
+        }
+
+        return LProperty(name, annotations, resolve(method.returnType!!), method)
     }
 
     fun resolve(type: PsiType): LType {
@@ -171,14 +182,14 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
         }
     }
 
-    fun resolve(annotation: PsiAnnotation): LAnnotation<*>? {
-        val qualifiedName = annotation.qualifiedName!!
-        val methods = annotation.resolveAnnotationType()?.methods ?: throw IllegalStateException("PsiAnnotation must resolve to a PsiClass")
+    fun resolve(annotation: PsiAnnotation): LAnnotation<*> {
+        val clazz = annotation.resolveAnnotationType() ?: throw IllegalStateException("Can't find annotation type ${annotation.qualifiedName}")
+        val methods = clazz.methods
 
         return LAnnotation(
-            qualifiedName.substringAfterLast('.'),
-            qualifiedName,
-            annotation.resolveAnnotationType(),
+            clazz.name!!,
+            clazz.qualifiedName!!,
+            clazz,
             methods.map { LParam(it.name, resolve(it.returnType!!), it) },
         )
     }

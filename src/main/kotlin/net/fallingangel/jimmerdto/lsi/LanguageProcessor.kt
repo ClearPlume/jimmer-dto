@@ -3,6 +3,7 @@ package net.fallingangel.jimmerdto.lsi
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.psi.DTOFile
 
 /**
@@ -24,6 +25,8 @@ interface LanguageProcessor<C : PsiElement> {
     fun properties(clazz: C): List<LProperty<*>>
 
     fun methods(clazz: C): List<LMethod<*>>
+
+    fun resolve(element: PsiElement): LAnnotationOwner?
 
     companion object {
         private val extensionPointName = ExtensionPointName.create<LanguageProcessor<*>>("net.fallingangel.languageProcessor")

@@ -1,7 +1,9 @@
 package net.fallingangel.jimmerdto.lsi.processor
 
+import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.lsi.param.LParam
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.isInSource
@@ -17,6 +19,7 @@ import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
@@ -62,12 +65,7 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
     }
 
     override fun properties(clazz: KtClass): List<LProperty<*>> {
-        return clazz.getProperties()
-                .map {
-                    val annotations = it.annotationEntries.map(::resolve)
-                    val type = (it.resolveToDescriptorIfAny() as? CallableDescriptor)?.returnType!!
-                    LProperty(it.name!!, annotations, resolve(type), it)
-                }
+        return clazz.getProperties().map(::resolve)
     }
 
     override fun methods(clazz: KtClass): List<LMethod<*>> {
@@ -94,6 +92,20 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                         function,
                     )
                 }
+    }
+
+    override fun resolve(element: PsiElement): LAnnotationOwner? {
+        return when (element) {
+            is KtClass -> clazz(element)
+            is KtProperty -> resolve(element)
+            else -> null
+        }
+    }
+
+    fun resolve(property: KtProperty): LProperty<*> {
+        val annotations = property.annotationEntries.map(::resolve)
+        val type = (property.resolveToDescriptorIfAny() as? CallableDescriptor)?.returnType!!
+        return LProperty(property.name!!, annotations, resolve(type), property)
     }
 
     fun resolve(type: KotlinType): LType {
