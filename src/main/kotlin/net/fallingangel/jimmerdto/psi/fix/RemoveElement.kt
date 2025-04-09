@@ -20,8 +20,9 @@ class RemoveElement(
 
     override fun invoke(project: Project, editor: Editor, file: PsiFile) {
         WriteCommandAction.runWriteCommandAction(project) {
-            relatedElementsFinder(anchor).forEach(PsiElement::delete)
+            val relatedElements = relatedElementsFinder(anchor)
             targetSelector(anchor).delete()
+            relatedElements.forEach(PsiElement::delete)
         }
     }
 }
