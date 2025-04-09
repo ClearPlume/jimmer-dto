@@ -514,6 +514,26 @@ class DTOAnnotator : Annotator {
                 visitUserPropType(o)
             }
 
+            fun locateTarget(parent: PsiElement): PsiElement {
+                return parent.children
+                        .filterIsInstance<DTOTypeRef>()
+                        .find { it.startOffsetInParent == o.startOffsetInParent }!!
+            }
+
+            fun locateRelated(parent: PsiElement): List<PsiElement> {
+                parent as DTOImplements
+                val type = parent.implements.find { it.startOffsetInParent == o.startOffsetInParent }!!
+                return if (parent.implements.indexOf(type) == parent.implements.lastIndex) {
+                    listOfNotNull(type.sibling(false) {
+                        it.elementType == DTOLanguage.token[DTOParser.Comma]
+                    })
+                } else {
+                    listOfNotNull(type.sibling {
+                        it.elementType == DTOLanguage.token[DTOParser.Comma]
+                    })
+                }
+            }
+
             val type = o.type.value
             val clazz = o.type.clazz
 
@@ -530,6 +550,33 @@ class DTOAnnotator : Annotator {
             val exceptedTypeParamNumber = GenericType[type]?.generics?.size ?: clazz?.typeParameters?.size ?: 0
             if ((o.arguments?.values?.size ?: 0) != exceptedTypeParamNumber) {
                 o.type.error("Generic parameter mismatch")
+            }
+
+            val parent = o.parent
+            if (parent is DTOImplements) {
+                // 用作DTO、属性父级类型时，类型不可为空
+                o.questionMark?.let {
+                    it.error(
+                        "Super interface type cannot be nullable",
+                        RemoveElement("?", it),
+                    )
+                }
+
+                // 重复实现类型
+                if (parent.implements.count { it.type.value == o.type.value } > 1) {
+                    o.error(
+                        "Duplicate super interface `${o.type.value}`",
+                        RemoveElement(o.type.value, o.parent, ::locateTarget, ::locateRelated),
+                    )
+                }
+            }
+
+            // 禁止类型校验
+            if (clazz!!.qualifiedName!!.startsWith("org.babyfish.jimmer.")) {
+                o.error(
+                    "Types under `org.babyfish.jimmer` are not allowed",
+                    RemoveElement(o.type.value, o.parent, ::locateTarget, ::locateRelated),
+                )
             }
         }
 
