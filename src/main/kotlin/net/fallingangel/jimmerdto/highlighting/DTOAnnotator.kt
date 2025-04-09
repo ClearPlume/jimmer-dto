@@ -394,8 +394,13 @@ class DTOAnnotator : Annotator {
             }
 
             // 宏的重复定义
-            val dto = o.parentOfType<DTODto>() ?: return
-            if (dto.dtoBody.macros.count { it.name.value == macroName.value } > 1) {
+            val parent = o.parent
+            val macros = if (parent is DTODtoBody) {
+                parent.macros
+            } else {
+                parent.findChildren("/aliasGroupBody/macro")
+            }
+            if (macros.count { it.name.value == macroName.value } > 1) {
                 o.error(
                     "Duplicated macro ${macroName.value}",
                     RemoveElement(macroName.value, o),
@@ -403,6 +408,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 宏可选标识在specification中不再需要
+            val dto = o.parentOfType<DTODto>() ?: return
             o.optional?.let {
                 if (dto modifiedBy Modifier.Specification) {
                     it.error(
