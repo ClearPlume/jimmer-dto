@@ -14,6 +14,10 @@ interface DTOMacro : DTOElement {
 
     val args: DTOMacroArgs?
 
+    val optional: PsiElement?
+
+    val required: PsiElement?
+
     val clazz: LClass<*>
         get() {
             val propPath = propPath()
