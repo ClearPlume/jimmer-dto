@@ -5,6 +5,7 @@
 ### Added
 
 * Issue [#50](https://github.com/ClearPlume/jimmer-dto/issues/50): In `prop-config`, an error message is displayed for the join table operation
+* DTO duplicate definition check
 
 ### Deprecated
 

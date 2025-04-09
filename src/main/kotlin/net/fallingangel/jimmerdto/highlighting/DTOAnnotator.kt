@@ -17,12 +17,8 @@ import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.enums.SpecFunction
-import net.fallingangel.jimmerdto.lsi.LClass
-import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.LanguageProcessor
+import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
-import net.fallingangel.jimmerdto.lsi.findProperty
-import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
@@ -209,6 +205,19 @@ class DTOAnnotator : Annotator {
                                 ReorderingModifier(o),
                             )
                         }
+            }
+        }
+
+        /**
+         * 为dto名称上色
+         */
+        override fun visitDtoName(o: DTODtoName) {
+            // 重复的dto定义
+            if (o.file.dtos.count { it == o.value } > 1) {
+                o.error(
+                    "Duplicated dto `${o.value}`",
+                    RenameElement(o, Project::createDTOName),
+                )
             }
         }
 
