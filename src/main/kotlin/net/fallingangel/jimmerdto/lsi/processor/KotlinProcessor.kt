@@ -1,7 +1,9 @@
 package net.fallingangel.jimmerdto.lsi.processor
 
+import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.lsi.param.LParam
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.contains
@@ -18,6 +20,7 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.analysis.api.types.*
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtProperty
 
 class KotlinProcessor : LanguageProcessor<KtClass> {
     override val resolvedType = mutableMapOf<String, LClass<KtClass>>()
@@ -62,14 +65,7 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
     }
 
     override fun properties(clazz: KtClass): List<LProperty<*>> {
-        return clazz.getProperties()
-                .map { property ->
-                    analyze(property) {
-                        val annotations = property.symbol.annotations.map { resolve(it) }
-                        val type = resolve(property.symbol.returnType)
-                        LProperty(property.name!!, annotations, type, property)
-                    }
-                }
+        return clazz.getProperties().map(::resolve)
     }
 
     override fun methods(clazz: KtClass): List<LMethod<*>> {
@@ -95,6 +91,22 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                         )
                     }
                 }
+    }
+
+    override fun resolve(element: PsiElement): LAnnotationOwner? {
+        return when (element) {
+            is KtClass -> clazz(element)
+            is KtProperty -> resolve(element)
+            else -> null
+        }
+    }
+
+    fun resolve(property: KtProperty): LProperty<*> {
+        return analyze(property) {
+            val annotations = property.symbol.annotations.map { resolve(it) }
+            val type = resolve(property.symbol.returnType)
+            LProperty(property.name!!, annotations, type, property)
+        }
     }
 
     fun KaSession.resolve(type: KaType): LType {

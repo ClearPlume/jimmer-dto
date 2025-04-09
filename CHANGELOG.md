@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+### Added
+
+* Issue [#50](https://github.com/ClearPlume/jimmer-dto/issues/50): In `prop-config`, an error message is displayed for the join table operation
+
 ### Deprecated
 
 * Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
