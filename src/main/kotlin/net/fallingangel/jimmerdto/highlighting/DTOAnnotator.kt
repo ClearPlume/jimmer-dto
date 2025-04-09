@@ -57,7 +57,7 @@ class DTOAnnotator : Annotator {
                     val old = "${relationProp.name}.${idView.name}"
                     val new = "${relationProp.name}Id"
                     o.error(
-                        "Please replace \"friend.id\" to \"friendId\"",
+                        "Please replace `$old` to `$new`",
                         ReplaceIdAccessorToView(o, old, new),
                     )
                 }
