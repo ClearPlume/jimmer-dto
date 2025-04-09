@@ -19,7 +19,8 @@ class RemoveElement(
     override fun getFamilyName() = "Remove `$displayName`"
 
     override fun invoke(context: ActionContext, element: PsiElement, updater: ModPsiUpdater) {
-        relatedElementsFinder(element).forEach(PsiElement::delete)
+        val relatedElements = relatedElementsFinder(element)
         targetSelector(element).delete()
+        relatedElements.forEach(PsiElement::delete)
     }
 }
