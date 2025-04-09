@@ -55,6 +55,7 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
                             when (part) {
                                 "Int" -> project.psiClass("java.lang.Integer")
                                 "Char" -> project.psiClass("java.lang.Character")
+                                "Any" -> project.psiClass("java.lang.Object")
                                 else -> project.psiClass("java.lang.$part") ?: run {
                                     if (part.startsWith("Mutable")) {
                                         project.psiClass("java.util.${part.substring(7)}")
