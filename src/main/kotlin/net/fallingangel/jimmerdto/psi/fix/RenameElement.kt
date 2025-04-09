@@ -13,7 +13,7 @@ class RenameElement(private val element: PsiElement, private val newElement: Pro
     override fun getText() = "Rename element"
 
     override fun invoke(project: Project, editor: Editor, file: PsiFile) {
-        val input = JBTextField()
+        val input = JBTextField(element.text)
         // 是否确认输入信息
         val conformedInput = DialogBuilder(project).apply {
             setTitle("Type New Name")
@@ -23,7 +23,7 @@ class RenameElement(private val element: PsiElement, private val newElement: Pro
             return
         }
         WriteCommandAction.runWriteCommandAction(project) {
-            element.parent.node.replaceChild(element.node, project.newElement(input.text).node)
+            element.replace(project.newElement(input.text))
         }
     }
 }
