@@ -381,6 +381,7 @@ class DTOAnnotator : Annotator {
          * 为宏名称上色
          */
         override fun visitMacro(o: DTOMacro) {
+            // 宏名称
             val macroName = o.name
             if (macroName.value in listOf("allScalars", "allReferences")) {
                 o.firstChild.style(DTOSyntaxHighlighter.MACRO)
@@ -390,6 +391,25 @@ class DTOAnnotator : Annotator {
                     "Macro name should be \"allScalars\" or \"allReferences\"",
                     ChooseMacro(macroName),
                 )
+            }
+
+            // 宏的重复定义
+            val dto = o.parentOfType<DTODto>() ?: return
+            if (dto.dtoBody.macros.count { it.name.value == macroName.value } > 1) {
+                o.error(
+                    "Duplicated macro ${macroName.value}",
+                    RemoveElement(macroName.value, o),
+                )
+            }
+
+            // 宏可选标识在specification中不再需要
+            o.optional?.let {
+                if (dto modifiedBy Modifier.Specification) {
+                    it.error(
+                        "Unnecessary optional modifier `?`",
+                        RemoveElement("?", it),
+                    )
+                }
             }
         }
 
@@ -404,14 +424,34 @@ class DTOAnnotator : Annotator {
                 return
             }
 
+            fun locateTarget(args: PsiElement, offset: Int): DTOMacroArg {
+                args as DTOMacroArgs
+                return args.values.find { it.startOffsetInParent == offset }!!
+            }
+
+            fun locateRelated(args: PsiElement, offset: Int): List<PsiElement> {
+                args as DTOMacroArgs
+                val arg = args.values.find { it.startOffsetInParent == offset }!!
+                return if (args.values.indexOf(arg) == args.values.lastIndex) {
+                    listOfNotNull(arg.siblingComma(false))
+                } else {
+                    listOfNotNull(arg.siblingComma())
+                }
+            }
+
             // 不允许出现超过一个<this>
             val thisList = argList.filter { it.text == "this" }
             thisList.forEach { it.style(DTOSyntaxHighlighter.KEYWORD) }
             if (thisList.size > 1) {
-                thisList.forEach {
-                    it.error(
+                thisList.forEach { `this` ->
+                    `this`.error(
                         "Only one `this` is allowed",
-                        RemoveElement("this", it),
+                        RemoveElement(
+                            "this",
+                            o,
+                            { locateTarget(it, `this`.startOffsetInParent) },
+                            { locateRelated(it, `this`.startOffsetInParent) },
+                        ),
                         style = DTOSyntaxHighlighter.DUPLICATION,
                     )
                 }
@@ -424,14 +464,24 @@ class DTOAnnotator : Annotator {
                 if (macroArg.text !in macroAvailableParams) {
                     macroArg.error(
                         "Available parameters: [${macroAvailableParams.joinToString(", ")}]",
-                        RemoveElement(macroArg.text, macroArg)
+                        RemoveElement(
+                            macroArg.text,
+                            o,
+                            { locateTarget(it, macroArg.startOffsetInParent) },
+                            { locateRelated(it, macroArg.startOffsetInParent) },
+                        )
                     )
                 }
                 // 当前元素在参数列表中出现过一次以上，即为重复
                 if (argList.count { it.text == macroArg.text } != 1) {
                     macroArg.error(
                         "Each parameter is only allowed to appear once",
-                        RemoveElement(macroArg.text, macroArg),
+                        RemoveElement(
+                            macroArg.text,
+                            o,
+                            { locateTarget(it, macroArg.startOffsetInParent) },
+                            { locateRelated(it, macroArg.startOffsetInParent) },
+                        ),
                         style = DTOSyntaxHighlighter.DUPLICATION
                     )
                 }
@@ -445,12 +495,22 @@ class DTOAnnotator : Annotator {
                 if (macroArg.text == "this" && sameThisArg != null) {
                     sameThisArg.error(
                         "Here `$thisName` is equivalent to `this`",
-                        RemoveElement(sameThisArg.text, sameThisArg),
+                        RemoveElement(
+                            sameThisArg.text,
+                            o,
+                            { locateTarget(it, sameThisArg.startOffsetInParent) },
+                            { locateRelated(it, sameThisArg.startOffsetInParent) },
+                        ),
                         style = DTOSyntaxHighlighter.DUPLICATION
                     )
                     macroArg.error(
                         "Here `this` is equivalent to `$thisName`",
-                        RemoveElement("this", macroArg),
+                        RemoveElement(
+                            "this",
+                            o,
+                            { locateTarget(it, macroArg.startOffsetInParent) },
+                            { locateRelated(it, macroArg.startOffsetInParent) },
+                        ),
                         style = DTOSyntaxHighlighter.DUPLICATION
                     )
                 }
@@ -524,13 +584,9 @@ class DTOAnnotator : Annotator {
                 parent as DTOImplements
                 val type = parent.implements.find { it.startOffsetInParent == o.startOffsetInParent }!!
                 return if (parent.implements.indexOf(type) == parent.implements.lastIndex) {
-                    listOfNotNull(type.sibling(false) {
-                        it.elementType == DTOLanguage.token[DTOParser.Comma]
-                    })
+                    listOfNotNull(type.siblingComma(false))
                 } else {
-                    listOfNotNull(type.sibling {
-                        it.elementType == DTOLanguage.token[DTOParser.Comma]
-                    })
+                    listOfNotNull(type.siblingComma())
                 }
             }
 

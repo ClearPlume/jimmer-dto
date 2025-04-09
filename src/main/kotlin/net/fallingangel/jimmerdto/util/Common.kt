@@ -11,12 +11,15 @@ import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
+import com.intellij.psi.util.elementType
 import com.intellij.psi.util.siblings
 import com.intellij.util.indexing.FileBasedIndex
 import net.fallingangel.jimmerdto.ANNOTATION_CLASS_INDEX
+import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.DTOLanguage.xPath
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.JavaNullableType
 import org.babyfish.jimmer.Immutable
@@ -189,6 +192,10 @@ inline fun <reified T : PsiElement> PsiElement.sibling(forward: Boolean = true, 
     return siblings(forward, false)
             .filterIsInstance<T>()
             .firstOrNull(filter)
+}
+
+fun PsiElement.siblingComma(forward: Boolean = true) = sibling<PsiElement>(forward) {
+    it.elementType == DTOLanguage.token[DTOParser.Comma]
 }
 
 inline fun <reified P> PsiElement.parent(): P {

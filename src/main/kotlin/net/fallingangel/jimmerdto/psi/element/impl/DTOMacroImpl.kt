@@ -21,6 +21,12 @@ class DTOMacroImpl(node: ASTNode) : ANTLRPsiNode(node), DTOMacro {
     override val args: DTOMacroArgs?
         get() = findChildNullable("/macro/macroArgs")
 
+    override val optional: PsiElement?
+        get() = findChildNullable("/macro/'?'")
+
+    override val required: PsiElement?
+        get() = findChildNullable("/macro/'!'")
+
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {
             visitor.visitMacro(this)
