@@ -286,10 +286,18 @@ class DTOAnnotator : Annotator {
                     value.error("`${value.text}` cannot be applied to `${type.canonicalText}`")
                 } else if (type is PsiClassType && type != project.stringType) {
                     val actualValue = processValue(value) ?: return@forEach
-                    val valueClass = (actualValue.nestAnnotation?.qualifiedName ?: actualValue.qualifiedName)?.clazz
-                    if (valueClass != type.resolve()) {
-                        value.error("`${value.text}` cannot be applied to `${type.canonicalText}`")
+                    val valueElement = actualValue.nestAnnotation?.qualifiedName?.parts?.last() ?: actualValue.qualifiedName?.parts?.last()
+                    val resolvedType = type.resolve() ?: return@forEach
+                    val resolvedValue = valueElement?.resolve() ?: return@forEach
+
+                    if (resolvedValue is PsiEnumConstant && resolvedValue.parent == resolvedType) {
+                        return@forEach
                     }
+                    if (resolvedValue == resolvedType) {
+                        return@forEach
+                    }
+
+                    value.error("`${value.text}` cannot be applied to `${type.canonicalText}`")
                 }
             }
         }
