@@ -229,7 +229,7 @@ class DTOAnnotator : Annotator {
             o.qualifiedName.style(DTOSyntaxHighlighter.ANNOTATION)
 
             val clazz = o.qualifiedName.clazz ?: return
-            visitAnnotationParams(o, clazz, o.params, o.value != null)
+            visitAnnotationParams(o, clazz, o.params, o.value)
         }
 
         /**
@@ -240,16 +240,18 @@ class DTOAnnotator : Annotator {
             o.qualifiedName.style(DTOSyntaxHighlighter.ANNOTATION)
 
             val clazz = o.qualifiedName.clazz ?: return
-            visitAnnotationParams(o, clazz, o.params, o.value != null)
+            visitAnnotationParams(o, clazz, o.params, o.value)
         }
 
         /**
-         * @param haveValue 是否存在value参数
+         * @param value value参数
          */
-        fun visitAnnotationParams(o: DTOElement, clazz: PsiClass, params: List<DTOAnnotationParameter>, haveValue: Boolean) {
+        fun visitAnnotationParams(o: DTOElement, clazz: PsiClass, params: List<DTOAnnotationParameter>, value: DTOAnnotationValue?) {
             if (params.any { it.value == null }) {
                 return
             }
+
+            val haveValue = value != null
 
             // 必要参数是否给全
             val allParams = clazz.methods
@@ -288,6 +290,17 @@ class DTOAnnotator : Annotator {
                 }
                 value.error("`${value.text}: ${valueType?.canonicalText}` cannot be applied to `${type.canonicalText}`")
             }
+
+            if (value != null) {
+                val method = clazz.findMethodsByName("value", false).first()
+                val type = method.returnType ?: return
+
+                val valueType = processor.type(type, value)
+                if (valueType != null && type.isAssignableFrom(valueType)) {
+                    return
+                }
+                value.error("`${value.text}: ${valueType?.canonicalText}` cannot be applied to `${type.canonicalText}`")
+            }
         }
 
         private fun processValue(value: DTOAnnotationValue): DTOAnnotationSingleValue? {
@@ -309,13 +322,12 @@ class DTOAnnotator : Annotator {
          * 为注解参数上色
          */
         override fun visitAnnotationValue(o: DTOAnnotationValue) {
-            val at = o.sibling<PsiElement>(false) { it.elementType == DTOLanguage.token[DTOParser.At] }
-            if (at != null) {
+            val anno = o.parent
+            if (anno is DTOAnnotation || anno is DTONestAnnotation) {
                 val prevSibling = o.siblings(forward = false, withSelf = false)
                         .filter { it.elementType != TokenType.WHITE_SPACE }
                         .first()
                 if (prevSibling.elementType != DTOLanguage.token[DTOParser.LParen]) {
-                    val anno = o.parent
                     val params = if (anno is DTOAnnotation) {
                         anno.params
                     } else {

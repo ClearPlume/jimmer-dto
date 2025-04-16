@@ -8,6 +8,7 @@
 * DTO duplicate definition check
 * Super interface validation
 * Macro validation
+* Annotation parameter verification
 
 ### Deprecated
 
