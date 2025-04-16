@@ -275,30 +275,18 @@ class DTOAnnotator : Annotator {
             }
 
             // 参数类型是否匹配
-            val project = o.project
+            val processor = LanguageProcessor.analyze(o.file)
             params.forEach { param ->
                 val method = param.resolve() as? PsiAnnotationMethod ?: return@forEach
                 val type = method.returnType ?: return@forEach
                 // 开头第一行已经针对任意参数没有value的情况处理，所以可以直接『!!』
                 val value = param.value!!
-                val regex = type.regex?.toRegex()
-                if (regex != null && !value.text.matches(regex)) {
-                    value.error("`${value.text}` cannot be applied to `${type.canonicalText}`")
-                } else if (type is PsiClassType && type != project.stringType) {
-                    val actualValue = processValue(value) ?: return@forEach
-                    val valueElement = actualValue.nestAnnotation?.qualifiedName?.parts?.last() ?: actualValue.qualifiedName?.parts?.last()
-                    val resolvedType = type.resolve() ?: return@forEach
-                    val resolvedValue = valueElement?.resolve() ?: return@forEach
 
-                    if (resolvedValue is PsiEnumConstant && resolvedValue.parent == resolvedType) {
-                        return@forEach
-                    }
-                    if (resolvedValue == resolvedType) {
-                        return@forEach
-                    }
-
-                    value.error("`${value.text}` cannot be applied to `${type.canonicalText}`")
+                val valueType = processor.type(type, value)
+                if (valueType != null && type.isAssignableFrom(valueType)) {
+                    return@forEach
                 }
+                value.error("`${value.text}: ${valueType?.canonicalText}` cannot be applied to `${type.canonicalText}`")
             }
         }
 

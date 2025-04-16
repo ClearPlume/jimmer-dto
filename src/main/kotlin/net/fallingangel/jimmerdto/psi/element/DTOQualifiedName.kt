@@ -1,7 +1,11 @@
 package net.fallingangel.jimmerdto.psi.element
 
+import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
+import com.intellij.psi.search.ProjectScope
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
+import net.fallingangel.jimmerdto.util.javaFqName
+import org.jetbrains.kotlin.psi.KtClass
 
 interface DTOQualifiedName : DTOElement {
     val parts: List<DTOQualifiedNamePart>
@@ -23,7 +27,12 @@ interface DTOQualifiedName : DTOElement {
                     else -> null
                 }
             } else {
-                resolved as? PsiClass
+                if (resolved is KtClass) {
+                    val java = resolved.javaFqName ?: return null
+                    JavaPsiFacade.getInstance(project).findClass(java, ProjectScope.getAllScope(project))
+                } else {
+                    resolved as? PsiClass
+                }
             }
         }
 }

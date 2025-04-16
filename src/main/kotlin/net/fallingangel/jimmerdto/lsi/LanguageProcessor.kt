@@ -1,10 +1,13 @@
 package net.fallingangel.jimmerdto.lsi
 
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.psi.PsiElement
+import com.intellij.psi.*
+import com.intellij.psi.search.ProjectScope
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.psi.element.DTOAnnotationValue
+import net.fallingangel.jimmerdto.util.literalType
 
 /**
  * @param C 类Psi元素类型
@@ -27,6 +30,47 @@ interface LanguageProcessor<C : PsiElement> {
     fun methods(clazz: C): List<LMethod<*>>
 
     fun resolve(element: PsiElement): LAnnotationOwner?
+
+    fun type(type: PsiType, value: DTOAnnotationValue): PsiType? {
+        val arrayValue = value.arrayValue
+        if (arrayValue != null) {
+            if (arrayValue.values.size == 1 && arrayValue.values[0].isEmpty) {
+                return type
+            }
+            val valueType = type(type, arrayValue.values[0]) ?: return null
+            return PsiArrayType(valueType)
+        }
+        val singleValue = value.singleValue ?: return null
+
+        val qualifiedName = singleValue.qualifiedName
+        val nestAnnotation = singleValue.nestAnnotation
+
+        val project = value.project
+        val scope = ProjectScope.getAllScope(project)
+        if (qualifiedName != null) {
+            if (singleValue.classSuffix == null) {
+                // qualifiedName有可能表示枚举字面量
+                // 获取倒第二part，校验qualifiedName是否为枚举
+                val enumType = qualifiedName.parts[qualifiedName.parts.size - 2].resolve() as? PsiClass ?: return null
+                return if (qualifiedName.parts.size >= 2 && enumType.isEnum) {
+                    PsiClassType.getTypeByName(enumType.qualifiedName!!, project, scope)
+                } else {
+                    PsiType.getTypeByName(qualifiedName.value, project, scope)
+                }
+            } else {
+                val clazz = JavaPsiFacade.getInstance(project).findClass("java.lang.Class", scope) ?: return null
+                val typeName = qualifiedName.clazz?.qualifiedName ?: return null
+                val classGenericType = PsiType.getTypeByName(typeName, project, scope)
+                return PsiElementFactory.getInstance(project).createType(clazz, classGenericType)
+            }
+        }
+
+        if (nestAnnotation != null) {
+            return PsiType.getTypeByName(nestAnnotation.qualifiedName.value, project, scope)
+        }
+
+        return project.literalType(value.text)
+    }
 
     companion object {
         private val extensionPointName = ExtensionPointName.create<LanguageProcessor<*>>("net.fallingangel.languageProcessor")

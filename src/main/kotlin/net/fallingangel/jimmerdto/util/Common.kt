@@ -25,7 +25,6 @@ import net.fallingangel.jimmerdto.structure.JavaNullableType
 import org.babyfish.jimmer.Immutable
 import org.babyfish.jimmer.sql.Embeddable
 import org.babyfish.jimmer.sql.Entity
-import org.intellij.lang.annotations.Language
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationList
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolOrigin
 import org.jetbrains.kotlin.analysis.api.types.KaType
@@ -133,32 +132,6 @@ val PsiType?.defaultValue: String
         else -> "null"
     }
 
-/**
- * 仅限于枚举参数类型
- */
-val PsiType.regex: String?
-    @Language("RegExp")
-    get() = when (this) {
-        is PsiPrimitiveType -> when (this) {
-            PsiTypes.longType() -> "[+-]?\\d+L"
-            PsiTypes.doubleType() -> "[+-]?\\d+\\.\\d+D"
-            PsiTypes.floatType() -> "[+-]?\\d+\\.\\d+F"
-            PsiTypes.booleanType() -> "false|true"
-            PsiTypes.charType() -> "'.*'"
-            else -> "[+-]?\\d+"
-        }
-
-        is PsiArrayType -> "\\[${componentType.regex}]"
-
-        is PsiClassType -> if (canonicalText == "java.lang.String") {
-            "\".*\""
-        } else {
-            null
-        }
-
-        else -> null
-    }
-
 val Project.stringType: PsiClassType
     get() = PsiClassType.getTypeByName("java.lang.String", this, ProjectScope.getAllScope(this))
 
@@ -174,6 +147,52 @@ val PsiType.extract: PsiType
         }
 
         else -> this
+    }
+
+val KtClass.javaFqName: String?
+    get() = when (val name = fqName?.asString()) {
+        // 基本类型
+        "kotlin.Short" -> "java.lang.Short"
+        "kotlin.Int" -> "java.lang.Integer"
+        "kotlin.Long" -> "java.lang.Long"
+        "kotlin.Float" -> "java.lang.Float"
+        "kotlin.Double" -> "java.lang.Double"
+        "kotlin.Boolean" -> "java.lang.Boolean"
+        "kotlin.Byte" -> "java.lang.Byte"
+        "kotlin.Char" -> "java.lang.Character"
+
+        // 字符串
+        "kotlin.String" -> "java.lang.String"
+
+        // 特殊类型
+        "kotlin.Any" -> "java.lang.Object"
+        "kotlin.Unit" -> "java.lang.Void"
+        "kotlin.Nothing" -> null
+
+        // 集合接口
+        "kotlin.collections.List" -> "java.util.List"
+        "kotlin.collections.Set" -> "java.util.Set"
+        "kotlin.collections.Map" -> "java.util.Map"
+        "kotlin.collections.Collection" -> "java.util.Collection"
+        "kotlin.collections.MutableList" -> "java.util.List"
+        "kotlin.collections.MutableSet" -> "java.util.Set"
+        "kotlin.collections.MutableMap" -> "java.util.Map"
+        "kotlin.collections.MutableCollection" -> "java.util.Collection"
+
+        // 集合实现
+        "kotlin.collections.ArrayList" -> "java.util.ArrayList"
+        "kotlin.collections.HashSet" -> "java.util.HashSet"
+        "kotlin.collections.LinkedHashSet" -> "java.util.LinkedHashSet"
+        "kotlin.collections.HashMap" -> "java.util.HashMap"
+        "kotlin.collections.LinkedHashMap" -> "java.util.LinkedHashMap"
+
+        // 数组类型（需特殊处理）
+        "kotlin.Array" -> null
+
+        null -> null
+
+        // 自定义或未知类型
+        else -> name
     }
 
 inline fun <reified T : PsiElement> PsiElement.findChild(path: String): T {
@@ -267,4 +286,11 @@ fun PsiModifierListOwner.hasAnnotation(vararg anno: KClass<out Annotation>): Boo
 
 fun KtAnnotated.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
     return anno.mapNotNull(KClass<out Annotation>::qualifiedName).any { findAnnotation(FqName(it)) != null }
+}
+
+fun Project.literalType(literal: String): PsiType? {
+    if (literal.isBlank()) {
+        return null
+    }
+    return PsiElementFactory.getInstance(this).createExpressionFromText(literal, null).type
 }
