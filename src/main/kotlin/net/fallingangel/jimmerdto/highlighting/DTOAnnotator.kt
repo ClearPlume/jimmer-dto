@@ -276,24 +276,23 @@ class DTOAnnotator : Annotator {
             }
 
             // 参数类型是否匹配
-            val processor = LanguageProcessor.analyze(o.file)
             params.forEach { param ->
-                val method = param.resolve() as? PsiAnnotationMethod ?: return@forEach
-                val type = method.returnType ?: return@forEach
-                // 开头第一行已经针对任意参数没有value的情况处理，所以可以直接『!!』
-                val value = param.value!!
-
-                val valueType = processor.type(type, value)
-                if (valueType != null && type.isAssignableFrom(valueType)) {
+                if (param.valueAssignableFromType) {
                     return@forEach
                 }
-                value.error("`${value.text}: ${valueType?.canonicalText}` cannot be applied to `${type.canonicalText}`")
+
+                param.value?.let {
+                    val method = param.resolve() as? PsiAnnotationMethod ?: return@forEach
+                    val type = method.returnType ?: return@forEach
+                    it.error("`${it.text}: ${param.type?.canonicalText}` cannot be applied to `${type.canonicalText}`")
+                }
             }
 
             if (value != null) {
                 val method = clazz.findMethodsByName("value", false).first()
                 val type = method.returnType ?: return
 
+                val processor = LanguageProcessor.analyze(o.file)
                 val valueType = processor.type(type, value)
                 if (valueType != null && type.isAssignableFrom(valueType)) {
                     return
@@ -318,7 +317,7 @@ class DTOAnnotator : Annotator {
         }
 
         /**
-         * 为注解参数上色
+         * 为注解无名参数上色
          */
         override fun visitAnnotationValue(o: DTOAnnotationValue) {
             val anno = o.parent
@@ -349,7 +348,7 @@ class DTOAnnotator : Annotator {
         }
 
         /**
-         * 为注解参数名上色
+         * 为注解参数上色
          */
         override fun visitAnnotationParameter(o: DTOAnnotationParameter) {
             if (o.value == null) {
