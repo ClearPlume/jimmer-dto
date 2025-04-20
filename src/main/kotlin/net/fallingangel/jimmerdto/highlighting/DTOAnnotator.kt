@@ -287,7 +287,7 @@ class DTOAnnotator : Annotator {
                         param.value?.let {
                             val type = param.type ?: return@forEach
                             val valueType = param.valueType ?: return@forEach
-                            it.error("`${it.text}: ${type.canonicalText}` cannot be applied to `${valueType.canonicalText}`")
+                            it.error("Required: `${type.canonicalText}`, Actual: `${valueType.canonicalText}`")
                         }
                     }
 
@@ -300,7 +300,7 @@ class DTOAnnotator : Annotator {
                 if (valueType != null && type.isAssignableFrom(valueType)) {
                     return
                 }
-                value.error("`${value.text}: ${valueType?.canonicalText}` cannot be applied to `${type.canonicalText}`")
+                value.error("Required: `${type.canonicalText}`, Actual: `${valueType?.canonicalText}`")
             }
         }
 
