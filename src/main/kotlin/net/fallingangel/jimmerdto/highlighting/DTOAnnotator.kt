@@ -276,17 +276,20 @@ class DTOAnnotator : Annotator {
             }
 
             // 参数类型是否匹配
-            params.forEach { param ->
-                if (param.valueAssignableFromType) {
-                    return@forEach
-                }
+            params
+                    // 数组参数不以这种方式校验，其校验逻辑通过visitAnnotationArrayValue单独完成
+                    .filter { it.value?.arrayValue == null }
+                    .forEach { param ->
+                        if (param.valueAssignableFromType) {
+                            return@forEach
+                        }
 
-                param.value?.let {
-                    val method = param.resolve() as? PsiAnnotationMethod ?: return@forEach
-                    val type = method.returnType ?: return@forEach
-                    it.error("`${it.text}: ${param.type?.canonicalText}` cannot be applied to `${type.canonicalText}`")
-                }
-            }
+                        param.value?.let {
+                            val type = param.type ?: return@forEach
+                            val valueType = param.valueType ?: return@forEach
+                            it.error("`${it.text}: ${type.canonicalText}` cannot be applied to `${valueType.canonicalText}`")
+                        }
+                    }
 
             if (value != null) {
                 val method = clazz.findMethodsByName("value", false).first()
@@ -299,21 +302,6 @@ class DTOAnnotator : Annotator {
                 }
                 value.error("`${value.text}: ${valueType?.canonicalText}` cannot be applied to `${type.canonicalText}`")
             }
-        }
-
-        private fun processValue(value: DTOAnnotationValue): DTOAnnotationSingleValue? {
-            val singleValue = value.singleValue
-            val arrayValue = value.arrayValue
-
-            if (singleValue != null) {
-                return singleValue
-            }
-            if (arrayValue != null) {
-                val arrayValue = arrayValue.values.firstOrNull() ?: return null
-                return processValue(arrayValue)
-            }
-
-            throw IllegalStateException("Both 'singleValue' and 'arrayValue' are null")
         }
 
         /**
@@ -380,6 +368,26 @@ class DTOAnnotator : Annotator {
                     ),
                     SelectAnnotationParam(o),
                 )
+            }
+        }
+
+        /**
+         * 为注解数组参数上色
+         */
+        override fun visitAnnotationArrayValue(o: DTOAnnotationArrayValue) {
+            val parameter = o.parent.parentUnSure<DTOAnnotationParameter>() ?: return
+            val arrayType = parameter.type as? PsiArrayType ?: return
+            val arrayComponentType = arrayType.componentType
+            val processor = LanguageProcessor.analyze(o.file)
+
+            val arrayValue = parameter.value?.arrayValue ?: return
+            val valueTypes = arrayValue.values.map { it to processor.type(arrayComponentType, it) }
+
+            valueTypes.forEach { (value, type) ->
+                type ?: return@forEach
+                if (!arrayComponentType.isAssignableFrom(type)) {
+                    value.error("Required: `${arrayComponentType.canonicalText}`, Actual: `${type.canonicalText}`")
+                }
             }
         }
 

@@ -31,15 +31,11 @@ interface LanguageProcessor<C : PsiElement> {
 
     fun resolve(element: PsiElement): LAnnotationOwner?
 
+    /**
+     * 数组字面量不以这种方式判定其类型，类型提升过于复杂，性价比不高
+     */
     fun type(type: PsiType, value: DTOAnnotationValue): PsiType? {
-        val arrayValue = value.arrayValue
-        if (arrayValue != null) {
-            if (arrayValue.values.size == 1 && arrayValue.values[0].isEmpty) {
-                return type
-            }
-            val valueType = type(type, arrayValue.values[0]) ?: return null
-            return PsiArrayType(valueType)
-        }
+        value.arrayValue?.let { return PsiArrayType(PsiTypes.voidType()) }
         val singleValue = value.singleValue ?: return null
 
         val qualifiedName = singleValue.qualifiedName
