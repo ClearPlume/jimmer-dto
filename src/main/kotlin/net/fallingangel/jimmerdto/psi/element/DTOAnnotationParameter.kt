@@ -28,16 +28,19 @@ interface DTOAnnotationParameter : DTONamedElement {
         }
 
     val type: PsiType?
+        get() = sourceElement?.returnType
+
+    val valueType: PsiType?
         get() {
             val processor = LanguageProcessor.analyze(file)
-            val type = sourceElement?.returnType ?: return null
+            val type = type ?: return null
             return value?.let { processor.type(type, it) }
         }
 
     val valueAssignableFromType: Boolean
         get() {
-            val valueType = type ?: return false
-            val type = sourceElement?.returnType ?: return false
+            val type = type ?: return false
+            val valueType = valueType ?: return false
             return type.isAssignableFrom(valueType)
         }
 }
