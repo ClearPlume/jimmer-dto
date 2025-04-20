@@ -35,7 +35,7 @@ interface LanguageProcessor<C : PsiElement> {
      * 数组字面量不以这种方式判定其类型，类型提升过于复杂，性价比不高
      */
     fun type(type: PsiType, value: DTOAnnotationValue): PsiType? {
-        value.arrayValue?.let { return PsiArrayType(PsiTypes.voidType()) }
+        value.arrayValue?.let { return PsiArrayType(PsiType.VOID) }
         val singleValue = value.singleValue ?: return null
 
         val qualifiedName = singleValue.qualifiedName
