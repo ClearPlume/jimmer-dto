@@ -231,6 +231,7 @@ class DTOAnnotator : Annotator {
             o.qualifiedName.style(DTOSyntaxHighlighter.ANNOTATION)
 
             val clazz = o.qualifiedName.clazz ?: return
+            visitAnnotationName(o.qualifiedName, clazz)
             visitAnnotationParams(o, clazz, o.params, o.value)
         }
 
@@ -242,7 +243,32 @@ class DTOAnnotator : Annotator {
             o.qualifiedName.style(DTOSyntaxHighlighter.ANNOTATION)
 
             val clazz = o.qualifiedName.clazz ?: return
+            visitAnnotationName(o.qualifiedName, clazz)
             visitAnnotationParams(o, clazz, o.params, o.value)
+        }
+
+        fun visitAnnotationName(name: DTOQualifiedName, clazz: PsiClass) {
+            val qualifiedName = clazz.qualifiedName ?: return
+            val `package` = qualifiedName.substringBeforeLast('.')
+
+            if (name.simpleName in listOf("Nullable", "NonNull")) {
+                name.error("Annotation \"Nullable\"、\"NonNull\" is forbidden")
+            }
+
+            if (name.simpleName in listOf("Null", "NotNull")) {
+                val packages = listOf("javax.validation.constraints", "jakarta.validation.constraints")
+                if (`package` !in packages) {
+                    name.error("Package \"${`package`}\" is forbidden")
+                }
+            }
+
+            if (`package`.startsWith("org.babyfish.jimmer") &&
+                !`package`.startsWith("org.babyfish.jimmer.client") &&
+                !`package`.startsWith("org.babyfish.jimmer.jackson") &&
+                qualifiedName != "org.babyfish.jimmer.kt.dto.KotlinDto"
+            ) {
+                name.error("Jimmer annotation is forbidden")
+            }
         }
 
         /**
