@@ -16,6 +16,9 @@ interface DTOQualifiedName : DTOElement {
     val `package`: String
         get() = parts.dropLast(1).joinToString(".", transform = DTOQualifiedNamePart::part)
 
+    val simpleName: String
+        get() = parts.last().part
+
     val clazz: PsiClass?
         get() {
             val resolved = parts.last().resolve()
