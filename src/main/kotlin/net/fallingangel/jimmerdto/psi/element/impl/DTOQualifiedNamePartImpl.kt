@@ -22,6 +22,10 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
 
     override fun getNameIdentifier(): PsiElement? {
         return findChildNullable("/qualifiedNamePart/Identifier")
+            ?: findChildNullable("/qualifiedNamePart/'like'")
+            ?: findChildNullable("/qualifiedNamePart/'null'")
+            ?: findChildNullable("/qualifiedNamePart/'desc'")
+            ?: findChildNullable("/qualifiedNamePart/'asc'")
     }
 
     override fun newNameNode(name: String): ASTNode {

@@ -74,7 +74,9 @@ class DTOAnnotator : Annotator {
                 return
             }
 
-            o.style(DTOSyntaxHighlighter.IDENTIFIER)
+            if (o.part in listOf("like", "null", "desc", "asc")) {
+                o.style(DTOSyntaxHighlighter.IDENTIFIER)
+            }
 
             val resolved = o.resolve()
             if (resolved == null && !o.text.endsWith("Id") && o.parent.parent !is DTOTypeRef && o.text !in DTOLanguage.preludes) {
