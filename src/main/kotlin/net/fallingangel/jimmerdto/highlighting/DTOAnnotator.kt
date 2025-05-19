@@ -657,6 +657,7 @@ class DTOAnnotator : Annotator {
                 o.type.error("Generic parameter mismatch")
             }
 
+            // Dto接口实现校验
             val parent = o.parent
             if (parent is DTOImplements) {
                 // 用作DTO、属性父级类型时，类型不可为空
