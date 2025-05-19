@@ -1,6 +1,7 @@
 package net.fallingangel.jimmerdto.lsi.processor
 
 import com.intellij.psi.PsiElement
+import net.fallingangel.jimmerdto.exception.IllegalTypeException
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
@@ -111,7 +112,7 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
 
     fun KaSession.resolve(type: KaType): LType {
         val nullable = type.isMarkedNullable
-        val symbol = type.symbol!!
+        val symbol = type.symbol ?: throw IllegalTypeException(type.toString())
         val classId = symbol.classId!!
         val name = symbol.name!!.asString()
         val fqName = classId.asFqNameString()
