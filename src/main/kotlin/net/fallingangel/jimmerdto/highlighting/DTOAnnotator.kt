@@ -37,6 +37,71 @@ class DTOAnnotator : Annotator {
 
     private class DTOAnnotatorVisitor(private val holder: AnnotationHolder) : DTOVisitor() {
         /**
+         * 导包重复检测(普通导包语句)
+         */
+        override fun visitImportStatement(o: DTOImportStatement) {
+            val file = o.file
+            // 这里不考虑分组导入
+            if (o.groupedImport != null) {
+                return
+            }
+            val type = o.qualifiedName.simpleName
+            val imports = file.imports.map(Pair<String, PsiClass>::first) + file.alias.map { (alias) -> alias.value }
+            if (imports.count { it == type } > 1) {
+                o.error(
+                    "Conflicting import: imported name `$type` is ambiguous",
+                    RemoveElement(type, o),
+                )
+            }
+        }
+
+        /**
+         * 分组导包语句
+         */
+        override fun visitImportedType(o: DTOImportedType) {
+            val project = o.project
+            val import = o.parent.parent<DTOImportStatement>()
+            val clazz = JavaPsiFacade.getInstance(project)
+                    .findPackage(import.qualifiedName.value)
+                    ?.classes
+                    ?.find { it.name == o.type.value }
+            if (clazz == null) {
+                o.type.error("Unresolved reference: ${o.type.value}")
+            } else {
+                if (clazz.isAnnotationType) {
+                    o.style(DTOSyntaxHighlighter.ANNOTATION)
+                }
+            }
+
+            // 导包重复检测
+            val type = o.alias?.value ?: o.type.value
+            val imports = o.file.imports.map(Pair<String, PsiClass>::first) + o.file.alias.map { (alias) -> alias.value }
+            if (imports.count { it == type } > 1) {
+                o.error(
+                    "Conflicting import: imported name `$type` is ambiguous",
+                    RemoveElement(
+                        type,
+                        o.parent,
+                        {
+                            it as DTOGroupedImport
+                            it.types.find { type -> type.startOffsetInParent == o.startOffsetInParent }!!
+                        },
+                        {
+                            it as DTOGroupedImport
+                            val type = it.types.find { type -> type.startOffsetInParent == o.startOffsetInParent }!!
+                            val comma = type.sibling<PsiElement> { s -> s.elementType == DTOLanguage.token[DTOParser.Comma] }
+                            if (comma == null) {
+                                listOf(type.sibling(false) { s -> s.elementType == DTOLanguage.token[DTOParser.Comma] }!!)
+                            } else {
+                                listOf(comma)
+                            }
+                        },
+                    ),
+                )
+            }
+        }
+
+        /**
          * 为全限定类名上色
          */
         override fun visitQualifiedName(o: DTOQualifiedName) {
@@ -99,23 +164,6 @@ class DTOAnnotator : Annotator {
                     if (target.isEntityAssociation && !target.isReference) {
                         o.error("Illegal property: Table joins are not permitted here")
                     }
-                }
-            }
-        }
-
-        override fun visitImportedType(o: DTOImportedType) {
-            val project = o.project
-            val import = o.parent.parent<DTOImportStatement>()
-            val clazz = JavaPsiFacade.getInstance(project)
-                    .findPackage(import.qualifiedName.value)
-                    ?.classes
-                    ?.find { it.name == o.type.value }
-            val type = o.type.value
-            if (clazz == null) {
-                o.type.error("Unresolved reference: $type")
-            } else {
-                if (clazz.isAnnotationType) {
-                    o.style(DTOSyntaxHighlighter.ANNOTATION)
                 }
             }
         }

@@ -843,7 +843,7 @@ class DTOCompletionContributor : CompletionContributor() {
                         val file = context.file as DTOFile
                         val fileNode = file.findChild<PsiElement>("/dtoFile").node
                         val export = file.export
-                        val imports = file.imports
+                        val imports = file.importStatements
                         val importedSameName = name in file.imported.keys || name in file.importedAlias.keys
                         val import = imports.find { i -> i.qualifiedName.value == qualifiedName }
                         val annotationName = file.findElementAt(context.startOffset)?.parent?.parentUnSure<DTOQualifiedName>()
