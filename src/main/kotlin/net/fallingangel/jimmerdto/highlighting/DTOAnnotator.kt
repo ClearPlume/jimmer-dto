@@ -87,11 +87,9 @@ class DTOAnnotator : Annotator {
                             it.types.find { type -> type.startOffsetInParent == o.startOffsetInParent }!!
                         },
                         {
-                            it as DTOGroupedImport
-                            val type = it.types.find { type -> type.startOffsetInParent == o.startOffsetInParent }!!
-                            val comma = type.sibling<PsiElement> { s -> s.elementType == DTOLanguage.token[DTOParser.Comma] }
+                            val comma = it.siblingComma(true)
                             if (comma == null) {
-                                listOf(type.sibling(false) { s -> s.elementType == DTOLanguage.token[DTOParser.Comma] }!!)
+                                listOf(it.siblingComma(false)!!)
                             } else {
                                 listOf(comma)
                             }
@@ -434,14 +432,7 @@ class DTOAnnotator : Annotator {
                                     .filterIsInstance<DTOAnnotationParameter>()
                                     .find { it.name.text == name }!!
                         },
-                        { anno ->
-                            listOf(
-                                anno.children
-                                        .filterIsInstance<DTOAnnotationParameter>()
-                                        .find { it.name.text == name }!!
-                                        .nextSibling
-                            )
-                        },
+                        { listOf(it.nextSibling) },
                     ),
                     SelectAnnotationParam(o),
                 )
@@ -526,9 +517,8 @@ class DTOAnnotator : Annotator {
                 return args.values.find { it.startOffsetInParent == offset }!!
             }
 
-            fun locateRelated(args: PsiElement, offset: Int): List<PsiElement> {
-                args as DTOMacroArgs
-                val arg = args.values.find { it.startOffsetInParent == offset }!!
+            fun locateRelated(arg: PsiElement): List<PsiElement> {
+                val args = arg.parent as DTOMacroArgs
                 return if (args.values.indexOf(arg) == args.values.lastIndex) {
                     listOfNotNull(arg.siblingComma(false))
                 } else {
@@ -547,7 +537,7 @@ class DTOAnnotator : Annotator {
                             "this",
                             o,
                             { locateTarget(it, `this`.startOffsetInParent) },
-                            { locateRelated(it, `this`.startOffsetInParent) },
+                            { locateRelated(it) },
                         ),
                         style = DTOSyntaxHighlighter.DUPLICATION,
                     )
@@ -565,7 +555,7 @@ class DTOAnnotator : Annotator {
                             macroArg.text,
                             o,
                             { locateTarget(it, macroArg.startOffsetInParent) },
-                            { locateRelated(it, macroArg.startOffsetInParent) },
+                            { locateRelated(it) },
                         )
                     )
                 }
@@ -577,7 +567,7 @@ class DTOAnnotator : Annotator {
                             macroArg.text,
                             o,
                             { locateTarget(it, macroArg.startOffsetInParent) },
-                            { locateRelated(it, macroArg.startOffsetInParent) },
+                            { locateRelated(it) },
                         ),
                         style = DTOSyntaxHighlighter.DUPLICATION
                     )
@@ -596,7 +586,7 @@ class DTOAnnotator : Annotator {
                             sameThisArg.text,
                             o,
                             { locateTarget(it, sameThisArg.startOffsetInParent) },
-                            { locateRelated(it, sameThisArg.startOffsetInParent) },
+                            { locateRelated(it) },
                         ),
                         style = DTOSyntaxHighlighter.DUPLICATION
                     )
@@ -606,7 +596,7 @@ class DTOAnnotator : Annotator {
                             "this",
                             o,
                             { locateTarget(it, macroArg.startOffsetInParent) },
-                            { locateRelated(it, macroArg.startOffsetInParent) },
+                            { locateRelated(it) },
                         ),
                         style = DTOSyntaxHighlighter.DUPLICATION
                     )
@@ -677,13 +667,12 @@ class DTOAnnotator : Annotator {
                         .find { it.startOffsetInParent == o.startOffsetInParent }!!
             }
 
-            fun locateRelated(parent: PsiElement): List<PsiElement> {
-                parent as DTOImplements
-                val type = parent.implements.find { it.startOffsetInParent == o.startOffsetInParent }!!
-                return if (parent.implements.indexOf(type) == parent.implements.lastIndex) {
+            fun locateRelated(type: PsiElement): List<PsiElement> {
+                val comma = type.siblingComma()
+                return if (comma == null) {
                     listOfNotNull(type.siblingComma(false))
                 } else {
-                    listOfNotNull(type.siblingComma())
+                    listOfNotNull(comma)
                 }
             }
 
@@ -911,11 +900,11 @@ class DTOAnnotator : Annotator {
                     RemoveElement(
                         "Alias `${alias.text}` for $propName",
                         o,
-                        targetSelector = {
+                        {
                             it as DTOPositiveProp
                             it.alias!!
                         },
-                        relatedElementsFinder = {
+                        {
                             it as DTOPositiveProp
                             listOfNotNull(it.`as`)
                         },
