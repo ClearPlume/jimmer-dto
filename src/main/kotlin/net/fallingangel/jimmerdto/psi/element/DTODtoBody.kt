@@ -13,6 +13,9 @@ interface DTODtoBody : DTOElement {
 
     val userProps: List<DTOUserProp>
 
+    val availableProps: List<String>
+        get() = macros.flatMap(DTOMacro::carriedProps)
+
     val existedProps: List<String>
         get() {
             val aliasProps = aliasGroups.flatMap { it.positiveProps.map { prop -> prop.alias?.value ?: prop.name.value } }

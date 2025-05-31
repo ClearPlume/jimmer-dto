@@ -612,9 +612,14 @@ class DTOAnnotator : Annotator {
             if (o.property != null) {
                 o.style(DTOSyntaxHighlighter.NEGATIVE_PROP)
 
+                val dtoBody = o.parent as DTODtoBody
+                // 校验是否可使用负属性移除属性
+                if (name !in dtoBody.availableProps) {
+                    o.name?.error("There is no `$name` that is need to be removed")
+                }
+
                 // 属性名称重复校验
-                val body = o.parent as DTODtoBody
-                if (body.negativeProps.count { it.name?.value == name } > 1) {
+                if (dtoBody.negativeProps.count { it.name?.value == name } > 1) {
                     o.name?.error("Duplicated negative prop `$name`")
                 }
             } else {
