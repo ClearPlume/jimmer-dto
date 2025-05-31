@@ -739,7 +739,7 @@ class DTOAnnotator : Annotator {
                 return
             }
 
-            // 默认值校验
+            // 类型可空性校验
             val dto = o.parentOfType<DTODto>() ?: return
             if (o.questionMark == null && dto notModifiedBy Modifier.Specification && type !in DTOLanguage.preludes) {
                 o.type.error("Type `${o.text}` is not null and its default value cannot be determined")
@@ -755,9 +755,11 @@ class DTOAnnotator : Annotator {
             val typeText = type.text
             val value = o.text
 
-            // 可空类型，但排除数字布尔字符串
-            if (type.questionMark != null && type.type.value !in listOf("Boolean", "Int", "String", "Float") && value != "null") {
-                o.error("`$value` does not match the type `$typeText`")
+            // `null`值校验
+            if (value == "null") {
+                if (type.questionMark == null) {
+                    o.error("`$value` does not match the type `$typeText`")
+                }
                 return
             }
 
