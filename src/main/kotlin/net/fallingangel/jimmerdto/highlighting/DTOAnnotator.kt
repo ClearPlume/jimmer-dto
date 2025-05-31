@@ -608,10 +608,17 @@ class DTOAnnotator : Annotator {
          * 为负属性上色
          */
         override fun visitNegativeProp(o: DTONegativeProp) {
+            val name = o.name?.value ?: return
             if (o.property != null) {
                 o.style(DTOSyntaxHighlighter.NEGATIVE_PROP)
+
+                // 属性名称重复校验
+                val body = o.parent as DTODtoBody
+                if (body.negativeProps.count { it.name?.value == name } > 1) {
+                    o.name?.error("Duplicated negative prop `$name`")
+                }
             } else {
-                o.name?.error()
+                o.name?.error("`$name` does not exist")
             }
         }
 
@@ -1040,18 +1047,13 @@ class DTOAnnotator : Annotator {
             } else {
                 parent.parent.parent.parent as DTODtoBody
             }
-            val aliasProps = dtoBody.aliasGroups.flatMap { it.positiveProps.map { prop -> prop.alias?.value ?: prop.name.value } }
-            val positiveProps = dtoBody.positiveProps.map { it.alias?.value ?: it.name.value }
-            val negativeProps = dtoBody.negativeProps.mapNotNull { it.name?.value }
-            val userProps = dtoBody.userProps.map { it.name.value }
-            val currentLevelProps = aliasProps + positiveProps + negativeProps + userProps
             val name = if (parent is DTOPositiveProp) {
                 parent.alias?.value ?: parent.name.value
             } else {
                 o.value
             }
 
-            if (currentLevelProps.count { it == name } > 1) {
+            if (dtoBody.existedProps.count { it == name } > 1) {
                 o.error("Duplicated name usage `$name`")
             }
         }

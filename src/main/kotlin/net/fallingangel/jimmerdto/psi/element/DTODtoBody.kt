@@ -12,4 +12,12 @@ interface DTODtoBody : DTOElement {
     val negativeProps: List<DTONegativeProp>
 
     val userProps: List<DTOUserProp>
+
+    val existedProps: List<String>
+        get() {
+            val aliasProps = aliasGroups.flatMap { it.positiveProps.map { prop -> prop.alias?.value ?: prop.name.value } }
+            val positiveProps = positiveProps.map { it.alias?.value ?: it.name.value }
+            val userProps = userProps.map { it.name.value }
+            return aliasProps + userProps + positiveProps
+        }
 }

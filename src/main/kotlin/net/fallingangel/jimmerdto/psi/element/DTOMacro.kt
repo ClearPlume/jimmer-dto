@@ -28,6 +28,9 @@ interface DTOMacro : DTOElement {
             }
         }
 
+    /**
+     * 宏可用参数
+     */
     val types: List<String>
         get() = clazz.allParents.map(LClass<*>::name) + clazz.name + "this"
 }
