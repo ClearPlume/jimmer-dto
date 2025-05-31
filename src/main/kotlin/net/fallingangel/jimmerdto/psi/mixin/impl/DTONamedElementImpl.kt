@@ -9,8 +9,8 @@ import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 abstract class DTONamedElementImpl(node: ASTNode) : ANTLRPsiNode(node), DTONamedElement {
     override fun getName() = nameIdentifier?.text
 
-    override fun setName(name: String): DTONamedElement {
-        newNameNode(name)?.let { node.treeParent.replaceChild(node, it) }
+    override fun setName(newName: String): DTONamedElement {
+        newNameNode(newName)?.let { node.treeParent.replaceChild(node, it) }
         return this
     }
 
