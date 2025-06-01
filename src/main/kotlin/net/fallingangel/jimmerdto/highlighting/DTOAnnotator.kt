@@ -832,6 +832,30 @@ class DTOAnnotator : Annotator {
                 if (it.resolve() == null) {
                     it.error("`${it.text}` does not exist")
                 }
+
+                // 方法参数重复校验
+                if (arg.values.count { value -> value.text == it.text } > 1) {
+                    it.error(
+                        "Duplicate prop `${it.text}`",
+                        RemoveElement(
+                            it.text,
+                            arg,
+                            { a ->
+                                a as DTOPropArg
+                                a.values.find { v -> v.startOffsetInParent == it.startOffsetInParent }!!
+                            },
+                            { a ->
+                                val comma = a.siblingComma(false)
+                                if (comma != null) {
+                                    listOfNotNull(comma)
+                                } else {
+                                    listOfNotNull(a.siblingComma())
+                                }
+                            },
+                        ),
+                        style = DTOSyntaxHighlighter.DUPLICATION
+                    )
+                }
             }
 
             // 方法参数数量验证
