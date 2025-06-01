@@ -57,6 +57,7 @@ class Formatter : FormattingModelBuilder {
                 .after(rule[RULE_propConfig]).emptyLine(0)
                 .beforeInside(DTOLanguage.tokenSet(QuestionMark, ExclamationMark, Star), rule[RULE_positiveProp]).spaces(0)
                 .between(rule[RULE_propName], rule[RULE_propArg]).spaces(0)
+                .between(rule[RULE_propName], rule[RULE_propFlag]).spaces(0)
                 .around(rule[RULE_propName]).spaces(1)
                 .betweenInside(rule[RULE_qualifiedName], rule[RULE_genericArguments], rule[RULE_typeRef]).spaces(0)
                 .before(rule[RULE_propBody]).spaces(1)

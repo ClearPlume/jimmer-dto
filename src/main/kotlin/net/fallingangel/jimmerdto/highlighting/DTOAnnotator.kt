@@ -13,7 +13,6 @@ import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.DTOLanguage
-import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.enums.SpecFunction
@@ -810,58 +809,53 @@ class DTOAnnotator : Annotator {
             }
         }
 
-        private fun visitFunction(o: DTOPositiveProp, propName: String) {
+        private fun visitFunction(o: DTOPositiveProp, functionName: String) {
             val dto = o.parentOfType<DTODto>() ?: return
-            val availableFunctions = if (dto modifiedBy Modifier.Specification) {
-                val functions = Function.values().map(Function::expression)
-                val specFunctions = SpecFunction.values().map(SpecFunction::expression)
-                functions + specFunctions
-            } else {
-                Function.values().map { it.expression }
+            val specFunctions = SpecFunction.values().map(SpecFunction::expression)
+
+            o.name.style(DTOSyntaxHighlighter.FUNCTION)
+            val specification = dto modifiedBy Modifier.Specification
+            // spec方法校验
+            if (functionName in specFunctions && !specification) {
+                o.error("Cannot call the function `$functionName` because the current dto type is not specification")
             }
 
-            // 方法名
+            // 方法参数不可为空校验
             val arg = o.arg ?: return
-            if (arg.values.isEmpty()) {
+            if (arg.isEmpty) {
                 arg.error("Function arg list cannot be empty")
                 return
             }
-            if (propName in availableFunctions) {
-                o.name.style(DTOSyntaxHighlighter.FUNCTION)
-            } else {
-                o.name.error()
-            }
 
-            // 方法参数
-            if (propName in SpecFunction.values().map { it.expression } && dto notModifiedBy Modifier.Specification) {
-                o.error("Cannot call the function `$propName` because the current dto type is not specification")
-            }
-
+            // 方法参数是否存在校验
             arg.values.forEach {
                 if (it.resolve() == null) {
                     it.error("`${it.text}` does not exist")
                 }
             }
 
+            // 方法参数数量验证
             val multiArgFunctions = SpecFunction.values().filter(SpecFunction::whetherMultiArg).map(SpecFunction::expression)
-            if (arg.values.size > 1 && propName !in multiArgFunctions) {
+            if (arg.values.size > 1 && functionName !in multiArgFunctions) {
                 arg.values
                         .drop(1)
                         .forEach {
                             it.error(
-                                "`$propName` accepts only one prop",
+                                "`$functionName` accepts only one prop",
                                 RemoveElement(it.text, it),
                             )
                         }
             }
 
-            if (propName in multiArgFunctions) {
+            // 多方法参数别名校验
+            if (functionName in multiArgFunctions) {
                 if (arg.values.size > 1 && o.alias == null) {
-                    o.error("An alias must be specified because `$propName` has multiple arguments")
+                    o.error("An alias must be specified because `$functionName` has multiple arguments")
                 }
             }
 
-            if (propName == "id") {
+            // id方法参数为list时别名校验
+            if (functionName == "id") {
                 val value = arg.values[0]
                 if (value.resolve() != null && o.file.clazz.findProperty(value.parent.parent.propPath() + value.text).isList) {
                     if (o.alias == null) {
@@ -871,7 +865,8 @@ class DTOAnnotator : Annotator {
                 }
             }
 
-            if (propName == "flat") {
+            // flat方法使用集合参数的校验
+            if (functionName == "flat") {
                 val value = arg.values[0]
                 if (dto notModifiedBy Modifier.Specification) {
                     if (value.resolve() != null && o.file.clazz.findProperty(value.parent.parent.propPath()).isList) {
