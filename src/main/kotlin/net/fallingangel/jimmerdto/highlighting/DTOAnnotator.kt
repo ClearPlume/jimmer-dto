@@ -898,6 +898,18 @@ class DTOAnnotator : Annotator {
                     }
                 }
             }
+
+            // like方法校验
+            if (o.flag != null) {
+                if (functionName != "like") {
+                    o.name.error("`/` can only be used to decorate the function `like`")
+                }
+
+                val flag = o.flag!!
+                if (flag.insensitive?.text != "i") {
+                    flag.insensitive?.error("Illegal function option identifier `${flag.insensitive?.text}`, it can only be `i`")
+                }
+            }
         }
 
         private fun visitProp(o: DTOPositiveProp, propName: String) {
