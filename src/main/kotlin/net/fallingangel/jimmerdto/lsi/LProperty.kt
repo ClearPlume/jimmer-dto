@@ -38,7 +38,7 @@ data class LProperty<P : PsiElement>(
 
     val isList = type is LType.CollectionType
 
-    val isReference = !isList && isAssociation
+    val isReference = !isList && isEntityAssociation
 
     fun doesTypeHaveAnnotation(annotationClass: KClass<out Annotation>): Boolean {
         return when (type) {

@@ -18,7 +18,7 @@ class DTODocumentationProvider : AbstractDocumentationProvider() {
 
         val thisPropList = if (containThisProp) {
             macroClass.properties
-                    .filter { if (isScalar) !it.isEntityAssociation else it.isEntityAssociation }
+                    .filter { if (isScalar) !it.isEntityAssociation else it.isReference }
                     .map { macroClass to it }
         } else {
             emptyList()
@@ -27,7 +27,7 @@ class DTODocumentationProvider : AbstractDocumentationProvider() {
                 .filter { argList.isEmpty() || argList.contains(it.name) }
                 .flatMap { clazz ->
                     clazz.properties
-                            .filter { if (isScalar) !it.isEntityAssociation else it.isEntityAssociation }
+                            .filter { if (isScalar) !it.isEntityAssociation else it.isReference }
                             .map { clazz to it }
                 }
 
