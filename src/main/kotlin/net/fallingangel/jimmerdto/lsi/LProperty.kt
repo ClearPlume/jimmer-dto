@@ -6,6 +6,7 @@ import org.babyfish.jimmer.Immutable
 import org.babyfish.jimmer.sql.Embeddable
 import org.babyfish.jimmer.sql.Entity
 import org.babyfish.jimmer.sql.MappedSuperclass
+import org.babyfish.jimmer.sql.Transient
 import kotlin.reflect.KClass
 
 data class LProperty<P : PsiElement>(
@@ -38,7 +39,9 @@ data class LProperty<P : PsiElement>(
 
     val isList = type is LType.CollectionType
 
-    val isReference = !isList && isEntityAssociation
+    val isTransient = hasAnnotation(Transient::class)
+
+    val isReference = isEntityAssociation && !isList && !isTransient
 
     fun doesTypeHaveAnnotation(annotationClass: KClass<out Annotation>): Boolean {
         return when (type) {
