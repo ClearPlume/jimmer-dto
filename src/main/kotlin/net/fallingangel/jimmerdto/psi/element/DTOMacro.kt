@@ -47,7 +47,7 @@ interface DTOMacro : DTOElement {
                 "allScalars" -> {
                     val thisProps = if (containThisProp) {
                         clazz.properties
-                                .filter { !it.isEntityAssociation }
+                                .filter { !it.isReference }
                                 .map(LProperty<*>::name)
                     } else {
                         emptyList()
@@ -56,7 +56,7 @@ interface DTOMacro : DTOElement {
                             .filter { argList.isEmpty() || argList.contains(it.name) }
                             .flatMap { clazz ->
                                 clazz.properties
-                                        .filter { !it.isEntityAssociation }
+                                        .filter { !it.isReference }
                                         .map(LProperty<*>::name)
                             }
                     thisProps + superProps
@@ -65,7 +65,7 @@ interface DTOMacro : DTOElement {
                 "allReferences" -> {
                     val thisProps = if (containThisProp) {
                         clazz.properties
-                                .filter { it.isEntityAssociation }
+                                .filter { it.isReference }
                                 .map(LProperty<*>::name)
                     } else {
                         emptyList()
@@ -74,7 +74,7 @@ interface DTOMacro : DTOElement {
                             .filter { argList.isEmpty() || argList.contains(it.name) }
                             .flatMap { clazz ->
                                 clazz.properties
-                                        .filter { it.isEntityAssociation }
+                                        .filter { it.isReference }
                                         .map(LProperty<*>::name)
                             }
                     thisProps + superProps
