@@ -801,7 +801,13 @@ class DTOCompletionContributor : CompletionContributor() {
                 "#allScalars",
                 "macro",
                 "(Type+)"
-            )
+            ),
+            LookupInfo(
+                "#allReferences",
+                "#allReferences",
+                "macro",
+                "(Type+)"
+            ),
         ).lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
         val aliasGroup = listOf(
             LookupInfo(
