@@ -105,6 +105,6 @@ sealed class LType {
             get() = "Map<${keyType.name}, ${valueType.name}>"
 
         override val canonicalName: String
-            get() = "Map<${keyType.canonicalName}>, ${valueType.canonicalName}>"
+            get() = "Map<${keyType.canonicalName}, ${valueType.canonicalName}>"
     }
 }
