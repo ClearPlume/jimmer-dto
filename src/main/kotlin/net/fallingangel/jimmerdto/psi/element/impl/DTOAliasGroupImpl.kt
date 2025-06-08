@@ -3,6 +3,8 @@ package net.fallingangel.jimmerdto.psi.element.impl
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
+import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.DTOAliasGroup
 import net.fallingangel.jimmerdto.psi.element.DTOMacro
 import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
@@ -10,7 +12,9 @@ import net.fallingangel.jimmerdto.psi.element.DTOVisitor
 import net.fallingangel.jimmerdto.util.findChild
 import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
+import net.fallingangel.jimmerdto.util.sibling
 import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
+import org.toml.lang.psi.ext.elementType
 
 class DTOAliasGroupImpl(node: ASTNode) : ANTLRPsiNode(node), DTOAliasGroup {
     override val `as`: PsiElement
@@ -20,13 +24,16 @@ class DTOAliasGroupImpl(node: ASTNode) : ANTLRPsiNode(node), DTOAliasGroup {
         get() = findChildNullable("/aliasGroup/'^'")
 
     override val original: PsiElement?
-        get() = findChildNullable("/aliasGroup/Identifier")
+        get() = arrow.sibling(false) { it.elementType == DTOLanguage.token[DTOParser.Identifier] }
 
     override val dollar: PsiElement?
         get() = findChildNullable("/aliasGroup/'$'")
 
+    override val arrow: PsiElement
+        get() = findChild("/aliasGroup/'->'")
+
     override val replacement: PsiElement?
-        get() = findChildNullable("/aliasGroup/Identifier")
+        get() = arrow.sibling { it.elementType == DTOLanguage.token[DTOParser.Identifier] }
 
     override val macros: List<DTOMacro>
         get() = findChildren("/aliasGroup/aliasGroupBody/macro")
