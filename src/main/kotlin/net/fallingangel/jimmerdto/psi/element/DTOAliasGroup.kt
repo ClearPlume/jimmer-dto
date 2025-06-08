@@ -17,6 +17,8 @@ interface DTOAliasGroup : DTOElement {
 
     val dollar: PsiElement?
 
+    val arrow: PsiElement
+
     val replacement: PsiElement?
 
     val macros: List<DTOMacro>
