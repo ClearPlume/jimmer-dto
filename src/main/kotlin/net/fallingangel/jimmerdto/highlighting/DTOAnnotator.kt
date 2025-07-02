@@ -1090,8 +1090,20 @@ class DTOAnnotator : Annotator {
                 o.value
             }
 
-            if (dtoBody.existedProps.count { it == name } > 1) {
-                o.error("Duplicated name usage `$name`")
+            if (dtoBody.parent is DTOPropBody) {
+                val prop = dtoBody.parent.parent as DTOPositiveProp
+                if (prop.name.value == "files") {
+                    val dto = prop.parentOfType<DTODto>()
+                    if (dto != null && dto.name.value == "UserTest") {
+                        println("props: ${dtoBody.existedProp}")
+                    }
+                }
+            }
+
+            dtoBody.existedProp[name]?.let { (count, alias) ->
+                if (count > 1) {
+                    o.error("Duplicated name usage `$name`")
+                }
             }
         }
 
@@ -1173,8 +1185,6 @@ class DTOAnnotator : Annotator {
         }
 
         private fun PsiElement.style(style: TextAttributesKey) = annotator(style, HighlightSeverity.INFORMATION)
-
-        private fun PsiElement.error(style: TextAttributesKey = DTOSyntaxHighlighter.ERROR) = annotator(style, HighlightSeverity.ERROR)
 
         private fun PsiElement.annotator(style: TextAttributesKey, severity: HighlightSeverity) {
             holder.newSilentAnnotation(severity)

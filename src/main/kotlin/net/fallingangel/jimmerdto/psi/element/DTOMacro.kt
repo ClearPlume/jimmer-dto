@@ -35,6 +35,9 @@ interface DTOMacro : DTOElement {
     val types: List<String>
         get() = clazz.allParents.map(LClass<*>::name) + clazz.name + "this"
 
+    val isScalar: Boolean
+        get() = name.value == "allScalars"
+
     /**
      * 携带的属性列表
      */

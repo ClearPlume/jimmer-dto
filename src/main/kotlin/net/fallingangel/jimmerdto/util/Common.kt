@@ -294,3 +294,12 @@ fun Project.literalType(literal: String): PsiType? {
     }
     return PsiElementFactory.getInstance(this).createExpressionFromText(literal, null).type
 }
+
+fun String.replaceLast(oldValue: String, newValue: String): String {
+    return if (endsWith(oldValue)) {
+        val left = removeSuffix(oldValue)
+        left + newValue.replaceFirstChar { it.uppercase() }
+    } else {
+        this
+    }
+}
