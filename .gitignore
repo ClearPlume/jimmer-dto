@@ -11,6 +11,8 @@ src/main/gen/
 .idea/modules.xml
 .idea/jarRepositories.xml
 .idea/compiler.xml
+.idea/gradle.xml
+.idea/misc.xml
 .idea/libraries/
 *.iws
 *.iml
