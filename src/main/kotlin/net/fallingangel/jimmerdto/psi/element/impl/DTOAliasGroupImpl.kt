@@ -3,6 +3,7 @@ package net.fallingangel.jimmerdto.psi.element.impl
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
+import com.intellij.psi.util.elementType
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.DTOAliasGroup
@@ -14,7 +15,6 @@ import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
 import net.fallingangel.jimmerdto.util.sibling
 import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
-import org.toml.lang.psi.ext.elementType
 
 class DTOAliasGroupImpl(node: ASTNode) : ANTLRPsiNode(node), DTOAliasGroup {
     override val `as`: PsiElement
