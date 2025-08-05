@@ -106,20 +106,20 @@ val KtLightClass.icon: Icon
     }
 
 val PsiType.nullable: Boolean
-    get() = presentableText in JavaNullableType.values().map { it.name }
+    get() = presentableText in JavaNullableType.entries.map { it.name }
 
 val PsiType?.defaultValue: String
     get() = when (this) {
         is PsiPrimitiveType -> when (this) {
-            PsiType.BYTE -> "0"
-            PsiType.SHORT -> "0"
-            PsiType.INT -> "0"
-            PsiType.LONG -> "0L"
-            PsiType.DOUBLE -> "0.0D"
-            PsiType.FLOAT -> "0.0"
-            PsiType.BOOLEAN -> "false"
-            PsiType.CHAR -> "''"
-            PsiType.NULL -> "null"
+            PsiTypes.byteType() -> "0"
+            PsiTypes.shortType() -> "0"
+            PsiTypes.intType() -> "0"
+            PsiTypes.longType() -> "0L"
+            PsiTypes.doubleType() -> "0.0D"
+            PsiTypes.floatType() -> "0.0"
+            PsiTypes.booleanType() -> "false"
+            PsiTypes.charType() -> "''"
+            PsiTypes.nullType() -> "null"
             else -> "void"
         }
 
@@ -224,8 +224,8 @@ inline fun <reified T : PsiElement> PsiElement.findChildren(path: String): List<
 
 inline fun <reified T : PsiElement> PsiElement.sibling(forward: Boolean = true, filter: (PsiElement) -> Boolean): T? {
     return siblings(forward, false)
-            .filterIsInstance<T>()
-            .firstOrNull(filter)
+        .filterIsInstance<T>()
+        .firstOrNull(filter)
 }
 
 fun PsiElement.siblingComma(forward: Boolean = true) = sibling<PsiElement>(forward) {
@@ -242,9 +242,9 @@ inline fun <reified P> PsiElement.parentUnSure(): P? {
 
 fun Project.notification(content: String, type: NotificationType = NotificationType.INFORMATION) {
     NotificationGroupManager.getInstance()
-            .getNotificationGroup("JimmerDTO Notification Group")
-            .createNotification(content, type)
-            .notify(this)
+        .getNotificationGroup("JimmerDTO Notification Group")
+        .createNotification(content, type)
+        .notify(this)
 }
 
 fun Project.psiClass(qualifiedName: String): PsiClass? {
@@ -273,8 +273,8 @@ fun Project.allAnnotations(`package`: String? = ""): List<PsiClass> {
         val scope = ProjectScope.getAllScope(this)
 
         FileBasedIndex.getInstance()
-                .getAllKeys(ANNOTATION_CLASS_INDEX, this)
-                .mapNotNull { psiFacade.findClass(it, scope) }
+            .getAllKeys(ANNOTATION_CLASS_INDEX, this)
+            .mapNotNull { psiFacade.findClass(it, scope) }
     } else {
         JavaPsiFacade.getInstance(this).findPackage(`package`)?.classes?.filter { it.isAnnotationType } ?: emptyList()
     }
@@ -284,7 +284,13 @@ fun Project.allAnnotations(`package`: String? = ""): List<PsiClass> {
  * @param `package` null等同于空字符串
  */
 fun Project.allEntities(`package`: String? = ""): List<PsiClass> {
-    return allClasses(`package` ?: "").filter { it.isInterface && it.hasAnnotation(Entity::class, Embeddable::class, Immutable::class) }
+    return allClasses(`package` ?: "").filter {
+        it.isInterface && it.hasAnnotation(
+            Entity::class,
+            Embeddable::class,
+            Immutable::class
+        )
+    }
 }
 
 fun Project.allPackages(`package`: String): List<PsiPackage> {

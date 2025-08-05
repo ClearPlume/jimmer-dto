@@ -33,12 +33,12 @@ interface DTOPropArg : DTOElement {
                     }
                 }
 
-                in SpecFunction.values().map { it.expression } -> {
+                in SpecFunction.entries.map { it.expression } -> {
                     properties
-                            .filter { property ->
-                                val specFunction = SpecFunction.values().first { it.expression == functionName }
-                                specFunction.argType.test(property)
-                            }
+                        .filter { property ->
+                            val specFunction = SpecFunction.entries.first { it.expression == functionName }
+                            specFunction.argType.test(property)
+                        }
                 }
 
                 else -> {

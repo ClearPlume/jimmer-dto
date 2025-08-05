@@ -6,8 +6,8 @@ enum class BasicType {
     Boolean, Char, String, Byte, Short, Int, Float, Double, Long, Any;
 
     companion object {
-        fun types(): List<kotlin.String> {
-            val types = BasicType.values().map { it.name }
+        fun types(): List<String> {
+            val types = entries.map { it.name }
             return types + types.map { "$it?" }
         }
     }

@@ -55,23 +55,23 @@ interface DTOPositiveProp : DTOElement {
             LookupInfo("flat", "flat() {}", "function", "(<association>) { ... }", -4)
         )
         val specFunctions = if (dto modifiedBy Modifier.Specification) {
-            SpecFunction.values()
-                    .map {
-                        with(it) {
-                            val argPresentation = if (whetherMultiArg) {
-                                "<prop, prop, prop, ...>"
-                            } else {
-                                "<prop>"
-                            }
-                            LookupInfo(
-                                expression,
-                                "$expression()",
-                                "function",
-                                "($argPresentation)",
-                                -1
-                            )
+            SpecFunction.entries
+                .map {
+                    with(it) {
+                        val argPresentation = if (whetherMultiArg) {
+                            "<prop, prop, prop, ...>"
+                        } else {
+                            "<prop>"
                         }
+                        LookupInfo(
+                            expression,
+                            "$expression()",
+                            "function",
+                            "($argPresentation)",
+                            -1
+                        )
                     }
+                }
         } else {
             emptyList()
         }
@@ -80,11 +80,12 @@ interface DTOPositiveProp : DTOElement {
 
     fun allSiblings(withSelf: Boolean = false): List<LProperty<*>> {
         val propPath = propPath()
-        val proceedPath = if ((withSelf || name.value in SpecFunction.values().map { it.expression }) && propPath.isNotEmpty()) {
-            propPath.dropLast(1) + propPath.last().replace(CompletionUtil.DUMMY_IDENTIFIER_TRIMMED, "")
-        } else {
-            propPath.dropLast(1)
-        }
+        val proceedPath =
+            if ((withSelf || name.value in SpecFunction.entries.map { it.expression }) && propPath.isNotEmpty()) {
+                propPath.dropLast(1) + propPath.last().replace(CompletionUtil.DUMMY_IDENTIFIER_TRIMMED, "")
+            } else {
+                propPath.dropLast(1)
+            }
         return if (proceedPath.isEmpty()) {
             file.clazz.allProperties
         } else {
@@ -103,17 +104,17 @@ interface DTOPositiveProp : DTOElement {
         }
 
         val scalars = props
-                .filter { it.type is LType.ScalarType }
-                .map { it.name to it.presentableType }
+            .filter { it.type is LType.ScalarType }
+            .map { it.name to it.presentableType }
         val associations = props
-                .filter { it.isReference && it.isEntityAssociation }
-                .map { it.name to it.presentableType }
+            .filter { it.isReference && it.isEntityAssociation }
+            .map { it.name to it.presentableType }
         val views = props
-                .filter { it.isReference && it.isEntityAssociation }
-                .map { "${it.name}Id" to it.presentableType }
+            .filter { it.isReference && it.isEntityAssociation }
+            .map { "${it.name}Id" to it.presentableType }
         val embeddable = props
-                .filter { it.doesTypeHaveAnnotation(Embeddable::class) }
-                .map { it.name to it.presentableType }
+            .filter { it.doesTypeHaveAnnotation(Embeddable::class) }
+            .map { it.name to it.presentableType }
 
         return scalars + associations + views + embeddable
     }
