@@ -6,7 +6,6 @@ import com.intellij.lang.Language
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.ui.components.Label
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.DTOFile
@@ -16,6 +15,7 @@ import net.fallingangel.jimmerdto.psi.element.DTOValue
 import net.fallingangel.jimmerdto.util.file
 import net.fallingangel.jimmerdto.util.propPath
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
+import javax.swing.JLabel
 
 @Suppress("UnstableApiUsage")
 class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
@@ -29,14 +29,19 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
         get() = null
 
     override fun createConfigurable(settings: NoSettings) = object : ImmediateConfigurable {
-        override fun createComponent(listener: ChangeListener) = Label("NoSettings")
+        override fun createComponent(listener: ChangeListener) = JLabel("NoSettings")
     }
 
     override fun createSettings() = NoSettings()
 
     override fun isLanguageSupported(language: Language) = language == DTOLanguage
 
-    override fun getCollectorFor(file: PsiFile, editor: Editor, settings: NoSettings, sink: InlayHintsSink): InlayHintsCollector? {
+    override fun getCollectorFor(
+        file: PsiFile,
+        editor: Editor,
+        settings: NoSettings,
+        sink: InlayHintsSink
+    ): InlayHintsCollector? {
         if (file is DTOFile) {
             return object : FactoryInlayHintsCollector(editor) {
                 override fun collect(element: PsiElement, editor: Editor, sink: InlayHintsSink): Boolean {
