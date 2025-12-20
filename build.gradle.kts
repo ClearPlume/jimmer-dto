@@ -8,17 +8,17 @@ plugins {
     java
     antlr
 
-    id("org.jetbrains.kotlin.jvm") version "2.1.20"
-    id("org.jetbrains.intellij.platform") version "2.7.0"
-    id("org.jetbrains.changelog") version "2.4.0"
+    id("org.jetbrains.kotlin.jvm") version "2.3.0"
+    id("org.jetbrains.intellij.platform") version "2.10.5"
+    id("org.jetbrains.changelog") version "2.5.0"
 }
 
 group = "net.fallingangel"
-version = "0.0.7.46-k1"
+version = "0.0.7.47-k1"
 
-val since by extra("232.10335.12")
+val since by extra("233.15619.7")
 val until by extra("241.*")
-val jimmerVersion by extra("0.9.104")
+val jimmerVersion by extra("0.9.119")
 val antlrVersion by extra("4.13.2")
 
 val certificateChainValue = findProperty("certificateChainValue") as String?

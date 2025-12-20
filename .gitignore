@@ -13,6 +13,8 @@ src/main/gen/
 .idea/compiler.xml
 .idea/gradle.xml
 .idea/misc.xml
+.idea/AICommit.xml
+.idea/kotlinc.xml
 .idea/libraries/
 *.iws
 *.iml
