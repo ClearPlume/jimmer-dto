@@ -78,7 +78,7 @@ interface DTOPositiveProp : DTOElement {
         return functions + specFunctions
     }
 
-    fun allSiblings(withSelf: Boolean = false): List<LProperty<*>> {
+    override fun allSiblings(withSelf: Boolean): List<LProperty<*>> {
         val propPath = propPath()
         val proceedPath =
             if ((withSelf || name.value in SpecFunction.entries.map { it.expression }) && propPath.isNotEmpty()) {

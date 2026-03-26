@@ -1,6 +1,5 @@
 package net.fallingangel.jimmerdto.psi.element
 
-import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
@@ -12,14 +11,4 @@ interface DTONegativeProp : DTOElement {
 
     val property: LProperty<*>?
         get() = file.clazz.findPropertyOrNull(propPath())
-
-    fun allSiblings(withSelf: Boolean = false): List<LProperty<*>> {
-        val propPath = propPath().dropLast(if (withSelf) 0 else 1)
-        return if (propPath.isEmpty()) {
-            file.clazz.allProperties
-        } else {
-            val parentClazz = file.clazz.findPropertyOrNull(propPath)?.actualType as? LClass<*> ?: return emptyList()
-            parentClazz.allProperties
-        }
-    }
 }

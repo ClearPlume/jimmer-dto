@@ -982,8 +982,37 @@ class DTOAnnotator : Annotator {
          */
         override fun visitPropName(o: DTOPropName) {
             val parent = o.parent
+            // 有些属性名称可能是关键字颜色，需要覆盖掉
             if (parent is DTOPositiveProp && parent.arg == null) {
                 o.style(DTOSyntaxHighlighter.IDENTIFIER)
+            }
+
+            // 属性名称重复校验
+            val dtoBody = if (parent.parent is DTODtoBody) {
+                parent.parent as DTODtoBody
+            } else {
+                parent.parent.parent.parent as DTODtoBody
+            }
+            val name = if (parent is DTOPositiveProp) {
+                parent.alias?.value ?: parent.name.value
+            } else {
+                o.value
+            }
+
+            if (dtoBody.parent is DTOPropBody) {
+                val prop = dtoBody.parent.parent as DTOPositiveProp
+                if (prop.name.value == "files") {
+                    val dto = prop.parentOfType<DTODto>()
+                    if (dto != null && dto.name.value == "UserTest") {
+                        println("props: ${dtoBody.existedProp}")
+                    }
+                }
+            }
+
+            dtoBody.existedProp[name]?.let { (count, _) ->
+                if (count > 1) {
+                    o.error("Duplicated name usage `$name`")
+                }
             }
         }
 
