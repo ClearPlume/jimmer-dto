@@ -1,0 +1,20 @@
+[versions]
+kotlin = "2.3.0"
+intellij = "2.10.5"
+changelog = "2.5.0"
+antlr4 = "4.13.2"
+antlr4-intellij-adaptor = "0.1"
+jimmer = "0.10.6"
+junit = "4.13.2"
+
+[libraries]
+antlr4 = { module = "org.antlr:antlr4", version.ref = "antlr4" }
+antlr4-runtime = { module = "org.antlr:antlr4-runtime", version.ref = "antlr4" }
+antlr4-intellij-adaptor = { module = "org.antlr:antlr4-intellij-adaptor", version.ref = "antlr4-intellij-adaptor" }
+jimmer-core = { module = "org.babyfish.jimmer:jimmer-core", version.ref = "jimmer" }
+junit = { module = "junit:junit", version.ref = "junit" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+intellij-platform = { id = "org.jetbrains.intellij.platform", version.ref = "intellij" }
+changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }

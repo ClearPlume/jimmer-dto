@@ -6,17 +6,43 @@
 
 * Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
 
+## [0.0.7.48] - 2026-03-26 - K1 Final Track
+
+This release marks the beginning of K1 branch's final phase.
+
+The supported platform range is now narrowed to 2024.1 (241.*) exclusively. If you're running IntelliJ 2024.2 or later, switch to the K2 build.
+
+K1 will continue to receive feature updates toward 1.0 — completing the originally planned feature set. However, no further IDE version compatibility updates will be made. After 1.0, this branch reaches end-of-life.
+
+For active development and ongoing IDE version support, use the K2 branch (2024.2+).
+
+### Added
+
+* 2024.1 is supported
+
+### Deprecated
+
+* Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
+
 ## [0.0.7.47] - 2025-12-20
 
 ### Added
 
-* 2025.3 is supported
+* 2023.3 is supported
+
+### Deprecated
+
+* Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
 
 ## [0.0.7.46] - 2025-08-05
 
 ### Added
 
-* 2025.2 is supported
+* 2023.2 is supported
+
+### Deprecated
+
+* Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
 
 ## [0.0.7.45] - 2025-04-20
 

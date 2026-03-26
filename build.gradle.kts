@@ -8,18 +8,16 @@ plugins {
     java
     antlr
 
-    id("org.jetbrains.kotlin.jvm") version "2.3.0"
-    id("org.jetbrains.intellij.platform") version "2.10.5"
-    id("org.jetbrains.changelog") version "2.5.0"
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.intellij.platform)
+    alias(libs.plugins.changelog)
 }
 
 group = "net.fallingangel"
-version = "0.0.7.47-k1"
+version = "0.0.7.48-k1"
 
-val since by extra("233.15619.7")
+val since by extra("241.14494.240")
 val until by extra("241.*")
-val jimmerVersion by extra("0.9.119")
-val antlrVersion by extra("4.13.2")
 
 val certificateChainValue = findProperty("certificateChainValue") as String?
 val privateKeyValue = findProperty("privateKeyValue") as String?
@@ -44,14 +42,14 @@ dependencies {
         testFramework(TestFrameworkType.Platform)
     }
 
-    antlr("org.antlr:antlr4:$antlrVersion") {
+    antlr(libs.antlr4) {
         exclude(group = "com.ibm.icu", module = "icu4j")
     }
-    implementation("org.antlr:antlr4-runtime:$antlrVersion")
-    implementation("org.antlr:antlr4-intellij-adaptor:0.1")
-    implementation("org.babyfish.jimmer:jimmer-core:$jimmerVersion")
+    implementation(libs.antlr4.runtime)
+    implementation(libs.antlr4.intellij.adaptor)
+    implementation(libs.jimmer.core)
 
-    testImplementation("junit:junit:4.13.2")
+    testImplementation(libs.junit)
 }
 
 kotlin {
