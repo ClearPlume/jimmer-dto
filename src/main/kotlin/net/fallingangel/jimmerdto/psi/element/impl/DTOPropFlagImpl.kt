@@ -10,7 +10,7 @@ import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
 class DTOPropFlagImpl(node: ASTNode) : ANTLRPsiNode(node), DTOPropFlag {
     override val insensitive: PsiElement?
-        get() = findChildNullable("/propFlag/'i'")
+        get() = findChildNullable("/propFlag/Identifier")
 
     override val power: PsiElement?
         get() = findChildNullable("/propFlag/'^'")

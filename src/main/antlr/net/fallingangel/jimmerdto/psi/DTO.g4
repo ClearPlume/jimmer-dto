@@ -101,7 +101,7 @@ positiveProp
 
 propFlag
     :
-    Slash InSensitive? Power? Dollar?
+    Slash Identifier? Power? Dollar?
     ;
 
 propArg
