@@ -52,8 +52,7 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             val exportLine = Regex("""export\s+\w+(\s*\.\s*\w+)*""").find(text)?.value
             val entity = exportLine?.let {
                 generateSequence(Regex("""\w+""").find(it, 6), MatchResult::next)
-                        .map { it.value }
-                        .joinToString(separator = ".")
+                    .joinToString(separator = ".", transform = MatchResult::value)
             }
                 ?: "$implicitPackage.${originalFile.virtualFile.nameWithoutExtension}"
 

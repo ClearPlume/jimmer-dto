@@ -274,7 +274,7 @@ class DTOAnnotator : Annotator {
                 .associateBy { it.name }
                 .toSortedMap()
             val currParams = params.map { it.name.text }.sorted()
-            val notGivenParams = allParams - currParams - if (haveValue) listOf("value") else emptyList()
+            val notGivenParams = allParams - currParams.toSet() - if (haveValue) setOf("value") else emptySet()
             if (notGivenParams.isNotEmpty()) {
                 if (o is DTOAnnotation) {
                     o.qualifiedName.error(
@@ -326,8 +326,7 @@ class DTOAnnotator : Annotator {
             val anno = o.parent
             if (anno is DTOAnnotation || anno is DTONestAnnotation) {
                 val prevSibling = o.siblings(forward = false, withSelf = false)
-                    .filter { it.elementType != TokenType.WHITE_SPACE }
-                    .first()
+                    .first { it.elementType != TokenType.WHITE_SPACE }
                 if (prevSibling.elementType != DTOLanguage.token[DTOParser.LParen]) {
                     val params = if (anno is DTOAnnotation) {
                         anno.params

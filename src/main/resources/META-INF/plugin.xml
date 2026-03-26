@@ -3,13 +3,14 @@
     <depends>com.intellij.java</depends>
     <depends>org.jetbrains.kotlin</depends>
 
+    <resource-bundle>plugin</resource-bundle>
+
     <actions>
         <group id="JimmerDTOEntityPopupMenu">
             <separator/>
         </group>
 
-        <action id="CreateOrJumpToJimmerDtoFile" class="net.fallingangel.jimmerdto.action.CreateJimmerDtoFile" text="JimmerDto File"
-                description="Create new JimmerDTO file or jump to it if exists" icon="Icons.icon_16">
+        <action id="CreateOrJumpToJimmerDtoFile" class="net.fallingangel.jimmerdto.action.CreateJimmerDtoFile" icon="Icons.icon_16">
             <add-to-group group-id="JimmerDTOEntityPopupMenu"/>
         </action>
 
@@ -18,10 +19,7 @@
             <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="WeighingNewGroup"/>
         </group>
 
-        <action id="InsertEntityPropsToDto"
-                class="net.fallingangel.jimmerdto.action.InsertEntityPropAction"
-                text="Insert Entity Props To Here"
-                description="Insert all props from the associated entity to current cursor position.">
+        <action id="InsertEntityPropsToDto" class="net.fallingangel.jimmerdto.action.InsertEntityPropAction">
             <add-to-group group-id="GenerateGroup" anchor="first"/>
         </action>
     </actions>
@@ -74,13 +72,14 @@
         <codeInsight.inlayProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOInlayHintProvider"/>
 
         <backgroundPostStartupActivity implementation="net.fallingangel.jimmerdto.service.StartupServices"/>
-        <notificationGroup id="JimmerDTO Notification Group" displayType="BALLOON"/>
+        <notificationGroup id="JimmerDTO Notification Group" displayType="BALLOON"
+                           bundle="plugin" key="notification.group.jimmerdto.notification.group"/>
 
         <fileBasedIndex implementation="net.fallingangel.jimmerdto.AnnotationClassIndex"/>
     </extensions>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
-         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
+         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
     <change-notes><![CDATA[<p><b>0.0.7.19 (2024-04-16)</b></p>
     <ul>
