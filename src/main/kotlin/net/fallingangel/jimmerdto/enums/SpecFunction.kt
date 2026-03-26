@@ -20,5 +20,5 @@ enum class SpecFunction(val expression: String, val whetherMultiArg: Boolean, va
     AssociatedIdEq("associatedIdEq", true, ArgType.Association),
     AssociatedIdNe("associatedIdNe", false, ArgType.Association),
     AssociatedIdIn("associatedIdIn", true, ArgType.Association),
-    AssociatedIdNotIn("associatedIdNotIn", false, ArgType.Association)
+    AssociatedIdNotIn("associatedIdNotIn", false, ArgType.Association),
 }
