@@ -21,9 +21,9 @@ sealed class LType {
 
             append(name)
 
-            when {
-                this@LType is EnumType<*, *> -> append(">")
-                this@LType is LClass<*> && this@LType.hasAnnotation(Embeddable::class) -> append(">")
+            when (this@LType) {
+                is EnumType<*, *> -> append(">")
+                is LClass<*> if this@LType.hasAnnotation(Embeddable::class) -> append(">")
                 else -> append("")
             }
         }
