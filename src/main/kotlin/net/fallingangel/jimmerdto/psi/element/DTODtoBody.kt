@@ -13,6 +13,9 @@ interface DTODtoBody : DTOElement {
 
     val userProps: List<DTOUserProp>
 
+    val availableProps: List<String>
+        get() = macros.flatMap(DTOMacro::carriedProps)
+
     /**
      * 属性名称 to 别名/null
      *

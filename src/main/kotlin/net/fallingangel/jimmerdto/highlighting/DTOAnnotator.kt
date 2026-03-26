@@ -556,10 +556,23 @@ class DTOAnnotator : Annotator {
          * 为负属性上色
          */
         override fun visitNegativeProp(o: DTONegativeProp) {
+            val name = o.name?.value ?: return
+            // 属性存在性校验
             if (o.property != null) {
                 o.style(DTOSyntaxHighlighter.NEGATIVE_PROP)
             } else {
-                o.name?.error()
+                o.name?.error("`$name` does not exist")
+            }
+
+            val dtoBody = o.parent as DTODtoBody
+            // 校验是否可使用负属性移除属性
+            if (name !in dtoBody.availableProps) {
+                o.name?.error("There is no `$name` that is need to be removed")
+            }
+
+            // 属性名称重复校验
+            if (dtoBody.negativeProps.count { it.name?.value == name } > 1) {
+                o.name?.error("Duplicated negative prop `$name`")
             }
         }
 
