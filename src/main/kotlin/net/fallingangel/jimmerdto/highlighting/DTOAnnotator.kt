@@ -61,9 +61,9 @@ class DTOAnnotator : Annotator {
             val project = o.project
             val import = o.parent.parent<DTOImportStatement>()
             val clazz = JavaPsiFacade.getInstance(project)
-                    .findPackage(import.qualifiedName.value)
-                    ?.classes
-                    ?.find { it.name == o.type.value }
+                .findPackage(import.qualifiedName.value)
+                ?.classes
+                ?.find { it.name == o.type.value }
             if (clazz == null) {
                 o.type.error("Unresolved reference: ${o.type.value}")
             } else {
@@ -185,57 +185,57 @@ class DTOAnnotator : Annotator {
             // `input` and `specification`
             if (o modifiedBy Modifier.Input && o modifiedBy Modifier.Specification) {
                 currentModifiers.filter { it.text in listOf(Modifier.Specification.name.lowercase(), Modifier.Input.name.lowercase()) }
-                        .forEach {
-                            it.error(
-                                "`input` and `specification` cannot appear at the same time",
-                                RemoveElement(it.text, it),
-                            )
-                        }
+                    .forEach {
+                        it.error(
+                            "`input` and `specification` cannot appear at the same time",
+                            RemoveElement(it.text, it),
+                        )
+                    }
             }
 
             // `unsafe` and `specification`
             if (o modifiedBy Modifier.Unsafe && o modifiedBy Modifier.Specification) {
                 currentModifiers.filter { it.text in listOf(Modifier.Specification.name.lowercase(), Modifier.Unsafe.name.lowercase()) }
-                        .forEach {
-                            it.error(
-                                "`unsafe` cannot be used with `specification`",
-                                RemoveElement(it.text, it),
-                            )
-                        }
+                    .forEach {
+                        it.error(
+                            "`unsafe` cannot be used with `specification`",
+                            RemoveElement(it.text, it),
+                        )
+                    }
             }
 
             // `specification`只允许对实体使用
             if (o modifiedBy Modifier.Specification && !o.file.classIsEntity) {
                 currentModifiers.find { it.text == Modifier.Specification.name.lowercase() }
-                        ?.let {
-                            it.error(
-                                "`specification` can only be used to decorate entity type",
-                                RemoveElement(it.text, it),
-                            )
-                        }
+                    ?.let {
+                        it.error(
+                            "`specification` can only be used to decorate entity type",
+                            RemoveElement(it.text, it),
+                        )
+                    }
             }
 
             // InputStrategyModifier只允许针对input dto使用
             val inputModifiers = currentModifiers.zip(o.modifiers).filter { it.second.level == Modifier.Level.Both }
             if (o notModifiedBy Modifier.Input) {
                 inputModifiers
-                        .forEach { (element, _) ->
-                            element.error(
-                                "`${element.text}` can only be used for input",
-                                RemoveElement(element.text, element),
-                            )
-                        }
+                    .forEach { (element, _) ->
+                        element.error(
+                            "`${element.text}` can only be used for input",
+                            RemoveElement(element.text, element),
+                        )
+                    }
             }
 
             // InputStrategyModifier只允许单个使用
             if (inputModifiers.size > 1) {
                 inputModifiers
-                        .forEach { (element, _) ->
-                            element.error(
-                                "InputStrategyModifier can only appear once",
-                                RemoveElement(element.text, element),
-                            )
-                        }
+                    .forEach { (element, _) ->
+                        element.error(
+                            "InputStrategyModifier can only appear once",
+                            RemoveElement(element.text, element),
+                        )
+                    }
                 return
             }
 
@@ -243,15 +243,15 @@ class DTOAnnotator : Annotator {
             val orders = o.modifiers.map(Modifier::order)
             if (orders != orders.sorted()) {
                 currentModifiers
-                        .forEach {
-                            it.fix(
-                                DTOSyntaxHighlighter.WEAK_WARNING,
-                                HighlightSeverity.WEAK_WARNING,
-                                ProblemHighlightType.WEAK_WARNING,
-                                "Non-canonical modifier order",
-                                ReorderingModifier(o),
-                            )
-                        }
+                    .forEach {
+                        it.fix(
+                            DTOSyntaxHighlighter.WEAK_WARNING,
+                            HighlightSeverity.WEAK_WARNING,
+                            ProblemHighlightType.WEAK_WARNING,
+                            "Non-canonical modifier order",
+                            ReorderingModifier(o),
+                        )
+                    }
             }
         }
 
@@ -328,12 +328,12 @@ class DTOAnnotator : Annotator {
 
             // 必要参数是否给全
             val allParams = clazz.methods
-                    .filterIsInstance<PsiAnnotationMethod>()
-                    .filter { it.defaultValue == null }
-                    .associateBy { it.name }
-                    .toSortedMap()
+                .filterIsInstance<PsiAnnotationMethod>()
+                .filter { it.defaultValue == null }
+                .associateBy { it.name }
+                .toSortedMap()
             val currParams = params.map { it.name.text }.sorted()
-            val notGivenParams = allParams - currParams - if (haveValue) listOf("value") else emptyList()
+            val notGivenParams = allParams - currParams.toSet() - if (haveValue) setOf("value") else emptySet()
             if (notGivenParams.isNotEmpty()) {
                 if (o is DTOAnnotation) {
                     o.qualifiedName.error(
@@ -351,19 +351,19 @@ class DTOAnnotator : Annotator {
 
             // 参数类型是否匹配
             params
-                    // 数组参数不以这种方式校验，其校验逻辑通过visitAnnotationArrayValue单独完成
-                    .filter { it.value?.arrayValue == null }
-                    .forEach { param ->
-                        if (param.valueAssignableFromType) {
-                            return@forEach
-                        }
-
-                        param.value?.let {
-                            val type = param.type ?: return@forEach
-                            val valueType = param.valueType ?: return@forEach
-                            it.error("Required: `${type.canonicalText}`, Actual: `${valueType.canonicalText}`")
-                        }
+                // 数组参数不以这种方式校验，其校验逻辑通过visitAnnotationArrayValue单独完成
+                .filter { it.value?.arrayValue == null }
+                .forEach { param ->
+                    if (param.valueAssignableFromType) {
+                        return@forEach
                     }
+
+                    param.value?.let {
+                        val type = param.type ?: return@forEach
+                        val valueType = param.valueType ?: return@forEach
+                        it.error("Required: `${type.canonicalText}`, Actual: `${valueType.canonicalText}`")
+                    }
+                }
 
             if (value != null) {
                 val method = clazz.findMethodsByName("value", false).first()
@@ -385,8 +385,7 @@ class DTOAnnotator : Annotator {
             val anno = o.parent
             if (anno is DTOAnnotation || anno is DTONestAnnotation) {
                 val prevSibling = o.siblings(forward = false, withSelf = false)
-                        .filter { it.elementType != TokenType.WHITE_SPACE }
-                        .first()
+                    .first { it.elementType != TokenType.WHITE_SPACE }
                 if (prevSibling.elementType != DTOLanguage.token[DTOParser.LParen]) {
                     val params = if (anno is DTOAnnotation) {
                         anno.params
@@ -428,8 +427,8 @@ class DTOAnnotator : Annotator {
                         o.parent,
                         { anno ->
                             anno.children
-                                    .filterIsInstance<DTOAnnotationParameter>()
-                                    .find { it.name.text == name }!!
+                                .filterIsInstance<DTOAnnotationParameter>()
+                                .find { it.name.text == name }!!
                         },
                         { listOf(it.nextSibling) },
                     ),
@@ -675,8 +674,8 @@ class DTOAnnotator : Annotator {
 
             fun locateTarget(parent: PsiElement): PsiElement {
                 return parent.children
-                        .filterIsInstance<DTOTypeRef>()
-                        .find { it.startOffsetInParent == o.startOffsetInParent }!!
+                    .filterIsInstance<DTOTypeRef>()
+                    .find { it.startOffsetInParent == o.startOffsetInParent }!!
             }
 
             fun locateRelated(type: PsiElement): List<PsiElement> {
@@ -812,7 +811,7 @@ class DTOAnnotator : Annotator {
 
         private fun visitFunction(o: DTOPositiveProp, functionName: String) {
             val dto = o.parentOfType<DTODto>() ?: return
-            val specFunctions = SpecFunction.values().map(SpecFunction::expression)
+            val specFunctions = SpecFunction.entries.map(SpecFunction::expression)
 
             o.name.style(DTOSyntaxHighlighter.FUNCTION)
             val specification = dto modifiedBy Modifier.Specification
@@ -860,16 +859,16 @@ class DTOAnnotator : Annotator {
             }
 
             // 方法参数数量验证
-            val multiArgFunctions = SpecFunction.values().filter(SpecFunction::whetherMultiArg).map(SpecFunction::expression)
+            val multiArgFunctions = SpecFunction.entries.filter(SpecFunction::whetherMultiArg).map(SpecFunction::expression)
             if (arg.values.size > 1 && functionName !in multiArgFunctions) {
                 arg.values
-                        .drop(1)
-                        .forEach {
-                            it.error(
-                                "`$functionName` accepts only one prop",
-                                RemoveElement(it.text, it),
-                            )
-                        }
+                    .drop(1)
+                    .forEach {
+                        it.error(
+                            "`$functionName` accepts only one prop",
+                            RemoveElement(it.text, it),
+                        )
+                    }
             }
 
             // 多方法参数别名校验
@@ -1100,7 +1099,7 @@ class DTOAnnotator : Annotator {
                 }
             }
 
-            dtoBody.existedProp[name]?.let { (count, alias) ->
+            dtoBody.existedProp[name]?.let { (count, _) ->
                 if (count > 1) {
                     o.error("Duplicated name usage `$name`")
                 }
@@ -1188,9 +1187,9 @@ class DTOAnnotator : Annotator {
 
         private fun PsiElement.annotator(style: TextAttributesKey, severity: HighlightSeverity) {
             holder.newSilentAnnotation(severity)
-                    .range(this)
-                    .textAttributes(style)
-                    .create()
+                .range(this)
+                .textAttributes(style)
+                .create()
         }
 
         private fun PsiElement.error(
@@ -1211,9 +1210,9 @@ class DTOAnnotator : Annotator {
         ) {
             val fixerBuilder = holder.newAnnotation(severity, message)
             fixerBuilder
-                    .range(this)
-                    .textAttributes(style)
-                    .highlightType(highlightType)
+                .range(this)
+                .textAttributes(style)
+                .highlightType(highlightType)
             fixes.forEach { fix ->
                 fixerBuilder.withFix(fix)
             }

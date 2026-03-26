@@ -230,7 +230,7 @@ class DTOCompletionContributor : CompletionContributor() {
                     val nullable = prop.file.clazz.findPropertyOrNull(proceedPropPath)?.nullable ?: return@complete
                     if (nullable) {
                         result.addAllElements(
-                            Modifier.values()
+                            Modifier.entries
                                     .filter { it.level == Modifier.Level.Both }
                                     .map {
                                         val modifier = it.name.lowercase()
@@ -440,7 +440,7 @@ class DTOCompletionContributor : CompletionContributor() {
                                     .withPresentableText(it.name)
                                     .withTailText(default, true)
                                     .withTypeText(paramType?.canonicalText, true)
-                                    .withInsertHandler { context, element ->
+                                    .withInsertHandler { context, _ ->
                                         val offset = if (default in listOf(" = ", "")) {
                                             0
                                         } else {
@@ -485,9 +485,8 @@ class DTOCompletionContributor : CompletionContributor() {
                     param.name.text to param.parent as DTOAnnotation
                 } else {
                     val nestAnno = tripe as DTONestAnnotation
-                    val upper = nestAnno.parent.parent
                     // NestAnnotation往上二级
-                    when (upper) {
+                    when (val upper = nestAnno.parent.parent) {
                         is DTOAnnotationParameter -> upper.name.text to upper.parent as DTOAnnotation
 
                         is DTOAnnotationValue -> when {
@@ -641,7 +640,7 @@ class DTOCompletionContributor : CompletionContributor() {
                 val isEntityAssociation = property.isEntityAssociation
                 val propertyIsList = property.isList
 
-                val availableConfigs = PropConfigName.values().toMutableList()
+                val availableConfigs = PropConfigName.entries.toMutableList()
 
                 if (haveFilter || !isEntityAssociation || property.isReference && !property.nullable) {
                     availableConfigs -= PropConfigName.Where

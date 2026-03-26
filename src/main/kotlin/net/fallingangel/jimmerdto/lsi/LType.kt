@@ -13,9 +13,9 @@ sealed class LType {
 
     val presentableName: String
         get() = buildString {
-            when {
-                this@LType is EnumType<*, *> -> append("Enum<")
-                this@LType is LClass<*> && this@LType.hasAnnotation(Embeddable::class) -> append("Embeddable<")
+            when (this@LType) {
+                is EnumType<*, *> -> append("Enum<")
+                is LClass<*> if this@LType.hasAnnotation(Embeddable::class) -> append("Embeddable<")
                 else -> append("")
             }
 

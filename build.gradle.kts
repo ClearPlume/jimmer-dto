@@ -14,11 +14,11 @@ plugins {
 }
 
 group = "net.fallingangel"
-version = "0.0.7.47"
+version = "0.0.7.48"
 
 val since by extra("242.24807.4")
-val until by extra("253.*")
-val jimmerVersion by extra("0.9.119")
+val until by extra("261.*")
+val jimmerVersion by extra("0.10.6")
 val antlrVersion by extra("4.13.2")
 
 val certificateChainValue = findProperty("certificateChainValue") as String?

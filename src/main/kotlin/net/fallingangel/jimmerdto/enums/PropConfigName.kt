@@ -11,6 +11,6 @@ enum class PropConfigName(val text: String) {
     Depth("!depth");
 
     companion object {
-        val availableNames = values().map(PropConfigName::text).joinToString { "'$it'" }
+        val availableNames = entries.map(PropConfigName::text).joinToString { "'$it'" }
     }
 }

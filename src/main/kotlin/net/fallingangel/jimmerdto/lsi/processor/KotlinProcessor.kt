@@ -77,7 +77,7 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                     analyze(function) {
                         val symbol = function.symbol
                         val annotations = symbol.annotations.map { resolve(it) }
-                        symbol.valueParameters.map { resolve(it) }
+                        symbol.valueParameters.forEach { resolve(it) }
 
                         LMethod(
                             function.name!!,

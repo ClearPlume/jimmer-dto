@@ -24,7 +24,7 @@ interface DTODto : DTOElement {
 
     val availableModifiers: List<String>
         get() {
-            val allModifiers = Modifier.values().toMutableList()
+            val allModifiers = Modifier.entries.toMutableList()
 
             if (this modifiedBy Modifier.Input) {
                 allModifiers -= Modifier.Specification

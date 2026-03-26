@@ -6,17 +6,35 @@
 
 * Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
 
+## [0.0.7.48] - 2026-03-26
+
+### Added
+
+* 2026.1 is supported
+
+### Deprecated
+
+* Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
+
 ## [0.0.7.47] - 2025-12-20
 
 ### Added
 
 * 2025.3 is supported
 
+### Deprecated
+
+* Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
+
 ## [0.0.7.46] - 2025-08-05
 
 ### Added
 
 * 2025.2 is supported
+
+### Deprecated
+
+* Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
 
 ## [0.0.7.45] - 2025-04-20
 

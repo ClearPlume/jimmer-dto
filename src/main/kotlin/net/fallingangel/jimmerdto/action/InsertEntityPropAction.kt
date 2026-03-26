@@ -30,17 +30,15 @@ class InsertEntityPropAction : AnAction() {
         val negativeProps = body.negativeProps.mapNotNull { it.name?.value }
         val positiveProps = body.positiveProps.map { it.name.value }
         val functionProps = body.positiveProps
-                .mapNotNull { it.arg }
-                .map { it.values.map { value -> value.text } }
-                .flatten()
+            .mapNotNull { it.arg }
+            .flatMap { it.values.map { value -> value.text } }
         val aliasProps = body.aliasGroups
-                .map {
-                    it.positiveProps
-                            .map { prop ->
-                                prop.name.value
-                            }
-                }
-                .flatten()
+            .flatMap {
+                it.positiveProps
+                    .map { prop ->
+                        prop.name.value
+                    }
+            }
         val oldProps = negativeProps + positiveProps + functionProps + aliasProps
 
         val properties = if (space.haveUpper) {

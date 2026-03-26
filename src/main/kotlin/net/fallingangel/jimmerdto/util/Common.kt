@@ -102,7 +102,7 @@ val KtLightClass.icon: Icon
     }
 
 val PsiType.nullable: Boolean
-    get() = presentableText in JavaNullableType.values().map { it.name }
+    get() = presentableText in JavaNullableType.entries.map { it.name }
 
 val PsiType?.defaultValue: String
     get() = when (this) {

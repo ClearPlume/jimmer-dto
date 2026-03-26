@@ -38,13 +38,13 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             val virtualFile = originalFile.virtualFile
             val root = contentRoot?.path ?: throw IllegalStateException("Source root is null")
             return virtualFile.path // dto文件
-                    // dto文件相对根路径的子路径
-                    .removePrefix("$root/")
-                    // 移除『dto/』前缀
-                    .substringAfter('/')
-                    // 移除『name.dto』后缀
-                    .substringBefore("/$name")
-                    .replace('/', '.')
+                // dto文件相对根路径的子路径
+                .removePrefix("$root/")
+                // 移除『dto/』前缀
+                .substringAfter('/')
+                // 移除『name.dto』后缀
+                .substringBefore("/$name")
+                .replace('/', '.')
         }
 
     val projectLanguage: Language
@@ -52,8 +52,7 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             val exportLine = Regex("""export\s+\w+(\s*\.\s*\w+)*""").find(text)?.value
             val entity = exportLine?.let {
                 generateSequence(Regex("""\w+""").find(it, 6), MatchResult::next)
-                        .map(MatchResult::value)
-                        .joinToString(separator = ".")
+                    .joinToString(".", transform = MatchResult::value)
             }
                 ?: "$implicitPackage.${originalFile.virtualFile.nameWithoutExtension}"
 
@@ -134,19 +133,19 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             val scope = ProjectScope.getAllScope(project)
 
             val singleImports = importStatements
-                    .filter { it.groupedImport == null && it.alias == null }
-                    .mapNotNull { facade.findClass(it.qualifiedName.value, scope) }
-                    .map { it.name!! to it }
+                .filter { it.groupedImport == null && it.alias == null }
+                .mapNotNull { facade.findClass(it.qualifiedName.value, scope) }
+                .map { it.name!! to it }
 
             val groupedImports = importStatements
-                    .filter { it.groupedImport != null }
-                    .map { import -> import.qualifiedName.value to import.groupedImport!!.types.filter { it.alias == null } }
-                    .flatMap { (`package`, subTypes) -> subTypes.map { `package` to it } }
-                    .mapNotNull { (`package`, subType) ->
-                        val type = subType.type.value
-                        val qualified = "$`package`.$type"
-                        facade.findClass(qualified, scope)?.let { type to it }
-                    }
+                .filter { it.groupedImport != null }
+                .map { import -> import.qualifiedName.value to import.groupedImport!!.types.filter { it.alias == null } }
+                .flatMap { (`package`, subTypes) -> subTypes.map { `package` to it } }
+                .mapNotNull { (`package`, subType) ->
+                    val type = subType.type.value
+                    val qualified = "$`package`.$type"
+                    facade.findClass(qualified, scope)?.let { type to it }
+                }
             return singleImports + groupedImports
         }
 
@@ -166,18 +165,18 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             val scope = ProjectScope.getAllScope(project)
 
             val aliasImports = importStatements
-                    .filter { it.alias != null }
-                    .mapNotNull { facade.findClass(it.qualifiedName.value, scope)?.let { clazz -> it.alias!! to clazz } }
+                .filter { it.alias != null }
+                .mapNotNull { facade.findClass(it.qualifiedName.value, scope)?.let { clazz -> it.alias!! to clazz } }
 
             val groupedImports = importStatements
-                    .filter { it.groupedImport != null }
-                    .map { import -> import.qualifiedName.value to import.groupedImport!!.types.filter { it.alias != null } }
-                    .flatMap { (`package`, subTypes) -> subTypes.map { `package` to it } }
-                    .mapNotNull { (`package`, subType) ->
-                        val type = subType.type.value
-                        val qualified = "$`package`.$type"
-                        facade.findClass(qualified, scope)?.let { subType.alias!! to it }
-                    }
+                .filter { it.groupedImport != null }
+                .map { import -> import.qualifiedName.value to import.groupedImport!!.types.filter { it.alias != null } }
+                .flatMap { (`package`, subTypes) -> subTypes.map { `package` to it } }
+                .mapNotNull { (`package`, subType) ->
+                    val type = subType.type.value
+                    val qualified = "$`package`.$type"
+                    facade.findClass(qualified, scope)?.let { subType.alias!! to it }
+                }
             return aliasImports + groupedImports
         }
 

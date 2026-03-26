@@ -25,7 +25,7 @@ class GenerateMissedEnumMappings(
     override fun invoke(project: Project, editor: Editor, file: PsiFile) {
         val lastChild = enumBody.node.lastChildNode
         project.createEnumMappings(missedMappings.map { "$it: \"DummyValueFor$it\"" })
-                .map {
+                .forEach {
                     WriteCommandAction.runWriteCommandAction(project) {
                         enumBody.node.addChild(it.node, lastChild)
                         enumBody.node.addLeaf(TokenType.WHITE_SPACE, "\n", lastChild)
