@@ -106,7 +106,7 @@ propFlag
 
 propArg
     :
-    LParen value (Comma value)* Comma? RParen
+    LParen value? (Comma value)* Comma? RParen
     ;
 
 value
@@ -330,7 +330,6 @@ At: '@';
 LBracket: '[';
 RBracket: ']';
 DoubleColon: '::';
-InSensitive: 'i';
 SingleQuote: '\'';
 DoubleQuote: '"';
 

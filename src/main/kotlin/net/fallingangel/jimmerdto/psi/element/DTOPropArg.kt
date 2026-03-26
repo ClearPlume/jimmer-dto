@@ -13,6 +13,9 @@ import net.fallingangel.jimmerdto.util.modifiedBy
 interface DTOPropArg : DTOElement {
     val values: List<DTOValue>
 
+    val isEmpty: Boolean
+        get() = values.isEmpty() || values.size == 1 && values.first().text == ""
+
     val args: List<LProperty<*>>
         get() {
             val dto = parentOfType<DTODto>() ?: return emptyList()
