@@ -38,13 +38,13 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             val virtualFile = originalFile.virtualFile
             val root = contentRoot?.path ?: throw IllegalStateException("Source root is null")
             return virtualFile.path // dto文件
-                    // dto文件相对根路径的子路径
-                    .removePrefix("$root/")
-                    // 移除『dto/』前缀
-                    .substringAfter('/')
-                    // 移除『name.dto』后缀
-                    .substringBefore("/$name")
-                    .replace('/', '.')
+                // dto文件相对根路径的子路径
+                .removePrefix("$root/")
+                // 移除『dto/』前缀
+                .substringAfter('/')
+                // 移除『name.dto』后缀
+                .substringBefore("/$name")
+                .replace('/', '.')
         }
 
     val projectLanguage: Language
@@ -78,7 +78,7 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
     val `package`: String
         get() = export?.`package`?.value ?: export?.export?.let { it.`package` + ".dto" } ?: "$implicitPackage.dto"
 
-    val imports: List<DTOImportStatement>
+    val importStatements: List<DTOImportStatement>
         get() = findChildren<DTOImportStatement>("/dtoFile/importStatement")
 
     val qualifiedEntity: String
@@ -127,58 +127,65 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             )
         }
 
-    val imported: Map<String, PsiClass>
-        get() = CachedValuesManager.getCachedValue(this, CACHED_IMPORT_KEY) {
+    val imports: List<Pair<String, PsiClass>>
+        get() {
             val facade = JavaPsiFacade.getInstance(project)
             val scope = ProjectScope.getAllScope(project)
 
-            val singleImports = imports
-                    .filter { it.groupedImport == null && it.alias == null }
-                    .mapNotNull { facade.findClass(it.qualifiedName.value, scope) }
-                    .map { it.name!! to it }
+            val singleImports = importStatements
+                .filter { it.groupedImport == null && it.alias == null }
+                .mapNotNull { facade.findClass(it.qualifiedName.value, scope) }
+                .map { it.name!! to it }
 
-            val groupedImports = imports
-                    .filter { it.groupedImport != null }
-                    .map { import -> import.qualifiedName.value to import.groupedImport!!.types.filter { it.alias == null } }
-                    .flatMap { (`package`, subTypes) -> subTypes.map { `package` to it } }
-                    .mapNotNull { (`package`, subType) ->
-                        val type = subType.type.value
-                        val qualified = "$`package`.$type"
-                        facade.findClass(qualified, scope)?.let { type to it }
-                    }
+            val groupedImports = importStatements
+                .filter { it.groupedImport != null }
+                .map { import -> import.qualifiedName.value to import.groupedImport!!.types.filter { it.alias == null } }
+                .flatMap { (`package`, subTypes) -> subTypes.map { `package` to it } }
+                .mapNotNull { (`package`, subType) ->
+                    val type = subType.type.value
+                    val qualified = "$`package`.$type"
+                    facade.findClass(qualified, scope)?.let { type to it }
+                }
+            return singleImports + groupedImports
+        }
 
+    val imported: Map<String, PsiClass>
+        get() = CachedValuesManager.getCachedValue(this, CACHED_IMPORT_KEY) {
             CachedValueProvider.Result.create(
-                (singleImports + groupedImports).toMap(),
+                imports.toMap(),
                 DumbService.getInstance(project).modificationTracker,
                 ProjectRootModificationTracker.getInstance(project),
                 this,
             )
         }
 
-    val importedAlias: Map<String, Pair<DTOAlias, PsiClass>>
-        get() = CachedValuesManager.getCachedValue(this, CACHED_IMPORT_ALIAS_KEY) {
+    val alias: List<Pair<DTOAlias, PsiClass>>
+        get() {
             val facade = JavaPsiFacade.getInstance(project)
             val scope = ProjectScope.getAllScope(project)
 
-            val aliasImports = imports
-                    .filter { it.alias != null }
-                    .mapNotNull { facade.findClass(it.qualifiedName.value, scope)?.let { clazz -> it.alias!! to clazz } }
+            val aliasImports = importStatements
+                .filter { it.alias != null }
+                .mapNotNull { facade.findClass(it.qualifiedName.value, scope)?.let { clazz -> it.alias!! to clazz } }
 
-            val groupedImports = imports
-                    .filter { it.groupedImport != null }
-                    .map { import -> import.qualifiedName.value to import.groupedImport!!.types.filter { it.alias != null } }
-                    .flatMap { (`package`, subTypes) -> subTypes.map { `package` to it } }
-                    .mapNotNull { (`package`, subType) ->
-                        val type = subType.type.value
-                        val qualified = "$`package`.$type"
-                        facade.findClass(qualified, scope)?.let { subType.alias!! to it }
-                    }
+            val groupedImports = importStatements
+                .filter { it.groupedImport != null }
+                .map { import -> import.qualifiedName.value to import.groupedImport!!.types.filter { it.alias != null } }
+                .flatMap { (`package`, subTypes) -> subTypes.map { `package` to it } }
+                .mapNotNull { (`package`, subType) ->
+                    val type = subType.type.value
+                    val qualified = "$`package`.$type"
+                    facade.findClass(qualified, scope)?.let { subType.alias!! to it }
+                }
+            return aliasImports + groupedImports
+        }
 
+    val importedAlias: Map<String, Pair<DTOAlias, PsiClass>>
+        get() = CachedValuesManager.getCachedValue(this, CACHED_IMPORT_ALIAS_KEY) {
             CachedValueProvider.Result.create(
-                (aliasImports + groupedImports)
-                        .associate { (alias, clazz) ->
-                            alias.value to (alias to clazz)
-                        },
+                alias.associate { (alias, clazz) ->
+                    alias.value to (alias to clazz)
+                },
                 DumbService.getInstance(project).modificationTracker,
                 ProjectRootModificationTracker.getInstance(project),
                 this,
