@@ -21,10 +21,9 @@ val until by extra("241.*")
 val jimmerVersion by extra("0.10.6")
 val antlrVersion by extra("4.13.2")
 
-val certificateChainValue = findProperty("certificateChainValue") as String?
-val privateKeyValue = findProperty("privateKeyValue") as String?
-val passwordValue = findProperty("passwordValue") as String?
-val tokenValue = findProperty("tokenValue") as String?
+val userHome: String = System.getProperty("user.home")
+val certificateChainFileValue = file("$userHome/.gradle/chain.crt")
+val privateKeyFileValue = file("$userHome/.gradle/private.pem")
 
 repositories {
     mavenCentral()
@@ -98,15 +97,15 @@ intellijPlatform {
         ides.recommended()
     }
 
-    publishing {
-        token = tokenValue
-        channels.add("Stable")
+    signing {
+        certificateChainFile = certificateChainFileValue
+        privateKeyFile = privateKeyFileValue
+        password = providers.gradleProperty("intellijPlatformSigningPassword")
     }
 
-    signing {
-        certificateChain = certificateChainValue
-        privateKey = privateKeyValue
-        password = passwordValue
+    publishing {
+        token = providers.gradleProperty("intellijPlatformPublishingToken")
+        channels.add("Stable")
     }
 }
 
