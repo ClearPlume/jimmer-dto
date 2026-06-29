@@ -187,12 +187,12 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
         return LAnnotation(
             classId.shortClassName.asString(),
             classId.asFqNameString(),
-            annotation.psi,
+            annotation.psi!!,
             constructor.valueParameters.map { resolve(it) },
         )
     }
 
     fun KaSession.resolve(param: KaValueParameterSymbol): LParam<*> {
-        return LParam(param.name.asString(), resolve(param.returnType), param.psi)
+        return LParam(param.name.asString(), resolve(param.returnType), param.psi!!)
     }
 }
