@@ -16,8 +16,8 @@ plugins {
 group = "net.fallingangel"
 version = "0.0.7.48"
 
-val since by extra("242.24807.4")
-val until by extra("261.*")
+val since = "242.24807.4"
+val until = "261.*"
 
 val userHome: String = System.getProperty("user.home")
 val certificateChainFileValue = file("$userHome/.gradle/chain.crt")
