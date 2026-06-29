@@ -6,7 +6,7 @@ import net.fallingangel.jimmerdto.lsi.LElement
 import net.fallingangel.jimmerdto.lsi.LPsiDependent
 import net.fallingangel.jimmerdto.lsi.LType
 
-data class LParam<P: PsiElement?>(
+data class LParam<P: PsiElement>(
     override val name: String,
     val type: LType,
     override val source: P,
@@ -15,7 +15,7 @@ data class LParam<P: PsiElement?>(
         if (!visited.add(this)) {
             return
         }
-        source?.let(result::add)
+        result.add(source)
         if (type is LClass<*>) {
             type.collectPsiElements(result, visited)
         } else if (type is LType.EnumType<*, *>) {

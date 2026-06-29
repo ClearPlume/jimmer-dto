@@ -6,7 +6,7 @@ import net.fallingangel.jimmerdto.lsi.LPsiDependent
 import net.fallingangel.jimmerdto.lsi.param.LParam
 import net.fallingangel.jimmerdto.lsi.param.LParamOwner
 
-data class LAnnotation<A : PsiElement?>(
+data class LAnnotation<A : PsiElement>(
     override val name: String,
     val canonicalName: String,
     override val source: A,
@@ -16,7 +16,7 @@ data class LAnnotation<A : PsiElement?>(
         if (!visited.add(this)) {
             return
         }
-        source?.let(result::add)
+        result.add(source)
         params.forEach { it.collectPsiElements(result, visited) }
     }
 }

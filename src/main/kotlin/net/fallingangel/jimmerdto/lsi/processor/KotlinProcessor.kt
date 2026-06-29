@@ -196,12 +196,12 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                 .unsubstitutedMemberScope
                 .getContributedDescriptors()
                 .filterIsInstance<PropertyDescriptor>()
-                .map { LParam(it.name.asString(), resolve(it.type), DescriptorToSourceUtils.getSourceFromDescriptor(it)) }
+                .map { LParam(it.name.asString(), resolve(it.type), DescriptorToSourceUtils.getSourceFromDescriptor(it)!!) }
 
         return LAnnotation(
             qualifiedName.substringAfterLast('.'),
             qualifiedName,
-            DescriptorToSourceUtils.getSourceFromDescriptor(descriptor),
+            DescriptorToSourceUtils.getSourceFromDescriptor(descriptor)!!,
             params,
         )
     }
