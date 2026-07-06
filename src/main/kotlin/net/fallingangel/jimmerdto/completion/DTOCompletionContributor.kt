@@ -223,22 +223,18 @@ class DTOCompletionContributor : CompletionContributor() {
             { parameters, result ->
                 val position = parameters.position
                 val dto = position.parentOfType<DTODto>() ?: return@complete
+
                 if (dto modifiedBy Modifier.Input) {
-                    val prop = position.parent.parent<DTOPositiveProp>()
-                    val propPath = prop.propPath()
-                    val proceedPropPath = propPath.dropLast(1) + propPath.last().replace(DUMMY_IDENTIFIER_TRIMMED, "")
-                    val nullable = prop.file.clazz.findPropertyOrNull(proceedPropPath)?.nullable ?: return@complete
-                    if (nullable) {
-                        result.addAllElements(
-                            Modifier.entries
-                                .filter { it.level == Modifier.Level.Both }
-                                .map {
-                                    val modifier = it.name.lowercase()
-                                    LookupInfo(modifier, "$modifier ")
-                                }
-                                .lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
-                        )
-                    }
+                    // TODO 无条件提示、写错了交给 Annotator 事后报
+                    result.addAllElements(
+                        Modifier.entries
+                            .filter { it.level == Modifier.Level.Both }
+                            .map {
+                                val modifier = it.name.lowercase()
+                                LookupInfo(modifier, "$modifier ")
+                            }
+                            .lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
+                    )
                 }
             },
             and(
