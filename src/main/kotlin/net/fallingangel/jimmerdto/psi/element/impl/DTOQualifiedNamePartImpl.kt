@@ -9,6 +9,7 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.enums.PropConfigName
+import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
@@ -34,10 +35,10 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
 
     override fun resolve(): PsiElement? {
         val qualified = siblings(forward = false)
-                .filter { it.elementType == DTOLanguage.rule[DTOParser.RULE_qualifiedNamePart] }
-                .map(PsiElement::getText)
-                .toList()
-                .asReversed()
+            .filter { it.elementType == DTOLanguage.rule[DTOParser.RULE_qualifiedNamePart] }
+            .map(PsiElement::getText)
+            .toList()
+            .asReversed()
 
         // 属性配置
         val config = parentOfType<DTOPropConfig>()
@@ -72,12 +73,12 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
 
                         KotlinLanguage.INSTANCE -> {
                             val prelude = project.ktClass("kotlin.$part")
-                                    .filter { "org.jetbrains.kotlin/kotlin-stdlib" in it.virtualFile.path }
-                                    .getOrNull(0)
+                                .filter { "org.jetbrains.kotlin/kotlin-stdlib" in it.virtualFile.path }
+                                .getOrNull(0)
                             prelude ?: run {
                                 project.ktClass("kotlin.collections.$part")
-                                        .filter { "org.jetbrains.kotlin/kotlin-stdlib" in it.virtualFile.path }
-                                        .getOrNull(0)
+                                    .filter { "org.jetbrains.kotlin/kotlin-stdlib" in it.virtualFile.path }
+                                    .getOrNull(0)
                             }
                         }
 
@@ -92,8 +93,8 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
                 } else {
                     val enum = parent.parts[0].resolve() as? PsiClass ?: return null
                     enum.fields
-                            .filterIsInstance<PsiEnumConstant>()
-                            .find { it.name == part }
+                        .filterIsInstance<PsiEnumConstant>()
+                        .find { it.name == part }
                 }
             }
         }
@@ -115,7 +116,7 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
         val scope = ProjectScope.getAllScope(project)
         val firstPart = qualified.first()
         val prop = parent as DTOPositiveProp
-        val propPath = prop.propPath()
+        val propType = prop.property?.actualType as? LClass<*> ?: return null
 
         return if (qualified.size == 1) {
             when (name.text) {
@@ -126,17 +127,18 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
                 }
 
                 PropConfigName.Filter.text, PropConfigName.Recursion.text -> {
-                    file.imported[firstPart] ?: file.importedAlias[firstPart]?.second ?: JavaPsiFacade.getInstance(project).findPackage(firstPart)
+                    file.imported[firstPart] ?: file.importedAlias[firstPart]?.second ?: JavaPsiFacade.getInstance(project)
+                        .findPackage(firstPart)
                 }
 
-                else -> file.clazz.findPropertyOrNull(propPath + firstPart)?.source
-                    ?: file.clazz.findPropertyOrNull(propPath + firstPart.removeSuffix("Id"))?.source
+                else -> propType.findProperty(firstPart)?.source
+                    ?: propType.findProperty(firstPart.removeSuffix("Id"))?.source
             }
         } else {
-            val resolvedProperty = file.clazz.findPropertyOrNull(propPath + qualified)?.source
+            val resolvedProperty = propType.findPropertyOrNull(qualified)?.source
                 ?: run {
                     val last = qualified.last()
-                    file.clazz.findPropertyOrNull(propPath + qualified.dropLast(1) + last.removeSuffix("Id"))?.source
+                    propType.findPropertyOrNull(qualified.dropLast(1) + last.removeSuffix("Id"))?.source
                 }
             val resolvedPackage = resolvedProperty ?: JavaPsiFacade.getInstance(project).findPackage(qualified.joinToString("."))
             resolvedPackage ?: JavaPsiFacade.getInstance(project).findClass(qualified.joinToString("."), scope)

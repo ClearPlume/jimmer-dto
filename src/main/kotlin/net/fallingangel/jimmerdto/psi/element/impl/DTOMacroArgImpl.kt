@@ -20,7 +20,7 @@ class DTOMacroArgImpl(node: ASTNode) : DTONamedElementImpl(node), DTOMacroArg {
     private val clazz: LClass<*>
         get() = CachedValuesManager.getCachedValue(this) {
             val macro = parent.parent<DTOMacro>()
-            CachedValueProvider.Result.create(macro.clazz, virtualFile, DumbService.getInstance(project).modificationTracker)
+            CachedValueProvider.Result.create(macro.containingLClass, virtualFile, DumbService.getInstance(project).modificationTracker)
         }
 
     override val value: PsiElement?

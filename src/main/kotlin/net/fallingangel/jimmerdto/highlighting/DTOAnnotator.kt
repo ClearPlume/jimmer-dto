@@ -2,7 +2,6 @@ package net.fallingangel.jimmerdto.highlighting
 
 import com.intellij.codeInsight.intention.CommonIntentionAction
 import com.intellij.codeInspection.ProblemHighlightType
-import com.intellij.diagnostic.PluginException
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
@@ -16,8 +15,11 @@ import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.enums.SpecFunction
-import net.fallingangel.jimmerdto.lsi.*
+import net.fallingangel.jimmerdto.lsi.LClass
+import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.LanguageProcessor
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
+import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
@@ -573,7 +575,7 @@ class DTOAnnotator : Annotator {
 
                 // 当前实体的简单类名和this同时出现
                 // 当前实体的简单类名
-                val thisName = macro.clazz.name
+                val thisName = macro.containingLClass?.name ?: return
 
                 // 等价于this的宏参数
                 val sameThisArg = argList.find { it.text == thisName }
@@ -608,7 +610,7 @@ class DTOAnnotator : Annotator {
         override fun visitNegativeProp(o: DTONegativeProp) {
             val name = o.name?.value ?: return
             // 属性存在性校验
-            if (o.property != null) {
+            if (o.containingLClass?.findProperty(name) != null) {
                 o.style(DTOSyntaxHighlighter.NEGATIVE_PROP)
             } else {
                 o.name?.error("`$name` does not exist")
@@ -656,7 +658,7 @@ class DTOAnnotator : Annotator {
             val propName = o.name
             o.name.style(DTOSyntaxHighlighter.IDENTIFIER)
 
-            o.allSiblings(true).find { propName.value == it.name }?.let {
+            o.containingLClass?.findProperty(propName.name)?.let {
                 propName.error(
                     "It is prohibited for user-prop and entity prop to have the same name",
                     RenameElement(propName, Project::createPropName),
@@ -834,6 +836,7 @@ class DTOAnnotator : Annotator {
                 }
 
                 // 方法参数重复校验
+                // TODO fold 参数不应参与校验
                 if (arg.values.count { value -> value.text == it.text } > 1) {
                     it.error(
                         "Duplicate prop `${it.text}`",
@@ -881,7 +884,7 @@ class DTOAnnotator : Annotator {
             // id方法参数为list时别名校验
             if (functionName == "id") {
                 val value = arg.values[0]
-                if (value.resolve() != null && o.file.clazz.findProperty(value.parent.parent.propPath() + value.text).isList) {
+                if (value.property?.isList == true) {
                     if (o.alias == null) {
                         val prop = value.text
                         o.error("An alias must be specified because the property `$prop` is a list association")
@@ -893,7 +896,7 @@ class DTOAnnotator : Annotator {
             if (functionName == "flat") {
                 val value = arg.values[0]
                 if (dto notModifiedBy Modifier.Specification) {
-                    if (value.resolve() != null && o.file.clazz.findProperty(value.parent.parent.propPath()).isList) {
+                    if (value.property?.isList == true) {
                         o.error("`flat` can only handle collection associations in specific modified dto")
                     }
                 }
@@ -913,18 +916,7 @@ class DTOAnnotator : Annotator {
         }
 
         private fun visitProp(o: DTOPositiveProp, propName: String) {
-            // 父级属性是否存在
-            val availableProperties = o.allSiblings()
-            if (availableProperties.isEmpty()) {
-                val upper = o.upper
-                if (upper is DTOPositiveProp) {
-                    try {
-                        upper.name.error("Prop `${upper.name.value}` does not exist")
-                    } catch (_: PluginException) {
-                    }
-                }
-                return
-            }
+            val availableProperties = o.containingLClass?.allProperties ?: return
 
             // 属性是否存在
             val prop = availableProperties.find { it.name == propName } ?: let {
@@ -1077,33 +1069,7 @@ class DTOAnnotator : Annotator {
                 o.style(DTOSyntaxHighlighter.IDENTIFIER)
             }
 
-            // 属性名称重复校验
-            val dtoBody = if (parent.parent is DTODtoBody) {
-                parent.parent as DTODtoBody
-            } else {
-                parent.parent.parent.parent as DTODtoBody
-            }
-            val name = if (parent is DTOPositiveProp) {
-                parent.alias?.value ?: parent.name.value
-            } else {
-                o.value
-            }
-
-            if (dtoBody.parent is DTOPropBody) {
-                val prop = dtoBody.parent.parent as DTOPositiveProp
-                if (prop.name.value == "files") {
-                    val dto = prop.parentOfType<DTODto>()
-                    if (dto != null && dto.name.value == "UserTest") {
-                        println("props: ${dtoBody.existedProp}")
-                    }
-                }
-            }
-
-            dtoBody.existedProp[name]?.let { (count, _) ->
-                if (count > 1) {
-                    o.error("Duplicated name usage `$name`")
-                }
-            }
+            // TODO 属性名称重复校验
         }
 
         /**

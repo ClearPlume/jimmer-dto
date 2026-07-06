@@ -3,10 +3,7 @@ package net.fallingangel.jimmerdto.psi.element
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.findProperty
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
-import net.fallingangel.jimmerdto.util.file
-import net.fallingangel.jimmerdto.util.propPath
 
 interface DTOMacro : DTOElement {
     val hash: PsiElement
@@ -19,13 +16,17 @@ interface DTOMacro : DTOElement {
 
     val required: PsiElement?
 
-    val clazz: LClass<*>
+    //      / dtoBody
+    // macro
+    //      \ aliasGroupBody -> aliasGroup
+    val containingLClass: LClass<*>?
         get() {
-            val propPath = propPath()
-            return if (propPath.isEmpty()) {
-                file.clazz
+            val parent = parent
+
+            return if (parent is DTODtoBody) {
+                parent.containingLClass
             } else {
-                file.clazz.findProperty(propPath).actualType as LClass<*>
+                (parent.parent as DTOAliasGroup).containingLClass
             }
         }
 
@@ -33,7 +34,10 @@ interface DTOMacro : DTOElement {
      * 宏可用参数
      */
     val types: List<String>
-        get() = clazz.allParents.map(LClass<*>::name) + clazz.name + "this"
+        get() {
+            val clazz = containingLClass ?: return emptyList()
+            return clazz.allParents.map(LClass<*>::name) + clazz.name + "this"
+        }
 
     val isScalar: Boolean
         get() = name.value == "allScalars"
@@ -43,6 +47,8 @@ interface DTOMacro : DTOElement {
      */
     val carriedProps: List<String>
         get() {
+            val clazz = containingLClass ?: return emptyList()
+
             val argList = args?.values?.map(PsiElement::getText) ?: types
             val containThisProp = argList.any { it in listOf("this", clazz.name) }
 
@@ -50,36 +56,36 @@ interface DTOMacro : DTOElement {
                 "allScalars" -> {
                     val thisProps = if (containThisProp) {
                         clazz.properties
-                                .filter { !it.isEntityAssociation }
-                                .map(LProperty<*>::name)
+                            .filter { !it.isEntityAssociation }
+                            .map(LProperty<*>::name)
                     } else {
                         emptyList()
                     }
                     val superProps = clazz.allParents
-                            .filter { argList.isEmpty() || argList.contains(it.name) }
-                            .flatMap { clazz ->
-                                clazz.properties
-                                        .filter { !it.isEntityAssociation }
-                                        .map(LProperty<*>::name)
-                            }
+                        .filter { argList.isEmpty() || argList.contains(it.name) }
+                        .flatMap { clazz ->
+                            clazz.properties
+                                .filter { !it.isEntityAssociation }
+                                .map(LProperty<*>::name)
+                        }
                     thisProps + superProps
                 }
 
                 "allReferences" -> {
                     val thisProps = if (containThisProp) {
                         clazz.properties
-                                .filter { it.isReference }
-                                .map(LProperty<*>::name)
+                            .filter { it.isReference }
+                            .map(LProperty<*>::name)
                     } else {
                         emptyList()
                     }
                     val superProps = clazz.allParents
-                            .filter { argList.isEmpty() || argList.contains(it.name) }
-                            .flatMap { clazz ->
-                                clazz.properties
-                                        .filter { it.isReference }
-                                        .map(LProperty<*>::name)
-                            }
+                        .filter { argList.isEmpty() || argList.contains(it.name) }
+                        .flatMap { clazz ->
+                            clazz.properties
+                                .filter { it.isReference }
+                                .map(LProperty<*>::name)
+                        }
                     thisProps + superProps
                 }
 

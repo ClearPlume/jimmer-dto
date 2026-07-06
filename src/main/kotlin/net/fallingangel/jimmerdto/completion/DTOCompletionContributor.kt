@@ -21,9 +21,7 @@ import net.fallingangel.jimmerdto.DTOLanguage.token
 import net.fallingangel.jimmerdto.completion.pattern.lsiElement
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
-import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser.*
 import net.fallingangel.jimmerdto.psi.element.*
@@ -112,8 +110,8 @@ class DTOCompletionContributor : CompletionContributor() {
                 result.addAllElements(findUserPropType(text, parameters.originalFile as DTOFile))
             },
             identifier.withParent(DTOQualifiedNamePart::class.java)
-                    .withSuperParent(3, DTOTypeRef::class.java)
-                    .withSuperParent(4, DTOUserProp::class.java),
+                .withSuperParent(3, DTOTypeRef::class.java)
+                .withSuperParent(4, DTOUserProp::class.java),
         )
     }
 
@@ -127,8 +125,8 @@ class DTOCompletionContributor : CompletionContributor() {
                 result.addAllElements(findUserPropType(text, parameters.originalFile as DTOFile, true))
             },
             identifier.withParent(DTOQualifiedNamePart::class.java)
-                    .withSuperParent(3, DTOTypeRef::class.java)
-                    .withSuperParent(4, DTOGenericArgument::class.java),
+                .withSuperParent(3, DTOTypeRef::class.java)
+                .withSuperParent(4, DTOGenericArgument::class.java),
         )
     }
 
@@ -141,10 +139,10 @@ class DTOCompletionContributor : CompletionContributor() {
                 result.addAllElements(bodyLookups())
                 val prop = parameters.position.parent.parent<DTOPositiveProp>()
                 result.addAllElements(prop.functions().lookUp())
-                result.addAllElements(prop.allSiblings().lookUp())
+                result.addAllElements(prop.containingLClass?.allProperties?.lookUp() ?: emptyList())
             },
             identifier.withParent(DTOPropName::class.java)
-                    .withSuperParent(2, DTOPositiveProp::class.java),
+                .withSuperParent(2, DTOPositiveProp::class.java),
         )
     }
 
@@ -155,10 +153,10 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 val propName = parameters.position.parent<DTOPropName>()
-                result.addAllElements(propName.parent<DTONegativeProp>().allSiblings().lookUp())
+                result.addAllElements(propName.parent<DTONegativeProp>().containingLClass?.allProperties?.lookUp() ?: emptyList())
             },
             identifier.withParent(DTOPropName::class.java)
-                    .withSuperParent(2, DTONegativeProp::class.java),
+                .withSuperParent(2, DTONegativeProp::class.java),
         )
     }
 
@@ -191,7 +189,7 @@ class DTOCompletionContributor : CompletionContributor() {
                 result.addAllElements(prop.values.lookUp())
             },
             identifier.withParent(DTOEnumMappingConstant::class.java)
-                    .withSuperParent(3, lsiElement(DTOEnumBody::class.java))
+                .withSuperParent(3, lsiElement(DTOEnumBody::class.java))
         )
     }
 
@@ -204,14 +202,14 @@ class DTOCompletionContributor : CompletionContributor() {
                 val dto = parameters.position.parent.parent<DTODto>()
                 result.addAllElements(
                     dto.availableModifiers
-                            .map { LookupInfo(it, "$it ") }
-                            .lookUp {
-                                PrioritizedLookupElement.withPriority(bold(), 100.0)
-                            }
+                        .map { LookupInfo(it, "$it ") }
+                        .lookUp {
+                            PrioritizedLookupElement.withPriority(bold(), 100.0)
+                        }
                 )
             },
             identifier.withParent(DTODtoName::class.java)
-                    .withSuperParent(2, DTODto::class.java),
+                .withSuperParent(2, DTODto::class.java),
         )
     }
 
@@ -228,22 +226,22 @@ class DTOCompletionContributor : CompletionContributor() {
                     // TODO 无条件提示、写错了交给 Annotator 事后报
                     result.addAllElements(
                         Modifier.entries
-                                .filter { it.level == Modifier.Level.Both }
-                                .map {
-                                    val modifier = it.name.lowercase()
-                                    LookupInfo(modifier, "$modifier ")
-                                }
-                                .lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
+                            .filter { it.level == Modifier.Level.Both }
+                            .map {
+                                val modifier = it.name.lowercase()
+                                LookupInfo(modifier, "$modifier ")
+                            }
+                            .lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
                     )
                 }
             },
             and(
                 identifier.withParent(DTOPropName::class.java)
-                        .withSuperParent(2, DTOPositiveProp::class.java),
+                    .withSuperParent(2, DTOPositiveProp::class.java),
                 identifier.withParent(
                     not(
                         lsiElement(DTOPropName::class.java)
-                                .afterSibling(lsiElement(token[ParserModifier])),
+                            .afterSibling(lsiElement(token[ParserModifier])),
                     ),
                 ),
             )
@@ -260,7 +258,7 @@ class DTOCompletionContributor : CompletionContributor() {
                 result.addAllElements(propArgs.args.lookUp())
             },
             identifier.withParent(DTOValue::class.java)
-                    .withSuperParent(2, lsiElement(DTOPropArg::class.java)),
+                .withSuperParent(2, lsiElement(DTOPropArg::class.java)),
         )
     }
 
@@ -277,13 +275,13 @@ class DTOCompletionContributor : CompletionContributor() {
                 )
             },
             identifier
-                    .withSuperParent(
-                        3,
-                        lsiElement().withFirstNonWhitespaceChild(
-                            lsiElement(DTODto::class.java)
-                                    .withChild(lsiElement(DTODtoName::class.java)),
-                        ),
+                .withSuperParent(
+                    3,
+                    lsiElement().withFirstNonWhitespaceChild(
+                        lsiElement(DTODto::class.java)
+                            .withChild(lsiElement(DTODtoName::class.java)),
                     ),
+                ),
         )
     }
 
@@ -301,28 +299,28 @@ class DTOCompletionContributor : CompletionContributor() {
             },
             or(
                 identifier
-                        .withSuperParent(
-                            3,
-                            lsiElement().withFirstNonWhitespaceChild(
-                                lsiElement(DTODto::class.java)
-                                        .withChild(
-                                            lsiElement(DTODtoName::class.java)
-                                                    .withText(DUMMY_IDENTIFIER_TRIMMED),
-                                        ),
-                            ),
-                        ),
-                identifier
-                        .andNot(identifier.withParent(error))
-                        .withSuperParent(
-                            2,
+                    .withSuperParent(
+                        3,
+                        lsiElement().withFirstNonWhitespaceChild(
                             lsiElement(DTODto::class.java)
-                                    .afterSibling(
-                                        or(
-                                            lsiElement(DTOExportStatement::class.java),
-                                            lsiElement(DTOImportStatement::class.java)
-                                        ),
-                                    ),
+                                .withChild(
+                                    lsiElement(DTODtoName::class.java)
+                                        .withText(DUMMY_IDENTIFIER_TRIMMED),
+                                ),
                         ),
+                    ),
+                identifier
+                    .andNot(identifier.withParent(error))
+                    .withSuperParent(
+                        2,
+                        lsiElement(DTODto::class.java)
+                            .afterSibling(
+                                or(
+                                    lsiElement(DTOExportStatement::class.java),
+                                    lsiElement(DTOImportStatement::class.java)
+                                ),
+                            ),
+                    ),
             ),
         )
     }
@@ -333,7 +331,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeExportPackage() {
         completePackage(
             identifier.withParent(DTOQualifiedNamePart::class.java)
-                    .withSuperParent(3, DTOExportStatement::class.java),
+                .withSuperParent(3, DTOExportStatement::class.java),
             Project::allEntities,
             needImport = false,
         )
@@ -345,7 +343,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeImportPackage() {
         completePackage(
             identifier.withParent(DTOQualifiedNamePart::class.java)
-                    .withSuperParent(3, DTOImportStatement::class.java),
+                .withSuperParent(3, DTOImportStatement::class.java),
             Project::allClasses
         )
     }
@@ -356,8 +354,8 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeAnnotation() {
         completePackage(
             identifier.withParent(DTOQualifiedNamePart::class.java)
-                    .withSuperParent(3, DTOAnnotation::class.java)
-                    .andNot(identifier.withSuperParent(4, DTOAnnotationSingleValue::class.java)),
+                .withSuperParent(3, DTOAnnotation::class.java)
+                .andNot(identifier.withSuperParent(4, DTOAnnotationSingleValue::class.java)),
             Project::allAnnotations,
             true,
         )
@@ -378,10 +376,10 @@ class DTOCompletionContributor : CompletionContributor() {
             { parameters, result ->
                 val project = parameters.position.project
                 val typedPackage = parameters.position.parent.siblings(forward = false, withSelf = false)
-                        .filter { it.elementType == rule[RULE_qualifiedNamePart] }
-                        .map(PsiElement::getText)
-                        .toList()
-                        .asReversed()
+                    .filter { it.elementType == rule[RULE_qualifiedNamePart] }
+                    .map(PsiElement::getText)
+                    .toList()
+                    .asReversed()
                 val curPackage = typedPackage.joinToString(".")
                 val curPackageClasses = if (typedPackage.isEmpty() && classAvailableBeforeFirstDot) {
                     project.classes(null).lookUp(needImport)
@@ -390,10 +388,10 @@ class DTOCompletionContributor : CompletionContributor() {
                 }
 
                 val availablePackages = project.allPackages(curPackage)
-                        .map {
-                            LookupElementBuilder.create(it.name!!)
-                                    .withIcon(AllIcons.Nodes.Package)
-                        }
+                    .map {
+                        LookupElementBuilder.create(it.name!!)
+                            .withIcon(AllIcons.Nodes.Package)
+                    }
 
                 result.addAllElements(curPackageClasses + availablePackages)
             },
@@ -420,42 +418,42 @@ class DTOCompletionContributor : CompletionContributor() {
                 val project = annotationClass.project
                 val stringType = project.stringType
                 val elements = annotationClass.methods
-                        .filter { it.name !in params }
-                        .map {
-                            val paramType = it.returnType
-                            val default = when {
-                                parameters.position.parent is DTOAnnotationParameter -> ""
-                                paramType == stringType -> " = \"\""
-                                paramType is PsiArrayType && paramType.componentType == stringType -> " = [\"\"]"
-                                paramType == PsiTypes.charType() -> " = ''"
-                                paramType is PsiArrayType && paramType.componentType == PsiTypes.charType() -> " = ['']"
-                                else -> " = "
-                            }
-                            LookupElementBuilder.create(it.name + default)
-                                    .withIcon(AllIcons.Nodes.Property)
-                                    .withPresentableText(it.name)
-                                    .withTailText(default, true)
-                                    .withTypeText(paramType?.canonicalText, true)
-                                    .withInsertHandler { context, _ ->
-                                        val offset = if (default in listOf(" = ", "")) {
-                                            0
-                                        } else {
-                                            if (paramType is PsiArrayType) {
-                                                2
-                                            } else {
-                                                1
-                                            }
-                                        }
-                                        context.editor.caretModel.moveToOffset(context.tailOffset - offset)
-                                    }
+                    .filter { it.name !in params }
+                    .map {
+                        val paramType = it.returnType
+                        val default = when {
+                            parameters.position.parent is DTOAnnotationParameter -> ""
+                            paramType == stringType -> " = \"\""
+                            paramType is PsiArrayType && paramType.componentType == stringType -> " = [\"\"]"
+                            paramType == PsiTypes.charType() -> " = ''"
+                            paramType is PsiArrayType && paramType.componentType == PsiTypes.charType() -> " = ['']"
+                            else -> " = "
                         }
+                        LookupElementBuilder.create(it.name + default)
+                            .withIcon(AllIcons.Nodes.Property)
+                            .withPresentableText(it.name)
+                            .withTailText(default, true)
+                            .withTypeText(paramType?.canonicalText, true)
+                            .withInsertHandler { context, _ ->
+                                val offset = if (default in listOf(" = ", "")) {
+                                    0
+                                } else {
+                                    if (paramType is PsiArrayType) {
+                                        2
+                                    } else {
+                                        1
+                                    }
+                                }
+                                context.editor.caretModel.moveToOffset(context.tailOffset - offset)
+                            }
+                    }
                 result.addAllElements(elements)
             },
             or(
                 identifier.withParent(DTOAnnotationParameter::class.java),
                 // 还没有输入参数时的情况
                 identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)
-                        .andNot(identifier.withParent(PsiErrorElement::class.java)),
+                    .andNot(identifier.withParent(PsiErrorElement::class.java)),
             ),
         )
     }
@@ -523,24 +521,24 @@ class DTOCompletionContributor : CompletionContributor() {
             or(
                 // @Anno(param = <caret>)
                 identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)
-                        .withSuperParent(5, DTOAnnotationParameter::class.java)
-                        .andNot(identifier.withParent(PsiErrorElement::class.java)),
+                    .withSuperParent(5, DTOAnnotationParameter::class.java)
+                    .andNot(identifier.withParent(PsiErrorElement::class.java)),
                 // @Anno(param = [<caret>])
                 identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)
-                        .withSuperParent(7, DTOAnnotationParameter::class.java)
-                        .andNot(identifier.withParent(PsiErrorElement::class.java)),
+                    .withSuperParent(7, DTOAnnotationParameter::class.java)
+                    .andNot(identifier.withParent(PsiErrorElement::class.java)),
                 // @Anno(param = Ne<caret>st())
                 identifier.withSuperParent(3, DTONestAnnotation::class.java)
-                        .withSuperParent(6, DTOAnnotationParameter::class.java),
+                    .withSuperParent(6, DTOAnnotationParameter::class.java),
                 // @Anno(param = [Ne<caret>st()])
                 identifier.withSuperParent(3, DTONestAnnotation::class.java)
-                        .withSuperParent(8, DTOAnnotationParameter::class.java),
+                    .withSuperParent(8, DTOAnnotationParameter::class.java),
                 // @Anno(Ne<caret>st())
                 identifier.withSuperParent(3, DTONestAnnotation::class.java)
-                        .withSuperParent(5, DTOAnnotationValue::class.java),
+                    .withSuperParent(5, DTOAnnotationValue::class.java),
                 // @Anno([Ne<caret>st()])
                 identifier.withSuperParent(3, DTONestAnnotation::class.java)
-                        .withSuperParent(7, DTOAnnotationValue::class.java),
+                    .withSuperParent(7, DTOAnnotationValue::class.java),
             ),
         )
     }
@@ -558,12 +556,12 @@ class DTOCompletionContributor : CompletionContributor() {
                 identifier.withParent(DTOEnumMappingConstant::class.java),
                 identifier.withParent(error.afterSibling(lsiElement(rule[RULE_classSuffix]))),
                 identifier.withParent(DTOFile::class.java)
-                        .afterSibling(
-                            or(
-                                lsiElement(rule[RULE_classSuffix]),
-                                lsiElement(token[Dot]),
-                            ),
+                    .afterSibling(
+                        or(
+                            lsiElement(rule[RULE_classSuffix]),
+                            lsiElement(token[Dot]),
                         ),
+                    ),
             )
         )
     }
@@ -589,27 +587,27 @@ class DTOCompletionContributor : CompletionContributor() {
                  * }
                  */
                 identifier.withParent(DTOPropName::class.java)
-                        .withSuperParent(
-                            2,
-                            // prop DUMMY_IDENTIFIER_TRIMMED
-                            lsiElement(DTOPositiveProp::class.java)
-                                    .afterSibling(
-                                        // prop(...) DUMMY_IDENTIFIER_TRIMMED
-                                        lsiElement(DTOPositiveProp::class.java)
-                                                .andNot(
-                                                    lsiElement(DTOPositiveProp::class.java)
-                                                            .withChild(lsiElement(DTOPropArg::class.java)),
-                                                ),
-                                    )
+                    .withSuperParent(
+                        2,
+                        // prop DUMMY_IDENTIFIER_TRIMMED
+                        lsiElement(DTOPositiveProp::class.java)
+                            .afterSibling(
+                                // prop(...) DUMMY_IDENTIFIER_TRIMMED
+                                lsiElement(DTOPositiveProp::class.java)
                                     .andNot(
-                                        // prop DUMMY_IDENTIFIER_TRIMMED@Anno
                                         lsiElement(DTOPositiveProp::class.java)
-                                                .withChild(
-                                                    lsiElement(DTOPropBody::class.java)
-                                                            .withChild(lsiElement(DTOAnnotation::class.java)),
-                                                ),
+                                            .withChild(lsiElement(DTOPropArg::class.java)),
                                     ),
-                        ),
+                            )
+                            .andNot(
+                                // prop DUMMY_IDENTIFIER_TRIMMED@Anno
+                                lsiElement(DTOPositiveProp::class.java)
+                                    .withChild(
+                                        lsiElement(DTOPropBody::class.java)
+                                            .withChild(lsiElement(DTOAnnotation::class.java)),
+                                    ),
+                            ),
+                    ),
             ),
         )
     }
@@ -621,11 +619,7 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 val prop = parameters.position.parent.parent<DTOPositiveProp>()
-                val propPath = prop.propPath()
-                val proceedPropPath = propPath.drop(1) + propPath.last().replace(DUMMY_IDENTIFIER_TRIMMED, "")
-
-                val clazz = prop.file.clazz.findPropertyOrNull(proceedPropPath)?.actualType as? LClass<*> ?: return@complete
-                val property = prop.file.clazz.findPropertyOrNull(proceedPropPath) ?: return@complete
+                val property = prop.property ?: return@complete
 
                 val haveFilter = prop.hasConfig(PropConfigName.Filter)
                 val haveWhere = prop.hasConfig(PropConfigName.Where)
@@ -638,6 +632,7 @@ class DTOCompletionContributor : CompletionContributor() {
 
                 val availableConfigs = PropConfigName.entries.toMutableList()
 
+                // TODO availableConfigs 剔除逻辑
                 if (haveFilter || !isEntityAssociation || property.isReference && !property.nullable) {
                     availableConfigs -= PropConfigName.Where
                 }
@@ -650,7 +645,7 @@ class DTOCompletionContributor : CompletionContributor() {
                     availableConfigs -= PropConfigName.Filter
                 }
 
-                if (haveDepth || property.actualType != clazz) {
+                if (haveDepth || property.actualType != prop.containingLClass) {
                     availableConfigs -= PropConfigName.Recursion
                 }
 
@@ -666,14 +661,14 @@ class DTOCompletionContributor : CompletionContributor() {
                     availableConfigs -= PropConfigName.Batch
                 }
 
-                if (haveRecursion || property.actualType != clazz) {
+                if (haveRecursion || property.actualType != prop.containingLClass) {
                     availableConfigs -= PropConfigName.Depth
                 }
 
                 result.addAllElements(
                     availableConfigs
-                            .map { it.text.drop(1) }
-                            .lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
+                        .map { it.text.drop(1) }
+                        .lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
                 )
             },
             lsiElement(token[ParserPropConfig]),
@@ -688,55 +683,55 @@ class DTOCompletionContributor : CompletionContributor() {
             { parameters, result ->
                 val prop = parameters.position.parentOfType<DTOPositiveProp>() ?: return@complete
                 val path = parameters.position.parent
-                        .siblings(forward = false, withSelf = false)
-                        .filter { it.elementType == rule[RULE_qualifiedNamePart] }
-                        .map { it.text }
-                        .toList()
-                        .asReversed()
+                    .siblings(forward = false, withSelf = false)
+                    .filter { it.elementType == rule[RULE_qualifiedNamePart] }
+                    .map { it.text }
+                    .toList()
+                    .asReversed()
                 val properties = prop.childProps(path)
                 result.addAllElements(
                     properties
-                            .map { (name, type) ->
-                                LookupElementBuilder.create(name)
-                                        .withIcon(AllIcons.Nodes.Property)
-                                        .withTypeText(type, true)
-                            }
+                        .map { (name, type) ->
+                            LookupElementBuilder.create(name)
+                                .withIcon(AllIcons.Nodes.Property)
+                                .withTypeText(type, true)
+                        }
                 )
             },
             or(
                 identifier.withSuperParent(
                     5,
                     lsiElement(DTOWhereArgs::class.java)
-                            .afterSiblingSkipping(
-                                lsiElement(token[LParen]),
-                                or(
-                                    lsiElement(token[ParserPropConfig]).withText("!where"),
-                                    lsiElement(token[ParserPropConfig]).withText("!orderBy"),
-                                ),
+                        .afterSiblingSkipping(
+                            lsiElement(token[LParen]),
+                            or(
+                                lsiElement(token[ParserPropConfig]).withText("!where"),
+                                lsiElement(token[ParserPropConfig]).withText("!orderBy"),
                             ),
+                        ),
                 ),
                 identifier.withSuperParent(
                     4,
                     lsiElement(DTOOrderByArgs::class.java)
-                            .afterSiblingSkipping(
-                                lsiElement(token[LParen]),
-                                or(
-                                    lsiElement(token[ParserPropConfig]).withText("!where"),
-                                    lsiElement(token[ParserPropConfig]).withText("!orderBy"),
-                                ),
+                        .afterSiblingSkipping(
+                            lsiElement(token[LParen]),
+                            or(
+                                lsiElement(token[ParserPropConfig]).withText("!where"),
+                                lsiElement(token[ParserPropConfig]).withText("!orderBy"),
                             ),
+                        ),
                 ),
                 identifier.withParent(error.afterSibling(lsiElement(DTOWhereArgs::class.java))),
                 identifier.withSuperParent(
                     2,
                     lsiElement(DTOQualifiedName::class.java)
-                            .afterSiblingSkipping(
-                                lsiElement(token[LParen]),
-                                or(
-                                    lsiElement(token[ParserPropConfig]).withText("!where"),
-                                    lsiElement(token[ParserPropConfig]).withText("!orderBy"),
-                                ),
+                        .afterSiblingSkipping(
+                            lsiElement(token[LParen]),
+                            or(
+                                lsiElement(token[ParserPropConfig]).withText("!where"),
+                                lsiElement(token[ParserPropConfig]).withText("!orderBy"),
                             ),
+                        ),
                 ),
                 identifier.withSuperParent(
                     4,
@@ -767,11 +762,11 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun findUserPropType(prefix: String, file: DTOFile, isGeneric: Boolean = false): List<LookupElement> {
         val cache = PsiShortNamesCache.getInstance(file.project)
         val classes = cache
-                .allClassNames
-                .filter { it.startsWith(prefix) }
-                .flatMap { cache.getClassesByName(it, ProjectScope.getAllScope(file.project)).toList() }
-                .toList()
-                .lookUp()
+            .allClassNames
+            .filter { it.startsWith(prefix) }
+            .flatMap { cache.getClassesByName(it, ProjectScope.getAllScope(file.project)).toList() }
+            .toList()
+            .lookUp()
 
         val genericModifiers = if (isGeneric) {
             listOf("out", "in").lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
@@ -781,8 +776,8 @@ class DTOCompletionContributor : CompletionContributor() {
 
         val preludes = preludes.lookUp()
         val imports = (file.imported.values + file.importedAlias.values.map { it.second })
-                .filterNot { it.isAnnotationType }
-                .lookUp()
+            .filterNot { it.isAnnotationType }
+            .lookUp()
         return preludes +
                 genericModifiers +
                 imports +
@@ -827,8 +822,8 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun List<LProperty<*>>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }): List<LookupElement> {
         return map {
             LookupElementBuilder.create(it.name)
-                    .withTypeText(it.presentableType, true)
-                    .customizer()
+                .withTypeText(it.presentableType, true)
+                .customizer()
         }
     }
 
@@ -837,69 +832,69 @@ class DTOCompletionContributor : CompletionContributor() {
         val qualifiedName = it.qualifiedName ?: return@mapNotNull null
         val name = it.name!!
         LookupElementBuilder.create(qualifiedName, name)
-                .withIcon(it.icon)
-                .withTypeText("(${qualifiedName.substringBeforeLast('.')})", true)
-                .withInsertHandler { context, _ ->
-                    if (needImport) {
-                        val file = context.file as DTOFile
-                        val fileNode = file.findChild<PsiElement>("/dtoFile").node
-                        val export = file.export
-                        val imports = file.importStatements
-                        val importedSameName = name in file.imported.keys || name in file.importedAlias.keys
-                        val import = imports.find { i -> i.qualifiedName.value == qualifiedName }
-                        val annotationName = file.findElementAt(context.startOffset)?.parent?.parentUnSure<DTOQualifiedName>()
-                        annotationName ?: return@withInsertHandler
+            .withIcon(it.icon)
+            .withTypeText("(${qualifiedName.substringBeforeLast('.')})", true)
+            .withInsertHandler { context, _ ->
+                if (needImport) {
+                    val file = context.file as DTOFile
+                    val fileNode = file.findChild<PsiElement>("/dtoFile").node
+                    val export = file.export
+                    val imports = file.importStatements
+                    val importedSameName = name in file.imported.keys || name in file.importedAlias.keys
+                    val import = imports.find { i -> i.qualifiedName.value == qualifiedName }
+                    val annotationName = file.findElementAt(context.startOffset)?.parent?.parentUnSure<DTOQualifiedName>()
+                    annotationName ?: return@withInsertHandler
 
-                        if (qualifiedName == annotationName.value) {
-                            // 要导入的名称和当前已输入的名称相等
-                            return@withInsertHandler
+                    if (qualifiedName == annotationName.value) {
+                        // 要导入的名称和当前已输入的名称相等
+                        return@withInsertHandler
+                    }
+
+                    if (importedSameName) {
+                        if (import == null) {
+                            val newAnnotationName = context.project.createAnnotation(qualifiedName).qualifiedName
+                            annotationName.parent.node.replaceChild(annotationName.node, newAnnotationName.node)
                         }
-
-                        if (importedSameName) {
-                            if (import == null) {
-                                val newAnnotationName = context.project.createAnnotation(qualifiedName).qualifiedName
-                                annotationName.parent.node.replaceChild(annotationName.node, newAnnotationName.node)
-                            }
-                        } else {
-                            if (import == null) {
-                                if (imports.isEmpty()) {
-                                    if (export == null) {
-                                        fileNode.addLeaf(TokenType.WHITE_SPACE, "import $qualifiedName\n\n", fileNode.firstChildNode)
-                                    } else {
-                                        fileNode.addLeaf(
-                                            token[Import],
-                                            "\n\nimport $qualifiedName",
-                                            export.node.treeNext,
-                                        )
-                                    }
+                    } else {
+                        if (import == null) {
+                            if (imports.isEmpty()) {
+                                if (export == null) {
+                                    fileNode.addLeaf(TokenType.WHITE_SPACE, "import $qualifiedName\n\n", fileNode.firstChildNode)
                                 } else {
                                     fileNode.addLeaf(
                                         token[Import],
-                                        "\nimport $qualifiedName",
-                                        imports.last().node.treeNext,
+                                        "\n\nimport $qualifiedName",
+                                        export.node.treeNext,
                                     )
                                 }
+                            } else {
+                                fileNode.addLeaf(
+                                    token[Import],
+                                    "\nimport $qualifiedName",
+                                    imports.last().node.treeNext,
+                                )
                             }
                         }
-                        FileContentUtilCore.reparseFiles(file.virtualFile)
                     }
+                    FileContentUtilCore.reparseFiles(file.virtualFile)
                 }
-                .customizer()
+            }
+            .customizer()
     }
 
     @JvmName("lookupInfo")
     private fun List<LookupInfo>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }): List<LookupElement> {
         return map {
             LookupElementBuilder.create(it.insertion)
-                    .withPresentableText(it.presentation)
-                    .withTailText(it.tail, true)
-                    .withTypeText(it.type, true)
-                    .withInsertHandler { context, _ ->
-                        if (it.caretOffset != 0) {
-                            context.editor.caretModel.moveToOffset(context.tailOffset + it.caretOffset)
-                        }
+                .withPresentableText(it.presentation)
+                .withTailText(it.tail, true)
+                .withTypeText(it.type, true)
+                .withInsertHandler { context, _ ->
+                    if (it.caretOffset != 0) {
+                        context.editor.caretModel.moveToOffset(context.tailOffset + it.caretOffset)
                     }
-                    .customizer()
+                }
+                .customizer()
         }
     }
 }

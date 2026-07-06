@@ -21,7 +21,7 @@ interface DTOPropArg : DTOElement {
             val dto = parentOfType<DTODto>() ?: return emptyList()
             val prop = parent as DTOPositiveProp
             val functionName = prop.name.value
-            val properties = prop.allSiblings()
+            val properties = prop.containingLClass?.allProperties ?: return emptyList()
 
             return when (functionName) {
                 Function.Id.expression -> {
@@ -36,12 +36,15 @@ interface DTOPropArg : DTOElement {
                     }
                 }
 
+                // TODO Function.Fold.argType
+                "fold" -> emptyList()
+
                 in SpecFunction.entries.map { it.expression } -> {
                     properties
-                            .filter { property ->
-                                val specFunction = SpecFunction.entries.first { it.expression == functionName }
-                                specFunction.argType.test(property)
-                            }
+                        .filter { property ->
+                            val specFunction = SpecFunction.entries.first { it.expression == functionName }
+                            specFunction.argType.test(property)
+                        }
                 }
 
                 else -> {

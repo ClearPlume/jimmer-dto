@@ -1,6 +1,5 @@
 package net.fallingangel.jimmerdto.psi.element
 
-import com.intellij.codeInsight.completion.CompletionUtil
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
 import net.fallingangel.jimmerdto.enums.Modifier
@@ -11,9 +10,7 @@ import net.fallingangel.jimmerdto.lsi.LType
 import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.LookupInfo
-import net.fallingangel.jimmerdto.util.file
 import net.fallingangel.jimmerdto.util.modifiedBy
-import net.fallingangel.jimmerdto.util.propPath
 import org.babyfish.jimmer.sql.Embeddable
 
 interface DTOPositiveProp : DTOElement {
@@ -41,12 +38,21 @@ interface DTOPositiveProp : DTOElement {
 
     val recursive: PsiElement?
 
-    val property: LProperty<*>?
-        get() = if (arg == null) {
-            file.clazz.findPropertyOrNull(propPath())
-        } else {
-            null
+    //             / dtoBody
+    // positiveProp 
+    //             \ aliasGroupBody -> aliasGroup
+    val containingLClass: LClass<*>?
+        get() {
+            val parent = parent
+            return if (parent is DTODtoBody) {
+                parent.containingLClass
+            } else {
+                (parent.parent as DTOAliasGroup).containingLClass
+            }
         }
+
+    val property: LProperty<*>?
+        get() = containingLClass?.findProperty(name.value)
 
     fun functions(): List<LookupInfo> {
         val dto = parentOfType<DTODto>() ?: return emptyList()
@@ -78,25 +84,10 @@ interface DTOPositiveProp : DTOElement {
         return functions + specFunctions
     }
 
-    override fun allSiblings(withSelf: Boolean): List<LProperty<*>> {
-        val propPath = propPath()
-        val proceedPath = if ((withSelf || name.value in SpecFunction.entries.map { it.expression }) && propPath.isNotEmpty()) {
-            propPath.dropLast(1) + propPath.last().replace(CompletionUtil.DUMMY_IDENTIFIER_TRIMMED, "")
-        } else {
-            propPath.dropLast(1)
-        }
-        return if (proceedPath.isEmpty()) {
-            file.clazz.allProperties
-        } else {
-            val parentClazz = file.clazz.findPropertyOrNull(proceedPath)?.actualType as? LClass<*> ?: return emptyList()
-            parentClazz.allProperties
-        }
-    }
-
     fun childProps(prefix: List<String>): List<Pair<String, String>> {
         val type = property?.actualType as? LClass<*> ?: return emptyList()
         val props = if (prefix.isEmpty()) {
-            allSiblings(true)
+            type.allProperties
         } else {
             val propertyType = type.findPropertyOrNull(prefix)?.actualType as? LClass<*> ?: return emptyList()
             propertyType.allProperties

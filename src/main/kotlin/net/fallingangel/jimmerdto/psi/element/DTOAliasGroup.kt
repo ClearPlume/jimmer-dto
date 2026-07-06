@@ -1,6 +1,7 @@
 package net.fallingangel.jimmerdto.psi.element
 
 import com.intellij.psi.PsiElement
+import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.util.replaceLast
 
@@ -20,6 +21,10 @@ interface DTOAliasGroup : DTOElement {
     val macros: List<DTOMacro>
 
     val positiveProps: List<DTOPositiveProp>
+
+    // aliasGroup -> dtoBody
+    val containingLClass: LClass<*>?
+        get() = (parent as DTODtoBody).containingLClass
 
     fun apply(value: String): String {
         val isPrefix = power != null

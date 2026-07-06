@@ -1,6 +1,8 @@
 package net.fallingangel.jimmerdto.psi.element
 
+import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
+import net.fallingangel.jimmerdto.util.file
 
 interface DTODtoBody : DTOElement {
     val macros: List<DTOMacro>
@@ -12,6 +14,26 @@ interface DTODtoBody : DTOElement {
     val negativeProps: List<DTONegativeProp>
 
     val userProps: List<DTOUserProp>
+
+    //        / dto
+    // dtoBody
+    //        \ propBody
+    val containingLClass: LClass<*>?
+        get() {
+            return when (val parent = parent) {
+                is DTODto -> file.clazz
+                is DTOPropBody -> {
+                    val prop = parent.parent as DTOPositiveProp
+                    when (prop.name.value) {
+                        "fold" -> prop.containingLClass
+                        "flat" -> prop.arg!!.values[0].resolvedLClass
+                        else -> prop.property?.actualType as? LClass<*>
+                    }
+                }
+
+                else -> error("Unexpected parent: ${parent::class}")
+            }
+        }
 
     val availableProps: List<String>
         get() = macros.flatMap(DTOMacro::carriedProps)
@@ -66,44 +88,45 @@ interface DTODtoBody : DTOElement {
      * childFiles to (1 to childFileIds)
      * ```
      */
+    // TODO 移除
     val existedProp: Map<String, Pair<Int, String?>>
         get() {
             val aliasProps = aliasGroups.flatMap { alias ->
                 val pos: List<Pair<String, String?>> = alias.positiveProps
-                        .map {
-                            val name = it.name.value
-                            name to alias.apply(name)
-                        }
+                    .map {
+                        val name = it.name.value
+                        name to alias.apply(name)
+                    }
                 val mac: List<Pair<String, String?>> = alias.macros
-                        .filter(DTOMacro::isScalar)
-                        .flatMap { macro -> macro.carriedProps.map { it to alias.apply(it) } }
+                    .filter(DTOMacro::isScalar)
+                    .flatMap { macro -> macro.carriedProps.map { it to alias.apply(it) } }
                 pos + mac
             }
             val idFunctionProps = positiveProps
-                    .filter { it.arg != null && it.name.value == "id" }
-                    .mapNotNull { prop ->
-                        val arg = prop.arg!!
-                        val argName = arg.values.first().name ?: return@mapNotNull null
-                        val alias = prop.alias
-                        if (alias == null) {
-                            argName to "${argName}Id"
-                        } else {
-                            argName to alias.value
-                        }
+                .filter { it.arg != null && it.name.value == "id" }
+                .mapNotNull { prop ->
+                    val arg = prop.arg!!
+                    val argName = arg.values.first().name ?: return@mapNotNull null
+                    val alias = prop.alias
+                    if (alias == null) {
+                        argName to "${argName}Id"
+                    } else {
+                        argName to alias.value
                     }
+                }
 
             val functionProps = positiveProps
-                    .filter { it.arg != null && it.name.value != "id" }
-                    .mapNotNull { it.arg }
-                    .flatMap { it.values.map { v -> v.text to null } }
+                .filter { it.arg != null && it.name.value != "id" }
+                .mapNotNull { it.arg }
+                .flatMap { it.values.map { v -> v.text to null } }
             val positiveProps = positiveProps.filter { it.arg == null }
-                    .map { it.name.value to it.alias?.value }
+                .map { it.name.value to it.alias?.value }
             val userProps = userProps.map { it.name.value to null }
 
             return (aliasProps + idFunctionProps + functionProps + positiveProps + userProps)
-                    .groupingBy { it.first }
-                    .fold({ _, element -> 0 to element.second }) { _, acc, element ->
-                        acc.first + 1 to (acc.second ?: element.second)
-                    }
+                .groupingBy { it.first }
+                .fold({ _, element -> 0 to element.second }) { _, acc, element ->
+                    acc.first + 1 to (acc.second ?: element.second)
+                }
         }
 }
