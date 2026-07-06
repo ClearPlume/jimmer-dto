@@ -21,9 +21,7 @@ import net.fallingangel.jimmerdto.DTOLanguage.token
 import net.fallingangel.jimmerdto.completion.pattern.lsiElement
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
-import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser.*
 import net.fallingangel.jimmerdto.psi.element.*
@@ -141,7 +139,7 @@ class DTOCompletionContributor : CompletionContributor() {
                 result.addAllElements(bodyLookups())
                 val prop = parameters.position.parent.parent<DTOPositiveProp>()
                 result.addAllElements(prop.functions().lookUp())
-                result.addAllElements(prop.allSiblings().lookUp())
+                result.addAllElements(prop.containingLClass?.allProperties?.lookUp() ?: emptyList())
             },
             identifier.withParent(DTOPropName::class.java)
                 .withSuperParent(2, DTOPositiveProp::class.java),
@@ -155,7 +153,7 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 val propName = parameters.position.parent<DTOPropName>()
-                result.addAllElements(propName.parent<DTONegativeProp>().allSiblings().lookUp())
+                result.addAllElements(propName.parent<DTONegativeProp>().containingLClass?.allProperties?.lookUp() ?: emptyList())
             },
             identifier.withParent(DTOPropName::class.java)
                 .withSuperParent(2, DTONegativeProp::class.java),
@@ -622,12 +620,7 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 val prop = parameters.position.parent.parent<DTOPositiveProp>()
-                val propPath = prop.propPath()
-                val proceedPropPath = propPath.drop(1) + propPath.last().replace(DUMMY_IDENTIFIER_TRIMMED, "")
-
-                val clazz =
-                    prop.file.clazz.findPropertyOrNull(proceedPropPath)?.actualType as? LClass<*> ?: return@complete
-                val property = prop.file.clazz.findPropertyOrNull(proceedPropPath) ?: return@complete
+                val property = prop.property ?: return@complete
 
                 val haveFilter = prop.hasConfig(PropConfigName.Filter)
                 val haveWhere = prop.hasConfig(PropConfigName.Where)
@@ -640,6 +633,7 @@ class DTOCompletionContributor : CompletionContributor() {
 
                 val availableConfigs = PropConfigName.entries.toMutableList()
 
+                // TODO availableConfigs 剔除逻辑
                 if (haveFilter || !isEntityAssociation || property.isReference && !property.nullable) {
                     availableConfigs -= PropConfigName.Where
                 }
@@ -652,7 +646,7 @@ class DTOCompletionContributor : CompletionContributor() {
                     availableConfigs -= PropConfigName.Filter
                 }
 
-                if (haveDepth || property.actualType != clazz) {
+                if (haveDepth || property.actualType != prop.containingLClass) {
                     availableConfigs -= PropConfigName.Recursion
                 }
 
@@ -668,7 +662,7 @@ class DTOCompletionContributor : CompletionContributor() {
                     availableConfigs -= PropConfigName.Batch
                 }
 
-                if (haveRecursion || property.actualType != clazz) {
+                if (haveRecursion || property.actualType != prop.containingLClass) {
                     availableConfigs -= PropConfigName.Depth
                 }
 
@@ -872,11 +866,7 @@ class DTOCompletionContributor : CompletionContributor() {
                         if (import == null) {
                             if (imports.isEmpty()) {
                                 if (export == null) {
-                                    fileNode.addLeaf(
-                                        TokenType.WHITE_SPACE,
-                                        "import $qualifiedName\n\n",
-                                        fileNode.firstChildNode
-                                    )
+                                    fileNode.addLeaf(TokenType.WHITE_SPACE, "import $qualifiedName\n\n", fileNode.firstChildNode)
                                 } else {
                                     fileNode.addLeaf(
                                         token[Import],

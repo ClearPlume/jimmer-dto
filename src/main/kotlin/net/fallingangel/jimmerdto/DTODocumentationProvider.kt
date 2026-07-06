@@ -12,7 +12,7 @@ class DTODocumentationProvider : AbstractDocumentationProvider() {
             return null
         }
         val isScalar = macro.name.value == "allScalars"
-        val macroClass = macro.clazz
+        val macroClass = macro.containingLClass ?: return null
         val argList = macro.args?.values?.map(PsiElement::getText) ?: macro.types
         val containThisProp = argList.any { it in listOf("this", macroClass.name) }
 

@@ -3,7 +3,10 @@ package net.fallingangel.jimmerdto.psi.element.impl
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
-import net.fallingangel.jimmerdto.psi.element.*
+import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
+import net.fallingangel.jimmerdto.psi.element.DTOPropName
+import net.fallingangel.jimmerdto.psi.element.DTOVisitor
+import net.fallingangel.jimmerdto.psi.element.createPropName
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
 
 class DTOPropNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOPropName {
@@ -19,11 +22,13 @@ class DTOPropNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOPropName {
     }
 
     override fun resolve(): PsiElement? {
-        return when (val prop = parent) {
-            is DTONegativeProp -> prop.property?.source
-            is DTOPositiveProp -> prop.property?.source
-            else -> null
+        val prop = parent as? DTOPositiveProp ?: return null
+
+        if (prop.arg != null) {
+            return null
         }
+
+        return containingLClass?.findProperty(value)?.source
     }
 
     override fun accept(visitor: PsiElementVisitor) {

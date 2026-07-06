@@ -1,6 +1,8 @@
 package net.fallingangel.jimmerdto.psi.element
 
+import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
+import net.fallingangel.jimmerdto.util.file
 
 interface DTODtoBody : DTOElement {
     val macros: List<DTOMacro>
@@ -12,6 +14,26 @@ interface DTODtoBody : DTOElement {
     val negativeProps: List<DTONegativeProp>
 
     val userProps: List<DTOUserProp>
+
+    //        / dto
+    // dtoBody
+    //        \ propBody
+    val containingLClass: LClass<*>?
+        get() {
+            return when (val parent = parent) {
+                is DTODto -> file.clazz
+                is DTOPropBody -> {
+                    val prop = parent.parent as DTOPositiveProp
+                    when (prop.name.value) {
+                        "fold" -> prop.containingLClass
+                        "flat" -> prop.arg!!.values[0].resolvedLClass
+                        else -> prop.property?.actualType as? LClass<*>
+                    }
+                }
+
+                else -> error("Unexpected parent: ${parent::class}")
+            }
+        }
 
     val availableProps: List<String>
         get() = macros.flatMap(DTOMacro::carriedProps)
@@ -66,6 +88,7 @@ interface DTODtoBody : DTOElement {
      * childFiles to (1 to childFileIds)
      * ```
      */
+    // TODO 移除
     val existedProp: Map<String, Pair<Int, String?>>
         get() {
             val aliasProps = aliasGroups.flatMap { alias ->

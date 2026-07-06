@@ -4,16 +4,13 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import net.fallingangel.jimmerdto.lsi.LType
-import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
 import net.fallingangel.jimmerdto.psi.element.DTOEnumMappingConstant
 import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
 import net.fallingangel.jimmerdto.psi.element.DTOVisitor
 import net.fallingangel.jimmerdto.psi.element.createEnumMapping
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
-import net.fallingangel.jimmerdto.util.file
 import net.fallingangel.jimmerdto.util.findChild
 import net.fallingangel.jimmerdto.util.parent
-import net.fallingangel.jimmerdto.util.propPath
 
 class DTOEnumMappingConstantImpl(node: ASTNode) : DTONamedElementImpl(node), DTOEnumMappingConstant {
     override val constant: PsiElement
@@ -30,7 +27,7 @@ class DTOEnumMappingConstantImpl(node: ASTNode) : DTONamedElementImpl(node), DTO
     override fun resolve(): PsiElement? {
         val name = nameIdentifier.text
         val prop = parent.parent.parent.parent<DTOPositiveProp>()
-        val propType = file.clazz.findPropertyOrNull(prop.propPath())?.actualType as? LType.EnumType<*, *> ?: return null
+        val propType = prop.property?.actualType as? LType.EnumType<*, *> ?: return null
         return propType.values[name]
     }
 

@@ -32,6 +32,10 @@ data class LClass<C : PsiElement>(
 
     val methods by methodsHolder
 
+    fun findProperty(name: String?): LProperty<*>? {
+        return allProperties.find { it.name == name }
+    }
+
     override fun collectPsiElements(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
         if (!visited.add(this)) {
             return
