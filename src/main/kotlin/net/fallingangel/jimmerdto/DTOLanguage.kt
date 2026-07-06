@@ -47,5 +47,7 @@ object DTOLanguage : Language(Constant.NAME) {
         return TokenSet.create(*rules.map(rule::get).toTypedArray())
     }
 
+    @Suppress("unused")
+    // Serializable 对象必须实现 'readResolve' 
     private fun readResolve(): Any = DTOLanguage
 }
