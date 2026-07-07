@@ -29,6 +29,9 @@ object DTOLanguage : Language(Constant.NAME) {
     val availableFetchTypes: List<String>
         get() = listOf("AUTO", "SELECT", "JOIN_IF_NO_CACHE", "JOIN_ALWAYS")
 
+    val softKeywords: Set<String>
+        get() = setOf("like", "null", "desc", "asc")
+
     init {
         val vocab = DTOParser.VOCABULARY
 

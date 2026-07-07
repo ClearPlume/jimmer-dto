@@ -138,7 +138,7 @@ class DTOAnnotator : Annotator {
                 return
             }
 
-            if (o.part in listOf("like", "null", "desc", "asc")) {
+            if (o.part in DTOLanguage.softKeywords) {
                 o.style(DTOSyntaxHighlighter.IDENTIFIER)
             }
 
