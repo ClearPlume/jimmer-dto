@@ -12,6 +12,7 @@ import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.enums.SpecFunction
@@ -882,7 +883,7 @@ class DTOAnnotator : Annotator {
             }
 
             // id方法参数为list时别名校验
-            if (functionName == "id") {
+            if (functionName == Function.Id.expression) {
                 val value = arg.values[0]
                 if (value.property?.isList == true) {
                     if (o.alias == null) {
@@ -893,7 +894,7 @@ class DTOAnnotator : Annotator {
             }
 
             // flat方法使用集合参数的校验
-            if (functionName == "flat") {
+            if (functionName == Function.Flat.expression) {
                 val value = arg.values[0]
                 if (dto notModifiedBy Modifier.Specification) {
                     if (value.property?.isList == true) {
@@ -904,7 +905,7 @@ class DTOAnnotator : Annotator {
 
             // like方法校验
             if (o.flag != null) {
-                if (functionName != "like") {
+                if (functionName != SpecFunction.Like.expression) {
                     o.name.error("`/` can only be used to decorate the function `like`")
                 }
 
