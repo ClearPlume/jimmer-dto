@@ -299,11 +299,11 @@ class DTOAnnotator : Annotator {
             val qualifiedName = clazz.qualifiedName ?: return
             val `package` = qualifiedName.substringBeforeLast('.')
 
-            if (name.simpleName in listOf("Nullable", "NonNull")) {
-                name.error("Annotation \"Nullable\"、\"NonNull\" is forbidden")
+            if (name.simpleName in setOf("Nullable", "NonNull")) {
+                name.error("Annotation `Nullable`、`NonNull` is forbidden")
             }
 
-            if (name.simpleName in listOf("Null", "NotNull")) {
+            if (name.simpleName in setOf("Null", "NotNull")) {
                 val packages = listOf("javax.validation.constraints", "jakarta.validation.constraints")
                 if (`package` !in packages) {
                     name.error("Package \"${`package`}\" is forbidden")
