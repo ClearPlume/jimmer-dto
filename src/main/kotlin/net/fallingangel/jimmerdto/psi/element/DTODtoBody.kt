@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto.psi.element
 
+import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.util.file
@@ -25,8 +26,8 @@ interface DTODtoBody : DTOElement {
                 is DTOPropBody -> {
                     val prop = parent.parent as DTOPositiveProp
                     when (prop.name.value) {
-                        "fold" -> prop.containingLClass
-                        "flat" -> prop.arg!!.values[0].resolvedLClass
+                        Function.Fold.expression -> prop.containingLClass
+                        Function.Flat.expression -> prop.arg!!.values[0].resolvedLClass
                         else -> prop.property?.actualType as? LClass<*>
                     }
                 }

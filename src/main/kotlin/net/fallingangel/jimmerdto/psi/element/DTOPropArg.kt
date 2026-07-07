@@ -36,8 +36,7 @@ interface DTOPropArg : DTOElement {
                     }
                 }
 
-                // TODO Function.Fold.argType
-                "fold" -> emptyList()
+                Function.Fold.expression -> emptyList()
 
                 in SpecFunction.entries.map { it.expression } -> {
                     properties
