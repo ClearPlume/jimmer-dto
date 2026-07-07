@@ -26,8 +26,8 @@ object DTOLanguage : Language(Constant.NAME) {
             return basicTypes + genericTypes
         }
 
-    val availableFetchTypes: List<String>
-        get() = listOf("AUTO", "SELECT", "JOIN_IF_NO_CACHE", "JOIN_ALWAYS")
+    val availableFetchTypes: Set<String>
+        get() = setOf("AUTO", "SELECT", "JOIN_IF_NO_CACHE", "JOIN_ALWAYS")
 
     val softKeywords: Set<String>
         get() = setOf("like", "null", "desc", "asc")
