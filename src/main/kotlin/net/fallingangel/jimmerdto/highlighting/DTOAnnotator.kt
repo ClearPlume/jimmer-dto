@@ -813,6 +813,15 @@ class DTOAnnotator : Annotator {
         }
 
         private fun visitFunction(o: DTOPositiveProp, functionName: String) {
+            // 方法存在性校验
+            val isFunction = Function.entries.any { it.expression == functionName }
+            val isSpecFunction = SpecFunction.entries.any { it.expression == functionName }
+
+            if (!isFunction && !isSpecFunction) {
+                o.name.error("Unknown function `$functionName`")
+                return
+            }
+
             val dto = o.parentOfType<DTODto>() ?: return
             val specFunctions = SpecFunction.entries.map(SpecFunction::expression)
 
