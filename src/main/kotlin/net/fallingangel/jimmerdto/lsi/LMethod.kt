@@ -50,4 +50,22 @@ data class LMethod<M : PsiElement>(
         val returnTypeStr = returnType.toDebugString(visited)
         return "LMethod(name=$name, returnType=$returnTypeStr, params=$paramsStr, annotations=$annotationsStr)"
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as LMethod<*>
+
+        if (name != other.name) return false
+        if (params.map(LParam<*>::type) != other.params.map(LParam<*>::type)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + params.map(LParam<*>::type).hashCode()
+        return result
+    }
 }

@@ -19,4 +19,17 @@ data class LAnnotation<A : PsiElement>(
         result.add(source)
         params.forEach { it.collectPsiElements(result, visited) }
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as LAnnotation<*>
+
+        return canonicalName == other.canonicalName
+    }
+
+    override fun hashCode(): Int {
+        return canonicalName.hashCode()
+    }
 }

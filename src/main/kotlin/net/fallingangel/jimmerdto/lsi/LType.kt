@@ -94,6 +94,24 @@ sealed class LType {
             }
             result.add(source)
         }
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+
+            other as EnumType<*, *>
+
+            if (nullable != other.nullable) return false
+            if (canonicalName != other.canonicalName) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = nullable.hashCode()
+            result = 31 * result + canonicalName.hashCode()
+            return result
+        }
     }
 
     data class MapType(
