@@ -849,12 +849,11 @@ class DTOAnnotator : Annotator {
             }
 
             val dto = o.parentOfType<DTODto>() ?: return
-            val specFunctions = SpecFunction.entries.map(SpecFunction::expression)
 
             o.name.style(DTOSyntaxHighlighter.FUNCTION)
             val specification = dto modifiedBy Modifier.Specification
-            // spec方法校验
-            if (functionName in specFunctions && !specification) {
+            // Spec 方法校验
+            if (isSpecFunction && !specification) {
                 o.error("Cannot call the function `$functionName` because the current dto type is not specification")
             }
 
