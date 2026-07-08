@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.analysis.api.types.*
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
 class KotlinProcessor : LanguageProcessor<KtClass> {
     override val resolvedType = mutableMapOf<String, LClass<KtClass>>()
@@ -41,17 +42,19 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
 
         val qualifiedName = clazz.fqName?.asString()!!
         return resolvedType.getOrPut(qualifiedName) {
-            LClass(
+            lateinit var lClass: LClass<KtClass>
+            lClass = LClass(
                 clazz.name!!,
                 qualifiedName,
                 false,
                 clazz.isAnnotation(),
                 annotations,
                 lazy { parents(clazz) },
-                lazy { properties(clazz) },
+                lazy { properties(clazz, lClass) },
                 lazy { methods(clazz) },
                 clazz,
             )
+            lClass
         }
     }
 
@@ -65,8 +68,8 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
         }
     }
 
-    override fun properties(clazz: KtClass): List<LProperty<*>> {
-        return clazz.getProperties().map(::resolve)
+    override fun properties(clazz: KtClass, containingLClass: LClass<KtClass>): List<LProperty<*>> {
+        return clazz.getProperties().map { resolve(it, containingLClass) }
     }
 
     override fun methods(clazz: KtClass): List<LMethod<*>> {
@@ -97,16 +100,20 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
     override fun resolve(element: PsiElement): LAnnotationOwner? {
         return when (element) {
             is KtClass -> clazz(element)
-            is KtProperty -> resolve(element)
+            is KtProperty -> {
+                val owner = clazz(element.containingClass()!!)
+                owner.allProperties.first { it.name == element.name }
+            }
+
             else -> null
         }
     }
 
-    fun resolve(property: KtProperty): LProperty<*> {
+    fun resolve(property: KtProperty, containingLClass: LClass<KtClass>): LProperty<*> {
         return analyze(property) {
             val annotations = property.symbol.annotations.map { resolve(it) }
             val type = resolve(property.symbol.returnType)
-            LProperty(property.name!!, annotations, type, property)
+            LProperty(property.name!!, annotations, type, property, containingLClass)
         }
     }
 

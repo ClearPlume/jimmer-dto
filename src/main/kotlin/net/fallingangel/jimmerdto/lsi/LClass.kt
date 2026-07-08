@@ -6,8 +6,9 @@ import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.lsi.annotation.annotationsToString
 
 /**
- * @param C 类级别Psi元素类型
- * @param source 类对应Psi元素
+ * 三个 [Lazy] 持有者的 lambda 在 [LanguageProcessor.clazz] 中构造，
+ * 可能捕获尚未完成赋值的 lateinit 自引用。
+ * 禁止在本类的构造过程（init 块、非 lazy 属性初始化器）中触发任何 Lazy 的求值。
  */
 data class LClass<C : PsiElement>(
     override val name: String,
