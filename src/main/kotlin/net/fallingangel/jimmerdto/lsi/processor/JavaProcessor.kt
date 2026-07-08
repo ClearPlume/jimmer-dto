@@ -30,17 +30,19 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
         val qualifiedName = clazz.qualifiedName!!
         val name = clazz.name!!
         val type = resolvedType.getOrPut(qualifiedName) {
-            LClass(
+            lateinit var lClass: LClass<PsiClass>
+            lClass = LClass(
                 name,
                 qualifiedName,
                 false,
                 clazz.isAnnotationType,
                 clazz.annotations.map(::resolve),
                 lazy { parents(clazz) },
-                lazy { properties(clazz) },
+                lazy { properties(clazz, lClass) },
                 lazy { methods(clazz) },
                 clazz,
             )
+            lClass
         }
         return type
     }
@@ -52,16 +54,16 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
                 .map(::clazz)
     }
 
-    override fun properties(clazz: PsiClass): List<LProperty<*>> {
+    override fun properties(clazz: PsiClass, containingLClass: LClass<PsiClass>): List<LProperty<*>> {
         return if (clazz.hasAnnotation(Immutable::class, Entity::class, Embeddable::class, MappedSuperclass::class)) {
             clazz.methods
                     .filter { !it.isConstructor }
-                    .map(::resolve)
+                    .map{ resolve(it, containingLClass) }
         } else {
             clazz.fields
                     .map {
                         val annotations = it.annotations.map(::resolve)
-                        LProperty(it.name, annotations, resolve(it.type), it)
+                        LProperty(it.name, annotations, resolve(it.type), it, containingLClass)
                     }
         }
     }
@@ -95,12 +97,15 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
     override fun resolve(element: PsiElement): LAnnotationOwner? {
         return when (element) {
             is PsiClass -> clazz(element)
-            is PsiMethod -> resolve(element)
+            is PsiMethod -> {
+                val owner = clazz(element.containingClass!!)
+                owner.allProperties.first { it.name == element.name }
+            }
             else -> null
         }
     }
 
-    fun resolve(method: PsiMethod): LProperty<*> {
+    fun resolve(method: PsiMethod, containingLClass: LClass<PsiClass>): LProperty<*> {
         val annotations = method.annotations.map(::resolve)
         // TODO 属性类型为Boolean时，jimmer.keepIsPrefix
         val methodName = method.name
@@ -110,7 +115,7 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
             methodName
         }
 
-        return LProperty(name, annotations, resolve(method.returnType!!), method)
+        return LProperty(name, annotations, resolve(method.returnType!!), method, containingLClass)
     }
 
     fun resolve(type: PsiType): LType {

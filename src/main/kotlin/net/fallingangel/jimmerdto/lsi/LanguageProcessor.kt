@@ -25,7 +25,7 @@ interface LanguageProcessor<C : PsiElement> {
 
     fun parents(clazz: C): List<LClass<C>>
 
-    fun properties(clazz: C): List<LProperty<*>>
+    fun properties(clazz: C, containingLClass: LClass<C>): List<LProperty<*>>
 
     fun methods(clazz: C): List<LMethod<*>>
 

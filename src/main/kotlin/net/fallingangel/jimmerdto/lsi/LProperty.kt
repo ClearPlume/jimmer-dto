@@ -14,6 +14,7 @@ data class LProperty<P : PsiElement>(
     override val annotations: List<LAnnotation<*>>,
     override val type: LType,
     override val source: P,
+    val containingLClass: LClass<*>,
 ) : LElement, LAnnotationOwner, LNullableAware, LPsiDependent {
     val actualType = if (type is LType.CollectionType) {
         type.elementType

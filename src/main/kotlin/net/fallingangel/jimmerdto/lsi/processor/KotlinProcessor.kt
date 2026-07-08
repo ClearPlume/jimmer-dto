@@ -26,6 +26,7 @@ import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlinx.serialization.compiler.resolve.toClassDescriptor
+import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
 class KotlinProcessor : LanguageProcessor<KtClass> {
     override val resolvedType = mutableMapOf<String, LClass<KtClass>>()
@@ -41,17 +42,19 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
     override fun clazz(clazz: KtClass): LClass<KtClass> {
         val qualifiedName = clazz.fqName?.asString()!!
         return resolvedType.getOrPut(qualifiedName) {
-            LClass(
+            lateinit var lClass: LClass<KtClass>
+            lClass = LClass(
                 clazz.name!!,
                 qualifiedName,
                 false,
                 clazz.isAnnotation(),
                 clazz.annotationEntries.map(::resolve),
                 lazy { parents(clazz) },
-                lazy { properties(clazz) },
+                lazy { properties(clazz, lClass) },
                 lazy { methods(clazz) },
                 clazz,
             )
+            lClass
         }
     }
 
@@ -64,8 +67,8 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                 .map(::clazz)
     }
 
-    override fun properties(clazz: KtClass): List<LProperty<*>> {
-        return clazz.getProperties().map(::resolve)
+    override fun properties(clazz: KtClass, containingLClass: LClass<KtClass>): List<LProperty<*>> {
+        return clazz.getProperties().map { resolve(it, containingLClass) }
     }
 
     override fun methods(clazz: KtClass): List<LMethod<*>> {
@@ -97,15 +100,19 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
     override fun resolve(element: PsiElement): LAnnotationOwner? {
         return when (element) {
             is KtClass -> clazz(element)
-            is KtProperty -> resolve(element)
+            is KtProperty -> {
+                val owner = clazz(element.containingClass()!!)
+                owner.allProperties.first { it.name == element.name }
+            }
+
             else -> null
         }
     }
 
-    fun resolve(property: KtProperty): LProperty<*> {
+    fun resolve(property: KtProperty, containingLClass: LClass<KtClass>): LProperty<*> {
         val annotations = property.annotationEntries.map(::resolve)
         val type = (property.resolveToDescriptorIfAny() as? CallableDescriptor)?.returnType!!
-        return LProperty(property.name!!, annotations, resolve(type), property)
+        return LProperty(property.name!!, annotations, resolve(type), property, containingLClass)
     }
 
     fun resolve(type: KotlinType): LType {
