@@ -320,3 +320,7 @@ fun String.replaceLast(oldValue: String, newValue: String): String {
         this
     }
 }
+
+fun unreachable(message: String = "Must be unreachable"): Nothing {
+    throw IllegalStateException(message)
+}
