@@ -77,4 +77,22 @@ data class LProperty<P : PsiElement>(
         val annotationsStr = annotationsToString(visited)
         return "LProperty(name=$name, type=${type.toDebugString(visited)}, annotations=$annotationsStr)"
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as LProperty<*>
+
+        if (name != other.name) return false
+        if (containingLClass.canonicalName != other.containingLClass.canonicalName) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name.hashCode()
+        result = 31 * result + containingLClass.canonicalName.hashCode()
+        return result
+    }
 }
