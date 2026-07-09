@@ -684,6 +684,15 @@ class DTOAnnotator : Annotator {
             val propName = o.name
             o.name.style(DTOSyntaxHighlighter.IDENTIFIER)
 
+            val parentFlat = o.parent<DTOPositiveProp> { name.value == "flat" }
+            if (parentFlat != null) {
+                o.error(
+                    "User defined property cannot be declared under flat type",
+                    RemoveElement(o.name.value, o),
+                )
+                return
+            }
+
             o.containingLClass?.findProperty(propName.name)?.let {
                 propName.error(
                     "It is prohibited for user-prop and entity prop to have the same name",
