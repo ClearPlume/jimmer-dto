@@ -3,7 +3,13 @@ package net.fallingangel.jimmerdto
 import com.intellij.lang.documentation.AbstractDocumentationProvider
 import com.intellij.lang.documentation.DocumentationMarkup.*
 import com.intellij.psi.PsiElement
+import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.psi.element.DTOMacro
+import org.babyfish.jimmer.sql.ExcludeFromAllScalars
+import org.babyfish.jimmer.sql.IdView
+import org.babyfish.jimmer.sql.LogicalDeleted
+import org.babyfish.jimmer.sql.ManyToManyView
 
 class DTODocumentationProvider : AbstractDocumentationProvider() {
     override fun generateDoc(element: PsiElement, originalElement: PsiElement?): String? {
@@ -18,7 +24,7 @@ class DTODocumentationProvider : AbstractDocumentationProvider() {
 
         val thisPropList = if (containThisProp) {
             macroClass.properties
-                    .filter { if (isScalar) !it.isEntityAssociation else it.isReference }
+                    .filter(macroPropertyFilter(isScalar))
                     .map { macroClass to it }
         } else {
             emptyList()
@@ -27,7 +33,7 @@ class DTODocumentationProvider : AbstractDocumentationProvider() {
                 .filter { argList.isEmpty() || argList.contains(it.name) }
                 .flatMap { clazz ->
                     clazz.properties
-                            .filter { if (isScalar) !it.isEntityAssociation else it.isReference }
+                            .filter(macroPropertyFilter(isScalar))
                             .map { clazz to it }
                 }
 
@@ -57,5 +63,22 @@ class DTODocumentationProvider : AbstractDocumentationProvider() {
                         $SECTIONS_END
                     """.trimIndent()
                 }.joinToString("\n")
+    }
+
+    private fun macroPropertyFilter(isScalar: Boolean): (LProperty<*>) -> Boolean {
+        return {
+            if (isScalar) {
+                !it.isEntityAssociation &&
+                        !it.isFormula &&
+                        !it.isTransient &&
+                        !it.isList &&
+                        !it.hasAnnotation(IdView::class) &&
+                        !it.hasAnnotation(ManyToManyView::class) &&
+                        !it.hasAnnotation(LogicalDeleted::class) &&
+                        !it.hasAnnotation(ExcludeFromAllScalars::class)
+            } else {
+                it.isReference
+            }
+        }
     }
 }

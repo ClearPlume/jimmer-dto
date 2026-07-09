@@ -15,7 +15,6 @@ import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
-import net.fallingangel.jimmerdto.enums.SpecFunction
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.LanguageProcessor
@@ -823,21 +822,13 @@ class DTOAnnotator : Annotator {
 
         private fun visitFunction(o: DTOPositiveProp, functionName: String) {
             // 方法存在性校验
-            val isFunction = Function.entries.any { it.expression == functionName }
-            val isSpecFunction = SpecFunction.entries.any { it.expression == functionName }
+            val function = Function.entries.find { it.expression == functionName }
 
-            if (!isFunction && !isSpecFunction) {
+            if (function == null) {
                 o.name.error("Unknown function `$functionName`")
                 return
-            }
-
-            val dto = o.parentOfType<DTODto>() ?: return
-
-            o.name.style(DTOSyntaxHighlighter.FUNCTION)
-            val specification = dto modifiedBy Modifier.Specification
-            // Spec 方法校验
-            if (isSpecFunction && !specification) {
-                o.error("Cannot call the function `$functionName` because the current dto type is not specification")
+            } else {
+                o.name.style(DTOSyntaxHighlighter.FUNCTION)
             }
 
             // 方法参数不可为空校验
@@ -847,14 +838,29 @@ class DTOAnnotator : Annotator {
                 return
             }
 
-            // 方法参数是否存在校验
+            val dto = o.parentOfType<DTODto>() ?: return
+
+            // Spec 方法校验
+            if (functionName == "id" && dto modifiedBy Modifier.Specification) {
+                o.name.error(
+                    "`id` is forbidden by specification, replace it to `associatedIdEq`",
+                    ReplaceName(o.name, "associatedIdEq", Project::createPropName),
+                )
+            }
+
+            if (function.whetherSpec && dto notModifiedBy Modifier.Specification) {
+                o.name.error("Cannot call the function `$functionName` because the current dto type is not specification")
+                return
+            }
+
+            // 方法参数校验
             arg.values.forEach {
-                if (it.resolve() == null) {
+                // 方法参数是否存在校验
+                if (it.property == null) {
                     it.error("`${it.text}` does not exist")
                 }
 
                 // 方法参数重复校验
-                // TODO fold 参数不应参与校验
                 if (arg.values.count { value -> value.text == it.text } > 1) {
                     it.error(
                         "Duplicate prop `${it.text}`",
@@ -880,8 +886,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 方法参数数量验证
-            val multiArgFunctions = SpecFunction.entries.filter(SpecFunction::whetherMultiArg).map(SpecFunction::expression)
-            if (arg.values.size > 1 && functionName !in multiArgFunctions) {
+            if (arg.values.size > 1 && !function.whetherMultiArg) {
                 arg.values
                     .drop(1)
                     .forEach {
@@ -893,14 +898,14 @@ class DTOAnnotator : Annotator {
             }
 
             // 多方法参数别名校验
-            if (functionName in multiArgFunctions) {
+            if (function.whetherMultiArg) {
                 if (arg.values.size > 1 && o.alias == null) {
                     o.error("An alias must be specified because `$functionName` has multiple arguments")
                 }
             }
 
             // id方法参数为list时别名校验
-            if (functionName == Function.Id.expression) {
+            if (function == Function.Id) {
                 val value = arg.values[0]
                 if (value.property?.isList == true) {
                     if (o.alias == null) {
@@ -911,7 +916,7 @@ class DTOAnnotator : Annotator {
             }
 
             // flat方法使用集合参数的校验
-            if (functionName == Function.Flat.expression) {
+            if (function == Function.Flat) {
                 val value = arg.values[0]
                 if (dto notModifiedBy Modifier.Specification) {
                     if (value.property?.isList == true) {
@@ -921,14 +926,18 @@ class DTOAnnotator : Annotator {
             }
 
             // like方法校验
-            if (o.flag != null) {
-                if (functionName != SpecFunction.Like.expression) {
-                    o.name.error("`/` can only be used to decorate the function `like`")
+            val flag = o.flag
+            if (flag != null) {
+                if (function != Function.Like) {
+                    o.name.error("`/` can only be used to decorate the function `like`", RemoveElement(flag.text, flag))
                 }
 
-                val flag = o.flag!!
-                if (flag.insensitive?.text != "i") {
-                    flag.insensitive?.error("Illegal function option identifier `${flag.insensitive?.text}`, it can only be `i`")
+                val insensitive = flag.insensitive
+                if (insensitive != null && insensitive.text != "i") {
+                    insensitive.error(
+                        "Illegal function option identifier `${insensitive.text}`, it can only be `i`",
+                        ReplaceName(insensitive, "i", newElement = { insensitive.project.createInsensitive() }),
+                    )
                 }
             }
         }

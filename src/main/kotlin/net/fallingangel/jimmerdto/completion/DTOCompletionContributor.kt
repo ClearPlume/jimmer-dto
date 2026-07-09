@@ -255,7 +255,7 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 val propArgs = parameters.position.parent.parent<DTOPropArg>()
-                result.addAllElements(propArgs.args.lookUp())
+                result.addAllElements(propArgs.args?.lookUp() ?: emptyList())
             },
             identifier.withParent(DTOValue::class.java)
                 .withSuperParent(2, lsiElement(DTOPropArg::class.java)),
