@@ -59,7 +59,8 @@ interface DTOPositiveProp : DTOElement {
         val dto = parentOfType<DTODto>() ?: return emptyList()
         val functions = listOf(
             LookupInfo("id", "id()", "function", "(<association>)", -1),
-            LookupInfo("flat", "flat() {}", "function", "(<association>) { ... }", -4)
+            LookupInfo("flat", "flat() {}", "function", "(<association>) { ... }", -4),
+            LookupInfo("fold", "fold() {}", "function", "(<name>) { ... }", -4),
         )
         val specFunctions = if (dto modifiedBy Modifier.Specification) {
             Function.entries
