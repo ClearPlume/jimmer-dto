@@ -2,12 +2,18 @@ package net.fallingangel.jimmerdto.util
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
+import com.intellij.psi.util.parentsOfType
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.psi.element.DTODto
 import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
 
 inline fun <reified T : PsiElement> PsiElement.haveParent() = parentOfType<T>() != null
+
+inline fun <reified T : PsiElement> PsiElement.parent(predicate: T.() -> Boolean): T? {
+    val parents = parentsOfType<T>()
+    return parents.find(predicate)
+}
 
 infix fun DTODto.modifiedBy(modifier: Modifier): Boolean {
     return modifier in modifiers
