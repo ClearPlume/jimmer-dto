@@ -857,6 +857,21 @@ class DTOAnnotator : Annotator {
                 o.name.style(DTOSyntaxHighlighter.FUNCTION)
             }
 
+            // fold 校验
+            if (function == Function.Fold) {
+                if (o.haveParent<DTOAliasGroup>()) {
+                    o.name.error("`fold` cannot be used inside alias group", RemoveElement("fold", o))
+                }
+                // 方法参数不可为空校验
+                val arg = o.arg ?: return
+                if (arg.isEmpty) {
+                    arg.error("Function arg list cannot be empty")
+                    return
+                }
+                // fold 没有后续校验需求
+                return
+            }
+            
             // 方法参数不可为空校验
             val arg = o.arg ?: return
             if (arg.isEmpty) {
