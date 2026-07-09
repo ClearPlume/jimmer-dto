@@ -145,6 +145,14 @@ fun Project.createAnnotationParameter(name: String, value: String = "dummy"): DT
             .params[0]
 }
 
+fun Project.createInsensitive(): PsiElement {
+    return createDTO("Dummy", listOf("specification"), positiveProps = listOf("like/i(dummy)"))
+        .dtoBody
+        .positiveProps[0]
+        .flag!!
+        .insensitive!!
+}
+
 fun Project.createValue(value: String): DTOValue {
     return createDTO("Dummy", positiveProps = listOf("id($value)"))
             .dtoBody

@@ -2,13 +2,8 @@ package net.fallingangel.jimmerdto.psi.element
 
 import com.intellij.psi.util.parentOfType
 import net.fallingangel.jimmerdto.enums.Function
-import net.fallingangel.jimmerdto.enums.Modifier
-import net.fallingangel.jimmerdto.enums.SpecFunction
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
-import net.fallingangel.jimmerdto.structure.ArgType
-import net.fallingangel.jimmerdto.structure.ArgType.Companion.or
-import net.fallingangel.jimmerdto.util.modifiedBy
 
 interface DTOPropArg : DTOElement {
     val values: List<DTOValue>
@@ -16,39 +11,13 @@ interface DTOPropArg : DTOElement {
     val isEmpty: Boolean
         get() = values.isEmpty() || values.size == 1 && values.first().text == ""
 
-    val args: List<LProperty<*>>
+    val args: List<LProperty<*>>?
         get() {
-            val dto = parentOfType<DTODto>() ?: return emptyList()
             val prop = parent as DTOPositiveProp
-            val functionName = prop.name.value
-            val properties = prop.containingLClass?.allProperties ?: return emptyList()
-
-            return when (functionName) {
-                Function.Id.expression -> {
-                    properties.filter { Function.Id.argType.test(it) }
-                }
-
-                Function.Flat.expression -> {
-                    if (dto modifiedBy Modifier.Specification) {
-                        properties.filter { ArgType.ListAssociation.test(it) }
-                    } else {
-                        properties.filter { ArgType.SingleAssociation.or(ArgType.Embeddable).test(it) }
-                    }
-                }
-
-                Function.Fold.expression -> emptyList()
-
-                in SpecFunction.entries.map { it.expression } -> {
-                    properties
-                        .filter { property ->
-                            val specFunction = SpecFunction.entries.first { it.expression == functionName }
-                            specFunction.argType.test(property)
-                        }
-                }
-
-                else -> {
-                    throw IllegalStateException("Illegal function $functionName")
-                }
-            }
+            val function = Function.entries.find { it.expression == prop.name.value } ?: return null
+            val dto = parentOfType<DTODto>() ?: return null
+            val argConstraint = function.argConstraint ?: return null
+            val properties = prop.containingLClass?.allProperties ?: return null
+            return properties.filter { argConstraint(dto).test(it) }
         }
 }
