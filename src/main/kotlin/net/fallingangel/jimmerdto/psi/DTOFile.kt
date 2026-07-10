@@ -20,7 +20,6 @@ import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LanguageProcessor
-import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.psi.element.DTOAlias
 import net.fallingangel.jimmerdto.psi.element.DTODtoName
 import net.fallingangel.jimmerdto.psi.element.DTOExportStatement
@@ -29,7 +28,6 @@ import net.fallingangel.jimmerdto.util.contentRoot
 import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
 import net.fallingangel.jimmerdto.util.notification
-import org.babyfish.jimmer.sql.Entity
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLanguage) {
@@ -112,9 +110,6 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
                 )
             }
         }
-
-    val classIsEntity: Boolean
-        get() = clazz.hasAnnotation(Entity::class)
 
     val dtos: List<String>
         get() = CachedValuesManager.getCachedValue(this, CACHED_DTO_KEY) {

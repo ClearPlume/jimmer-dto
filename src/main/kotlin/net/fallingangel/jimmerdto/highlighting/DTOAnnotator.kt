@@ -220,7 +220,7 @@ class DTOAnnotator : Annotator {
             }
 
             // `specification`只允许对实体使用
-            if (o modifiedBy Modifier.Specification && !o.file.classIsEntity) {
+            if (o modifiedBy Modifier.Specification && !o.classIsEntity) {
                 currentModifiers.find { it.text == Modifier.Specification.name.lowercase() }
                     ?.let {
                         it.error(
@@ -872,7 +872,7 @@ class DTOAnnotator : Annotator {
                 // fold 没有后续校验需求
                 return
             }
-            
+
             // 方法参数不可为空校验
             val arg = o.arg ?: return
             if (arg.isEmpty) {
