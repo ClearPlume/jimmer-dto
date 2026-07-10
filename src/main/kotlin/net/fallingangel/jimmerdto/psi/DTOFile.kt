@@ -90,7 +90,6 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
     val clazz: LClass<*>
         get() = CachedValuesManager.getCachedValue(this, CACHED_CLASS_KEY) {
             val processor = LanguageProcessor.analyze(this)
-            processor.clearTypeCache()
             val clazz = processor.clazz(this)
 
             val classDependencies = mutableSetOf<PsiElement>()

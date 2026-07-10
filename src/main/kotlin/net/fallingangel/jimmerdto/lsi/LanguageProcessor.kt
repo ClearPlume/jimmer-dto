@@ -13,21 +13,9 @@ import net.fallingangel.jimmerdto.util.literalType
  * @param C 类Psi元素类型
  */
 interface LanguageProcessor<C : PsiElement> {
-    val resolvedType: MutableMap<String, LClass<C>>
-
-    fun clearTypeCache() = resolvedType.clear()
-
     fun supports(dtoFile: DTOFile): Boolean
 
     fun clazz(dtoFile: DTOFile): LClass<C>
-
-    fun clazz(clazz: C): LClass<C>
-
-    fun parents(clazz: C): List<LClass<C>>
-
-    fun properties(clazz: C, containingLClass: LClass<C>): List<LProperty<*>>
-
-    fun methods(clazz: C): List<LMethod<*>>
 
     fun resolve(element: PsiElement): LAnnotationOwner?
 

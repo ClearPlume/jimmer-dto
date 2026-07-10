@@ -25,19 +25,17 @@ import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
 class KotlinProcessor : LanguageProcessor<KtClass> {
-    override val resolvedType = mutableMapOf<String, LClass<KtClass>>()
-
     override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == KotlinLanguage.INSTANCE
 
     override fun clazz(dtoFile: DTOFile): LClass<KtClass> {
         val ktClass = dtoFile.project.ktClass(dtoFile.qualifiedEntity).getOrNull(0)
         ktClass ?: throw IllegalStateException("Entity class for $dtoFile not found")
-        return clazz(ktClass)
+        return clazz(ktClass, mutableMapOf())
     }
 
-    override fun clazz(clazz: KtClass): LClass<KtClass> {
+    fun clazz(clazz: KtClass, resolvedType: MutableMap<String, LClass<KtClass>>): LClass<KtClass> {
         val annotations = analyze(clazz) {
-            clazz.symbol.annotations.map { resolve(it) }
+            clazz.symbol.annotations.map { resolve(it, resolvedType) }
         }
 
         val qualifiedName = clazz.fqName?.asString()!!
@@ -49,59 +47,59 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                 false,
                 clazz.isAnnotation(),
                 annotations,
-                lazy { parents(clazz) },
-                lazy { properties(clazz, lClass) },
-                lazy { methods(clazz) },
+                lazy { parents(clazz, resolvedType) },
+                lazy { properties(clazz, lClass, resolvedType) },
+                lazy { methods(clazz, resolvedType) },
                 clazz,
             )
             lClass
         }
     }
 
-    override fun parents(clazz: KtClass): List<LClass<KtClass>> {
+    fun parents(clazz: KtClass, resolvedType: MutableMap<String, LClass<KtClass>>): List<LClass<KtClass>> {
         return analyze(clazz) {
             val symbol = clazz.symbol as? KaClassSymbol ?: return emptyList()
             symbol.superTypes
-                    .filter { MappedSuperclass::class in it.symbol!!.annotations }
-                    .mapNotNull { it.symbol?.psi as? KtClass }
-                    .map(::clazz)
+                .filter { MappedSuperclass::class in it.symbol!!.annotations }
+                .mapNotNull { it.symbol?.psi as? KtClass }
+                .map { clazz(it, resolvedType) }
         }
     }
 
-    override fun properties(clazz: KtClass, containingLClass: LClass<KtClass>): List<LProperty<*>> {
-        return clazz.getProperties().map { resolve(it, containingLClass) }
+    fun properties(clazz: KtClass, containingLClass: LClass<KtClass>, resolvedType: MutableMap<String, LClass<KtClass>>): List<LProperty<*>> {
+        return clazz.getProperties().map { resolve(it, containingLClass, resolvedType) }
     }
 
-    override fun methods(clazz: KtClass): List<LMethod<*>> {
+    fun methods(clazz: KtClass, resolvedType: MutableMap<String, LClass<KtClass>>): List<LMethod<*>> {
         val classBody = clazz.body ?: return emptyList()
         return classBody
-                .functions
-                .map { function ->
-                    analyze(function) {
-                        val symbol = function.symbol
-                        val annotations = symbol.annotations.map { resolve(it) }
-                        symbol.valueParameters.forEach { resolve(it) }
+            .functions
+            .map { function ->
+                analyze(function) {
+                    val symbol = function.symbol
+                    val annotations = symbol.annotations.map { resolve(it, resolvedType) }
+                    symbol.valueParameters.forEach { resolve(it, resolvedType) }
 
-                        LMethod(
-                            function.name!!,
+                    LMethod(
+                        function.name!!,
+                        annotations,
+                        symbol.valueParameters.map { resolve(it, resolvedType) },
+                        LMethod.LReturnType(
+                            resolve(symbol.returnType, resolvedType),
+                            function.returnType.annotations.map { resolve(it, resolvedType) },
                             annotations,
-                            symbol.valueParameters.map { resolve(it) },
-                            LMethod.LReturnType(
-                                resolve(symbol.returnType),
-                                function.returnType.annotations.map { resolve(it) },
-                                annotations,
-                            ),
-                            function,
-                        )
-                    }
+                        ),
+                        function,
+                    )
                 }
+            }
     }
 
     override fun resolve(element: PsiElement): LAnnotationOwner? {
         return when (element) {
-            is KtClass -> clazz(element)
+            is KtClass -> clazz(element, mutableMapOf())
             is KtProperty -> {
-                val owner = clazz(element.containingClass()!!)
+                val owner = clazz(element.containingClass()!!, mutableMapOf())
                 owner.allProperties.first { it.name == element.name }
             }
 
@@ -109,15 +107,15 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
         }
     }
 
-    fun resolve(property: KtProperty, containingLClass: LClass<KtClass>): LProperty<*> {
+    fun resolve(property: KtProperty, containingLClass: LClass<KtClass>, resolvedType: MutableMap<String, LClass<KtClass>>): LProperty<*> {
         return analyze(property) {
-            val annotations = property.symbol.annotations.map { resolve(it) }
-            val type = resolve(property.symbol.returnType)
+            val annotations = property.symbol.annotations.map { resolve(it, resolvedType) }
+            val type = resolve(property.symbol.returnType, resolvedType)
             LProperty(property.name!!, annotations, type, property, containingLClass)
         }
     }
 
-    fun KaSession.resolve(type: KaType): LType {
+    fun KaSession.resolve(type: KaType, resolvedType: MutableMap<String, LClass<KtClass>>): LType {
         val nullable = type.isMarkedNullable
         val symbol = type.symbol ?: throw IllegalTypeException(type.toString())
         val classId = symbol.classId!!
@@ -131,9 +129,9 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                     fqName,
                     nullable,
                     symbol.staticDeclaredMemberScope
-                            .declarations
-                            .filterIsInstance<KaEnumEntrySymbol>()
-                            .associate { it.name.asString() to it.psi!! },
+                        .declarations
+                        .filterIsInstance<KaEnumEntrySymbol>()
+                        .associate { it.name.asString() to it.psi!! },
                     symbol.psi!!,
                 )
             }
@@ -143,7 +141,7 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                     val argType = type.typeArguments.first()
                     LType.CollectionType(
                         nullable,
-                        resolve(argType),
+                        resolve(argType, resolvedType),
                         LType.CollectionType.CollectionKind.List,
                     )
                 }
@@ -152,7 +150,7 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                     val argType = type.typeArguments.first()
                     LType.CollectionType(
                         nullable,
-                        resolve(argType),
+                        resolve(argType, resolvedType),
                         LType.CollectionType.CollectionKind.Set,
                     )
                 }
@@ -162,14 +160,14 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                     val valueType = type.typeArguments[1]
                     LType.MapType(
                         nullable,
-                        resolve(keyType),
-                        resolve(valueType),
+                        resolve(keyType, resolvedType),
+                        resolve(valueType, resolvedType),
                     )
                 }
 
                 else -> if (type.isInSource) {
                     when (val psi = symbol.psi) {
-                        is KtClass -> clazz(psi)
+                        is KtClass -> clazz(psi, resolvedType)
                         else -> LType.ScalarType(name, nullable)
                     }
                 } else {
@@ -181,25 +179,25 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
         }
     }
 
-    fun KaSession.resolve(type: KaTypeProjection): LType {
+    fun KaSession.resolve(type: KaTypeProjection, resolvedType: MutableMap<String, LClass<KtClass>>): LType {
         return when (type) {
             is KaStarTypeProjection -> LType.ScalarType("*", false)
-            is KaTypeArgumentWithVariance -> resolve(type.type)
+            is KaTypeArgumentWithVariance -> resolve(type.type, resolvedType)
         }
     }
 
-    fun KaSession.resolve(annotation: KaAnnotation): LAnnotation<*> {
+    fun KaSession.resolve(annotation: KaAnnotation, resolvedType: MutableMap<String, LClass<KtClass>>): LAnnotation<*> {
         val constructor = annotation.constructorSymbol!!
         val classId = annotation.classId!!
         return LAnnotation(
             classId.shortClassName.asString(),
             classId.asFqNameString(),
             annotation.psi!!,
-            constructor.valueParameters.map { resolve(it) },
+            constructor.valueParameters.map { resolve(it, resolvedType) },
         )
     }
 
-    fun KaSession.resolve(param: KaValueParameterSymbol): LParam<*> {
-        return LParam(param.name.asString(), resolve(param.returnType), param.psi!!)
+    fun KaSession.resolve(param: KaValueParameterSymbol, resolvedType: MutableMap<String, LClass<KtClass>>): LParam<*> {
+        return LParam(param.name.asString(), resolve(param.returnType, resolvedType), param.psi!!)
     }
 }
