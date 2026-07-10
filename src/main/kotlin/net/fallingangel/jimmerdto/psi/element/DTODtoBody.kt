@@ -2,6 +2,7 @@ package net.fallingangel.jimmerdto.psi.element
 
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.lsi.LClass
+import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 
 interface DTODtoBody : DTOElement {
@@ -36,7 +37,7 @@ interface DTODtoBody : DTOElement {
         }
 
     val availableProps: List<String>
-        get() = macros.flatMap(DTOMacro::carriedProps)
+        get() = macros.flatMap(DTOMacro::carriedProps).map(LProperty<*>::name)
 
     /**
      * 属性名称 to 别名/null
@@ -98,8 +99,8 @@ interface DTODtoBody : DTOElement {
                         name to alias.apply(name)
                     }
                 val mac: List<Pair<String, String?>> = alias.macros
-                    .filter(DTOMacro::isScalar)
-                    .flatMap { macro -> macro.carriedProps.map { it to alias.apply(it) } }
+                    .filter { it.name.value == "allScalars" }
+                    .flatMap { macro -> macro.carriedProps.map { it.name to alias.apply(it.name) } }
                 pos + mac
             }
             val idFunctionProps = positiveProps
