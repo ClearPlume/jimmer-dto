@@ -3,7 +3,6 @@ package net.fallingangel.jimmerdto.psi.element
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
-import net.fallingangel.jimmerdto.util.file
 
 interface DTODtoBody : DTOElement {
     val macros: List<DTOMacro>
@@ -22,7 +21,7 @@ interface DTODtoBody : DTOElement {
     val containingLClass: LClass<*>?
         get() {
             return when (val parent = parent) {
-                is DTODto -> file.clazz
+                is DTODto -> parent.clazz
                 is DTOPropBody -> {
                     val prop = parent.parent as DTOPositiveProp
                     when (prop.name.value) {
