@@ -508,6 +508,12 @@ class DTOAnnotator : Annotator {
                 parent.findChildren("/aliasGroupBody/macro")
             }
 
+            // 宏的定义应该在第一位
+            val siblings = o.siblings(forward = false, withSelf = false).filterIsInstance<DTOElement>()
+            if (siblings.any { it !is DTOMacro }) {
+                o.error("Macro must be declared before any other elements")
+            }
+
             // 宏的重复定义
             if (macros.count { it.name.value == macroName.value } > 1) {
                 o.error(
