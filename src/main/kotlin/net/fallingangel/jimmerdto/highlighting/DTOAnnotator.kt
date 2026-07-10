@@ -473,20 +473,23 @@ class DTOAnnotator : Annotator {
                     "Macro name should be \"allScalars\" or \"allReferences\"",
                     ChooseMacro(macroName),
                 )
+                return
             }
 
-            // 宏的重复定义
             val parent = o.parent
             val macros = if (parent is DTODtoBody) {
                 parent.macros
             } else {
                 parent.findChildren("/aliasGroupBody/macro")
             }
+
+            // 宏的重复定义
             if (macros.count { it.name.value == macroName.value } > 1) {
                 o.error(
                     "Duplicated macro ${macroName.value}",
                     RemoveElement(macroName.value, o),
                 )
+                return
             }
 
             // 宏可选标识在specification中不再需要
@@ -497,6 +500,7 @@ class DTOAnnotator : Annotator {
                         "Unnecessary optional modifier `?`",
                         RemoveElement("?", it),
                     )
+                    return
                 }
             }
         }
