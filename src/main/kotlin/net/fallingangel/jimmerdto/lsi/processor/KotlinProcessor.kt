@@ -20,26 +20,24 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlinx.serialization.compiler.resolve.toClassDescriptor
-import org.jetbrains.kotlin.psi.psiUtil.containingClass
 
 class KotlinProcessor : LanguageProcessor<KtClass> {
-    override val resolvedType = mutableMapOf<String, LClass<KtClass>>()
-
     override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == KotlinLanguage.INSTANCE
 
     override fun clazz(dtoFile: DTOFile): LClass<KtClass> {
         val ktClass = dtoFile.project.ktClass(dtoFile.qualifiedEntity).getOrNull(0)
         ktClass ?: throw IllegalStateException("Entity class for $dtoFile not found")
-        return clazz(ktClass)
+        return clazz(ktClass, mutableMapOf())
     }
 
-    override fun clazz(clazz: KtClass): LClass<KtClass> {
+    fun clazz(clazz: KtClass, resolvedType: MutableMap<String, LClass<KtClass>>): LClass<KtClass> {
         val qualifiedName = clazz.fqName?.asString()!!
         return resolvedType.getOrPut(qualifiedName) {
             lateinit var lClass: LClass<KtClass>
@@ -48,60 +46,60 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                 qualifiedName,
                 false,
                 clazz.isAnnotation(),
-                clazz.annotationEntries.map(::resolve),
-                lazy { parents(clazz) },
-                lazy { properties(clazz, lClass) },
-                lazy { methods(clazz) },
+                clazz.annotationEntries.map { resolve(it, resolvedType) },
+                lazy { parents(clazz, resolvedType) },
+                lazy { properties(clazz, lClass, resolvedType) },
+                lazy { methods(clazz, resolvedType) },
                 clazz,
             )
             lClass
         }
     }
 
-    override fun parents(clazz: KtClass): List<LClass<KtClass>> {
+    fun parents(clazz: KtClass, resolvedType: MutableMap<String, LClass<KtClass>>): List<LClass<KtClass>> {
         val mappedSuperclass = FqName(MappedSuperclass::class.qualifiedName!!)
         return clazz.superTypeListEntries
-                .mapNotNull { it.analyze(BodyResolveMode.PARTIAL)[BindingContext.TYPE, it.typeReference]?.toClassDescriptor }
-                .filter { it.annotations.hasAnnotation(mappedSuperclass) }
-                .mapNotNull { DescriptorToSourceUtils.getSourceFromDescriptor(it) as? KtClass }
-                .map(::clazz)
+            .mapNotNull { it.analyze(BodyResolveMode.PARTIAL)[BindingContext.TYPE, it.typeReference]?.toClassDescriptor }
+            .filter { it.annotations.hasAnnotation(mappedSuperclass) }
+            .mapNotNull { DescriptorToSourceUtils.getSourceFromDescriptor(it) as? KtClass }
+            .map { clazz(it, resolvedType) }
     }
 
-    override fun properties(clazz: KtClass, containingLClass: LClass<KtClass>): List<LProperty<*>> {
-        return clazz.getProperties().map { resolve(it, containingLClass) }
+    fun properties(clazz: KtClass, containingLClass: LClass<KtClass>, resolvedType: MutableMap<String, LClass<KtClass>>): List<LProperty<*>> {
+        return clazz.getProperties().map { resolve(it, containingLClass, resolvedType) }
     }
 
-    override fun methods(clazz: KtClass): List<LMethod<*>> {
+    fun methods(clazz: KtClass, resolvedType: MutableMap<String, LClass<KtClass>>): List<LMethod<*>> {
         val classBody = clazz.body ?: return emptyList()
         return classBody
-                .functions
-                .map { function ->
-                    val context = function.analyze(BodyResolveMode.PARTIAL)
+            .functions
+            .map { function ->
+                val context = function.analyze(BodyResolveMode.PARTIAL)
 
-                    val params = function.valueParameters
-                            .map { LParam(it.name!!, resolve(context[BindingContext.TYPE, it.typeReference]!!), it) }
-                    val annotations = function.annotationEntries.map(::resolve)
-                    val returnType = context[BindingContext.FUNCTION, function]?.returnType!!
+                val params = function.valueParameters
+                    .map { LParam(it.name!!, resolve(context[BindingContext.TYPE, it.typeReference]!!, resolvedType), it) }
+                val annotations = function.annotationEntries.map { resolve(it, resolvedType) }
+                val returnType = context[BindingContext.FUNCTION, function]?.returnType!!
 
-                    LMethod(
-                        function.name!!,
+                LMethod(
+                    function.name!!,
+                    annotations,
+                    params,
+                    LMethod.LReturnType(
+                        resolve(returnType, resolvedType),
+                        function.typeReference?.annotationEntries?.map { resolve(it, resolvedType) } ?: emptyList(),
                         annotations,
-                        params,
-                        LMethod.LReturnType(
-                            resolve(returnType),
-                            function.typeReference?.annotationEntries?.map(::resolve) ?: emptyList(),
-                            annotations,
-                        ),
-                        function,
-                    )
-                }
+                    ),
+                    function,
+                )
+            }
     }
 
     override fun resolve(element: PsiElement): LAnnotationOwner? {
         return when (element) {
-            is KtClass -> clazz(element)
+            is KtClass -> clazz(element, mutableMapOf())
             is KtProperty -> {
-                val owner = clazz(element.containingClass()!!)
+                val owner = clazz(element.containingClass()!!, mutableMapOf())
                 owner.allProperties.first { it.name == element.name }
             }
 
@@ -109,13 +107,13 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
         }
     }
 
-    fun resolve(property: KtProperty, containingLClass: LClass<KtClass>): LProperty<*> {
-        val annotations = property.annotationEntries.map(::resolve)
+    fun resolve(property: KtProperty, containingLClass: LClass<KtClass>, resolvedType: MutableMap<String, LClass<KtClass>>): LProperty<*> {
+        val annotations = property.annotationEntries.map { resolve(it, resolvedType) }
         val type = (property.resolveToDescriptorIfAny() as? CallableDescriptor)?.returnType!!
-        return LProperty(property.name!!, annotations, resolve(type), property, containingLClass)
+        return LProperty(property.name!!, annotations, resolve(type, resolvedType), property, containingLClass)
     }
 
-    fun resolve(type: KotlinType): LType {
+    fun resolve(type: KotlinType, resolvedType: MutableMap<String, LClass<KtClass>>): LType {
         val builtIns = DefaultBuiltIns.Instance
 
         val nullable = type.isMarkedNullable
@@ -127,7 +125,7 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
         return when {
             KotlinBuiltIns.isPrimitiveType(type) -> LType.ScalarType(name, nullable)
 
-            KotlinBuiltIns.isArray(type) -> LType.ArrayType(nullable, resolve(builtIns.getArrayElementType(type)))
+            KotlinBuiltIns.isArray(type) -> LType.ArrayType(nullable, resolve(builtIns.getArrayElementType(type), resolvedType))
 
             else -> {
                 when {
@@ -137,10 +135,10 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                             fqName,
                             nullable,
                             descriptor.unsubstitutedMemberScope
-                                    .getContributedDescriptors()
-                                    .filterIsInstance<ClassDescriptor>()
-                                    .filter { it.kind == ClassKind.ENUM_ENTRY }
-                                    .associate { it.name.asString() to DescriptorToSourceUtils.getSourceFromDescriptor(it)!! },
+                                .getContributedDescriptors()
+                                .filterIsInstance<ClassDescriptor>()
+                                .filter { it.kind == ClassKind.ENUM_ENTRY }
+                                .associate { it.name.asString() to DescriptorToSourceUtils.getSourceFromDescriptor(it)!! },
                             DescriptorToSourceUtils.getSourceFromDescriptor(descriptor)!!,
                         )
                     }
@@ -151,7 +149,7 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                                 val argType = type.arguments.first().type
                                 LType.CollectionType(
                                     nullable,
-                                    resolve(argType),
+                                    resolve(argType, resolvedType),
                                     LType.CollectionType.CollectionKind.List,
                                 )
                             }
@@ -160,7 +158,7 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                                 val argType = type.arguments.first().type
                                 LType.CollectionType(
                                     nullable,
-                                    resolve(argType),
+                                    resolve(argType, resolvedType),
                                     LType.CollectionType.CollectionKind.Set,
                                 )
                             }
@@ -170,14 +168,14 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                                 val valueType = type.arguments[1].type
                                 LType.MapType(
                                     nullable,
-                                    resolve(keyType),
-                                    resolve(valueType),
+                                    resolve(keyType, resolvedType),
+                                    resolve(valueType, resolvedType),
                                 )
                             }
 
                             else -> {
                                 if (type.isInSource && ktClass != null) {
-                                    clazz(ktClass)
+                                    clazz(ktClass, resolvedType)
                                 } else {
                                     LType.ScalarType(name, nullable)
                                 }
@@ -185,7 +183,7 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                         }
                     }
 
-                    type.isInSource && ktClass != null -> clazz(ktClass)
+                    type.isInSource && ktClass != null -> clazz(ktClass, resolvedType)
 
                     else -> LType.ScalarType(name, nullable)
                 }
@@ -193,17 +191,17 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
         }
     }
 
-    fun resolve(annotation: KtAnnotationEntry): LAnnotation<*> {
+    fun resolve(annotation: KtAnnotationEntry, resolvedType: MutableMap<String, LClass<KtClass>>): LAnnotation<*> {
         val qualifiedName = annotation.qualifiedName
         val annotationType = annotation.analyze(BodyResolveMode.PARTIAL)[BindingContext.TYPE, annotation.typeReference]
         annotationType ?: throw IllegalStateException("KtAnnotationEntry must resolve to a KotlinType")
         val descriptor = annotationType.toClassDescriptor!!
 
         val params = descriptor
-                .unsubstitutedMemberScope
-                .getContributedDescriptors()
-                .filterIsInstance<PropertyDescriptor>()
-                .map { LParam(it.name.asString(), resolve(it.type), DescriptorToSourceUtils.getSourceFromDescriptor(it)!!) }
+            .unsubstitutedMemberScope
+            .getContributedDescriptors()
+            .filterIsInstance<PropertyDescriptor>()
+            .map { LParam(it.name.asString(), resolve(it.type, resolvedType), DescriptorToSourceUtils.getSourceFromDescriptor(it)!!) }
 
         return LAnnotation(
             qualifiedName.substringAfterLast('.'),

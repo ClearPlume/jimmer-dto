@@ -17,16 +17,14 @@ import org.babyfish.jimmer.sql.Entity
 import org.babyfish.jimmer.sql.MappedSuperclass
 
 class JavaProcessor : LanguageProcessor<PsiClass> {
-    override val resolvedType = mutableMapOf<String, LClass<PsiClass>>()
-
     override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == JavaLanguage.INSTANCE
 
     override fun clazz(dtoFile: DTOFile): LClass<PsiClass> {
         val psiClass = dtoFile.project.psiClass(dtoFile.qualifiedEntity) ?: throw IllegalStateException("Entity class for $dtoFile not found")
-        return clazz(psiClass)
+        return clazz(psiClass, mutableMapOf())
     }
 
-    override fun clazz(clazz: PsiClass): LClass<PsiClass> {
+    fun clazz(clazz: PsiClass, resolvedType: MutableMap<String, LClass<PsiClass>>): LClass<PsiClass> {
         val qualifiedName = clazz.qualifiedName!!
         val name = clazz.name!!
         val type = resolvedType.getOrPut(qualifiedName) {
@@ -36,10 +34,10 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
                 qualifiedName,
                 false,
                 clazz.isAnnotationType,
-                clazz.annotations.map(::resolve),
-                lazy { parents(clazz) },
-                lazy { properties(clazz, lClass) },
-                lazy { methods(clazz) },
+                clazz.annotations.map { resolve(it, resolvedType) },
+                lazy { parents(clazz, resolvedType) },
+                lazy { properties(clazz, lClass, resolvedType) },
+                lazy { methods(clazz, resolvedType) },
                 clazz,
             )
             lClass
@@ -47,66 +45,67 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
         return type
     }
 
-    override fun parents(clazz: PsiClass): List<LClass<PsiClass>> {
+    fun parents(clazz: PsiClass, resolvedType: MutableMap<String, LClass<PsiClass>>): List<LClass<PsiClass>> {
         return clazz.supers
-                .filter { it.qualifiedName != "java.lang.Object" }
-                .filter { it.hasAnnotation(MappedSuperclass::class) }
-                .map(::clazz)
+            .filter { it.qualifiedName != "java.lang.Object" }
+            .filter { it.hasAnnotation(MappedSuperclass::class) }
+            .map { clazz(it, resolvedType) }
     }
 
-    override fun properties(clazz: PsiClass, containingLClass: LClass<PsiClass>): List<LProperty<*>> {
+    fun properties(clazz: PsiClass, containingLClass: LClass<PsiClass>, resolvedType: MutableMap<String, LClass<PsiClass>>): List<LProperty<*>> {
         return if (clazz.hasAnnotation(Immutable::class, Entity::class, Embeddable::class, MappedSuperclass::class)) {
             clazz.methods
-                    .filter { !it.isConstructor }
-                    .map{ resolve(it, containingLClass) }
+                .filter { !it.isConstructor }
+                .map { resolve(it, containingLClass, resolvedType) }
         } else {
             clazz.fields
-                    .map {
-                        val annotations = it.annotations.map(::resolve)
-                        LProperty(it.name, annotations, resolve(it.type), it, containingLClass)
-                    }
+                .map { field ->
+                    val annotations = field.annotations.map { resolve(it, resolvedType) }
+                    LProperty(field.name, annotations, resolve(field.type, resolvedType), field, containingLClass)
+                }
         }
     }
 
-    override fun methods(clazz: PsiClass): List<LMethod<*>> {
+    fun methods(clazz: PsiClass, resolvedType: MutableMap<String, LClass<PsiClass>>): List<LMethod<*>> {
         return if (clazz.hasAnnotation(Immutable::class, Entity::class, Embeddable::class, MappedSuperclass::class)) {
             emptyList()
         } else {
             clazz.methods
-                    .filter { !it.isConstructor }
-                    .map { method ->
-                        val params = method.parameterList.parameters.map { LParam(it.name, resolve(it.type), it) }
-                        val annotations = method.annotations.map(::resolve)
-                        val returnType = method.returnType ?: throw IllegalStateException("Method must have return type")
+                .filter { !it.isConstructor }
+                .map { method ->
+                    val params = method.parameterList.parameters.map { LParam(it.name, resolve(it.type, resolvedType), it) }
+                    val annotations = method.annotations.map { resolve(it, resolvedType) }
+                    val returnType = method.returnType ?: throw IllegalStateException("Method must have return type")
 
-                        LMethod(
-                            method.name,
+                    LMethod(
+                        method.name,
+                        annotations,
+                        params,
+                        LMethod.LReturnType(
+                            resolve(returnType, resolvedType),
+                            returnType.annotations.map { resolve(it, resolvedType) },
                             annotations,
-                            params,
-                            LMethod.LReturnType(
-                                resolve(returnType),
-                                returnType.annotations.map(::resolve),
-                                annotations,
-                            ),
-                            method,
-                        )
-                    }
+                        ),
+                        method,
+                    )
+                }
         }
     }
 
     override fun resolve(element: PsiElement): LAnnotationOwner? {
         return when (element) {
-            is PsiClass -> clazz(element)
+            is PsiClass -> clazz(element, mutableMapOf())
             is PsiMethod -> {
-                val owner = clazz(element.containingClass!!)
+                val owner = clazz(element.containingClass!!, mutableMapOf())
                 owner.allProperties.first { it.name == element.name }
             }
+
             else -> null
         }
     }
 
-    fun resolve(method: PsiMethod, containingLClass: LClass<PsiClass>): LProperty<*> {
-        val annotations = method.annotations.map(::resolve)
+    fun resolve(method: PsiMethod, containingLClass: LClass<PsiClass>, resolvedType: MutableMap<String, LClass<PsiClass>>): LProperty<*> {
+        val annotations = method.annotations.map { resolve(it, resolvedType) }
         // TODO 属性类型为Boolean时，jimmer.keepIsPrefix
         val methodName = method.name
         val name = if (methodName.startsWith("get") && methodName.length > 3 && methodName[3].isUpperCase()) {
@@ -115,16 +114,16 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
             methodName
         }
 
-        return LProperty(name, annotations, resolve(method.returnType!!), method, containingLClass)
+        return LProperty(name, annotations, resolve(method.returnType!!, resolvedType), method, containingLClass)
     }
 
-    fun resolve(type: PsiType): LType {
+    fun resolve(type: PsiType, resolvedType: MutableMap<String, LClass<PsiClass>>): LType {
         return when (type) {
             is PsiPrimitiveType -> LType.ScalarType(type.name, type.nullable)
 
             is PsiArrayType -> {
                 val componentType = type.componentType
-                LType.ArrayType(componentType.nullable, resolve(componentType))
+                LType.ArrayType(componentType.nullable, resolve(componentType, resolvedType))
             }
 
             is PsiClassType -> {
@@ -136,13 +135,13 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
                             type.canonicalText,
                             false,
                             typeClass.fields
-                                    .filterIsInstance<PsiEnumConstant>()
-                                    .associateBy { it.name },
+                                .filterIsInstance<PsiEnumConstant>()
+                                .associateBy { it.name },
                             typeClass,
                         )
                     }
 
-                    typeClass.isInSource -> clazz(typeClass)
+                    typeClass.isInSource -> clazz(typeClass, resolvedType)
 
                     type.hasParameters() -> {
                         val typeParameters = type.parameters
@@ -151,29 +150,29 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
                         when {
                             rawType.canonicalText == "java.util.List" -> LType.CollectionType(
                                 type0.nullable,
-                                resolve(type0),
+                                resolve(type0, resolvedType),
                                 LType.CollectionType.CollectionKind.List,
                             )
 
                             rawType.canonicalText == "java.util.Queue" -> LType.CollectionType(
                                 type0.nullable,
-                                resolve(type0),
+                                resolve(type0, resolvedType),
                                 LType.CollectionType.CollectionKind.Queue,
                             )
 
                             rawType.canonicalText == "java.util.Set" -> LType.CollectionType(
                                 type0.nullable,
-                                resolve(type0),
+                                resolve(type0, resolvedType),
                                 LType.CollectionType.CollectionKind.Set,
                             )
 
                             rawType.canonicalText == "java.util.Map" -> LType.MapType(
                                 false,
-                                resolve(type0),
-                                resolve(typeParameters[1]),
+                                resolve(type0, resolvedType),
+                                resolve(typeParameters[1], resolvedType),
                             )
 
-                            rawType.resolve()!!.isInSource -> clazz(typeClass)
+                            rawType.resolve()!!.isInSource -> clazz(typeClass, resolvedType)
 
                             else -> LType.ScalarType(type.name, type.nullable)
                         }
@@ -187,7 +186,7 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
         }
     }
 
-    fun resolve(annotation: PsiAnnotation): LAnnotation<*> {
+    fun resolve(annotation: PsiAnnotation, resolvedType: MutableMap<String, LClass<PsiClass>>): LAnnotation<*> {
         val clazz = annotation.resolveAnnotationType() ?: throw IllegalStateException("Can't find annotation type ${annotation.qualifiedName}")
         val methods = clazz.methods
 
@@ -195,7 +194,7 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
             clazz.name!!,
             clazz.qualifiedName!!,
             clazz,
-            methods.map { LParam(it.name, resolve(it.returnType!!), it) },
+            methods.map { LParam(it.name, resolve(it.returnType!!, resolvedType), it) },
         )
     }
 }
