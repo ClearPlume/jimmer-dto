@@ -32,16 +32,18 @@ class GenerateMissingAnnotationParam(
         val project = context.project
         val builder = updater.templateBuilder()
 
-        val insertedParams = params.map { param ->
+        val insertedParams = params.mapIndexed { index, param ->
             val parameter = project.createAnnotationParameter(param.name, param.returnType.defaultValue)
             val comma = project.createComma()
 
-            element.addBefore(comma, paren)
+            if (index != 0) {
+                element.addBefore(comma, paren)
+            }
             element.addBefore(parameter, paren)
         }
         insertedParams
-                .filterIsInstance<DTOAnnotationParameter>()
-                // 此处param为手动生成，不存在空
-                .forEach { builder.field(it.value!!, EmptyNode()) }
+            .filterIsInstance<DTOAnnotationParameter>()
+            // 此处param为手动生成，不存在空
+            .forEach { builder.field(it.value!!, EmptyNode()) }
     }
 }
