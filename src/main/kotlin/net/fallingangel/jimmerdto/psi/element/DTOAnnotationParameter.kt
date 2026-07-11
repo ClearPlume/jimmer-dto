@@ -1,6 +1,7 @@
 package net.fallingangel.jimmerdto.psi.element
 
 import com.intellij.psi.PsiAnnotationMethod
+import com.intellij.psi.PsiArrayType
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiType
 import net.fallingangel.jimmerdto.lsi.LanguageProcessor
@@ -33,14 +34,18 @@ interface DTOAnnotationParameter : DTONamedElement {
     val valueType: PsiType?
         get() {
             val processor = LanguageProcessor.analyze(file)
-            val type = type ?: return null
-            return value?.let { processor.type(type, it) }
+            return value?.let { processor.type(it) }
         }
 
     val valueAssignableFromType: Boolean
         get() {
             val type = type ?: return false
+            val actualType = if (type is PsiArrayType) {
+                type.componentType
+            } else {
+                type
+            }
             val valueType = valueType ?: return false
-            return type.isAssignableFrom(valueType)
+            return actualType.isAssignableFrom(valueType)
         }
 }
