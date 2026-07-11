@@ -645,24 +645,36 @@ class DTOAnnotator : Annotator {
             o.`as`.style(DTOSyntaxHighlighter.FUNCTION)
 
             val power = o.power
+            val original = o.original
             val dollar = o.dollar
             val arrow = o.arrow
+            val replacement = o.replacement
 
             if (arrow == null) {
                 o.error("The '->' is required in alias group", InsertArrow(o))
                 return
             }
 
+            if (original == null && replacement == null) {
+                arrow.error("There is no identifier to the left or right of the '->'")
+                return
+            }
+
+            if (power == null && original == null && dollar == null) {
+                arrow.error("There is nothing to the left of the '->', which is not allowed")
+                return
+            }
+
             if (power != null && dollar != null) {
                 power.error(
-                    "Power and Dollar cannot both appear in the original section of AliasGroup",
+                    "The `^` and `$` cannot appear at the same time",
                     RemoveElement("^", power)
                 )
-
                 dollar.error(
-                    "Power and Dollar cannot both appear in the original section of AliasGroup",
+                    "The `^` and `$` cannot appear at the same time",
                     RemoveElement("$", dollar)
                 )
+                return
             }
         }
 
