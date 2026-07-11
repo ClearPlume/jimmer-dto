@@ -351,35 +351,43 @@ class DTOAnnotator : Annotator {
                 }
             }
 
+            val processor = LanguageProcessor.analyze(o.file)
+
             // 参数类型是否匹配
             params
                 .forEach { param ->
-                    if (param.valueAssignableFromType) {
-                        return@forEach
-                    }
-
-                    param.value?.let {
-                        val type = param.type ?: return@forEach
-                        val valueType = param.valueType ?: return@forEach
-                        it.error("Required: `${type.canonicalText}`, Actual: `${valueType.canonicalText}`")
-                    }
+                    val value = param.value ?: return@forEach
+                    val type = param.type ?: return@forEach
+                    validateAnnotationValues(type, value, processor)
                 }
 
             if (value != null) {
                 val method = clazz.findMethodsByName("value", false).first()
                 val type = method.returnType ?: return
-                val actualType = if (type is PsiArrayType) {
-                    type.componentType
-                } else {
-                    type
-                }
+                validateAnnotationValues(type, value, processor)
+            }
+        }
 
-                val processor = LanguageProcessor.analyze(o.file)
-                val valueType = processor.type(value)
-                if (valueType != null && actualType.isAssignableFrom(valueType)) {
-                    return
+        private fun validateAnnotationValues(type: PsiType, value: DTOAnnotationValue, processor: LanguageProcessor<*>) {
+            val (expectedComponentType, isArrayExpected) = if (type is PsiArrayType) {
+                type.componentType to true
+            } else {
+                type to false
+            }
+
+            val values = value.arrayValue?.values?.map { it to processor.type(it) }
+                ?: value.let { listOf(it to processor.type(it)) }
+
+            if (!isArrayExpected && values.size > 1) {
+                value.error("Required: `${type.canonicalText}`, Actual: `${PsiArrayType(PsiTypes.voidType())}`")
+                return
+            }
+
+            values.forEach { (value, valueType) ->
+                valueType ?: return@forEach
+                if (!expectedComponentType.isAssignableFrom(valueType)) {
+                    value.error("Required: `${expectedComponentType.canonicalText}`, Actual: `${valueType.canonicalText}`")
                 }
-                value.error("Required: `${actualType.canonicalText}`, Actual: `${valueType?.canonicalText}`")
             }
         }
 
