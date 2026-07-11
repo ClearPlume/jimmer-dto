@@ -6,7 +6,4 @@ interface DTOAnnotationValue : DTOElement {
     val singleValue: DTOAnnotationSingleValue?
 
     val arrayValue: DTOAnnotationArrayValue?
-
-    val isEmpty: Boolean
-        get() = singleValue == null && arrayValue == null
 }
