@@ -20,7 +20,6 @@ interface LanguageProcessor<C : PsiElement> {
     fun resolve(element: PsiElement): LAnnotationOwner?
 
     fun type(value: DTOAnnotationValue): PsiType? {
-        value.arrayValue?.let { return type(it.values[0]) }
         val singleValue = value.singleValue ?: return null
 
         val qualifiedName = singleValue.qualifiedName
