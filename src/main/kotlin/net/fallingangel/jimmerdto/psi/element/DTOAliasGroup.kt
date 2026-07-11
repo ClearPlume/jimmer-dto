@@ -14,7 +14,7 @@ interface DTOAliasGroup : DTOElement {
 
     val dollar: PsiElement?
 
-    val arrow: PsiElement
+    val arrow: PsiElement?
 
     val replacement: PsiElement?
 

@@ -670,9 +670,14 @@ class DTOAnnotator : Annotator {
         override fun visitAliasGroup(o: DTOAliasGroup) {
             o.`as`.style(DTOSyntaxHighlighter.FUNCTION)
 
-            // alias-pattern
             val power = o.power
             val dollar = o.dollar
+            val arrow = o.arrow
+
+            if (arrow == null) {
+                o.error("The '->' is required in alias group", InsertArrow(o))
+                return
+            }
 
             if (power != null && dollar != null) {
                 power.error(

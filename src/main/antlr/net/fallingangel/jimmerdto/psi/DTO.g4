@@ -78,7 +78,17 @@ macroArg
 
 aliasGroup
     :
-    As LParen Power? Identifier? Dollar? Arrow Identifier? RParen aliasGroupBody
+    As LParen Power? original? Dollar? Arrow? replacement? RParen aliasGroupBody
+    ;
+
+original
+    :
+    Identifier
+    ;
+
+replacement
+    :
+    Identifier
     ;
 
 aliasGroupBody
