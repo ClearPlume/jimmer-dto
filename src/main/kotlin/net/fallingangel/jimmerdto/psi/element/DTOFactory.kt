@@ -13,9 +13,9 @@ fun Project.createDTOFile(content: String = ""): DTOFile {
 
 fun Project.createComma(): PsiElement {
     return createDTOFile(",")
-            .firstChild
-            .firstChild
-            .firstChild
+        .firstChild
+        .firstChild
+        .firstChild
 }
 
 fun Project.createImport(qualifiedName: String): DTOImportStatement {
@@ -79,44 +79,44 @@ fun Project.createEnumMappingProp(name: String, mappings: List<String>): DTOPosi
         |}
     """.trimMargin()
     return createDTO("Dummy", positiveProps = listOf(enumMapping))
-            .dtoBody
-            .positiveProps[0]
+        .dtoBody
+        .positiveProps[0]
 }
 
 fun Project.createEnumMappings(mappings: List<String>): List<DTOEnumMapping> {
     return createEnumMappingProp("dummy", mappings)
-            .body!!
-            .enumBody!!
-            .mappings
+        .body!!
+        .enumBody!!
+        .mappings
 }
 
 fun Project.createEnumMapping(mapping: String): DTOEnumMapping {
     return createEnumMappingProp("dummy", listOf(mapping))
-            .body!!
-            .enumBody!!
-            .mappings[0]
+        .body!!
+        .enumBody!!
+        .mappings[0]
 }
 
 fun Project.createUserProp(name: String, type: String): DTOUserProp {
     return createDTO("Dummy", userProps = listOf("$name: $type"))
-            .dtoBody
-            .userProps[0]
+        .dtoBody
+        .userProps[0]
 }
 
 fun Project.createUserPropType(type: String) = createUserProp("dummy", type).type
 
 fun Project.createPropName(name: String): DTOPropName {
     return createDTO("Dummy", positiveProps = listOf(name))
-            .dtoBody
-            .positiveProps[0]
-            .name
+        .dtoBody
+        .positiveProps[0]
+        .name
 }
 
 fun Project.createAlias(alias: String): DTOAlias {
     return createDTO("Dummy", positiveProps = listOf("dummy as $alias"))
-            .dtoBody
-            .positiveProps[0]
-            .alias!!
+        .dtoBody
+        .positiveProps[0]
+        .alias!!
 }
 
 fun Project.createAnnotation(name: String, params: List<String> = emptyList()): DTOAnnotation {
@@ -131,9 +131,9 @@ fun Project.createAnnotation(name: String, params: List<String> = emptyList()): 
         """.trimIndent()
     }
     return createDTO("Dummy", positiveProps = listOf(prop))
-            .dtoBody
-            .positiveProps[0]
-            .annotations[0]
+        .dtoBody
+        .positiveProps[0]
+        .annotations[0]
 }
 
 fun Project.createAnnotationValue(value: String): DTOAnnotationValue {
@@ -142,7 +142,7 @@ fun Project.createAnnotationValue(value: String): DTOAnnotationValue {
 
 fun Project.createAnnotationParameter(name: String, value: String = "dummy"): DTOAnnotationParameter {
     return createAnnotation("Dummy", listOf("$name = $value"))
-            .params[0]
+        .params[0]
 }
 
 fun Project.createInsensitive(): PsiElement {
@@ -155,10 +155,10 @@ fun Project.createInsensitive(): PsiElement {
 
 fun Project.createValue(value: String): DTOValue {
     return createDTO("Dummy", positiveProps = listOf("id($value)"))
-            .dtoBody
-            .positiveProps[0]
-            .arg!!
-            .values[0]
+        .dtoBody
+        .positiveProps[0]
+        .arg!!
+        .values[0]
 }
 
 fun Project.createMacro(name: String, argList: List<String> = emptyList()): DTOMacro {
@@ -168,14 +168,20 @@ fun Project.createMacro(name: String, argList: List<String> = emptyList()): DTOM
         ""
     }
     return createDTO("Dummy", macros = listOf("#$name$args"))
-            .dtoBody
-            .macros[0]
+        .dtoBody
+        .macros[0]
 }
 
 fun Project.createMacroName(name: String) = createMacro(name).name
 
 fun Project.createMacroArg(arg: String): DTOMacroArg {
     return createMacro("allScalars", listOf(arg))
-            .args!!
-            .values[0]
+        .args!!
+        .values[0]
+}
+
+fun Project.createAliasGroup(prefix: String, original: String, suffix: String, arrow: String, replacement: String): DTOAliasGroup {
+    return createDTO("Dummy", aliasGroups = listOf("as($prefix$original$suffix$arrow$replacement) {}"))
+        .dtoBody
+        .aliasGroups[0]
 }
