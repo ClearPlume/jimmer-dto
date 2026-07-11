@@ -6,6 +6,33 @@
 
 * Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
 
+## [0.0.7.49] - 2026-07-12
+
+### Added
+
+* `fold` function support: validation, completion, and hint info
+* Spec function validation
+* Function existence validation
+* Macro must be the first element, with a clear error if preceded by non-macro elements ([#68](https://github.com/ClearPlume/jimmer-dto/issues/68))
+* Error when declaring user-defined properties under `flat` function
+* Error when `->` is missing in `aliasGroup`
+* Quick-fix preview support in annotator
+
+### Changed
+
+* Refactored function constraint system into a unified `Function` enum
+* Replaced `propPath` with `containingLClass` system
+* Moved entity class reference from `DTOFile` down to `DTODto`
+* Made `Arrow` optional in `aliasGroup`, promoted `original`/`replacement` to standalone rules
+* Changed `LanguageProcessor`'s `resolvedType` from instance field to call-local state
+* Improved `L*` layer identity semantics
+* Added `containingLClass` to `LProperty`
+
+### Fixed
+
+* Macro validation no longer produces duplicate error annotations
+* `aliasGroup` alias-pattern validation aligned with compiler error messages
+
 ## [0.0.7.48] - 2026-03-26 - K1 Final Track
 
 This release marks the beginning of K1 branch's final phase.

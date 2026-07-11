@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "net.fallingangel"
-version = "0.0.7.48-k1"
+version = "0.0.7.49-k1"
 
 val since = "241.14494.240"
 val until = "241.*"
