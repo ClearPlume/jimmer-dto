@@ -46,7 +46,8 @@ interface LanguageProcessor<C : PsiElement> {
         }
 
         if (nestAnnotation != null) {
-            return PsiType.getTypeByName(nestAnnotation.qualifiedName.value, project, scope)
+            val typeName = nestAnnotation.qualifiedName.clazz?.qualifiedName ?: return null
+            return PsiType.getTypeByName(typeName, project, scope)
         }
 
         return project.literalType(value.text)
