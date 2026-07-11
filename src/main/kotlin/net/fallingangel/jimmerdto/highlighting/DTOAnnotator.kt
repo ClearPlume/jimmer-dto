@@ -371,8 +371,6 @@ class DTOAnnotator : Annotator {
 
             // 参数类型是否匹配
             params
-                // 数组参数不以这种方式校验，其校验逻辑通过visitAnnotationArrayValue单独完成
-                .filter { it.value?.arrayValue == null }
                 .forEach { param ->
                     if (param.valueAssignableFromType) {
                         return@forEach
@@ -388,13 +386,18 @@ class DTOAnnotator : Annotator {
             if (value != null) {
                 val method = clazz.findMethodsByName("value", false).first()
                 val type = method.returnType ?: return
+                val actualType = if (type is PsiArrayType) {
+                    type.componentType
+                } else {
+                    type
+                }
 
                 val processor = LanguageProcessor.analyze(o.file)
-                val valueType = processor.type(type, value)
-                if (valueType != null && type.isAssignableFrom(valueType)) {
+                val valueType = processor.type(value)
+                if (valueType != null && actualType.isAssignableFrom(valueType)) {
                     return
                 }
-                value.error("Required: `${type.canonicalText}`, Actual: `${valueType?.canonicalText}`")
+                value.error("Required: `${actualType.canonicalText}`, Actual: `${valueType?.canonicalText}`")
             }
         }
 
@@ -461,26 +464,6 @@ class DTOAnnotator : Annotator {
                     ),
                     SelectAnnotationParam(o),
                 )
-            }
-        }
-
-        /**
-         * 为注解数组参数上色
-         */
-        override fun visitAnnotationArrayValue(o: DTOAnnotationArrayValue) {
-            val parameter = o.parent.parentUnSure<DTOAnnotationParameter>() ?: return
-            val arrayType = parameter.type as? PsiArrayType ?: return
-            val arrayComponentType = arrayType.componentType
-            val processor = LanguageProcessor.analyze(o.file)
-
-            val arrayValue = parameter.value?.arrayValue ?: return
-            val valueTypes = arrayValue.values.map { it to processor.type(arrayComponentType, it) }
-
-            valueTypes.forEach { (value, type) ->
-                type ?: return@forEach
-                if (!arrayComponentType.isAssignableFrom(type)) {
-                    value.error("Required: `${arrayComponentType.canonicalText}`, Actual: `${type.canonicalText}`")
-                }
             }
         }
 
