@@ -1238,9 +1238,6 @@ class DTOAnnotator : Annotator {
 
         private fun PsiElement.style(style: TextAttributesKey) = annotator(style, HighlightSeverity.INFORMATION)
 
-        private fun PsiElement.error(style: TextAttributesKey = DTOSyntaxHighlighter.ERROR) =
-            annotator(style, HighlightSeverity.ERROR)
-
         private fun PsiElement.annotator(style: TextAttributesKey, severity: HighlightSeverity) {
             holder.newSilentAnnotation(severity)
                 .range(this)
