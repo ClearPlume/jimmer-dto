@@ -5,6 +5,7 @@ import com.intellij.modcommand.ActionContext
 import com.intellij.modcommand.ModPsiUpdater
 import com.intellij.modcommand.PsiUpdateModCommandAction
 import com.intellij.psi.PsiAnnotationMethod
+import com.intellij.psi.util.childrenOfType
 import net.fallingangel.jimmerdto.psi.element.DTOAnnotationParameter
 import net.fallingangel.jimmerdto.psi.element.createAnnotationParameter
 import net.fallingangel.jimmerdto.psi.element.createComma
@@ -32,11 +33,13 @@ class GenerateMissingAnnotationParam(
         val project = context.project
         val builder = updater.templateBuilder()
 
-        val insertedParams = params.mapIndexed { index, param ->
+        val children = element.childrenOfType<DTOAnnotationParameter>()
+
+        val insertedParams = params.map { param ->
             val parameter = project.createAnnotationParameter(param.name, param.returnType.defaultValue)
             val comma = project.createComma()
 
-            if (index != 0) {
+            if (children.isNotEmpty()) {
                 element.addBefore(comma, paren)
             }
             element.addBefore(parameter, paren)
