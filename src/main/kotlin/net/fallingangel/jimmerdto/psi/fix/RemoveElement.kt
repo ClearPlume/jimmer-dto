@@ -1,28 +1,27 @@
 package net.fallingangel.jimmerdto.psi.fix
 
-import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.project.Project
+import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModPsiUpdater
+import com.intellij.modcommand.PsiUpdateModCommandAction
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
 
 /**
  * @param targetSelector 纯函数
  * @param relatedElementsFinder 纯函数
  */
+@Suppress("UnstableApiUsage")
 class RemoveElement(
     private val displayName: String,
-    private val anchor: PsiElement,
+    anchor: PsiElement,
     private val targetSelector: (PsiElement) -> PsiElement = { it },
     private val relatedElementsFinder: (PsiElement) -> List<PsiElement> = { emptyList() },
-) : BaseFix() {
-    override fun getText() = "Remove `$displayName`"
+) : PsiUpdateModCommandAction<PsiElement>(anchor) {
+    override fun getFamilyName() = "Remove `$displayName`"
 
-    override fun invoke(project: Project, editor: Editor, file: PsiFile) {
-        WriteCommandAction.runWriteCommandAction(project) {
-            val relatedElements = relatedElementsFinder(anchor)
-            targetSelector(anchor).delete()
-            relatedElements.forEach(PsiElement::delete)
-        }
+    override fun invoke(context: ActionContext, element: PsiElement, updater: ModPsiUpdater) {
+        val target = targetSelector(element)
+        val relatedElements = relatedElementsFinder(target)
+        target.delete()
+        relatedElements.forEach(PsiElement::delete)
     }
 }

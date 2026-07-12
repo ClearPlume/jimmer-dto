@@ -1,19 +1,19 @@
 package net.fallingangel.jimmerdto.psi.fix
 
-import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiFile
+import com.intellij.modcommand.ActionContext
+import com.intellij.modcommand.ModPsiUpdater
+import com.intellij.modcommand.PsiUpdateModCommandAction
 import net.fallingangel.jimmerdto.psi.element.DTOAnnotationValue
 import net.fallingangel.jimmerdto.psi.element.createAnnotationParameter
 
-class AddValueParameterName(private val element: DTOAnnotationValue) : BaseFix() {
-    override fun getText() = "Add `value = ` to param"
+@Suppress("UnstableApiUsage")
+class AddValueParameterName(element: DTOAnnotationValue) : PsiUpdateModCommandAction<DTOAnnotationValue>(element) {
+    override fun getFamilyName() = "Add `value = ` to param"
 
-    override fun invoke(project: Project, editor: Editor, file: PsiFile) {
+    override fun invoke(context: ActionContext, element: DTOAnnotationValue, updater: ModPsiUpdater) {
+        val project = context.project
         val param = project.createAnnotationParameter("value", element.text)
-        WriteCommandAction.runWriteCommandAction(project) {
-            element.replace(param)
-        }
+
+        element.replace(param)
     }
 }
