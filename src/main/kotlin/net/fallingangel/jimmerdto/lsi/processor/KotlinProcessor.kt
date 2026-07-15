@@ -9,9 +9,10 @@ import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.lsi.param.LParam
 import net.fallingangel.jimmerdto.psi.DTOFile
-import net.fallingangel.jimmerdto.util.contains
+import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.isInSource
 import net.fallingangel.jimmerdto.util.ktClass
+import org.babyfish.jimmer.sql.Entity
 import org.babyfish.jimmer.sql.MappedSuperclass
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
@@ -65,7 +66,7 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
         return analyze(clazz) {
             val symbol = clazz.symbol as? KaClassSymbol ?: return emptyList()
             symbol.superTypes
-                .filter { MappedSuperclass::class in it.symbol!!.annotations }
+                .filter { it.symbol!!.hasAnnotation(MappedSuperclass::class, Entity::class) }
                 .mapNotNull { it.symbol?.psi as? KtClass }
                 .map { clazz(it, resolvedType) }
         }

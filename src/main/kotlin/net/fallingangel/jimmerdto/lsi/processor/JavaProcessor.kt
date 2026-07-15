@@ -51,7 +51,7 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
     fun parents(clazz: PsiClass, resolvedType: MutableMap<String, LClass<PsiClass>>): List<LClass<PsiClass>> {
         return clazz.supers
             .filter { it.qualifiedName != "java.lang.Object" }
-            .filter { it.hasAnnotation(MappedSuperclass::class) }
+            .filter { it.hasAnnotation(MappedSuperclass::class, Entity::class) }
             .map { clazz(it, resolvedType) }
     }
 
