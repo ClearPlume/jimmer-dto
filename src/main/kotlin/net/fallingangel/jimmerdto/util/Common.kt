@@ -25,7 +25,7 @@ import net.fallingangel.jimmerdto.structure.JavaNullableType
 import org.babyfish.jimmer.Immutable
 import org.babyfish.jimmer.sql.Embeddable
 import org.babyfish.jimmer.sql.Entity
-import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationList
+import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolOrigin
 import org.jetbrains.kotlin.analysis.api.types.KaType
 import org.jetbrains.kotlin.analysis.api.types.symbol
@@ -33,11 +33,9 @@ import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
-import org.jetbrains.kotlin.idea.util.findAnnotation
-import org.jetbrains.kotlin.name.FqName
-import org.jetbrains.kotlin.psi.KtAnnotated
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
+import org.jetbrains.kotlin.scripting.resolve.classId
 import javax.swing.Icon
 import kotlin.reflect.KClass
 
@@ -209,8 +207,8 @@ inline fun <reified T : PsiElement> PsiElement.findChildren(path: String): List<
 
 inline fun <reified T : PsiElement> PsiElement.sibling(forward: Boolean = true, filter: (PsiElement) -> Boolean): T? {
     return siblings(forward, false)
-            .filterIsInstance<T>()
-            .firstOrNull(filter)
+        .filterIsInstance<T>()
+        .firstOrNull(filter)
 }
 
 fun PsiElement.siblingComma(forward: Boolean = true) = sibling<PsiElement>(forward) {
@@ -225,15 +223,11 @@ inline fun <reified P> PsiElement.parentUnSure(): P? {
     return parent as? P
 }
 
-operator fun KaAnnotationList.contains(annotation: KClass<out Annotation>): Boolean {
-    return annotation.qualifiedName in map { it.classId!!.asFqNameString() }
-}
-
 fun Project.notification(content: String, type: NotificationType = NotificationType.INFORMATION) {
     NotificationGroupManager.getInstance()
-            .getNotificationGroup("JimmerDTO Notification Group")
-            .createNotification(content, type)
-            .notify(this)
+        .getNotificationGroup("JimmerDTO Notification Group")
+        .createNotification(content, type)
+        .notify(this)
 }
 
 fun Project.psiClass(qualifiedName: String): PsiClass? {
@@ -262,8 +256,8 @@ fun Project.allAnnotations(`package`: String? = ""): List<PsiClass> {
         val scope = ProjectScope.getAllScope(this)
 
         FileBasedIndex.getInstance()
-                .getAllKeys(ANNOTATION_CLASS_INDEX, this)
-                .mapNotNull { psiFacade.findClass(it, scope) }
+            .getAllKeys(ANNOTATION_CLASS_INDEX, this)
+            .mapNotNull { psiFacade.findClass(it, scope) }
     } else {
         JavaPsiFacade.getInstance(this).findPackage(`package`)?.classes?.filter { it.isAnnotationType } ?: emptyList()
     }
@@ -281,11 +275,12 @@ fun Project.allPackages(`package`: String): List<PsiPackage> {
 }
 
 fun PsiModifierListOwner.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
-    return annotations.any { anno.mapNotNull(KClass<out Annotation>::qualifiedName).contains(it.qualifiedName) }
+    val annotations = annotations.mapNotNull(PsiAnnotation::getQualifiedName)
+    return anno.any { it.qualifiedName in annotations }
 }
 
-fun KtAnnotated.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
-    return anno.mapNotNull(KClass<out Annotation>::qualifiedName).any { findAnnotation(FqName(it)) != null }
+fun KaAnnotated.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
+    return anno.any { it.classId in annotations }
 }
 
 fun Project.literalType(literal: String): PsiType? {
