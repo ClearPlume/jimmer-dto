@@ -30,11 +30,10 @@ import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
-import org.jetbrains.kotlin.idea.util.findAnnotation
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlinx.serialization.compiler.resolve.toClassDescriptor
 import javax.swing.Icon
@@ -116,7 +115,7 @@ val PsiType?.defaultValue: String
             PsiTypes.intType() -> "0"
             PsiTypes.longType() -> "0L"
             PsiTypes.doubleType() -> "0.0D"
-            PsiTypes.floatType() -> "0.0"
+            PsiTypes.floatType() -> "0.0F"
             PsiTypes.booleanType() -> "false"
             PsiTypes.charType() -> "''"
             PsiTypes.nullType() -> "null"
@@ -205,7 +204,7 @@ val KtClass.javaFqName: String?
 val KtAnnotationEntry.qualifiedName: String
     get() {
         // 解析注解条目，获取上下文
-        val context = analyze()
+        val context = analyze(BodyResolveMode.PARTIAL_NO_ADDITIONAL)
         // 获取注解全限定类名
         return context[BindingContext.ANNOTATION, this]?.fqName?.asString() ?: ""
     }
@@ -298,11 +297,13 @@ fun Project.allPackages(`package`: String): List<PsiPackage> {
 }
 
 fun PsiModifierListOwner.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
-    return annotations.any { anno.mapNotNull(KClass<out Annotation>::qualifiedName).contains(it.qualifiedName) }
+    val annotations = annotations.mapNotNull(PsiAnnotation::getQualifiedName)
+    return anno.any { it.qualifiedName in annotations }
 }
 
 fun KtAnnotated.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
-    return anno.mapNotNull(KClass<out Annotation>::qualifiedName).any { findAnnotation(FqName(it)) != null }
+    val annotations = annotationEntries.map { it.qualifiedName }
+    return anno.any { it.qualifiedName in annotations }
 }
 
 fun Project.literalType(literal: String): PsiType? {

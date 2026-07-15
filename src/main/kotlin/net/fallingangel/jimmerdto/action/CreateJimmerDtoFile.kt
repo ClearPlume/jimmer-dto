@@ -11,7 +11,10 @@ import com.intellij.openapi.vfs.findDirectory
 import com.intellij.openapi.vfs.findFile
 import com.intellij.openapi.vfs.findOrCreateDirectory
 import com.intellij.psi.PsiClass
-import net.fallingangel.jimmerdto.util.*
+import net.fallingangel.jimmerdto.util.contentRoot
+import net.fallingangel.jimmerdto.util.hasAnnotation
+import net.fallingangel.jimmerdto.util.notification
+import net.fallingangel.jimmerdto.util.open
 import org.babyfish.jimmer.sql.Entity
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
