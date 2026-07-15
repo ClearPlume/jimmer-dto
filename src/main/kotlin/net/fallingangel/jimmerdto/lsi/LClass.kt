@@ -6,7 +6,7 @@ import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.lsi.annotation.annotationsToString
 
 /**
- * 三个 [Lazy] 持有者的 lambda 在 [LanguageProcessor.clazz] 中构造，
+ * 四个 [Lazy] 持有者的 lambda 在 [LanguageProcessor.clazz] 中构造，
  * 可能捕获尚未完成赋值的 lateinit 自引用。
  * 禁止在本类的构造过程（init 块、非 lazy 属性初始化器）中触发任何 Lazy 的求值。
  */
@@ -17,6 +17,7 @@ data class LClass<C : PsiElement>(
     override val isAnnotation: Boolean,
     override val annotations: List<LAnnotation<*>>,
     val parentsHolder: Lazy<List<LClass<C>>>,
+    val childrenHolder: Lazy<List<LClass<C>>>,
     val propertiesHolder: Lazy<List<LProperty<*>>>,
     val methodsHolder: Lazy<List<LMethod<*>>>,
     override val source: C,
@@ -25,6 +26,8 @@ data class LClass<C : PsiElement>(
 
     val allParents: List<LClass<out PsiElement>>
         get() = parents + parents.flatMap(LClass<*>::parents)
+
+    val children by childrenHolder
 
     val properties by propertiesHolder
 

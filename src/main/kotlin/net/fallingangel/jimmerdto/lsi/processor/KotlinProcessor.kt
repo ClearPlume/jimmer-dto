@@ -1,6 +1,8 @@
 package net.fallingangel.jimmerdto.lsi.processor
 
 import com.intellij.psi.PsiElement
+import com.intellij.psi.search.ProjectScope
+import com.intellij.psi.search.searches.ClassInheritorsSearch
 import net.fallingangel.jimmerdto.exception.IllegalTypeException
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
@@ -19,6 +21,8 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaEnumEntrySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaValueParameterSymbol
 import org.jetbrains.kotlin.analysis.api.types.*
+import org.jetbrains.kotlin.asJava.classes.KtLightClass
+import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtProperty
@@ -48,6 +52,7 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                 clazz.isAnnotation(),
                 annotations,
                 lazy { parents(clazz, resolvedType) },
+                lazy { children(clazz, resolvedType) },
                 lazy { properties(clazz, lClass, resolvedType) },
                 lazy { methods(clazz, resolvedType) },
                 clazz,
@@ -64,6 +69,16 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
                 .mapNotNull { it.symbol?.psi as? KtClass }
                 .map { clazz(it, resolvedType) }
         }
+    }
+
+    fun children(clazz: KtClass, resolvedType: MutableMap<String, LClass<KtClass>>): List<LClass<KtClass>> {
+        val lightClass = clazz.toLightClass() ?: return emptyList()
+        return ClassInheritorsSearch.search(lightClass, ProjectScope.getAllScope(clazz.project), false)
+            .mapNotNull { psiClass ->
+                val ktClass = (psiClass as? KtLightClass)?.kotlinOrigin as? KtClass
+                    ?: return@mapNotNull null
+                clazz(ktClass, resolvedType)
+            }
     }
 
     fun properties(clazz: KtClass, containingLClass: LClass<KtClass>, resolvedType: MutableMap<String, LClass<KtClass>>): List<LProperty<*>> {
@@ -101,6 +116,11 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
             is KtProperty -> {
                 val owner = clazz(element.containingClass()!!, mutableMapOf())
                 owner.allProperties.first { it.name == element.name }
+            }
+
+            is KtLightClass -> {
+                val ktClass = element.kotlinOrigin as? KtClass ?: return null
+                clazz(ktClass, mutableMapOf())
             }
 
             else -> null

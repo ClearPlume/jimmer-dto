@@ -22,16 +22,14 @@ interface DTOMacro : DTOElement {
     val required: PsiElement?
 
     //      / dtoBody
-    // macro
-    //      \ aliasGroupBody -> aliasGroup
+    // macro - aliasGroupBody -> aliasGroup
+    //      \ polymorphic
     val containingLClass: LClass<*>?
         get() {
-            val parent = parent
-
-            return if (parent is DTODtoBody) {
-                parent.containingLClass
-            } else {
-                (parent.parent as DTOAliasGroup).containingLClass
+            return when (val parent = parent) {
+                is DTODtoBody -> parent.containingLClass
+                is DTOPolymorphic -> null
+                else -> (parent.parent as DTOAliasGroup).containingLClass
             }
         }
 

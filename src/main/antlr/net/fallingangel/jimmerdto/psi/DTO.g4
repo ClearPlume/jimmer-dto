@@ -52,7 +52,7 @@ implements
 dtoBody
     :
     LBrace
-    ((macro | aliasGroup | positiveProp | negativeProp | userProp) (Comma | SemiColon)?)*
+    ((macro | aliasGroup | positiveProp | negativeProp | userProp | polymorphic) (Comma | SemiColon)?)*
     RBrace
     ;
 
@@ -272,6 +272,31 @@ classSuffix
     QuestionMark? (Dot | DoubleColon) Class
     ;
 
+directive
+    :
+    Hash Identifier
+    ;
+
+polymorphic
+    :
+    directive LBrace (macro | morphism)* RBrace
+    ;
+
+morphism
+    :
+    annotation*
+    Modifier?
+    qualifiedName?
+    classDeclaration?
+    implements?
+    dtoBody
+    ;
+
+classDeclaration
+    :
+    Class Identifier
+    ;
+
 // Common
 qualifiedName
     :
@@ -374,7 +399,9 @@ Modifier
     'dynamic' |
     'fuzzy'|
     'out' |
-    'in'
+    'in' |
+    'sealed' |
+    'default'
     ;
 
 BooleanLiteral

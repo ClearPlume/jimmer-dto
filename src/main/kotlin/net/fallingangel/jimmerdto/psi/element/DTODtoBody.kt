@@ -17,8 +17,8 @@ interface DTODtoBody : DTOElement {
     val userProps: List<DTOUserProp>
 
     //        / dto
-    // dtoBody
-    //        \ propBody
+    // dtoBody - propBody
+    //        \ morphism
     val containingLClass: LClass<*>?
         get() {
             return when (val parent = parent) {
@@ -31,6 +31,8 @@ interface DTODtoBody : DTOElement {
                         else -> prop.property?.actualType as? LClass<*>
                     }
                 }
+
+                is DTOMorphism -> parent.resolvedLClass
 
                 else -> error("Unexpected parent: ${parent::class}")
             }

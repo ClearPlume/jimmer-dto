@@ -2,6 +2,8 @@ package net.fallingangel.jimmerdto.lsi.processor
 
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.*
+import com.intellij.psi.search.ProjectScope
+import com.intellij.psi.search.searches.ClassInheritorsSearch
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
@@ -36,6 +38,7 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
                 clazz.isAnnotationType,
                 clazz.annotations.map { resolve(it, resolvedType) },
                 lazy { parents(clazz, resolvedType) },
+                lazy { children(clazz, resolvedType) },
                 lazy { properties(clazz, lClass, resolvedType) },
                 lazy { methods(clazz, resolvedType) },
                 clazz,
@@ -50,6 +53,11 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
             .filter { it.qualifiedName != "java.lang.Object" }
             .filter { it.hasAnnotation(MappedSuperclass::class) }
             .map { clazz(it, resolvedType) }
+    }
+
+    fun children(clazz: PsiClass, resolvedType: MutableMap<String, LClass<PsiClass>>): List<LClass<PsiClass>> {
+        return ClassInheritorsSearch.search(clazz, ProjectScope.getAllScope(clazz.project), false)
+            .mapNotNull { clazz(it, resolvedType) }
     }
 
     fun properties(clazz: PsiClass, containingLClass: LClass<PsiClass>, resolvedType: MutableMap<String, LClass<PsiClass>>): List<LProperty<*>> {

@@ -3,7 +3,10 @@ package net.fallingangel.jimmerdto.psi.element
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.ProjectScope
+import net.fallingangel.jimmerdto.lsi.LClass
+import net.fallingangel.jimmerdto.lsi.LanguageProcessor
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
+import net.fallingangel.jimmerdto.util.file
 import net.fallingangel.jimmerdto.util.javaFqName
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -37,5 +40,14 @@ interface DTOQualifiedName : DTOElement {
                     resolved as? PsiClass
                 }
             }
+        }
+
+    val resolvedLClass: LClass<*>?
+        get() {
+            val psiFacade = JavaPsiFacade.getInstance(project)
+            val scope = ProjectScope.getAllScope(project)
+            val clazz = psiFacade.findClass(value, scope) ?: return null
+
+            return LanguageProcessor.analyze(file).resolve(clazz) as? LClass<*>
         }
 }
