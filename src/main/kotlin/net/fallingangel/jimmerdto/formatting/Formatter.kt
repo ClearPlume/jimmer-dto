@@ -16,52 +16,66 @@ class Formatter : FormattingModelBuilder {
         val parents = DTOLanguage.ruleSet(RULE_dtoBody, RULE_groupedImport, RULE_aliasGroupBody, RULE_enumBody)
 
         val spacingBuilder = SpacingBuilder(styleSettings, DTOLanguage)
-                // special
-                .betweenInside(token[RParen], rule[RULE_aliasGroupBody], rule[RULE_aliasGroup]).spaces(1)
-                .around(braces).spaces(0)
+            // special
+            .betweenInside(token[RParen], rule[RULE_aliasGroupBody], rule[RULE_aliasGroup]).spaces(1)
+            .around(braces).spaces(0)
 
-                // common
-                .around(token[Comma], 0, 1)
-                .around(token[Colon], 0, 1)
-                .after(token[At]).spaces(0)
-                .after(token[Hash]).spaces(0)
-                .around(token[Equals]).spaces(1)
-                .afterInside(token[Minus], rule[RULE_negativeProp]).spaces(0)
-                .around(token[Minus]).spaces(1)
-                .around(token[Dot]).spaces(0)
-                .around(token[Arrow]).spaces(1)
-                .between(token[LBrace], token[RBrace]).spaces(0)
-                .around(token[Modifier]).spaces(1)
-                .around(token[Implements]).spaces(1)
-                .around(token[As]).spaces(1)
-                .after(comments).emptyLine(0)
-                .afterInside(token[LBrace], parents).emptyLine(0)
-                .beforeInside(token[RBrace], parents).emptyLine(0)
+            // common
+            .around(token[Comma], 0, 1)
+            .around(token[Colon], 0, 1)
+            .after(token[At]).spaces(0)
+            .after(token[Hash]).spaces(0)
+            .around(token[Equals]).spaces(1)
+            .afterInside(token[Minus], rule[RULE_negativeProp]).spaces(0)
+            .around(token[Minus]).spaces(1)
+            .around(token[Dot]).spaces(0)
+            .around(token[Arrow]).spaces(1)
+            .between(token[LBrace], token[RBrace]).spaces(0)
+            .around(token[Modifier]).spaces(1)
+            .around(token[Implements]).spaces(1)
+            .around(token[As]).spaces(1)
+            .after(comments).emptyLine(0)
+            .afterInside(token[LBrace], parents).emptyLine(0)
+            .beforeInside(token[RBrace], parents).emptyLine(0)
 
-                // psi elements
-                .after(rule[RULE_exportStatement]).emptyLine(1)
-                .around(token[Export]).spaces(1)
-                .afterInside(rule[RULE_qualifiedName], token[Export]).emptyLine(0)
-                .after(token[Package]).spaces(1)
-                .between(rule[RULE_importStatement], rule[RULE_importStatement]).emptyLine(0)
-                .around(token[Import]).spaces(1)
-                .between(rule[RULE_importStatement], rule[RULE_dto]).emptyLine(1)
-                .between(rule[RULE_dto], rule[RULE_dto]).emptyLine(1)
-                .betweenInside(rule[RULE_annotation], rule[RULE_dtoBody], rule[RULE_propBody]).spaces(1)
-                .between(rule[RULE_annotation], rule[RULE_annotation]).spaces(1)
-                .around(rule[RULE_annotationValue]).spaces(0)
-                .around(rule[RULE_dtoName]).spaces(1)
-                .around(rule[RULE_implements]).spaces(1)
-                .before(rule[RULE_dtoBody]).spaces(1)
-                .around(dtoProps).emptyLine(1)
-                .after(rule[RULE_propConfig]).emptyLine(0)
-                .beforeInside(DTOLanguage.tokenSet(QuestionMark, ExclamationMark, Star), rule[RULE_positiveProp]).spaces(0)
-                .between(rule[RULE_propName], rule[RULE_propArg]).spaces(0)
-                .between(rule[RULE_propName], rule[RULE_propFlag]).spaces(0)
-                .around(rule[RULE_propName]).spaces(1)
-                .betweenInside(rule[RULE_qualifiedName], rule[RULE_genericArguments], rule[RULE_typeRef]).spaces(0)
-                .before(rule[RULE_propBody]).spaces(1)
-                .after(rule[RULE_enumMapping]).emptyLine(0)
+            // export
+            .after(token[Export]).spaces(1)
+            .after(rule[RULE_exportStatement]).emptyLine(1)
+            .afterInside(rule[RULE_qualifiedName], token[Export]).emptyLine(0)
+
+            // package
+            .after(token[Package]).spaces(1)
+
+            // import
+            .after(token[Import]).spaces(1)
+            .between(rule[RULE_importStatement], rule[RULE_importStatement]).emptyLine(0)
+            .between(rule[RULE_importStatement], rule[RULE_dto]).emptyLine(1)
+
+            // dto
+            .between(rule[RULE_dto], rule[RULE_dto]).emptyLine(1)
+            .betweenInside(rule[RULE_annotation], rule[RULE_dtoBody], rule[RULE_propBody]).spaces(1)
+            .between(rule[RULE_annotation], rule[RULE_annotation]).spaces(1)
+            .around(rule[RULE_annotationValue]).spaces(0)
+            .around(rule[RULE_dtoName]).spaces(1)
+            .around(rule[RULE_implements]).spaces(1)
+            .before(rule[RULE_dtoBody]).spaces(1)
+            .around(dtoProps).emptyLine(1)
+
+            // positiveProp
+            .after(rule[RULE_propConfig]).emptyLine(0)
+            .beforeInside(DTOLanguage.tokenSet(QuestionMark, ExclamationMark, Star), rule[RULE_positiveProp]).spaces(0)
+            .between(rule[RULE_propName], rule[RULE_propArg]).spaces(0)
+            .between(rule[RULE_propName], rule[RULE_propFlag]).spaces(0)
+            .around(rule[RULE_propName]).spaces(1)
+            .before(rule[RULE_propBody]).spaces(1)
+            .after(rule[RULE_enumMapping]).emptyLine(0)
+
+            // typeRef
+            .betweenInside(rule[RULE_qualifiedName], rule[RULE_genericArguments], rule[RULE_typeRef]).spaces(0)
+
+            // morphism
+            .betweenInside(token[Class], token[Identifier], rule[RULE_classDeclaration]).spaces(1)
+            .betweenInside(rule[RULE_qualifiedName], rule[RULE_classDeclaration], rule[RULE_morphism]).spaces(1)
 
         return FormattingModelProvider.createFormattingModelForPsiFile(
             context.containingFile,
