@@ -16,13 +16,17 @@ class DTOBlock(
     alignment: Alignment?,
 ) : AbstractBlock(node, wrap, alignment) {
     // 缩进体
-    private val parents = DTOLanguage.ruleSet(RULE_dtoBody, RULE_groupedImport, RULE_aliasGroupBody, RULE_enumBody)
+    private val parents = DTOLanguage.ruleSet(RULE_dtoBody, RULE_groupedImport, RULE_aliasGroupBody, RULE_enumBody, RULE_polymorphic)
 
     // 父级为缩进体，但本身不需要缩进
     private val parentSymbols = DTOLanguage.tokenSet(LBrace, RBrace, Arrow)
 
     override fun getIndent(): Indent? {
         if (node.treeParent?.elementType in parents && node.elementType !in parentSymbols) {
+            // directive 是 polymorphic 的边框，不缩进
+            if (node.elementType == rule[RULE_directive] && node.treeParent?.elementType == rule[RULE_polymorphic]) {
+                return Indent.getNoneIndent()
+            }
             return Indent.getNormalIndent()
         }
         if (node.elementType == token[Arrow] && node.treeParent?.elementType == rule[RULE_exportStatement]) {
@@ -39,9 +43,9 @@ class DTOBlock(
 
     override fun buildChildren(): List<DTOBlock> {
         return generateSequence(myNode::getFirstChildNode, ASTNode::getTreeNext)
-                .filter { it.elementType != TokenType.WHITE_SPACE }
-                .map { DTOBlock(spacingBuilder, it, wrap, null) }
-                .toList()
+            .filter { it.elementType != TokenType.WHITE_SPACE }
+            .map { DTOBlock(spacingBuilder, it, wrap, null) }
+            .toList()
     }
 
     override fun getChildIndent(): Indent? {
