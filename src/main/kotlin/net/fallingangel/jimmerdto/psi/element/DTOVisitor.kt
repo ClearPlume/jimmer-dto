@@ -194,4 +194,20 @@ open class DTOVisitor : PsiElementVisitor() {
     open fun visitEnumMappingConstant(o: DTOEnumMappingConstant) {
         visitElement(o)
     }
+
+    open fun visitDirective(o: DTODirective) {
+        visitElement(o)
+    }
+
+    open fun visitPolymorphic(o: DTOPolymorphic) {
+        visitElement(o)
+    }
+
+    open fun visitMorphism(o: DTOMorphism) {
+        visitElement(o)
+    }
+
+    open fun visitClassDeclaration(o: DTOClassDeclaration) {
+        visitElement(o)
+    }
 }

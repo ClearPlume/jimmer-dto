@@ -110,6 +110,12 @@ class DTOParserDefinition : ParserDefinition {
             DTOParser.RULE_enumBody -> DTOEnumBodyImpl(node)
             DTOParser.RULE_enumMapping -> DTOEnumMappingImpl(node)
             DTOParser.RULE_enumMappingConstant -> DTOEnumMappingConstantImpl(node)
+
+            DTOParser.RULE_directive -> DTODirectiveImpl(node)
+            DTOParser.RULE_polymorphic -> DTOPolymorphicImpl(node)
+            DTOParser.RULE_morphism -> DTOMorphismImpl(node)
+            DTOParser.RULE_classDeclaration -> DTOClassDeclarationImpl(node)
+
             else -> ANTLRPsiNode(node)
         }
     }

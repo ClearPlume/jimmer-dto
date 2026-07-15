@@ -34,6 +34,11 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
     }
 
     override fun resolve(): PsiElement? {
+        val morphism = parentOfType<DTOMorphism>()
+        if (morphism != null && parentOfType<DTOQualifiedName>() == morphism.targetType && morphism.targetType?.parts?.size == 1) {
+            return morphism.resolvedLClass?.source
+        }
+
         val qualified = siblings(forward = false)
             .filter { it.elementType == DTOLanguage.rule[DTOParser.RULE_qualifiedNamePart] }
             .map(PsiElement::getText)
