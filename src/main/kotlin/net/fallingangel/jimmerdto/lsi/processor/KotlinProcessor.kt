@@ -8,9 +8,11 @@ import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.lsi.param.LParam
 import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.isInSource
 import net.fallingangel.jimmerdto.util.ktClass
 import net.fallingangel.jimmerdto.util.qualifiedName
+import org.babyfish.jimmer.sql.Entity
 import org.babyfish.jimmer.sql.MappedSuperclass
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
@@ -20,7 +22,6 @@ import org.jetbrains.kotlin.descriptors.*
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtProperty
@@ -62,11 +63,10 @@ class KotlinProcessor : LanguageProcessor<KtClass> {
     }
 
     fun parents(clazz: KtClass, resolvedType: MutableMap<String, LClass<KtClass>>): List<LClass<KtClass>> {
-        val mappedSuperclass = FqName(MappedSuperclass::class.qualifiedName!!)
         return clazz.superTypeListEntries
             .mapNotNull { it.analyze(BodyResolveMode.PARTIAL)[BindingContext.TYPE, it.typeReference]?.toClassDescriptor }
-            .filter { it.annotations.hasAnnotation(mappedSuperclass) }
             .mapNotNull { DescriptorToSourceUtils.getSourceFromDescriptor(it) as? KtClass }
+            .filter { it.hasAnnotation(MappedSuperclass::class, Entity::class) }
             .map { clazz(it, resolvedType) }
     }
 
