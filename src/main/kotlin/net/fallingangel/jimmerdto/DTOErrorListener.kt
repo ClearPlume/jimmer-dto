@@ -13,6 +13,10 @@ class DTOErrorListener : SyntaxErrorListener() {
 
     override fun getSyntaxErrors() = syntaxErrors
 
+    /**
+     * @param recognizer 报错发生时的 parser 实例；[DTOParser.context] 是当前所在的产生式规则上下文
+     * @param offendingSymbol 触发报错的 token；[Token.type] 是 lexer token 类型，[Token.text] 是原文
+     */
     override fun syntaxError(
         recognizer: Recognizer<*, *>?,
         offendingSymbol: Any?,
@@ -33,6 +37,32 @@ class DTOErrorListener : SyntaxErrorListener() {
                         line,
                         charPositionInLine,
                         "No quotation marks are needed here",
+                        e,
+                    )
+                }
+            }
+
+            is DTOParser.MorphismContext -> {
+                if (offendingSymbol.type == DTOLexer.Identifier) {
+                    syntaxErrors += SyntaxError(
+                        recognizer,
+                        offendingSymbol,
+                        line,
+                        charPositionInLine,
+                        "To rename the generated class, use 'class ${offendingSymbol.text}' syntax",
+                        e,
+                    )
+                }
+            }
+
+            is DTOParser.ClassDeclarationContext -> {
+                if (offendingSymbol.type == DTOLexer.LBrace) {
+                    syntaxErrors += SyntaxError(
+                        recognizer,
+                        offendingSymbol,
+                        line,
+                        charPositionInLine,
+                        "Missing class name after 'class'",
                         e,
                     )
                 }
