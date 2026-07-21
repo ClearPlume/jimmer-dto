@@ -8,11 +8,11 @@ import com.intellij.psi.PsiFile
 import net.fallingangel.jimmerdto.psi.element.createMacroName
 import net.fallingangel.jimmerdto.util.popupChooser
 
-class ChooseMacro(private val element: PsiElement) : BaseFix() {
+class ChooseMacro(private val element: PsiElement, private val availableMacros: List<String>) : BaseFix() {
     override fun getText() = "Choose new macro name"
 
     override fun invoke(project: Project, editor: Editor, file: PsiFile) {
-        editor.popupChooser("Macros", listOf("allScalars", "allReferences")) {
+        editor.popupChooser("Macros", availableMacros) {
             WriteCommandAction.runWriteCommandAction(project) {
                 element.replace(project.createMacroName(it))
             }
