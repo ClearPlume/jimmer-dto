@@ -201,12 +201,12 @@ val KtClass.javaFqName: String?
 /**
  * 获取KtAnnotationEntry对应注解的全限定名
  */
-val KtAnnotationEntry.qualifiedName: String
+val KtAnnotationEntry.qualifiedName: String?
     get() {
         // 解析注解条目，获取上下文
         val context = analyze(BodyResolveMode.PARTIAL_NO_ADDITIONAL)
         // 获取注解全限定类名
-        return context[BindingContext.ANNOTATION, this]?.fqName?.asString() ?: ""
+        return context[BindingContext.ANNOTATION, this]?.fqName?.asString()
     }
 
 inline fun <reified T : PsiElement> PsiElement.findChild(path: String): T {
@@ -302,7 +302,7 @@ fun PsiModifierListOwner.hasAnnotation(vararg anno: KClass<out Annotation>): Boo
 }
 
 fun KtAnnotated.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
-    val annotations = annotationEntries.map { it.qualifiedName }
+    val annotations = annotationEntries.mapNotNull { it.qualifiedName }
     return anno.any { it.qualifiedName in annotations }
 }
 

@@ -7,6 +7,6 @@ interface DTONegativeProp : DTOElement {
     val name: DTOPropName?
 
     // negativeProp -> dtoBody
-    val containingLClass: LClass<*>?
+    val containingLClass: LClass?
         get() = (parent as DTODtoBody).containingLClass
 }

@@ -1,38 +1,29 @@
 package net.fallingangel.jimmerdto.lsi
 
-import net.fallingangel.jimmerdto.exception.PropertyNotExistException
+import net.fallingangel.jimmerdto.lsi.jimmer.resolvedLClass
 
 /**
  * 依据路径查找属性
  * @param tokens user.files.name
  */
-fun LClass<*>.findProperty(tokens: List<String>): LProperty<*> {
+fun LClass.findProperty(tokens: List<String>): LProperty? {
     if (tokens.isEmpty()) {
         throw IllegalStateException("Property path won't be empty")
     }
     val token = tokens.first()
-    val property = allProperties.find { it.name == token } ?: throw PropertyNotExistException(token)
+    val property = allProperties.find { it.name == token } ?: return null
 
     if (tokens.size == 1) {
         return property
     }
-    return property.type.findProperty(tokens.drop(1)) ?: throw PropertyNotExistException(token)
+    return property.findProperty(tokens.drop(1))
 }
 
-fun LClass<*>.findPropertyOrNull(tokens: List<String>): LProperty<*>? {
-    return try {
-        findProperty(tokens)
-    } catch (_: PropertyNotExistException) {
-        null
-    }
-}
-
-private fun LType.findProperty(tokens: List<String>): LProperty<*>? {
-    return when (this) {
-        is LClass<*> -> findProperty(tokens)
-        is LType.CollectionType -> elementType.findProperty(tokens)
-        is LType.ArrayType -> elementType.findProperty(tokens)
-        // 属性没有子级属性了
+private fun LProperty.findProperty(tokens: List<String>): LProperty? {
+    return when (type) {
+        is LProperty.Type.Clazz -> type.clazz.findProperty(tokens)
+        is LProperty.Type.Collection -> type.elementType.resolvedLClass?.findProperty(tokens)
+        // 非关联属性没有子级属性，Array 是标量属性
         else -> null
     }
 }

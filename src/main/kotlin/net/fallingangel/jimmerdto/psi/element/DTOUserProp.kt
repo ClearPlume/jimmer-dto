@@ -11,6 +11,6 @@ interface DTOUserProp : DTOElement {
     val type: DTOTypeRef
 
     // userProp - dtoBody
-    val containingLClass: LClass<*>?
+    val containingLClass: LClass?
         get() = (parent as DTODtoBody).containingLClass
 }

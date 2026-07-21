@@ -9,8 +9,8 @@ import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.enums.PropConfigName
-import net.fallingangel.jimmerdto.lsi.LClass
-import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
+import net.fallingangel.jimmerdto.lsi.findProperty
+import net.fallingangel.jimmerdto.lsi.jimmer.resolvedLClass
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
@@ -121,7 +121,7 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
         val scope = ProjectScope.getAllScope(project)
         val firstPart = qualified.first()
         val prop = parent as DTOPositiveProp
-        val propType = prop.property?.actualType as? LClass<*> ?: return null
+        val propClass = prop.property?.actualType?.resolvedLClass ?: return null
 
         return if (qualified.size == 1) {
             when (name.text) {
@@ -136,14 +136,14 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
                         .findPackage(firstPart)
                 }
 
-                else -> propType.findProperty(firstPart)?.source
-                    ?: propType.findProperty(firstPart.removeSuffix("Id"))?.source
+                else -> propClass.findProperty(firstPart)?.source
+                    ?: propClass.findProperty(firstPart.removeSuffix("Id"))?.source
             }
         } else {
-            val resolvedProperty = propType.findPropertyOrNull(qualified)?.source
+            val resolvedProperty = propClass.findProperty(qualified)?.source
                 ?: run {
                     val last = qualified.last()
-                    propType.findPropertyOrNull(qualified.dropLast(1) + last.removeSuffix("Id"))?.source
+                    propClass.findProperty(qualified.dropLast(1) + last.removeSuffix("Id"))?.source
                 }
             val resolvedPackage = resolvedProperty ?: JavaPsiFacade.getInstance(project).findPackage(qualified.joinToString("."))
             resolvedPackage ?: JavaPsiFacade.getInstance(project).findClass(qualified.joinToString("."), scope)

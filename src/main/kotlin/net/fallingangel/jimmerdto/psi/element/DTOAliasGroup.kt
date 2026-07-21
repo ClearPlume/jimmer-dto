@@ -23,7 +23,7 @@ interface DTOAliasGroup : DTOElement {
     val positiveProps: List<DTOPositiveProp>
 
     // aliasGroup -> dtoBody
-    val containingLClass: LClass<*>?
+    val containingLClass: LClass?
         get() = (parent as DTODtoBody).containingLClass
 
     fun apply(value: String): String {

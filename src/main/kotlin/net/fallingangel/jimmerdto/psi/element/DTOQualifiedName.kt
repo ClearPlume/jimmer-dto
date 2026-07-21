@@ -42,12 +42,12 @@ interface DTOQualifiedName : DTOElement {
             }
         }
 
-    val resolvedLClass: LClass<*>?
+    val resolvedLClass: LClass?
         get() {
             val psiFacade = JavaPsiFacade.getInstance(project)
             val scope = ProjectScope.getAllScope(project)
             val clazz = psiFacade.findClass(value, scope) ?: return null
 
-            return LanguageProcessor.analyze(file).resolve(clazz) as? LClass<*>
+            return LanguageProcessor.analyze(file).resolve(clazz) as? LClass
         }
 }

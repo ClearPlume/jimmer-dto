@@ -9,7 +9,7 @@ interface DTOPropName : DTONamedElement {
     //         / positiveProp
     // propName - negativeProp
     //         \ userProp
-    val containingLClass: LClass<*>?
+    val containingLClass: LClass?
         get() = when (val parent = parent) {
             is DTOPositiveProp -> parent.containingLClass
             is DTONegativeProp -> parent.containingLClass

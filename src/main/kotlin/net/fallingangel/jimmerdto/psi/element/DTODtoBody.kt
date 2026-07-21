@@ -3,6 +3,7 @@ package net.fallingangel.jimmerdto.psi.element
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.jimmer.resolvedLClass
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 
 interface DTODtoBody : DTOElement {
@@ -19,7 +20,7 @@ interface DTODtoBody : DTOElement {
     //        / dto
     // dtoBody - propBody
     //        \ morphism
-    val containingLClass: LClass<*>?
+    val containingLClass: LClass?
         get() {
             return when (val parent = parent) {
                 is DTODto -> parent.clazz
@@ -28,7 +29,7 @@ interface DTODtoBody : DTOElement {
                     when (prop.name.value) {
                         Function.Fold.expression -> prop.containingLClass
                         Function.Flat.expression -> prop.arg!!.values[0].resolvedLClass
-                        else -> prop.property?.actualType as? LClass<*>
+                        else -> prop.property?.actualType?.resolvedLClass
                     }
                 }
 
@@ -39,7 +40,7 @@ interface DTODtoBody : DTOElement {
         }
 
     val availableProps: List<String>
-        get() = macros.flatMap(DTOMacro::carriedProps).map(LProperty<*>::name)
+        get() = macros.flatMap(DTOMacro::carriedProps).map(LProperty::name)
 
     /**
      * 属性名称 to 别名/null

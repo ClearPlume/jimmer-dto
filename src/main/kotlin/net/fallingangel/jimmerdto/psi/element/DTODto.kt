@@ -20,11 +20,11 @@ interface DTODto : DTOElement {
 
     val dtoBody: DTODtoBody
 
-    val clazz: LClass<*>
+    val clazz: LClass?
         get() = (containingFile as DTOFile).clazz
 
     val classIsEntity: Boolean
-        get() = clazz.hasAnnotation(Entity::class)
+        get() = clazz?.hasAnnotation(Entity::class) == true
 
     val modifiers: List<Modifier>
         get() = modifierElements.map { modifier ->

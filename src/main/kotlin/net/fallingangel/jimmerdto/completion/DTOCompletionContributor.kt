@@ -22,6 +22,9 @@ import net.fallingangel.jimmerdto.completion.pattern.lsiElement
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.jimmer.isEntityAssociation
+import net.fallingangel.jimmerdto.lsi.jimmer.isList
+import net.fallingangel.jimmerdto.lsi.jimmer.isReference
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser.*
 import net.fallingangel.jimmerdto.psi.element.*
@@ -823,7 +826,7 @@ class DTOCompletionContributor : CompletionContributor() {
     }
 
     @JvmName("lookupProperty")
-    private fun List<LProperty<*>>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }): List<LookupElement> {
+    private fun List<LProperty>.lookUp(customizer: LookupElementBuilder.() -> LookupElement = { this }): List<LookupElement> {
         return map {
             LookupElementBuilder.create(it.name)
                 .withTypeText(it.presentableType, true)

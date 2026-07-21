@@ -3,7 +3,7 @@ package net.fallingangel.jimmerdto.psi.element.impl
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
-import net.fallingangel.jimmerdto.lsi.LType
+import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.psi.element.DTOEnumMappingConstant
 import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
 import net.fallingangel.jimmerdto.psi.element.DTOVisitor
@@ -27,8 +27,8 @@ class DTOEnumMappingConstantImpl(node: ASTNode) : DTONamedElementImpl(node), DTO
     override fun resolve(): PsiElement? {
         val name = nameIdentifier.text
         val prop = parent.parent.parent.parent<DTOPositiveProp>()
-        val propType = prop.property?.actualType as? LType.EnumType<*, *> ?: return null
-        return propType.values[name]
+        val propType = prop.property?.actualType as? LProperty.Type.Enum ?: return null
+        return propType.constants[name]
     }
 
     override fun accept(visitor: PsiElementVisitor) {
