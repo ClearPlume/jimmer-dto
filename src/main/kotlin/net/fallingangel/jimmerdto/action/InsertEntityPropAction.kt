@@ -40,7 +40,7 @@ class InsertEntityPropAction : AnAction() {
         val oldProps = negativeProps + positiveProps + functionProps + aliasProps
 
         val properties = body.containingLClass?.allProperties ?: return
-        val props = properties.map(LProperty<*>::name).filter { it !in oldProps }
+        val props = properties.map(LProperty::name).filter { it !in oldProps }
 
         WriteCommandAction.runWriteCommandAction(project) {
             document.insertString(

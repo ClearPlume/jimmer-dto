@@ -15,11 +15,14 @@ import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
-import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.LanguageProcessor
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
-import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
+import net.fallingangel.jimmerdto.lsi.findProperty
+import net.fallingangel.jimmerdto.lsi.jimmer.isEntityAssociation
+import net.fallingangel.jimmerdto.lsi.jimmer.isList
+import net.fallingangel.jimmerdto.lsi.jimmer.isReference
+import net.fallingangel.jimmerdto.lsi.jimmer.resolvedLClass
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
@@ -111,9 +114,9 @@ class DTOAnnotator : Annotator {
 
             if (o.parentOfType<DTOPropConfig>() != null && o.parts.size >= 2) {
                 val prop = o.parentOfType<DTOPositiveProp>() ?: return
-                val propType = prop.property?.actualType as? LClass<*> ?: return
-                val relationProp = propType.findPropertyOrNull(o.parts.dropLast(1).map { it.text }) ?: return
-                val idView = propType.findPropertyOrNull(o.parts.map { it.text }) ?: return
+                val propClass = prop.property?.actualType?.resolvedLClass ?: return
+                val relationProp = propClass.findProperty(o.parts.dropLast(1).map { it.text }) ?: return
+                val idView = propClass.findProperty(o.parts.map { it.text }) ?: return
 
                 if (relationProp.isReference && relationProp.isEntityAssociation && idView.hasAnnotation(Id::class)) {
                     val old = "${relationProp.name}.${idView.name}"
@@ -159,7 +162,7 @@ class DTOAnnotator : Annotator {
             } else if (o.parentOfType<DTOPropConfig>() != null) {
                 resolved ?: return
                 val target = LanguageProcessor.analyze(o.file).resolve(resolved)
-                if (target is LProperty<*>) {
+                if (target is LProperty) {
                     if (target.isEntityAssociation && !target.isReference) {
                         o.error("Illegal property: Table joins are not permitted here")
                     }
@@ -368,7 +371,7 @@ class DTOAnnotator : Annotator {
             }
         }
 
-        private fun validateAnnotationValues(type: PsiType, value: DTOAnnotationValue, processor: LanguageProcessor<*>) {
+        private fun validateAnnotationValues(type: PsiType, value: DTOAnnotationValue, processor: LanguageProcessor) {
             val (expectedComponentType, isArrayExpected) = if (type is PsiArrayType) {
                 type.componentType to true
             } else {

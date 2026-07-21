@@ -17,7 +17,7 @@ import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
 import net.fallingangel.jimmerdto.util.*
 
 class DTOMacroArgImpl(node: ASTNode) : DTONamedElementImpl(node), DTOMacroArg {
-    private val clazz: LClass<*>
+    private val clazz: LClass
         get() = CachedValuesManager.getCachedValue(this) {
             val macro = parent.parent<DTOMacro>()
             CachedValueProvider.Result.create(macro.containingLClass, virtualFile, DumbService.getInstance(project).modificationTracker)

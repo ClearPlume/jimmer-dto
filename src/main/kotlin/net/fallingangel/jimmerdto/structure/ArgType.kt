@@ -1,8 +1,11 @@
 package net.fallingangel.jimmerdto.structure
 
 import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.jimmer.isEmbedded
+import net.fallingangel.jimmerdto.lsi.jimmer.isEntityAssociation
+import net.fallingangel.jimmerdto.lsi.jimmer.isList
 
-sealed class ArgType(val test: (LProperty<*>) -> Boolean) {
+sealed class ArgType(val test: (LProperty) -> Boolean) {
     companion object {
         infix fun ArgType.or(other: ArgType) = Or(this, other)
         infix fun ArgType.and(other: ArgType) = And(this, other)
@@ -13,9 +16,9 @@ sealed class ArgType(val test: (LProperty<*>) -> Boolean) {
     class Or(vararg argTypes: ArgType) : ArgType({ property -> argTypes.any { it.test(property) } })
     class Not(argType: ArgType) : ArgType({ property -> !argType.test(property) })
 
-    object EntityAssociation : ArgType(LProperty<*>::isEntityAssociation)
-    object Embeddable : ArgType(LProperty<*>::isEmbedded)
-    object ListAssociation : ArgType(LProperty<*>::isList)
-    object StringProp : ArgType({ it.type.name == "String" || it.type.name == "String?" })
-    object Nullable : ArgType(LProperty<*>::nullable)
+    object EntityAssociation : ArgType(LProperty::isEntityAssociation)
+    object Embeddable : ArgType(LProperty::isEmbedded)
+    object ListAssociation : ArgType(LProperty::isList)
+    object StringProp : ArgType({ it.type.presentation == "String" || it.type.presentation == "String?" })
+    object Nullable : ArgType(LProperty::nullable)
 }

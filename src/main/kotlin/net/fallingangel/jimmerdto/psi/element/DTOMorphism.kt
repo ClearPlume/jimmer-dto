@@ -25,10 +25,10 @@ interface DTOMorphism : DTOElement {
         }
 
     // morphism -> polymorphic
-    val containingLClass: LClass<*>?
+    val containingLClass: LClass?
         get() = (parent as DTOPolymorphic).containingLClass
 
-    val resolvedLClass: LClass<*>?
+    val resolvedLClass: LClass?
         get() {
             val targetType = this.targetType ?: return null
             val containingLClass = containingLClass ?: return null

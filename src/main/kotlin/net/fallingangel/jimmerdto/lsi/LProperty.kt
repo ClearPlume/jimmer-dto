@@ -1,100 +1,232 @@
-@file:Suppress("LanguageDetectionInspection")
-
 package net.fallingangel.jimmerdto.lsi
 
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.lsi.annotation.annotationsToString
-import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
-import org.babyfish.jimmer.Formula
-import org.babyfish.jimmer.Immutable
-import org.babyfish.jimmer.sql.*
+import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotationBySimple
 
-data class LProperty<P : PsiElement>(
+class LProperty(
     override val name: String,
-    override val annotations: List<LAnnotation<*>>,
-    override val type: LType,
-    override val source: P,
-    val containingLClass: LClass<*>,
-) : LElement, LAnnotationOwner, LNullableAware, LPsiDependent {
-    val actualType = if (type is LType.CollectionType) {
-        type.elementType
-    } else {
-        type
+    val type: Type,
+    val abstract: Boolean,
+    override val annotations: List<LAnnotation>,
+    override val source: PsiElement?,
+    val containingLClass: LClass,
+) : LElement, LAnnotationOwner, LPsiDependent {
+    sealed class Type : LPsiDependent {
+        abstract val nullable: Boolean
+
+        /**
+         * 集合是关联载体，数组是标量数据(byte[])
+         */
+        abstract val actualType: Type
+
+        abstract val presentation: String
+
+        override fun toString(): String {
+            return toDebugString(mutableSetOf())
+        }
+
+        fun toDebugString(visited: MutableSet<String>): String = when (this) {
+            is Scalar -> "Scalar(name=$presentation, nullable=$nullable)"
+            is Enum -> "Enum(name=$presentation, canonicalName=$canonicalName, nullable=$nullable, values=$constants)"
+            is Array -> "Array(nullable=$nullable, elementType=${elementType.toDebugString(visited)})"
+            is Collection -> "Collection(nullable=$nullable, kind=$kind, elementType=${elementType.toDebugString(visited)})"
+            is Map -> "Map(nullable=$nullable, keyType=${keyType.toDebugString(visited)}, valueType=${valueType.toDebugString(visited)})"
+            is Clazz -> "Class(nullable=$nullable, class=${clazz.toDebugString(visited)})"
+        }
+
+        class Scalar(val canonicalName: String, override val nullable: Boolean) : Type() {
+            override val actualType = this
+            override val presentation = canonicalName.substringAfterLast('.')
+            override val source = null
+
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+
+                other as Scalar
+
+                return canonicalName == other.canonicalName
+            }
+
+            override fun hashCode(): Int {
+                return canonicalName.hashCode()
+            }
+        }
+
+        @Suppress("StatefulEp")
+        // false positive: not an EP, lifecycle bound to CachedValue
+        class Enum(
+            val canonicalName: String,
+            entries: List<Pair<String, PsiElement>>,
+            override val nullable: Boolean,
+            override val source: PsiElement?,
+        ) : Type() {
+            override val actualType = this
+            override val presentation = canonicalName
+
+            val constants = entries.toMap()
+
+            override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
+                result.addAll(constants.values)
+            }
+
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+
+                other as Enum
+
+                return canonicalName == other.canonicalName
+            }
+
+            override fun hashCode(): Int {
+                return canonicalName.hashCode()
+            }
+        }
+
+        class Array(val elementType: Type, override val nullable: Boolean) : Type() {
+            override val actualType = this
+            override val presentation = "Array<${elementType.presentation}>"
+            override val source = null
+
+            override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
+                elementType.collectPsiElements(result, visited)
+            }
+
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+
+                other as Array
+
+                return elementType == other.elementType
+            }
+
+            override fun hashCode(): Int {
+                return elementType.hashCode()
+            }
+        }
+
+        class Collection(val elementType: Type, val kind: Kind, override val nullable: Boolean) : Type() {
+            override val actualType = elementType
+            override val presentation = "$kind<${elementType.presentation}>"
+            override val source = null
+
+            enum class Kind {
+                List, Set, Queue
+            }
+
+            override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
+                elementType.collectPsiElements(result, visited)
+            }
+
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+
+                other as Collection
+
+                if (elementType != other.elementType) return false
+                if (kind != other.kind) return false
+
+                return true
+            }
+
+            override fun hashCode(): Int {
+                var result = elementType.hashCode()
+                result = 31 * result + kind.hashCode()
+                return result
+            }
+        }
+
+        class Map(val keyType: Type, val valueType: Type, override val nullable: Boolean) : Type() {
+            override val actualType = this
+            override val presentation = "Map<${keyType.presentation}, ${valueType.presentation}>"
+            override val source = null
+
+            override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
+                keyType.collectPsiElements(result, visited)
+                valueType.collectPsiElements(result, visited)
+            }
+
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+
+                other as Map
+
+                if (keyType != other.keyType) return false
+                if (valueType != other.valueType) return false
+
+                return true
+            }
+
+            override fun hashCode(): Int {
+                var result = keyType.hashCode()
+                result = 31 * result + valueType.hashCode()
+                return result
+            }
+        }
+
+        class Clazz(val clazz: LClass, override val nullable: Boolean, override val source: PsiElement?) : Type() {
+            override val actualType = this
+            override val presentation = clazz.canonicalName
+
+            override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
+                clazz.collectPsiElements(result, visited)
+            }
+
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+
+                other as Clazz
+
+                return clazz == other.clazz
+            }
+
+            override fun hashCode(): Int {
+                return clazz.hashCode()
+            }
+        }
     }
 
-    val targetClass: LClass<*>?
-        get() = actualType as? LClass<*>
+    val nullable = hasAnnotationBySimple("Null", "Nullable") || type.nullable
+
+    val actualType = type.actualType
+
+    val targetClass: LClass?
+        get() = (actualType as? Type.Clazz)?.clazz
 
     val presentableType = buildString {
-        append(type.presentableName)
+        append(type.presentation)
         if (nullable) {
             append("?")
         }
     }
 
-    /**
-     * 目标类型标注了 [Embeddable]——值对象，字段内嵌在宿主表里，没有外键和独立 id。
-     * 结构上像关联（有嵌套属性），语义上不是。
-     */
-    val isEmbedded = targetClass?.hasAnnotation(Embeddable::class) == true
-
-    /**
-     * 目标类型标注了 [Entity]——真正的关联：有外键，有独立表，有 id。
-     * 等价于编译器的 isAssociation(true)。
-     *
-     * 编译器另有 isAssociation(false)，即 isImmutable：目标类型标注了
-     * [Entity]/[MappedSuperclass]/[Embeddable] 三者之一（互斥），
-     * 或者单独标注了 [Immutable]（[Immutable] 可与任一 SQL 注解共存，
-     * 但共存时以 SQL 注解为准）。
-     * 在插件语境里 [MappedSuperclass] 不出现在属性类型位置，
-     * [Immutable] 不出现在 SQL 实体中，实际命中的只有 [Entity] 和 [Embeddable]，
-     * 所以不需要这个并集——每个场景直接用 isEntityAssociation 或 isEmbedded。
-     */
-    val isEntityAssociation = targetClass?.hasAnnotation(Entity::class) == true
-
-    val isFormula = hasAnnotation(Formula::class)
-
-    val isId = hasAnnotation(Id::class)
-
-    val isKey = hasAnnotation(Key::class)
-
-    val isRecursive = isEntityAssociation && containingLClass == targetClass
-
-    val isList = type is LType.CollectionType
-
-    val isTransient = hasAnnotation(Transient::class)
-
-    /**
-     * 单引用实体关联——实体关联、非集合、非 transient。
-     * 等价于编译器的 isAutoReference 判断。
-     */
-    val isReference = isEntityAssociation && !isList && !isTransient
-
-    override fun collectPsiElements(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
-        if (!visited.add(this)) {
-            return
-        }
-        result.add(source)
+    override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
         annotations.forEach { it.collectPsiElements(result, visited) }
-        if (type is LClass<*>) {
-            type.collectPsiElements(result, visited)
-        } else if (type is LType.EnumType<*, *>) {
-            type.collectPsiElements(result, visited)
-        }
+        type.collectPsiElements(result, visited)
+    }
+
+    override fun toString(): String {
+        return toDebugString(mutableSetOf())
     }
 
     fun toDebugString(visited: MutableSet<String>): String {
         val annotationsStr = annotationsToString(visited)
-        return "LProperty(name=$name, type=${type.toDebugString(visited)}, annotations=$annotationsStr)"
+        return "LProperty(name=$name, type=${type.toDebugString(visited)}, abstract=$abstract, annotations=$annotationsStr)"
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as LProperty<*>
+        other as LProperty
 
         if (name != other.name) return false
         if (containingLClass.canonicalName != other.containingLClass.canonicalName) return false

@@ -85,10 +85,10 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             return export?.export?.value ?: "$implicitPackage.${originalFile.virtualFile.nameWithoutExtension}"
         }
 
-    val clazz: LClass<*>
+    val clazz: LClass?
         get() = CachedValuesManager.getCachedValue(this, CACHED_CLASS_KEY) {
             val processor = LanguageProcessor.analyze(this)
-            val clazz = processor.clazz(this)
+            val clazz = processor.clazz(this) ?: return@getCachedValue null
 
             val classDependencies = mutableSetOf<PsiElement>()
             clazz.collectPsiElements(classDependencies)
@@ -191,7 +191,7 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
     override fun toString() = "JimmerDTO File"
 
     companion object {
-        private val CACHED_CLASS_KEY = Key<CachedValue<LClass<*>>>("DTO_FILE_CACHED_CLASS")
+        private val CACHED_CLASS_KEY = Key<CachedValue<LClass?>>("DTO_FILE_CACHED_CLASS")
         private val CACHED_DTO_KEY = Key<CachedValue<List<String>>>("DTO_FILE_CACHED_DTO")
         private val CACHED_IMPORT_KEY = Key<CachedValue<Map<String, PsiClass>>>("DTO_FILE_CACHED_IMPORT")
         private val CACHED_IMPORT_ALIAS_KEY = Key<CachedValue<Map<String, Pair<DTOAlias, PsiClass>>>>("DTO_FILE_CACHED_IMPORT_ALIAS")

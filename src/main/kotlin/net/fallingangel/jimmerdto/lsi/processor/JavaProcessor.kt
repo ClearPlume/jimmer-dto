@@ -1,119 +1,102 @@
 package net.fallingangel.jimmerdto.lsi.processor
 
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.util.Key
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
-import net.fallingangel.jimmerdto.lsi.*
+import com.intellij.psi.util.CachedValue
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
+import net.fallingangel.jimmerdto.lsi.LClass
+import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.LanguageProcessor
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
-import net.fallingangel.jimmerdto.lsi.param.LParam
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.hasAnnotation
-import net.fallingangel.jimmerdto.util.isInSource
 import net.fallingangel.jimmerdto.util.nullable
 import net.fallingangel.jimmerdto.util.psiClass
 import org.babyfish.jimmer.Immutable
 import org.babyfish.jimmer.sql.Embeddable
 import org.babyfish.jimmer.sql.Entity
 import org.babyfish.jimmer.sql.MappedSuperclass
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
 
-class JavaProcessor : LanguageProcessor<PsiClass> {
+class JavaProcessor : LanguageProcessor {
+    private val childrenKey = Key.create<CachedValue<List<PsiClass>>>("JAVA_CACHED_CHILDREN_CLASS")
+
     override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == JavaLanguage.INSTANCE
 
-    override fun clazz(dtoFile: DTOFile): LClass<PsiClass> {
-        val psiClass = dtoFile.project.psiClass(dtoFile.qualifiedEntity) ?: throw IllegalStateException("Entity class for $dtoFile not found")
+    override fun clazz(dtoFile: DTOFile): LClass? {
+        val psiClass = dtoFile.project.psiClass(dtoFile.qualifiedEntity) ?: return null
         return clazz(psiClass, mutableMapOf())
     }
 
-    fun clazz(clazz: PsiClass, resolvedType: MutableMap<String, LClass<PsiClass>>): LClass<PsiClass> {
-        val qualifiedName = clazz.qualifiedName!!
-        val name = clazz.name!!
-        val type = resolvedType.getOrPut(qualifiedName) {
-            lateinit var lClass: LClass<PsiClass>
+    fun clazz(clazz: PsiClass, resolvedType: MutableMap<String, LClass>): LClass? {
+        val qualifiedName = clazz.qualifiedName ?: return null
+        val name = clazz.name ?: return null
+
+        return resolvedType.getOrPut(qualifiedName) {
+            lateinit var lClass: LClass
             lClass = LClass(
                 name,
                 qualifiedName,
-                false,
-                clazz.isAnnotationType,
-                clazz.annotations.map { resolve(it, resolvedType) },
+                // TODO Unresolved
+                lazy { clazz.annotations.mapNotNull { resolve(it) } },
                 lazy { parents(clazz, resolvedType) },
-                lazy { children(clazz, resolvedType) },
+                {
+                    val classes = CachedValuesManager.getCachedValue(clazz, childrenKey) {
+                        CachedValueProvider.Result.create(
+                            children(clazz),
+                            PsiModificationTracker.MODIFICATION_COUNT,
+                        )
+                    }
+                    val resolvedType = mutableMapOf(qualifiedName to lClass)
+                    classes.mapNotNull { clazz(it, resolvedType) }
+                },
                 lazy { properties(clazz, lClass, resolvedType) },
-                lazy { methods(clazz, resolvedType) },
                 clazz,
             )
             lClass
         }
-        return type
     }
 
-    fun parents(clazz: PsiClass, resolvedType: MutableMap<String, LClass<PsiClass>>): List<LClass<PsiClass>> {
+    fun parents(clazz: PsiClass, resolvedType: MutableMap<String, LClass>): List<LClass> {
         return clazz.supers
             .filter { it.qualifiedName != "java.lang.Object" }
-            .filter { it.hasAnnotation(MappedSuperclass::class, Entity::class) }
-            .map { clazz(it, resolvedType) }
-    }
-
-    fun children(clazz: PsiClass, resolvedType: MutableMap<String, LClass<PsiClass>>): List<LClass<PsiClass>> {
-        return ClassInheritorsSearch.search(clazz, ProjectScope.getAllScope(clazz.project), false)
             .mapNotNull { clazz(it, resolvedType) }
     }
 
-    fun properties(clazz: PsiClass, containingLClass: LClass<PsiClass>, resolvedType: MutableMap<String, LClass<PsiClass>>): List<LProperty<*>> {
-        return if (clazz.hasAnnotation(Immutable::class, Entity::class, Embeddable::class, MappedSuperclass::class)) {
-            clazz.methods
-                .filter { !it.isConstructor }
-                .map { resolve(it, containingLClass, resolvedType) }
-        } else {
-            clazz.fields
-                .map { field ->
-                    val annotations = field.annotations.map { resolve(it, resolvedType) }
-                    LProperty(field.name, annotations, resolve(field.type, resolvedType), field, containingLClass)
-                }
-        }
+    fun children(clazz: PsiClass): List<PsiClass> {
+        return ClassInheritorsSearch.search(clazz, ProjectScope.getAllScope(clazz.project), false)
+            .mapNotNull { it }
     }
 
-    fun methods(clazz: PsiClass, resolvedType: MutableMap<String, LClass<PsiClass>>): List<LMethod<*>> {
-        return if (clazz.hasAnnotation(Immutable::class, Entity::class, Embeddable::class, MappedSuperclass::class)) {
-            emptyList()
-        } else {
-            clazz.methods
-                .filter { !it.isConstructor }
-                .map { method ->
-                    val params = method.parameterList.parameters.map { LParam(it.name, resolve(it.type, resolvedType), it) }
-                    val annotations = method.annotations.map { resolve(it, resolvedType) }
-                    val returnType = method.returnType ?: throw IllegalStateException("Method must have return type")
-
-                    LMethod(
-                        method.name,
-                        annotations,
-                        params,
-                        LMethod.LReturnType(
-                            resolve(returnType, resolvedType),
-                            returnType.annotations.map { resolve(it, resolvedType) },
-                            annotations,
-                        ),
-                        method,
-                    )
-                }
-        }
+    fun properties(clazz: PsiClass, containingLClass: LClass, resolvedType: MutableMap<String, LClass>): List<LProperty> {
+        return clazz.methods
+            .filter { !it.isConstructor }
+            // TODO Unresolved
+            .mapNotNull { resolve(it, containingLClass, resolvedType) }
     }
 
     override fun resolve(element: PsiElement): LAnnotationOwner? {
         return when (element) {
             is PsiClass -> clazz(element, mutableMapOf())
             is PsiMethod -> {
-                val owner = clazz(element.containingClass!!, mutableMapOf())
-                owner.allProperties.first { it.name == element.name }
+                val owner = clazz(element.containingClass ?: return null, mutableMapOf())
+                owner?.allProperties?.firstOrNull { it.name == element.name }
             }
 
             else -> null
         }
     }
 
-    fun resolve(method: PsiMethod, containingLClass: LClass<PsiClass>, resolvedType: MutableMap<String, LClass<PsiClass>>): LProperty<*> {
-        val annotations = method.annotations.map { resolve(it, resolvedType) }
+    fun resolve(method: PsiMethod, containingLClass: LClass, resolvedType: MutableMap<String, LClass>): LProperty? {
+        // TODO Unresolved
+        val annotations = method.annotations.mapNotNull { resolve(it) }
         // TODO 属性类型为Boolean时，jimmer.keepIsPrefix
         val methodName = method.name
         val name = if (methodName.startsWith("get") && methodName.length > 3 && methodName[3].isUpperCase()) {
@@ -122,87 +105,217 @@ class JavaProcessor : LanguageProcessor<PsiClass> {
             methodName
         }
 
-        return LProperty(name, annotations, resolve(method.returnType!!, resolvedType), method, containingLClass)
+        return LProperty(
+            name,
+            resolve(method.returnType ?: return null, resolvedType) ?: return null,
+            method.hasModifierProperty(PsiModifier.ABSTRACT),
+            annotations,
+            method,
+            containingLClass,
+        )
     }
 
-    fun resolve(type: PsiType, resolvedType: MutableMap<String, LClass<PsiClass>>): LType {
+    fun resolve(type: PsiType, resolvedType: MutableMap<String, LClass>): LProperty.Type? {
         return when (type) {
-            is PsiPrimitiveType -> LType.ScalarType(type.name, type.nullable)
+            is PsiPrimitiveType -> LProperty.Type.Scalar(type.name, type.nullable)
 
             is PsiArrayType -> {
                 val componentType = type.componentType
-                LType.ArrayType(componentType.nullable, resolve(componentType, resolvedType))
+                LProperty.Type.Array(resolve(componentType, resolvedType) ?: return null, componentType.nullable)
             }
 
             is PsiClassType -> {
-                val typeClass = type.resolve() ?: return LType.ScalarType(type.name, type.nullable)
+                val typeClass = type.resolve() ?: return null
                 when {
                     typeClass.isEnum -> {
-                        LType.EnumType(
-                            type.name,
+                        LProperty.Type.Enum(
                             type.canonicalText,
-                            false,
                             typeClass.fields
                                 .filterIsInstance<PsiEnumConstant>()
-                                .associateBy { it.name },
+                                .map { it.name to it },
+                            false,
                             typeClass,
                         )
                     }
-
-                    typeClass.isInSource -> clazz(typeClass, resolvedType)
 
                     type.hasParameters() -> {
                         val typeParameters = type.parameters
                         val rawType = type.rawType()
                         val type0 = typeParameters[0]
-                        when {
-                            rawType.canonicalText == "java.util.List" -> LType.CollectionType(
+                        when (rawType.canonicalText) {
+                            "java.util.List" -> LProperty.Type.Collection(
+                                resolve(type0, resolvedType) ?: return null,
+                                LProperty.Type.Collection.Kind.List,
                                 type0.nullable,
-                                resolve(type0, resolvedType),
-                                LType.CollectionType.CollectionKind.List,
                             )
 
-                            rawType.canonicalText == "java.util.Queue" -> LType.CollectionType(
+                            "java.util.Queue" -> LProperty.Type.Collection(
+                                resolve(type0, resolvedType) ?: return null,
+                                LProperty.Type.Collection.Kind.Queue,
                                 type0.nullable,
-                                resolve(type0, resolvedType),
-                                LType.CollectionType.CollectionKind.Queue,
                             )
 
-                            rawType.canonicalText == "java.util.Set" -> LType.CollectionType(
+                            "java.util.Set" -> LProperty.Type.Collection(
+                                resolve(type0, resolvedType) ?: return null,
+                                LProperty.Type.Collection.Kind.Set,
                                 type0.nullable,
-                                resolve(type0, resolvedType),
-                                LType.CollectionType.CollectionKind.Set,
                             )
 
-                            rawType.canonicalText == "java.util.Map" -> LType.MapType(
+                            "java.util.Map" -> LProperty.Type.Map(
+                                resolve(type0, resolvedType) ?: return null,
+                                resolve(typeParameters[1], resolvedType) ?: return null,
                                 false,
-                                resolve(type0, resolvedType),
-                                resolve(typeParameters[1], resolvedType),
                             )
 
-                            rawType.resolve()!!.isInSource -> clazz(typeClass, resolvedType)
-
-                            else -> LType.ScalarType(type.name, type.nullable)
+                            else -> LProperty.Type.Scalar(rawType.canonicalText, type.nullable)
                         }
                     }
 
-                    else -> LType.ScalarType(type.name, type.nullable)
+                    else -> {
+                        if (typeClass.hasAnnotation(Entity::class, MappedSuperclass::class, Embeddable::class, Immutable::class)) {
+                            LProperty.Type.Clazz(clazz(typeClass, resolvedType) ?: return null, type.nullable, typeClass)
+                        } else {
+                            LProperty.Type.Scalar(type.canonicalText, type.nullable)
+                        }
+                    }
                 }
             }
 
-            else -> throw IllegalStateException("Unsupported PsiType: $type")
+            else -> null
         }
     }
 
-    fun resolve(annotation: PsiAnnotation, resolvedType: MutableMap<String, LClass<PsiClass>>): LAnnotation<*> {
-        val clazz = annotation.resolveAnnotationType() ?: throw IllegalStateException("Can't find annotation type ${annotation.qualifiedName}")
+    fun resolve(annotation: PsiAnnotation): LAnnotation? {
+        val clazz = annotation.resolveAnnotationType() ?: return null
         val methods = clazz.methods
+        val className = clazz.name ?: return null
+        val canonicalName = clazz.qualifiedName ?: return null
+
+        val values = annotation.parameterList.attributes
+            // TODO Unresolved
+            .mapNotNull { attribute ->
+                val value = attribute.value ?: return@mapNotNull null
+                attribute.name to resolveParamValue(value)
+            }
+            .toMap()
 
         return LAnnotation(
-            clazz.name!!,
-            clazz.qualifiedName!!,
+            className,
+            canonicalName,
+            // TODO Unresolved
+            methods.mapNotNull {
+                val name = it.name
+                val returnType = it.returnType ?: return@mapNotNull null
+
+                LAnnotation.Param(
+                    name,
+                    resolveParamType(returnType) ?: return@mapNotNull null,
+                    values[name],
+                    null,
+                    it,
+                )
+            },
             clazz,
-            methods.map { LParam(it.name, resolve(it.returnType!!, resolvedType), it) },
         )
+    }
+
+    fun resolveParamValue(value: PsiAnnotationMemberValue): ParamValue? {
+        return when (value) {
+            is PsiLiteralExpression -> {
+                ParamValue.Scalar(value.value ?: return null)
+            }
+
+            is PsiReferenceExpression -> {
+                val enum = value.resolve() as? PsiEnumConstant ?: return null
+                val className = enum.containingClass?.qualifiedName ?: return null
+                ParamValue.Enum(className, enum.name)
+            }
+
+            is PsiClassObjectAccessExpression -> {
+                ParamValue.Clazz(value.operand.type.canonicalText)
+            }
+
+            is PsiAnnotation -> {
+                ParamValue.Annotation(resolve(value) ?: return null)
+            }
+            // TODO Unresolved
+            is PsiArrayInitializerMemberValue -> {
+                ParamValue.Array(value.initializers.mapNotNull { resolveParamValue(it) })
+            }
+
+            is PsiPrefixExpression -> {
+                val operand = value.operand as? PsiLiteralExpression ?: return null
+                val value = when (val v = operand.value) {
+                    is Byte -> -v
+                    is Short -> -v
+                    is Int -> -v
+                    is Long -> -v
+                    is Float -> -v
+                    is Double -> -v
+                    else -> null
+                }
+                ParamValue.Scalar(value ?: return null)
+            }
+
+            else -> {
+                null
+            }
+        }
+    }
+
+    fun resolveParamType(type: PsiType): ParamType? {
+        return when (type) {
+            is PsiPrimitiveType -> ParamType.Scalar(
+                when (type) {
+                    PsiTypes.booleanType() -> ParamType.Scalar.Kind.BOOLEAN
+                    PsiTypes.byteType() -> ParamType.Scalar.Kind.BYTE
+                    PsiTypes.shortType() -> ParamType.Scalar.Kind.SHORT
+                    PsiTypes.intType() -> ParamType.Scalar.Kind.INT
+                    PsiTypes.longType() -> ParamType.Scalar.Kind.LONG
+                    PsiTypes.floatType() -> ParamType.Scalar.Kind.FLOAT
+                    PsiTypes.doubleType() -> ParamType.Scalar.Kind.DOUBLE
+                    PsiTypes.charType() -> ParamType.Scalar.Kind.CHAR
+                    else -> return null
+                }
+            )
+
+            is PsiArrayType -> ParamType.Array(resolveParamType(type.componentType) ?: return null)
+
+            is PsiClassType -> {
+                val typeClass = type.resolve() ?: return null
+                when {
+                    typeClass.isEnum -> {
+                        ParamType.Enum(
+                            type.canonicalText,
+                            typeClass.fields
+                                .filterIsInstance<PsiEnumConstant>()
+                                .map { it.name to it },
+                            typeClass,
+                        )
+                    }
+
+                    typeClass.isAnnotationType -> ParamType.Annotation(type.canonicalText, typeClass)
+
+                    type.canonicalText == "java.lang.String" -> ParamType.Scalar(ParamType.Scalar.Kind.STRING)
+
+                    typeClass.qualifiedName == "java.lang.Class" -> {
+                        val typeParameters = type.parameters
+                        val type0 = typeParameters.getOrNull(0) ?: return ParamType.Clazz(null, typeClass)
+
+                    val boundClass = when (type0) {
+                        is PsiWildcardType -> (type0.bound as? PsiClassType)?.resolve()
+                        is PsiClassType -> type0.resolve()
+                        else -> null
+                    }
+
+                        ParamType.Clazz(boundClass?.qualifiedName, boundClass ?: typeClass)
+                    }
+
+                    else -> null
+                }
+            }
+
+            else -> null
+        }
     }
 }

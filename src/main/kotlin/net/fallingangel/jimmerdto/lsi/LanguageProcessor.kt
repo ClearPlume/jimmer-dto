@@ -9,13 +9,10 @@ import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.element.DTOAnnotationValue
 import net.fallingangel.jimmerdto.util.literalType
 
-/**
- * @param C 类Psi元素类型
- */
-interface LanguageProcessor<C : PsiElement> {
+interface LanguageProcessor {
     fun supports(dtoFile: DTOFile): Boolean
 
-    fun clazz(dtoFile: DTOFile): LClass<C>
+    fun clazz(dtoFile: DTOFile): LClass?
 
     fun resolve(element: PsiElement): LAnnotationOwner?
 
@@ -54,9 +51,9 @@ interface LanguageProcessor<C : PsiElement> {
     }
 
     companion object {
-        private val extensionPointName = ExtensionPointName.create<LanguageProcessor<*>>("net.fallingangel.languageProcessor")
+        private val extensionPointName = ExtensionPointName.create<LanguageProcessor>("net.fallingangel.languageProcessor")
 
-        fun analyze(dtoFile: DTOFile): LanguageProcessor<*> {
+        fun analyze(dtoFile: DTOFile): LanguageProcessor {
             val processor = extensionPointName.findFirstSafe { it.supports(dtoFile) }
             return processor ?: throw UnsupportedLanguageException("Unsupported language: ${dtoFile.projectLanguage}")
         }

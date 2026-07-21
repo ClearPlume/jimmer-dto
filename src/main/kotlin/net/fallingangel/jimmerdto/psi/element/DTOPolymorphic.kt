@@ -11,6 +11,6 @@ interface DTOPolymorphic : DTOElement {
     val morphisms: List<DTOMorphism>
 
     // polymorphic -> dtoBody
-    val containingLClass: LClass<*>?
+    val containingLClass: LClass?
         get() = (parent as DTODtoBody).containingLClass
 }

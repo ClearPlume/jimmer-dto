@@ -11,7 +11,7 @@ interface DTOPropArg : DTOElement {
     val isEmpty: Boolean
         get() = values.isEmpty() || values.size == 1 && values.first().text == ""
 
-    val args: List<LProperty<*>>?
+    val args: List<LProperty>?
         get() {
             val prop = parent as DTOPositiveProp
             val function = Function.entries.find { it.expression == prop.name.value } ?: return null

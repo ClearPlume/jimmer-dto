@@ -6,9 +6,12 @@ import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.LType
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
-import net.fallingangel.jimmerdto.lsi.findPropertyOrNull
+import net.fallingangel.jimmerdto.lsi.findProperty
+import net.fallingangel.jimmerdto.lsi.jimmer.isEmbedded
+import net.fallingangel.jimmerdto.lsi.jimmer.isEntityAssociation
+import net.fallingangel.jimmerdto.lsi.jimmer.isReference
+import net.fallingangel.jimmerdto.lsi.jimmer.resolvedLClass
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.util.modifiedBy
@@ -42,7 +45,7 @@ interface DTOPositiveProp : DTOElement {
     //             / dtoBody
     // positiveProp 
     //             \ aliasGroupBody -> aliasGroup
-    val containingLClass: LClass<*>?
+    val containingLClass: LClass?
         get() {
             val parent = parent
             return if (parent is DTODtoBody) {
@@ -52,7 +55,7 @@ interface DTOPositiveProp : DTOElement {
             }
         }
 
-    val property: LProperty<*>?
+    val property: LProperty?
         get() = containingLClass?.findProperty(name.value)
 
     fun functions(): List<LookupInfo> {
@@ -88,22 +91,22 @@ interface DTOPositiveProp : DTOElement {
     }
 
     fun childProps(prefix: List<String>): List<Pair<String, String>> {
-        val type = property?.actualType as? LClass<*> ?: return emptyList()
+        val clazz = property?.actualType?.resolvedLClass ?: return emptyList()
         val props = if (prefix.isEmpty()) {
-            type.allProperties
+            clazz.allProperties
         } else {
-            val propertyType = type.findPropertyOrNull(prefix)?.actualType as? LClass<*> ?: return emptyList()
-            propertyType.allProperties
+            val propertyClass = clazz.findProperty(prefix)?.actualType?.resolvedLClass ?: return emptyList()
+            propertyClass.allProperties
         }
 
         val scalars = props
-            .filter { it.type is LType.ScalarType || it.type is LType.EnumType<*, *> }
+            .filter { it.type is LProperty.Type.Scalar || it.type is LProperty.Type.Enum }
             .map { it.name to it.presentableType }
         val associations = props
-            .filter(LProperty<*>::isReference)
+            .filter(LProperty::isReference)
             .map { it.name to it.presentableType }
         val views = props
-            .filter(LProperty<*>::isEntityAssociation)
+            .filter(LProperty::isEntityAssociation)
             .mapNotNull { prop ->
                 val idType = prop.targetClass!!.properties
                     .find { it.hasAnnotation(Id::class) }
@@ -112,7 +115,7 @@ interface DTOPositiveProp : DTOElement {
                 "${prop.name}Id" to idType
             }
         val embeddable = props
-            .filter(LProperty<*>::isEmbedded)
+            .filter(LProperty::isEmbedded)
             .map { it.name to it.presentableType }
 
         return scalars + associations + views + embeddable
