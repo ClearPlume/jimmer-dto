@@ -8,6 +8,7 @@ import net.fallingangel.jimmerdto.psi.element.DTOMacro
 class DTODocumentationProvider : AbstractDocumentationProvider() {
     override fun generateDoc(element: PsiElement, originalElement: PsiElement?): String? {
         val macro = element.parent as? DTOMacro ?: return null
+        // TODO 优化可选项获取逻辑
         if (macro.name.value !in listOf("allScalars", "allReferences")) {
             return null
         }

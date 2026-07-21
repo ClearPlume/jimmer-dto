@@ -132,6 +132,8 @@ class DTOAnnotator : Annotator {
 
         /**
          * 为全限定类名的部分上色
+         * 
+         * TODO 实体注解校验 the "Probe" is not decorated by "@Entity", "Embeddable" or "Immutable"
          */
         override fun visitQualifiedNamePart(o: DTOQualifiedNamePart) {
             val `package` = o.parent.sibling<PsiElement>(false) {
@@ -222,6 +224,9 @@ class DTOAnnotator : Annotator {
             }
 
             // InputStrategyModifier只允许针对input dto使用
+            // TODO: Level 分类有误——Both 实际含义是 InputStrategyModifier（fixed/static/dynamic/fuzzy），
+            //  不是"Dto 和 Prop 都能用"。Variant 是独立维度（morphism 的 default），不属于 Dto/Prop 轴。
+            //  需要重新设计 Level 枚举，让每个修饰符的合法位置精确表达。
             val inputModifiers = currentModifiers.zip(o.modifiers).filter { it.second.level == Modifier.Level.Both }
             if (o notModifiedBy Modifier.Input) {
                 inputModifiers
