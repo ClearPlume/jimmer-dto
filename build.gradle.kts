@@ -14,10 +14,14 @@ plugins {
 }
 
 group = "net.fallingangel"
-version = "0.0.7.49"
+version = "0.0.7.50"
 
-val since = "242.24807.4"
-val until = "261.*"
+// 构建依赖
+val ideVersion = "2024.3"
+
+// 插件兼容范围
+val sinceVersion = "243"
+val untilVersion = "262.*"
 
 val userHome: String = System.getProperty("user.home")
 val certificateChainFileValue = file("$userHome/.gradle/chain.crt")
@@ -33,9 +37,7 @@ repositories {
 
 dependencies {
     intellijPlatform {
-        intellijIdeaCommunity(since) {
-            useInstaller = false
-        }
+        intellijIdeaCommunity(ideVersion)
         bundledPlugins("com.intellij.java", "org.jetbrains.kotlin")
 
         testFramework(TestFrameworkType.Platform)
@@ -54,7 +56,6 @@ dependencies {
 kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_21
-        freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
     }
 }
 
@@ -86,13 +87,15 @@ intellijPlatform {
         }
 
         ideaVersion {
-            sinceBuild = since
-            untilBuild = until
+            sinceBuild = sinceVersion
+            untilBuild = untilVersion
         }
     }
 
     pluginVerification {
-        ides.recommended()
+        ides.create { 
+            version = ideVersion
+        }
     }
 
     signing {

@@ -6,6 +6,28 @@
 
 * Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
 
+## [0.0.7.50] - 2026-07-21
+
+### Added
+
+* Polymorphic DTO syntax infrastructure: grammar rules, PSI elements, formatting
+* Polymorphic DTO morphism syntax error messages
+* `parents` recognition for `@Entity` inheritance hierarchy
+* `#exhaustive` initial support: context dispatch, completion, highlighting
+* `sealed` modifier validation: forbidden on specification, requires `#types` block
+
+### Changed
+
+* Rebuilt L* intermediate representation: removed zero-consumer abstractions, eliminated model-level generics, nested domain classifications
+* Extracted Jimmer semantic extensions to dedicated `lsi/jimmer` package
+* Upgraded Gradle 9.6.1, Kotlin 2.4.0, Jimmer 0.11.0
+* Compatibility range narrowed to 2024.3 ~ 2026.2
+
+### Fixed
+
+* `qualifiedNamePart` Kotlin-side prelude package search scope
+* `LAnnotation.Param.Value` comparison via `eq` methods
+
 ## [0.0.7.49] - 2026-07-11
 
 ### Added
