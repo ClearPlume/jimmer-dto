@@ -77,11 +77,21 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
                         }
 
                         KotlinLanguage.INSTANCE -> {
-                            val prelude = project.ktClass("kotlin.$part")
-                                .filter { "org.jetbrains.kotlin/kotlin-stdlib" in it.virtualFile.path }
-                                .getOrNull(0)
-                            prelude ?: run {
-                                project.ktClass("kotlin.collections.$part")
+                            val prelude = arrayOf(
+                                "kotlin",
+                                "kotlin.annotation",
+                                "kotlin.collections",
+                                "kotlin.comparisons",
+                                "kotlin.io",
+                                "kotlin.ranges",
+                                "kotlin.sequences",
+                                "kotlin.text",
+                                "kotlin.jvm",
+                            )
+
+                            prelude.firstNotNullOfOrNull { `package` ->
+                                project.ktClass("$`package`.$part")
+                                    // 过滤掉不是来自 kotlin-stdlib 的同名类
                                     .filter { "org.jetbrains.kotlin/kotlin-stdlib" in it.virtualFile.path }
                                     .getOrNull(0)
                             }
