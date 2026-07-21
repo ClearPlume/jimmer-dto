@@ -6,7 +6,6 @@ import com.intellij.lang.jvm.JvmModifier
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
@@ -30,12 +29,12 @@ import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtAnnotated
+import org.jetbrains.kotlin.psi.KtAnnotationEntry
+import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.types.KotlinType
-import org.jetbrains.kotlinx.serialization.compiler.resolve.toClassDescriptor
 import javax.swing.Icon
 import kotlin.reflect.KClass
 
@@ -50,20 +49,6 @@ val PsiElement.contentRoot: VirtualFile?
 
 val DTOElement.file: DTOFile
     get() = containingFile as DTOFile
-
-val PsiClass.isInSource: Boolean
-    get() {
-        val fileIndex = ProjectFileIndex.getInstance(project)
-        return fileIndex.isInSource(containingFile.virtualFile)
-    }
-
-val KotlinType.isInSource: Boolean
-    get() {
-        val descriptor = toClassDescriptor ?: return false
-        val declaration = DescriptorToSourceUtils.getSourceFromDescriptor(descriptor) as? KtElement ?: return false
-        val fileIndex = ProjectFileIndex.getInstance(declaration.project)
-        return fileIndex.isInSource(declaration.containingFile.virtualFile)
-    }
 
 @Suppress("UnstableApiUsage")
 val PsiClass.icon: Icon
