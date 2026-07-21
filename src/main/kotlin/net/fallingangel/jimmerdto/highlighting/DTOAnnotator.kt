@@ -30,6 +30,7 @@ import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.GenericType
 import net.fallingangel.jimmerdto.util.*
 import org.babyfish.jimmer.sql.Id
+import org.jetbrains.kotlin.idea.base.psi.childrenDfsSequence
 
 /**
  * 部分代码结构的高亮
@@ -257,6 +258,20 @@ class DTOAnnotator : Annotator {
                             ReorderingModifier(o),
                         )
                     }
+            }
+
+            // sealed 不允许在 Specification dto 上使用
+            if (o modifiedBy Modifier.Specification) {
+                val sealed = o.modifierElements.find { it.text == Modifier.Sealed.name.lowercase() }
+                sealed?.error("The modifier 'sealed' is not allowed on specification")
+            }
+
+            // sealed 要求 dto 内部包含 #types 块
+            if (o modifiedBy Modifier.Sealed) {
+                if (o.childrenDfsSequence().none { it is DTOPolymorphic }) {
+                    val sealed = o.modifierElements.find { it.text == Modifier.Sealed.name.lowercase() }!!
+                    sealed.error("The modifier 'sealed' requires a #types block")
+                }
             }
         }
 
