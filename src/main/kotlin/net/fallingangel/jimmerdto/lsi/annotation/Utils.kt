@@ -17,3 +17,17 @@ fun LAnnotationOwner.hasAnnotationBySimple(vararg simpleAnnotation: String): Boo
 fun LAnnotationOwner.annotationsToString(visited: MutableSet<String>): String {
     return annotations.joinToString(prefix = "[", postfix = "]") { it.toDebugString(visited) }
 }
+
+infix fun LAnnotation.Param.Value?.eq(constant: Enum<*>): Boolean {
+    if (this !is LAnnotation.Param.Value.Enum) return false
+    val javaClass = constant.declaringJavaClass
+    return canonicalName == javaClass.canonicalName && constantName == constant.name
+}
+
+infix fun LAnnotation.Param.Value?.eq(expected: String): Boolean {
+    return this is LAnnotation.Param.Value.Scalar && value == expected
+}
+
+infix fun LAnnotation.Param.Value?.eq(expected: Boolean): Boolean {
+    return this is LAnnotation.Param.Value.Scalar && value == expected
+}
