@@ -6,7 +6,6 @@ import com.intellij.lang.jvm.JvmModifier
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
@@ -26,9 +25,6 @@ import org.babyfish.jimmer.Immutable
 import org.babyfish.jimmer.sql.Embeddable
 import org.babyfish.jimmer.sql.Entity
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
-import org.jetbrains.kotlin.analysis.api.symbols.KaSymbolOrigin
-import org.jetbrains.kotlin.analysis.api.types.KaType
-import org.jetbrains.kotlin.analysis.api.types.symbol
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -50,15 +46,6 @@ val PsiElement.contentRoot: VirtualFile?
 
 val DTOElement.file: DTOFile
     get() = containingFile as DTOFile
-
-val PsiClass.isInSource: Boolean
-    get() {
-        val fileIndex = ProjectFileIndex.getInstance(project)
-        return fileIndex.isInSource(containingFile.virtualFile)
-    }
-
-val KaType.isInSource: Boolean
-    get() = symbol?.origin?.let { it in listOf(KaSymbolOrigin.SOURCE, KaSymbolOrigin.JAVA_SOURCE) } == true
 
 @Suppress("UnstableApiUsage")
 val PsiClass.icon: Icon
