@@ -459,13 +459,20 @@ class DTOAnnotator : Annotator {
         override fun visitMacro(o: DTOMacro) {
             // 宏名称
             val macroName = o.name
-            if (macroName.value in listOf("allScalars", "allReferences")) {
+            // TODO 优化可选项获取逻辑
+            val availableMacros = if (o.haveParent<DTOPolymorphic>()) {
+                listOf("exhaustive")
+            } else {
+                listOf("allScalars", "allReferences")
+            }
+
+            if (macroName.value in availableMacros) {
                 o.firstChild.style(DTOSyntaxHighlighter.MACRO)
                 macroName.style(DTOSyntaxHighlighter.MACRO)
             } else {
                 macroName.error(
-                    "Macro name should be \"allScalars\" or \"allReferences\"",
-                    ChooseMacro(macroName),
+                    "Macro name should be one of: $availableMacros",
+                    ChooseMacro(macroName, availableMacros),
                 )
                 return
             }
@@ -479,7 +486,8 @@ class DTOAnnotator : Annotator {
 
             // 宏的定义应该在第一位
             val siblings = o.siblings(forward = false, withSelf = false).filterIsInstance<DTOElement>()
-            if (siblings.any { it !is DTOMacro }) {
+            // TODO 结构修正
+            if (siblings.any { it !is DTOMacro } && macroName.value != "exhaustive") {
                 o.error("Macro must be declared before any other elements")
             }
 

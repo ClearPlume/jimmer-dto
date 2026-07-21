@@ -165,11 +165,13 @@ class DTOCompletionContributor : CompletionContributor() {
 
     /**
      * 宏提示
+     * 
+     * TODO 优化可选项获取逻辑
      */
     private fun completeMacro() {
         complete(
             { _, result ->
-                result.addAllElements(listOf("allScalars", "allReferences").lookUp())
+                result.addAllElements(listOf("allScalars", "allReferences", "exhaustive").lookUp())
             },
             identifier.withParent(DTOMacroName::class.java),
         )
