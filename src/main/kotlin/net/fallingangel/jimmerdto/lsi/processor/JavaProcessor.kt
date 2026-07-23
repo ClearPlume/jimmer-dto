@@ -187,7 +187,7 @@ class JavaProcessor : LanguageProcessor {
 
     fun resolve(annotation: PsiAnnotation): LAnnotation? {
         val clazz = annotation.resolveAnnotationType() ?: return null
-        val methods = clazz.methods
+        val methods = clazz.methods.filterIsInstance<PsiAnnotationMethod>()
         val className = clazz.name ?: return null
         val canonicalName = clazz.qualifiedName ?: return null
 
@@ -199,22 +199,25 @@ class JavaProcessor : LanguageProcessor {
             }
             .toMap()
 
+        val params = methods.mapNotNull { method ->
+            val name = method.name
+            val returnType = method.returnType ?: return@mapNotNull null
+            val defaultValue = method.defaultValue
+
+            LAnnotation.Param(
+                name,
+                // TODO Unresolved
+                resolveParamType(returnType) ?: return@mapNotNull null,
+                values[name],
+                defaultValue?.let { resolveParamValue(it) },
+                method,
+            )
+        }
+
         return LAnnotation(
             className,
             canonicalName,
-            // TODO Unresolved
-            methods.mapNotNull {
-                val name = it.name
-                val returnType = it.returnType ?: return@mapNotNull null
-
-                LAnnotation.Param(
-                    name,
-                    resolveParamType(returnType) ?: return@mapNotNull null,
-                    values[name],
-                    null,
-                    it,
-                )
-            },
+            params,
             clazz,
         )
     }
