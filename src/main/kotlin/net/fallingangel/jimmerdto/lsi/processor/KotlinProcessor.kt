@@ -2,6 +2,7 @@ package net.fallingangel.jimmerdto.lsi.processor
 
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
+import com.intellij.psi.PsiAnnotationMethod
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
@@ -14,6 +15,7 @@ import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.LanguageProcessor
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
+import net.fallingangel.jimmerdto.lsi.annotation.resolveParamValue
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.ktClass
@@ -33,16 +35,14 @@ import org.jetbrains.kotlin.idea.base.utils.fqname.fqName
 import org.jetbrains.kotlin.idea.caches.resolve.analyze
 import org.jetbrains.kotlin.idea.caches.resolve.resolveToDescriptorIfAny
 import org.jetbrains.kotlin.idea.completion.reference
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.KtUserType
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.DescriptorToSourceUtils
 import org.jetbrains.kotlin.resolve.constants.*
 import org.jetbrains.kotlin.resolve.descriptorUtil.annotationClass
 import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import org.jetbrains.kotlin.resolve.source.getPsi
 import org.jetbrains.kotlin.types.KotlinType
 import org.jetbrains.kotlinx.serialization.compiler.resolve.toClassDescriptor
@@ -225,29 +225,36 @@ class KotlinProcessor : LanguageProcessor {
 
     fun resolve(annotation: AnnotationDescriptor): LAnnotation? {
         val qualifiedName = annotation.fqName?.asString() ?: return null
-        val descriptor = annotation.annotationClass ?: return null
+        val constructor = annotation.annotationClass?.constructors?.singleOrNull() ?: return null
 
         val values = annotation.allValueArguments
             // TODO Unresolved
             .mapNotNull { it.key.asString() to resolveParamValue(it.value) }
             .toMap()
 
-        val params = descriptor
-            .unsubstitutedMemberScope
-            .getContributedDescriptors()
-            .filterIsInstance<PropertyDescriptor>()
+        val params = constructor.valueParameters
             // TODO Unresolved
-            .mapNotNull {
-                val name = it.name.asString()
-                val type = resolveParamType(it.type) ?: return@mapNotNull null
+            .mapNotNull { param ->
+                val name = param.name.asString()
+                val type = resolveParamType(param.type) ?: return@mapNotNull null
+                val source = param.source.getPsi()
 
-                LAnnotation.Param(
-                    name,
-                    type,
-                    values[name],
-                    null,
-                    it.source.getPsi(),
-                )
+                val defaultValue = when (source) {
+                    is PsiAnnotationMethod -> source.defaultValue?.let(::resolveParamValue)
+
+                    is KtParameter -> {
+                        source.defaultValue?.let { defaultValue ->
+                            val bodyResolveMode = BodyResolveMode.PARTIAL_NO_ADDITIONAL
+                            val defaultValue = defaultValue.analyze(bodyResolveMode)[BindingContext.COMPILE_TIME_VALUE, defaultValue]
+                            defaultValue ?: return@let null
+                            resolveParamValue(defaultValue.toConstantValue(param.type))
+                        }
+                    }
+
+                    else -> return@mapNotNull null
+                }
+
+                LAnnotation.Param(name, type, values[name], defaultValue, source)
             }
 
         return LAnnotation(
