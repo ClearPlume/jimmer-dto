@@ -303,7 +303,7 @@ class LAnnotation(
         }
 
         fun toDebugString(visited: MutableSet<String>): String {
-            return "Param(name=$name, type=${type.toDebugString(visited)})"
+            return "Param(name=$name, type=${type.toDebugString(visited)}, value=$value, defaultValue=$defaultValue)"
         }
     }
 
