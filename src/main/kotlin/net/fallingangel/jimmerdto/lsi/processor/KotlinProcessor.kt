@@ -2,6 +2,7 @@ package net.fallingangel.jimmerdto.lsi.processor
 
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
+import com.intellij.psi.PsiAnnotationMethod
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
@@ -14,6 +15,7 @@ import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.LanguageProcessor
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
+import net.fallingangel.jimmerdto.lsi.annotation.resolveParamValue
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.ktClass
@@ -21,6 +23,7 @@ import org.babyfish.jimmer.Immutable
 import org.babyfish.jimmer.sql.Embeddable
 import org.babyfish.jimmer.sql.Entity
 import org.babyfish.jimmer.sql.MappedSuperclass
+import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotation
@@ -33,7 +36,9 @@ import org.jetbrains.kotlin.analysis.api.types.*
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
+import org.jetbrains.kotlin.idea.base.analysis.api.utils.defaultValue
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
@@ -214,6 +219,7 @@ class KotlinProcessor : LanguageProcessor {
         }
     }
 
+    @OptIn(KaExperimentalApi::class)
     fun KaSession.resolve(annotation: KaAnnotation): LAnnotation? {
         val constructor = annotation.constructorSymbol ?: return null
         val classId = annotation.classId ?: return null
@@ -226,22 +232,33 @@ class KotlinProcessor : LanguageProcessor {
             }
             .toMap()
 
+        val params = constructor.valueParameters
+            // TODO Unresolved
+            .mapNotNull { parameter ->
+                val name = parameter.name.asString()
+                val type = resolveParamType(parameter.returnType) ?: return@mapNotNull null
+                val source = parameter.psi
+
+                val defaultValue = when (source) {
+                    is PsiAnnotationMethod -> source.defaultValue?.let(::resolveParamValue)
+
+                    is KtParameter -> {
+                        parameter.defaultValue?.let { defaultValue ->
+                            val defaultValue = defaultValue.evaluateAsAnnotationValue() ?: return@let null
+                            resolveParamValue(defaultValue)
+                        }
+                    }
+
+                    else -> null
+                }
+
+                LAnnotation.Param(name, type, values[name], defaultValue, source)
+            }
+
         return LAnnotation(
             classId.shortClassName.asString(),
             classId.asFqNameString(),
-            // TODO Unresolved
-            constructor.valueParameters.mapNotNull { parameter ->
-                val name = parameter.name.asString()
-                val type = resolveParamType(parameter.returnType) ?: return@mapNotNull null
-
-                LAnnotation.Param(
-                    name,
-                    type,
-                    values[name],
-                    null,
-                    parameter.psi,
-                )
-            },
+            params,
             annotation.psi,
         )
     }
