@@ -194,8 +194,9 @@ class JavaProcessor : LanguageProcessor {
         val values = annotation.parameterList.attributes
             // TODO Unresolved
             .mapNotNull { attribute ->
+                val name = attribute.name ?: "value"
                 val value = attribute.value ?: return@mapNotNull null
-                attribute.name to resolveParamValue(value)
+                name to resolveParamValue(value)
             }
             .toMap()
 
