@@ -752,7 +752,12 @@ class DTOAnnotator : Annotator {
             }
 
             val type = o.type.value
-            val clazz = o.type.clazz
+            val clazz = o.type.target?.source
+            val (typeParameterNumber, qualifiedName) = when (clazz) {
+                is PsiClass -> clazz.typeParameters.size to clazz.qualifiedName
+                is KtClass -> clazz.typeParameters.size to clazz.fqName?.asString()
+                else -> 0 to ""
+            }
 
             // 类型解析
             if (clazz == null && type !in DTOLanguage.preludes) {
@@ -764,9 +769,9 @@ class DTOAnnotator : Annotator {
             }
 
             // 泛型校验
-            val exceptedTypeParamNumber = GenericType[type]?.generics?.size ?: clazz?.typeParameters?.size ?: 0
+            val exceptedTypeParamNumber = GenericType[type]?.generics?.size ?: typeParameterNumber
             if ((o.arguments?.values?.size ?: 0) != exceptedTypeParamNumber) {
-                o.type.error("Generic parameter mismatch")
+                o.type.error("Generic parameter mismatch, expected `$exceptedTypeParamNumber` but got `${o.arguments?.values?.size ?: 0}`")
             }
 
             // Dto接口实现校验
@@ -790,7 +795,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 禁止类型校验
-            if (clazz!!.qualifiedName!!.startsWith("org.babyfish.jimmer.")) {
+            if (qualifiedName?.startsWith("org.babyfish.jimmer.") == true) {
                 o.error(
                     "Types under `org.babyfish.jimmer` are not allowed",
                     RemoveElement(o.type.value, o.parent, ::locateTarget, ::locateRelated),
