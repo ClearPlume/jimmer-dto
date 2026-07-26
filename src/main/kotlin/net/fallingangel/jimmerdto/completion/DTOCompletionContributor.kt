@@ -780,7 +780,9 @@ class DTOCompletionContributor : CompletionContributor() {
         }
 
         val preludes = preludes.lookUp()
-        val imports = (file.imported.values + file.importedAlias.values.map { it.second })
+        val imports = file.importIndex.values
+            .mapNotNull { it.singleOrNull() }
+            .mapNotNull { file.project.psiClass(it) }
             .filterNot { it.isAnnotationType }
             .lookUp()
         return preludes +
@@ -845,7 +847,7 @@ class DTOCompletionContributor : CompletionContributor() {
                     val fileNode = file.findChild<PsiElement>("/dtoFile").node
                     val export = file.export
                     val imports = file.importStatements
-                    val importedSameName = name in file.imported.keys || name in file.importedAlias.keys
+                    val importedSameName = name in file.importIndex
                     val import = imports.find { i -> i.qualifiedName.value == qualifiedName }
                     val annotationName = file.findElementAt(context.startOffset)?.parent?.parentUnSure<DTOQualifiedName>()
                     annotationName ?: return@withInsertHandler

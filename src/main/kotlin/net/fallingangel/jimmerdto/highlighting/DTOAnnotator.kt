@@ -45,14 +45,12 @@ class DTOAnnotator : Annotator {
          * 导包重复检测(普通导包语句)
          */
         override fun visitImportStatement(o: DTOImportStatement) {
-            val file = o.file
             // 这里不考虑分组导入
             if (o.groupedImport != null) {
                 return
             }
             val type = o.qualifiedName.simpleName
-            val imports = file.imports.map(Pair<String, PsiClass>::first) + file.alias.map { (alias) -> alias.value }
-            if (imports.count { it == type } > 1) {
+            if ((o.file.importIndex[type]?.size ?: 0) > 1) {
                 o.error(
                     "Conflicting import: imported name `$type` is ambiguous",
                     RemoveElement(type, o),
@@ -80,8 +78,7 @@ class DTOAnnotator : Annotator {
 
             // 导包重复检测
             val type = o.alias?.value ?: o.type.value
-            val imports = o.file.imports.map(Pair<String, PsiClass>::first) + o.file.alias.map { (alias) -> alias.value }
-            if (imports.count { it == type } > 1) {
+            if ((o.file.importIndex[type]?.size ?: 0) > 1) {
                 o.error(
                     "Conflicting import: imported name `$type` is ambiguous",
                     RemoveElement(

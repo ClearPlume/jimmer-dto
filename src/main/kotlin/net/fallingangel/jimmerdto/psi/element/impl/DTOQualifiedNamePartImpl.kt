@@ -58,7 +58,7 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
         if (parent is DTOQualifiedName && parent.parent !is DTOImportStatement) {
             if (parent.parts.size == 1) {
                 // 类型定义和使用
-                val imported = file.imported[part] ?: file.importedAlias[part]?.first
+                val imported = file.importIndex[part]?.get(0)?.let { project.psiClass(it) }
                 if (imported == null && part in DTOLanguage.preludes) {
                     return when (file.projectLanguage) {
                         JavaLanguage.INSTANCE -> {
@@ -104,7 +104,7 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
             } else if (parent.parts.size == 2 && parent.parent !is DTOTypeRef) {
                 // 枚举字面量
                 return if (this == parent.parts[0]) {
-                    file.imported[part] ?: file.importedAlias[part]?.second
+                    file.importIndex[part]?.get(0)?.let { project.psiClass(it) }
                 } else {
                     val enum = parent.parts[0].resolve() as? PsiClass ?: return null
                     enum.fields
@@ -142,8 +142,8 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
                 }
 
                 PropConfigName.Filter.text, PropConfigName.Recursion.text -> {
-                    file.imported[firstPart] ?: file.importedAlias[firstPart]?.second ?: JavaPsiFacade.getInstance(project)
-                        .findPackage(firstPart)
+                    file.importIndex[part]?.get(0)?.let { project.psiClass(it) }
+                        ?: JavaPsiFacade.getInstance(project).findPackage(firstPart)
                 }
 
                 else -> propClass.findProperty(firstPart)?.source

@@ -10,6 +10,7 @@ import net.fallingangel.jimmerdto.psi.element.createImported
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
 import net.fallingangel.jimmerdto.util.file
 import net.fallingangel.jimmerdto.util.findChild
+import net.fallingangel.jimmerdto.util.psiClass
 
 class DTOImportedImpl(node: ASTNode) : DTONamedElementImpl(node), DTOImported {
     override val value: String
@@ -25,7 +26,8 @@ class DTOImportedImpl(node: ASTNode) : DTONamedElementImpl(node), DTOImported {
 
     override fun resolve(): PsiElement? {
         val parent = parent as DTOImportedType
-        return file.imported[value] ?: parent.alias?.value?.let { file.importedAlias[it]?.second }
+        val name = parent.alias?.value ?: value
+        return file.importIndex[name]?.get(0)?.let { project.psiClass(it) }
     }
 
     override fun accept(visitor: PsiElementVisitor) {
