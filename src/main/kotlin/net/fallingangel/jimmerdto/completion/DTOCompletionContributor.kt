@@ -9,12 +9,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.psi.*
+import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
-import com.intellij.util.FileContentUtilCore
 import net.fallingangel.jimmerdto.DTOLanguage.preludes
 import net.fallingangel.jimmerdto.DTOLanguage.rule
 import net.fallingangel.jimmerdto.DTOLanguage.token
@@ -844,46 +844,47 @@ class DTOCompletionContributor : CompletionContributor() {
             .withInsertHandler { context, _ ->
                 if (needImport) {
                     val file = context.file as DTOFile
-                    val fileNode = file.findChild<PsiElement>("/dtoFile").node
+                    val root = file.findChild<PsiElement>("/dtoFile")
+                    val project = file.project
                     val export = file.export
                     val imports = file.importStatements
-                    val importedSameName = name in file.importIndex
-                    val import = imports.find { i -> i.qualifiedName.value == qualifiedName }
-                    val annotationName = file.findElementAt(context.startOffset)?.parent?.parentUnSure<DTOQualifiedName>()
-                    annotationName ?: return@withInsertHandler
 
-                    if (qualifiedName == annotationName.value) {
-                        // 要导入的名称和当前已输入的名称相等
-                        return@withInsertHandler
-                    }
-
-                    if (importedSameName) {
-                        if (import == null) {
-                            val newAnnotationName = context.project.createAnnotation(qualifiedName).qualifiedName
-                            annotationName.parent.node.replaceChild(annotationName.node, newAnnotationName.node)
+                    // 是否已经导入过相同简单名的类
+                    if (name in file.importIndex) {
+                        // 已导入的类全限定名是否等于要导入的类
+                        if (file.importIndex[name]?.firstOrNull() != qualifiedName) {
+                            val annotationName = file.findElementAt(context.startOffset)?.parent?.parentUnSure<DTOQualifiedName>()
+                            annotationName ?: return@withInsertHandler
+                            annotationName.replace(project.createQualifiedName(qualifiedName))
                         }
                     } else {
-                        if (import == null) {
-                            if (imports.isEmpty()) {
-                                if (export == null) {
-                                    fileNode.addLeaf(TokenType.WHITE_SPACE, "import $qualifiedName\n\n", fileNode.firstChildNode)
-                                } else {
-                                    fileNode.addLeaf(
-                                        token[Import],
-                                        "\n\nimport $qualifiedName",
-                                        export.node.treeNext,
-                                    )
-                                }
+                        val import = project.createImport(qualifiedName)
+
+                        if (imports.isEmpty()) {
+                            if (export == null) {
+                                val inserted = root.addBefore(import, file.findChild("/dtoFile/dto"))
+                                CodeStyleManager.getInstance(project).reformatRange(
+                                    root,
+                                    0,
+                                    inserted.textRange.endOffset,
+                                )
                             } else {
-                                fileNode.addLeaf(
-                                    token[Import],
-                                    "\nimport $qualifiedName",
-                                    imports.last().node.treeNext,
+                                val inserted = root.addAfter(import, export)
+                                CodeStyleManager.getInstance(project).reformatRange(
+                                    root,
+                                    export.textRange.startOffset,
+                                    inserted.textRange.endOffset,
                                 )
                             }
+                        } else {
+                            val inserted = root.addAfter(import, imports.last())
+                            CodeStyleManager.getInstance(project).reformatRange(
+                                root,
+                                imports.last().textRange.startOffset,
+                                inserted.textRange.endOffset,
+                            )
                         }
                     }
-                    FileContentUtilCore.reparseFiles(file.virtualFile)
                 }
             }
             .customizer()

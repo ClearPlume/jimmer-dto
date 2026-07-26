@@ -22,8 +22,12 @@ fun Project.createImport(qualifiedName: String): DTOImportStatement {
     return createDTOFile("import $qualifiedName").findChild("/dtoFile/importStatement")
 }
 
+fun Project.createQualifiedName(name: String): DTOQualifiedName {
+    return createImport(name).qualifiedName
+}
+
 fun Project.createQualifiedNamePart(part: String): DTOQualifiedNamePart {
-    return createImport(part).qualifiedName.parts[0]
+    return createQualifiedName(part).parts[0]
 }
 
 fun Project.createImported(type: String): DTOImported {
