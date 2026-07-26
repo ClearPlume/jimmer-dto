@@ -342,16 +342,15 @@ class DTOAnnotator : Annotator {
          * @param value value参数
          */
         fun visitAnnotationParams(o: DTOElement, clazz: PsiClass, params: List<DTOAnnotationParameter>, value: DTOAnnotationValue?) {
-            if (params.any { it.value == null }) {
-                return
-            }
+            // if (params.any { it.value == null }) {
+            //     return
+            // }
 
             val haveValue = value != null
 
             // 必要参数是否给全
             val allParams = clazz.methods
                 .filterIsInstance<PsiAnnotationMethod>()
-                .filter { it.defaultValue == null }
                 .associateBy { it.name }
                 .toSortedMap()
             val currParams = params.map { it.name.text }.sorted()
@@ -382,9 +381,20 @@ class DTOAnnotator : Annotator {
                 }
 
             if (value != null) {
-                val method = clazz.findMethodsByName("value", false).first()
-                val type = method.returnType ?: return
-                validateAnnotationValues(type, value, processor)
+                val method = clazz.findMethodsByName("value", false).firstOrNull()
+                if (method == null) {
+                    value.error(
+                        "Annotation `@${clazz.name}` does not have a parameter named `value`, so the value cannot be abbreviated",
+                        RemoveElement(
+                            value.text,
+                            value,
+                            relatedElementsFinder = { listOfNotNull(it.siblingComma(true), it.siblingComma(false)) },
+                        ),
+                    )
+                } else {
+                    val type = method.returnType ?: return
+                    validateAnnotationValues(type, value, processor)
+                }
             }
         }
 
