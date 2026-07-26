@@ -73,6 +73,9 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
     val hasExport: Boolean
         get() = export != null
 
+    val entityPackage: String
+        get() = export?.export?.`package` ?: implicitPackage
+
     val `package`: String
         get() = export?.`package`?.value ?: export?.export?.let { it.`package` + ".dto" } ?: "$implicitPackage.dto"
 
