@@ -26,6 +26,7 @@ object DTOLanguage : Language(Constant.NAME) {
             return basicTypes + genericTypes
         }
 
+    // org.babyfish.jimmer.sql.fetcher.ReferenceFetchType
     val availableFetchTypes: Set<String>
         get() = setOf("AUTO", "SELECT", "JOIN_IF_NO_CACHE", "JOIN_ALWAYS")
 

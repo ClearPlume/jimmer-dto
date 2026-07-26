@@ -2,6 +2,7 @@ package net.fallingangel.jimmerdto.psi.resolve
 
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.*
+import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.psi.DTOFile
@@ -36,6 +37,12 @@ object Resolution {
                     return null
                 }
                 val project = file.project
+
+                if (name in DTOLanguage.availableFetchTypes) {
+                    val fetcherType = project.psiClass("org.babyfish.jimmer.sql.fetcher.ReferenceFetchType") ?: return null
+                    val field = fetcherType.findFieldByName(name, false) ?: return null
+                    return (field as? PsiEnumConstant)?.let(Target::EnumConst)
+                }
 
                 val target = when (file.projectLanguage) {
                     JavaLanguage.INSTANCE -> {
