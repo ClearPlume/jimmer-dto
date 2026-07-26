@@ -22,12 +22,10 @@ class DTOPropNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOPropName {
     }
 
     override fun resolve(): PsiElement? {
-        val prop = parent as? DTOPositiveProp ?: return null
-
-        if (prop.arg != null) {
+        val prop = parent
+        if (prop is DTOPositiveProp && prop.arg != null) {
             return null
         }
-
         return containingLClass?.findProperty(value)?.source
     }
 
