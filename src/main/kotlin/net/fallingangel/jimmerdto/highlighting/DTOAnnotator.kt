@@ -338,15 +338,12 @@ class DTOAnnotator : Annotator {
          * @param value value参数
          */
         fun visitAnnotationParams(o: DTOElement, clazz: PsiClass, params: List<DTOAnnotationParameter>, value: DTOAnnotationValue?) {
-            // if (params.any { it.value == null }) {
-            //     return
-            // }
-
             val haveValue = value != null
 
             // 必要参数是否给全
             val allParams = clazz.methods
                 .filterIsInstance<PsiAnnotationMethod>()
+                .filter { it.defaultValue == null }
                 .associateBy { it.name }
                 .toSortedMap()
             val currParams = params.map { it.name.text }.sorted()
