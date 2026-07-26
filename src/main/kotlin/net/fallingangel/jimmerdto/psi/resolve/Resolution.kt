@@ -44,6 +44,13 @@ object Resolution {
                     return (field as? PsiEnumConstant)?.let(Target::EnumConst)
                 }
 
+                val candidates = file.importIndex[name]
+                if (candidates != null) {
+                    // 歧义：错误已报在 import 处，此处静默
+                    val qualified = candidates.singleOrNull() ?: return null
+                    return global.resolve(qualified)
+                }
+
                 val target = when (file.projectLanguage) {
                     JavaLanguage.INSTANCE -> {
                         when (name) {
@@ -84,13 +91,6 @@ object Resolution {
                     else -> null
                 }
                 target?.let { return Target.Type(it) }
-
-                val candidates = file.importIndex[name]
-                if (candidates != null) {
-                    // 歧义：错误已报在 import 处，此处静默
-                    val qualified = candidates.singleOrNull() ?: return null
-                    return global.resolve(qualified)
-                }
 
                 if (name.first().isLowerCase()) {
                     return global.resolve(name)
