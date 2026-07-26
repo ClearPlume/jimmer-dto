@@ -15,7 +15,6 @@ import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
-import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.LanguageProcessor
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.lsi.findProperty
@@ -27,10 +26,12 @@ import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
+import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.structure.GenericType
 import net.fallingangel.jimmerdto.util.*
 import org.babyfish.jimmer.sql.Id
 import org.jetbrains.kotlin.idea.base.psi.childrenDfsSequence
+import org.jetbrains.kotlin.psi.KtClass
 
 /**
  * 部分代码结构的高亮
@@ -62,16 +63,11 @@ class DTOAnnotator : Annotator {
          * 分组导包语句
          */
         override fun visitImportedType(o: DTOImportedType) {
-            val project = o.project
-            val import = o.parent.parent<DTOImportStatement>()
-            val clazz = JavaPsiFacade.getInstance(project)
-                .findPackage(import.qualifiedName.value)
-                ?.classes
-                ?.find { it.name == o.type.value }
+            val clazz = o.type.target?.source
             if (clazz == null) {
                 o.type.error("Unresolved reference: ${o.type.value}")
             } else {
-                if (clazz.isAnnotationType) {
+                if ((clazz as? PsiClass)?.isAnnotationType == true || (clazz as? KtClass)?.isAnnotation() == true) {
                     o.style(DTOSyntaxHighlighter.ANNOTATION)
                 }
             }
@@ -105,11 +101,6 @@ class DTOAnnotator : Annotator {
          * 为全限定类名上色
          */
         override fun visitQualifiedName(o: DTOQualifiedName) {
-            // 枚举字面量
-            if (o.parts.size == 2 && o.parent is DTOAnnotationSingleValue) {
-                o.parts[1].style(DTOSyntaxHighlighter.ENUM_INSTANCE)
-            }
-
             if (o.parentOfType<DTOPropConfig>() != null && o.parts.size >= 2) {
                 val prop = o.parentOfType<DTOPositiveProp>() ?: return
                 val propClass = prop.property?.actualType?.resolvedLClass ?: return
@@ -133,37 +124,42 @@ class DTOAnnotator : Annotator {
          * TODO 实体注解校验 the "Probe" is not decorated by "@Entity", "Embeddable" or "Immutable"
          */
         override fun visitQualifiedNamePart(o: DTOQualifiedNamePart) {
-            val `package` = o.parent.sibling<PsiElement>(false) {
-                it.elementType == DTOLanguage.token[DTOParser.Package]
-            }
-
-            if (`package` != null) {
-                return
-            }
-
             if (o.part in DTOLanguage.softKeywords) {
                 o.style(DTOSyntaxHighlighter.IDENTIFIER)
             }
 
-            val resolved = o.resolve()
-            if (resolved == null && !o.text.endsWith("Id") && o.parent.parent !is DTOTypeRef && o.text !in DTOLanguage.preludes) {
-                o.error("Unresolved reference: ${o.part}")
-            } else if ((resolved as? PsiClass)?.isAnnotationType == true) {
-                o.style(DTOSyntaxHighlighter.ANNOTATION)
-            } else if (resolved is PsiPackage && o.nextSibling == null && o.parent.parent is DTOAnnotation) {
-                o.error("Not annotation: ${o.part}")
-            } else if (resolved is PsiPackage && o.nextSibling == null && o.parent.nextSibling == null && o.parent.parent !is DTOAnnotation) {
-                val packageAction = when (o.parent.parent) {
-                    is DTOExportStatement -> "exported"
-                    is DTOImportStatement -> "imported"
-                    else -> throw IllegalStateException("There shouldn't be a third type here")
+            when (val target = o.target) {
+                null -> if (o.prevPart == null || o.prevPart?.target != null) {
+                    o.error("Unresolved reference: ${o.part}")
                 }
-                o.error("Packages cannot be $packageAction")
-            } else if (o.parentOfType<DTOPropConfig>() != null) {
-                resolved ?: return
-                val target = LanguageProcessor.analyze(o.file).resolve(resolved)
-                if (target is LProperty) {
-                    if (target.isEntityAssociation && !target.isReference) {
+
+                is Resolution.Target.EnumConst -> o.style(DTOSyntaxHighlighter.ENUM_INSTANCE)
+
+                is Resolution.Target.Pkg -> {
+                    val qualifiedName = o.qualifiedName ?: return
+                    val importStatement = qualifiedName.parent as? DTOImportStatement ?: return
+                    if (importStatement.groupedImport == null && qualifiedName.parts.last() === o) {
+                        val packageAction = when {
+                            o.haveParent<DTOExportStatement>() -> "exported"
+                            o.haveParent<DTOImportStatement>() -> "imported"
+                            else -> null
+                        }
+
+                        if (packageAction != null) {
+                            o.error("Packages cannot be $packageAction")
+                        }
+                    }
+                }
+
+                is Resolution.Target.Type -> {
+                    if ((target.source as? PsiClass)?.isAnnotationType == true || (target.source as? KtClass)?.isAnnotation() == true) {
+                        o.style(DTOSyntaxHighlighter.ANNOTATION)
+                    }
+                }
+
+                is Resolution.Target.Property -> {
+                    val property = target.property
+                    if (property.isEntityAssociation && !property.isReference) {
                         o.error("Illegal property: Table joins are not permitted here")
                     }
                 }

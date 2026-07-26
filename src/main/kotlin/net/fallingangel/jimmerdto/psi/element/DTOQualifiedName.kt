@@ -6,8 +6,11 @@ import com.intellij.psi.search.ProjectScope
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LanguageProcessor
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
+import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.util.file
+import net.fallingangel.jimmerdto.util.haveParent
 import net.fallingangel.jimmerdto.util.javaFqName
+import net.fallingangel.jimmerdto.util.parent
 import org.jetbrains.kotlin.psi.KtClass
 
 interface DTOQualifiedName : DTOElement {
@@ -41,13 +44,27 @@ interface DTOQualifiedName : DTOElement {
                 }
             }
         }
+    val initialSpace: Resolution.Space?
+        get() {
+            // propConfig 的直接参数是过滤器类名，走全局；属性路径只出现在 orderBy/where 内部
+            val config = parent<DTOPropConfig> { qualifiedName !== this@DTOQualifiedName }
+            return if (config != null) {
+                config.containingLClass?.let(Resolution.Space::Properties)
+            } else {
+                if (haveParent<DTOImportStatement>() || haveParent<DTOExportStatement>()) {
+                    Resolution.Space.GlobalRaw(file)
+                } else {
+                    Resolution.Space.GlobalWithImports(file, file.entityPackage)
+                }
+            }
+        }
+
+    val target: Resolution.Target?
+        get() = parts.lastOrNull()?.target
 
     val resolvedLClass: LClass?
         get() {
-            val psiFacade = JavaPsiFacade.getInstance(project)
-            val scope = ProjectScope.getAllScope(project)
-            val clazz = psiFacade.findClass(value, scope) ?: return null
-
-            return LanguageProcessor.analyze(file).resolve(clazz) as? LClass
+            val source = target?.source ?: return null
+            return LanguageProcessor.analyze(file).resolve(source) as? LClass
         }
 }
