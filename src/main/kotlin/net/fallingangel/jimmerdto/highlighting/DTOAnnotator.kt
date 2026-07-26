@@ -129,8 +129,12 @@ class DTOAnnotator : Annotator {
             }
 
             when (val target = o.target) {
-                null -> if (o.prevPart == null || o.prevPart?.target != null) {
-                    o.error("Unresolved reference: ${o.part}")
+                null -> {
+                    // 在 `export a.b.c -> package a.b.c.d.e.f` 下的包不参与存在性校验
+                    val underPackage = o.parent<DTOExportStatement> { `package` != null } == null
+                    if (underPackage && (o.prevPart == null || o.prevPart?.target != null)) {
+                        o.error("Unresolved reference: ${o.part}")
+                    }
                 }
 
                 is Resolution.Target.EnumConst -> o.style(DTOSyntaxHighlighter.ENUM_INSTANCE)
