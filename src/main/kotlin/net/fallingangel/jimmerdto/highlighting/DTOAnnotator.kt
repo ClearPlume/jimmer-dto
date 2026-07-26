@@ -84,14 +84,7 @@ class DTOAnnotator : Annotator {
                             it as DTOGroupedImport
                             it.types.find { type -> type.startOffsetInParent == o.startOffsetInParent }!!
                         },
-                        {
-                            val comma = it.siblingComma(true)
-                            if (comma == null) {
-                                listOf(it.siblingComma(false)!!)
-                            } else {
-                                listOf(comma)
-                            }
-                        },
+                        { listOfNotNull(it.siblingComma(false), it.siblingComma()) },
                     ),
                 )
             }
@@ -554,12 +547,7 @@ class DTOAnnotator : Annotator {
             }
 
             fun locateRelated(arg: PsiElement): List<PsiElement> {
-                val args = arg.parent as DTOMacroArgs
-                return if (args.values.indexOf(arg) == args.values.lastIndex) {
-                    listOfNotNull(arg.siblingComma(false))
-                } else {
-                    listOfNotNull(arg.siblingComma())
-                }
+                return listOfNotNull(arg.siblingComma(false), arg.siblingComma())
             }
 
             // 不允许出现超过一个<this>
@@ -743,12 +731,7 @@ class DTOAnnotator : Annotator {
             }
 
             fun locateRelated(type: PsiElement): List<PsiElement> {
-                val comma = type.siblingComma()
-                return if (comma == null) {
-                    listOfNotNull(type.siblingComma(false))
-                } else {
-                    listOfNotNull(comma)
-                }
+                return listOfNotNull(type.siblingComma(false), type.siblingComma())
             }
 
             val type = o.type.value
@@ -944,14 +927,7 @@ class DTOAnnotator : Annotator {
                                 a as DTOPropArg
                                 a.values.find { v -> v.startOffsetInParent == it.startOffsetInParent }!!
                             },
-                            { a ->
-                                val comma = a.siblingComma(false)
-                                if (comma != null) {
-                                    listOfNotNull(comma)
-                                } else {
-                                    listOfNotNull(a.siblingComma())
-                                }
-                            },
+                            { a -> listOfNotNull(a.siblingComma(false), a.siblingComma()) },
                         ),
                         style = DTOSyntaxHighlighter.DUPLICATION
                     )
