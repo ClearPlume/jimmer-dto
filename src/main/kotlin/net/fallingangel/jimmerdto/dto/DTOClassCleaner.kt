@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto.service
+package net.fallingangel.jimmerdto.dto
 
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -12,7 +12,7 @@ import net.fallingangel.jimmerdto.psi.element.DTODto
 import net.fallingangel.jimmerdto.util.findChildren
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 
-class StartupServices : ProjectActivity {
+class DTOClassCleaner : ProjectActivity {
     override suspend fun execute(project: Project) {
         VirtualFileManager.getInstance()
                 .addAsyncFileListener(
@@ -47,7 +47,7 @@ class StartupServices : ProjectActivity {
                     val dtoClass = dto.name.resolve() ?: return@dto
                     val dtoClassFile = dtoClass.containingFile.virtualFile
                     WriteCommandAction.runWriteCommandAction(project) {
-                        dtoClassFile.delete(this@StartupServices)
+                        dtoClassFile.delete(this@DTOClassCleaner)
                     }
                 }
     }
