@@ -149,6 +149,15 @@ propName
     Identifier | Like | Null | Desc | Asc
     ;
 
+// TODO propConfig 按名字拆 token
+//  propConfig
+//      :
+//      whereConfig | orderByConfig | filterConfig | ... | unknownConfig
+//      ;
+//  unknownConfig
+//      :
+//      PropConfigName (LParen ... RParen)?
+//      ;
 propConfig
     :
     PropConfigName

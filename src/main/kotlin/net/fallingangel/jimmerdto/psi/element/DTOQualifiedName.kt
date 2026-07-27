@@ -47,14 +47,18 @@ interface DTOQualifiedName : DTOElement {
         get() {
             val config = parent<DTOPropConfig> { true }
             if (config != null) {
-                // 属性路径只出现在 orderBy/where 内部，propConfig 的直接参数不是路径
-                if (config.qualifiedName !== this) {
-                    return config.containingLClass?.let(Resolution.Space::Properties)
-                }
-                // fetchType 的参数收在枚举常量上，其余直接参数（filter 类名等）是普通类名，走默认
-                if (config.name.text == PropConfigName.FetchType.text) {
+                // TODO propConfig 按名字拆 token。
+                //  PropConfigName 是笼统的 '!' Identifier，导致 propConfig 的三个 LParen 分支靠顺序消歧，!orderBy(firstName)（无 asc/desc）被第一分支 LParen qualifiedName RParen 吞掉，PSI 结构与语义不符。
+                //  改为每个配置名一个 lexer token，propConfig 按名字分派产生式。同时保留 PropConfigName 作为兜底，annotator 只要看到 unknownConfig，就直接“Unknown prop config name”。
+                //  propConfig 节点提供自己的初始解析空间，DTOQualifiedName.initialSpace 只做转发。
+                return when (config.name.text) {
+                    PropConfigName.Where.text, PropConfigName.OrderBy.text -> config.containingLClass?.let(Resolution.Space::Properties)
+
                     // TODO 常量
-                    return project.psiClass("org.babyfish.jimmer.sql.fetcher.ReferenceFetchType")?.let(Resolution.Space::Type)
+                    PropConfigName.FetchType.text -> project.psiClass("org.babyfish.jimmer.sql.fetcher.ReferenceFetchType")
+                        ?.let(Resolution.Space::Type)
+
+                    else -> Resolution.Space.GlobalWithImports(file, file.entityPackage)
                 }
             }
 
