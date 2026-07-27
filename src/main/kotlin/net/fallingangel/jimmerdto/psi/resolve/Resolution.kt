@@ -44,7 +44,8 @@ object Resolution {
                     return global.resolve(qualified)
                 }
 
-                val target = when (file.projectLanguage) {
+                val language = file.clazz?.source?.language
+                val target = when (language) {
                     JavaLanguage.INSTANCE -> {
                         when (name) {
                             "Int" -> project.psiClass("java.lang.Integer")
