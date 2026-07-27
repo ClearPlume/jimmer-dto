@@ -22,6 +22,7 @@ import net.fallingangel.jimmerdto.lsi.jimmer.isEntityAssociation
 import net.fallingangel.jimmerdto.lsi.jimmer.isList
 import net.fallingangel.jimmerdto.lsi.jimmer.isReference
 import net.fallingangel.jimmerdto.lsi.jimmer.resolvedLClass
+import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
@@ -149,7 +150,7 @@ class DTOAnnotator : Annotator {
                 }
 
                 is Resolution.Target.Type -> {
-                    if ((target.source as? PsiClass)?.isAnnotationType == true || (target.source as? KtClass)?.isAnnotation() == true) {
+                    if (process(target.source) { isAnnotationClass() } == true) {
                         o.style(DTOSyntaxHighlighter.ANNOTATION)
                     }
                 }
