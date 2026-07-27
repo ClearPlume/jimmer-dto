@@ -3,14 +3,12 @@ package net.fallingangel.jimmerdto.psi.element
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.ProjectScope
+import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LanguageProcessor
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
-import net.fallingangel.jimmerdto.util.file
-import net.fallingangel.jimmerdto.util.haveParent
-import net.fallingangel.jimmerdto.util.javaFqName
-import net.fallingangel.jimmerdto.util.parent
+import net.fallingangel.jimmerdto.util.*
 import org.jetbrains.kotlin.psi.KtClass
 
 interface DTOQualifiedName : DTOElement {
@@ -44,18 +42,26 @@ interface DTOQualifiedName : DTOElement {
                 }
             }
         }
+
     val initialSpace: Resolution.Space?
         get() {
-            // propConfig 的直接参数是过滤器类名，走全局；属性路径只出现在 orderBy/where 内部
-            val config = parent<DTOPropConfig> { qualifiedName !== this@DTOQualifiedName }
-            return if (config != null) {
-                config.containingLClass?.let(Resolution.Space::Properties)
-            } else {
-                if (haveParent<DTOImportStatement>() || haveParent<DTOExportStatement>()) {
-                    Resolution.Space.GlobalRaw(file)
-                } else {
-                    Resolution.Space.GlobalWithImports(file, file.entityPackage)
+            val config = parent<DTOPropConfig> { true }
+            if (config != null) {
+                // 属性路径只出现在 orderBy/where 内部，propConfig 的直接参数不是路径
+                if (config.qualifiedName !== this) {
+                    return config.containingLClass?.let(Resolution.Space::Properties)
                 }
+                // fetchType 的参数收在枚举常量上，其余直接参数（filter 类名等）是普通类名，走默认
+                if (config.name.text == PropConfigName.FetchType.text) {
+                    // TODO 常量
+                    return project.psiClass("org.babyfish.jimmer.sql.fetcher.ReferenceFetchType")?.let(Resolution.Space::Type)
+                }
+            }
+
+            return if (haveParent<DTOImportStatement>() || haveParent<DTOExportStatement>()) {
+                Resolution.Space.GlobalRaw(file)
+            } else {
+                Resolution.Space.GlobalWithImports(file, file.entityPackage)
             }
         }
 
