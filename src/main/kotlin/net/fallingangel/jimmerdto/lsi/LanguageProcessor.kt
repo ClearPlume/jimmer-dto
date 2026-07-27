@@ -1,6 +1,8 @@
 package net.fallingangel.jimmerdto.lsi
 
+import com.intellij.lang.Language
 import com.intellij.openapi.extensions.ExtensionPointName
+import com.intellij.openapi.project.Project
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
@@ -9,7 +11,14 @@ import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.element.DTOAnnotationValue
 import net.fallingangel.jimmerdto.util.literalType
 
+val EP = ExtensionPointName.create<LanguageProcessor>("net.fallingangel.languageProcessor")
+
 interface LanguageProcessor {
+    fun supports(language: Language): Boolean
+
+    context(element: PsiElement)
+    fun isAnnotationClass(): Boolean
+
     fun supports(dtoFile: DTOFile): Boolean
 
     fun clazz(dtoFile: DTOFile): LClass?
@@ -58,4 +67,19 @@ interface LanguageProcessor {
             return processor ?: throw UnsupportedLanguageException("Unsupported language: ${dtoFile.projectLanguage}")
         }
     }
+}
+
+fun Language.processor(): LanguageProcessor? {
+    return EP.findFirstSafe { it.supports(this) }
+}
+
+/**
+ * @return null：实体不存在，或语言不被支持。后者目前没有处理需求。
+ */
+inline fun <R> process(element: PsiElement, action: context(PsiElement) LanguageProcessor.() -> R): R? {
+    return element.language.processor()?.let { action(element, it) }
+}
+
+inline fun <R> process(language: Language, project: Project, action: context(Project) LanguageProcessor.() -> R): R? {
+    return language.processor()?.let { action(project, it) }
 }

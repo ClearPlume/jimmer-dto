@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto.lsi.processor
 
+import com.intellij.lang.Language
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiAnnotationMethod
@@ -16,6 +17,7 @@ import net.fallingangel.jimmerdto.lsi.LanguageProcessor
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.lsi.annotation.resolveParamValue
+import net.fallingangel.jimmerdto.lsi.narrow
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.ktClass
@@ -46,6 +48,16 @@ import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as Para
 
 class KotlinProcessor : LanguageProcessor {
     private val childrenKey = Key.create<CachedValue<List<KtClass>>>("KOTLIN_CACHED_CHILDREN_CLASS")
+
+    override fun supports(language: Language): Boolean {
+        return language == KotlinLanguage.INSTANCE
+    }
+
+    context(element: PsiElement)
+    override fun isAnnotationClass(): Boolean {
+        val clazz = element.narrow<KtClass>()
+        return clazz.isAnnotation()
+    }
 
     override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == KotlinLanguage.INSTANCE
 

@@ -1,6 +1,8 @@
 package net.fallingangel.jimmerdto.lsi
 
+import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.lsi.jimmer.resolvedLClass
+import org.jetbrains.kotlin.asJava.elements.KtLightElement
 
 /**
  * 依据路径查找属性
@@ -26,4 +28,14 @@ private fun LProperty.findProperty(tokens: List<String>): LProperty? {
         // 非关联属性没有子级属性，Array 是标量属性
         else -> null
     }
+}
+
+inline fun <reified T : PsiElement> PsiElement.narrow(): T {
+    (this as? T)?.let { return it }
+    if (this is KtLightElement<*, *>) {
+        (kotlinOrigin as? T)?.let { return it }
+    }
+    throw IllegalArgumentException(
+        "${T::class.simpleName} expected, got ${this::class.simpleName} in ${containingFile.name}"
+    )
 }

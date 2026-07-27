@@ -1,5 +1,6 @@
 package net.fallingangel.jimmerdto.lsi.processor
 
+import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
 import com.intellij.openapi.util.Key
 import com.intellij.psi.*
@@ -14,6 +15,7 @@ import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.LanguageProcessor
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.lsi.annotation.resolveAnnotation
+import net.fallingangel.jimmerdto.lsi.narrow
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.nullable
@@ -25,6 +27,16 @@ import org.babyfish.jimmer.sql.MappedSuperclass
 
 class JavaProcessor : LanguageProcessor {
     private val childrenKey = Key.create<CachedValue<List<PsiClass>>>("JAVA_CACHED_CHILDREN_CLASS")
+
+    override fun supports(language: Language): Boolean {
+        return language == JavaLanguage.INSTANCE
+    }
+
+    context(element: PsiElement)
+    override fun isAnnotationClass(): Boolean {
+        val clazz = element.narrow<PsiClass>()
+        return clazz.isAnnotationType
+    }
 
     override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == JavaLanguage.INSTANCE
 
