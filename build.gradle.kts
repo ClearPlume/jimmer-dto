@@ -56,6 +56,7 @@ dependencies {
 kotlin {
     compilerOptions {
         jvmTarget = JvmTarget.JVM_21
+        freeCompilerArgs.add("-Xexplicit-context-arguments")
     }
 }
 
@@ -93,7 +94,7 @@ intellijPlatform {
     }
 
     pluginVerification {
-        ides.create { 
+        ides.create {
             version = ideVersion
         }
     }

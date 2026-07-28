@@ -6,7 +6,7 @@ import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.lsi.annotation.annotationsToString
 
 /**
- * 三个 [Lazy] 持有者和 children 的 lambda 在 [LanguageProcessor.clazz] 中构造，
+ * 三个 [Lazy] 持有者和 children 的 lambda 在 [LanguageProcessor.lClass] 中构造，
  * 可能捕获尚未完成赋值的 lateinit 自引用。
  * 禁止在本类的构造过程（init 块、非 lazy 属性初始化器）中触发任何 Lazy 的求值。
  */

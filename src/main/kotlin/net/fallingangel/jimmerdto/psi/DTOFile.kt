@@ -20,13 +20,14 @@ import net.fallingangel.jimmerdto.DTOFileType
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.lsi.LClass
-import net.fallingangel.jimmerdto.lsi.LanguageProcessor
+import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.element.DTODtoName
 import net.fallingangel.jimmerdto.psi.element.DTOExportStatement
 import net.fallingangel.jimmerdto.psi.element.DTOImportStatement
 import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
 import net.fallingangel.jimmerdto.util.notification
+import net.fallingangel.jimmerdto.util.psiClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
 
 class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLanguage) {
@@ -83,28 +84,21 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
 
     val clazz: LClass?
         get() = CachedValuesManager.getCachedValue(this, CACHED_CLASS_KEY) {
-            val processor = LanguageProcessor.analyze(this)
-            val clazz = processor.clazz(this) ?: return@getCachedValue null
+            val clazz = project.psiClass(qualifiedEntity) ?: return@getCachedValue null
+            val entity = process(clazz) { lClass() } ?: return@getCachedValue null
 
             val classDependencies = mutableSetOf<PsiElement>()
-            clazz.collectPsiElements(classDependencies)
+            entity.collectPsiElements(classDependencies)
 
-            if (export == null) {
-                CachedValueProvider.Result.create(
-                    clazz,
-                    DumbService.getInstance(project).modificationTracker,
-                    ProjectRootModificationTracker.getInstance(project),
-                    *classDependencies.toTypedArray(),
-                )
-            } else {
-                CachedValueProvider.Result.create(
-                    clazz,
-                    DumbService.getInstance(project).modificationTracker,
-                    ProjectRootModificationTracker.getInstance(project),
-                    *classDependencies.toTypedArray(),
-                    export,
-                )
-            }
+            CachedValueProvider.Result.create(
+                entity,
+                buildList {
+                    add(DumbService.getInstance(project).modificationTracker)
+                    add(ProjectRootModificationTracker.getInstance(project))
+                    addAll(classDependencies)
+                    export?.let(::add)
+                },
+            )
         }
 
     val dtos: List<String>

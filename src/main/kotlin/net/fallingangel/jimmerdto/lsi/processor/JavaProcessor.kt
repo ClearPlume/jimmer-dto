@@ -2,6 +2,7 @@ package net.fallingangel.jimmerdto.lsi.processor
 
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
@@ -10,16 +11,11 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
-import net.fallingangel.jimmerdto.lsi.LClass
-import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.LanguageProcessor
-import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
+import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.resolveAnnotation
-import net.fallingangel.jimmerdto.lsi.narrow
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.nullable
-import net.fallingangel.jimmerdto.util.psiClass
 import org.babyfish.jimmer.Immutable
 import org.babyfish.jimmer.sql.Embeddable
 import org.babyfish.jimmer.sql.Entity
@@ -32,31 +28,20 @@ class JavaProcessor : LanguageProcessor {
         return language == JavaLanguage.INSTANCE
     }
 
-    context(element: PsiElement)
-    override fun isAnnotationClass(): Boolean {
+    context(element: PsiElement, types: ResolvedTypes)
+    override fun lClass(): LClass? {
         val clazz = element.narrow<PsiClass>()
-        return clazz.isAnnotationType
-    }
-
-    override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == JavaLanguage.INSTANCE
-
-    override fun clazz(dtoFile: DTOFile): LClass? {
-        val psiClass = dtoFile.project.psiClass(dtoFile.qualifiedEntity) ?: return null
-        return clazz(psiClass, mutableMapOf())
-    }
-
-    fun clazz(clazz: PsiClass, resolvedType: MutableMap<String, LClass>): LClass? {
         val qualifiedName = clazz.qualifiedName ?: return null
         val name = clazz.name ?: return null
 
-        return resolvedType.getOrPut(qualifiedName) {
+        return types.getOrPut(qualifiedName) {
             lateinit var lClass: LClass
             lClass = LClass(
                 name,
                 qualifiedName,
                 // TODO Unresolved
                 lazy { clazz.annotations.mapNotNull { resolveAnnotation(it) } },
-                lazy { parents(clazz, resolvedType) },
+                lazy { parents(clazz) },
                 {
                     val classes = CachedValuesManager.getCachedValue(clazz, childrenKey) {
                         CachedValueProvider.Result.create(
@@ -64,47 +49,23 @@ class JavaProcessor : LanguageProcessor {
                             PsiModificationTracker.MODIFICATION_COUNT,
                         )
                     }
-                    val resolvedType = mutableMapOf(qualifiedName to lClass)
-                    classes.mapNotNull { clazz(it, resolvedType) }
+                    classes.mapNotNull { lClass(element = it, types = ResolvedTypes(qualifiedName to lClass)) }
                 },
-                lazy { properties(clazz, lClass, resolvedType) },
+                lazy {
+                    clazz.methods
+                        .filter { !it.isConstructor }
+                        // TODO Unresolved
+                        .mapNotNull { lProperty(lClass, element = it) }
+                },
                 clazz,
             )
             lClass
         }
     }
 
-    fun parents(clazz: PsiClass, resolvedType: MutableMap<String, LClass>): List<LClass> {
-        return clazz.supers
-            .filter { it.qualifiedName != "java.lang.Object" }
-            .mapNotNull { clazz(it, resolvedType) }
-    }
-
-    fun children(clazz: PsiClass): List<PsiClass> {
-        return ClassInheritorsSearch.search(clazz, ProjectScope.getAllScope(clazz.project), false)
-            .mapNotNull { it }
-    }
-
-    fun properties(clazz: PsiClass, containingLClass: LClass, resolvedType: MutableMap<String, LClass>): List<LProperty> {
-        return clazz.methods
-            .filter { !it.isConstructor }
-            // TODO Unresolved
-            .mapNotNull { resolve(it, containingLClass, resolvedType) }
-    }
-
-    override fun resolve(element: PsiElement): LAnnotationOwner? {
-        return when (element) {
-            is PsiClass -> clazz(element, mutableMapOf())
-            is PsiMethod -> {
-                val owner = clazz(element.containingClass ?: return null, mutableMapOf())
-                owner?.allProperties?.firstOrNull { it.name == element.name }
-            }
-
-            else -> null
-        }
-    }
-
-    fun resolve(method: PsiMethod, containingLClass: LClass, resolvedType: MutableMap<String, LClass>): LProperty? {
+    context(element: PsiElement, types: ResolvedTypes)
+    override fun lProperty(containingLClass: LClass): LProperty? {
+        val method = element.narrow<PsiMethod>()
         // TODO Unresolved
         val annotations = method.annotations.mapNotNull { resolveAnnotation(it) }
         // TODO 属性类型为Boolean时，jimmer.keepIsPrefix
@@ -114,10 +75,11 @@ class JavaProcessor : LanguageProcessor {
         } else {
             methodName
         }
+        val type = method.returnType ?: return null
 
         return LProperty(
             name,
-            resolve(method.returnType ?: return null, resolvedType) ?: return null,
+            resolve(type) ?: return null,
             method.hasModifierProperty(PsiModifier.ABSTRACT),
             annotations,
             method,
@@ -125,13 +87,39 @@ class JavaProcessor : LanguageProcessor {
         )
     }
 
-    fun resolve(type: PsiType, resolvedType: MutableMap<String, LClass>): LProperty.Type? {
+    context(element: PsiElement)
+    override fun isAnnotationClass(): Boolean {
+        val clazz = element.narrow<PsiClass>()
+        return clazz.isAnnotationType
+    }
+
+    context(project: Project)
+    override fun builtinType(name: String): PsiElement? {
+        TODO("Not yet implemented")
+    }
+
+    override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == JavaLanguage.INSTANCE
+
+    context(types: ResolvedTypes)
+    fun parents(clazz: PsiClass): List<LClass> {
+        return clazz.supers
+            .filter { it.qualifiedName != "java.lang.Object" }
+            .mapNotNull { lClass(element = it) }
+    }
+
+    fun children(clazz: PsiClass): List<PsiClass> {
+        return ClassInheritorsSearch.search(clazz, ProjectScope.getAllScope(clazz.project), false)
+            .mapNotNull { it }
+    }
+
+    context(types: ResolvedTypes)
+    fun resolve(type: PsiType): LProperty.Type? {
         return when (type) {
             is PsiPrimitiveType -> LProperty.Type.Scalar(type.name, type.nullable)
 
             is PsiArrayType -> {
                 val componentType = type.componentType
-                LProperty.Type.Array(resolve(componentType, resolvedType) ?: return null, componentType.nullable)
+                LProperty.Type.Array(resolve(componentType) ?: return null, componentType.nullable)
             }
 
             is PsiClassType -> {
@@ -154,26 +142,26 @@ class JavaProcessor : LanguageProcessor {
                         val type0 = typeParameters[0]
                         when (rawType.canonicalText) {
                             "java.util.List" -> LProperty.Type.Collection(
-                                resolve(type0, resolvedType) ?: return null,
+                                resolve(type0) ?: return null,
                                 LProperty.Type.Collection.Kind.List,
                                 type0.nullable,
                             )
 
                             "java.util.Queue" -> LProperty.Type.Collection(
-                                resolve(type0, resolvedType) ?: return null,
+                                resolve(type0) ?: return null,
                                 LProperty.Type.Collection.Kind.Queue,
                                 type0.nullable,
                             )
 
                             "java.util.Set" -> LProperty.Type.Collection(
-                                resolve(type0, resolvedType) ?: return null,
+                                resolve(type0) ?: return null,
                                 LProperty.Type.Collection.Kind.Set,
                                 type0.nullable,
                             )
 
                             "java.util.Map" -> LProperty.Type.Map(
-                                resolve(type0, resolvedType) ?: return null,
-                                resolve(typeParameters[1], resolvedType) ?: return null,
+                                resolve(type0) ?: return null,
+                                resolve(typeParameters[1]) ?: return null,
                                 false,
                             )
 
@@ -183,7 +171,7 @@ class JavaProcessor : LanguageProcessor {
 
                     else -> {
                         if (typeClass.hasAnnotation(Entity::class, MappedSuperclass::class, Embeddable::class, Immutable::class)) {
-                            LProperty.Type.Clazz(clazz(typeClass, resolvedType) ?: return null, type.nullable, typeClass)
+                            LProperty.Type.Clazz(lClass(element = typeClass) ?: return null, type.nullable, typeClass)
                         } else {
                             LProperty.Type.Scalar(type.canonicalText, type.nullable)
                         }

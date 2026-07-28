@@ -2,6 +2,7 @@ package net.fallingangel.jimmerdto.lsi.processor
 
 import com.intellij.lang.Language
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiAnnotationMethod
 import com.intellij.psi.PsiElement
@@ -11,16 +12,11 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
-import net.fallingangel.jimmerdto.lsi.LClass
-import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.LanguageProcessor
+import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
-import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.lsi.annotation.resolveParamValue
-import net.fallingangel.jimmerdto.lsi.narrow
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.hasAnnotation
-import net.fallingangel.jimmerdto.util.ktClass
 import org.babyfish.jimmer.Immutable
 import org.babyfish.jimmer.sql.Embeddable
 import org.babyfish.jimmer.sql.Entity
@@ -42,7 +38,6 @@ import org.jetbrains.kotlin.idea.base.analysis.api.utils.defaultValue
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
-import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
 
@@ -53,24 +48,13 @@ class KotlinProcessor : LanguageProcessor {
         return language == KotlinLanguage.INSTANCE
     }
 
-    context(element: PsiElement)
-    override fun isAnnotationClass(): Boolean {
+    context(element: PsiElement, types: ResolvedTypes)
+    override fun lClass(): LClass? {
         val clazz = element.narrow<KtClass>()
-        return clazz.isAnnotation()
-    }
-
-    override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == KotlinLanguage.INSTANCE
-
-    override fun clazz(dtoFile: DTOFile): LClass? {
-        val ktClass = dtoFile.project.ktClass(dtoFile.qualifiedEntity).getOrNull(0) ?: return null
-        return clazz(ktClass, mutableMapOf())
-    }
-
-    fun clazz(clazz: KtClass, resolvedType: MutableMap<String, LClass>): LClass? {
         val name = clazz.name ?: return null
         val qualifiedName = clazz.fqName?.asString() ?: return null
 
-        return resolvedType.getOrPut(qualifiedName) {
+        return types.getOrPut(qualifiedName) {
             lateinit var lClass: LClass
             lClass = LClass(
                 name,
@@ -81,7 +65,7 @@ class KotlinProcessor : LanguageProcessor {
                         clazz.symbol.annotations.mapNotNull { resolve(it) }
                     }
                 },
-                lazy { parents(clazz, resolvedType) },
+                lazy { parents(clazz) },
                 {
                     val classes = CachedValuesManager.getCachedValue(clazz, childrenKey) {
                         CachedValueProvider.Result.create(
@@ -90,23 +74,47 @@ class KotlinProcessor : LanguageProcessor {
                             DumbService.getInstance(clazz.project).modificationTracker,
                         )
                     }
-                    val resolvedType = mutableMapOf(qualifiedName to lClass)
-                    classes.mapNotNull { clazz(it, resolvedType) }
+                    classes.mapNotNull { lClass(element = it, types = ResolvedTypes(qualifiedName to lClass)) }
                 },
-                lazy { properties(clazz, lClass, resolvedType) },
+                lazy { clazz.getProperties().mapNotNull { lProperty(lClass, element = it) } },
                 clazz,
             )
             lClass
         }
     }
 
-    fun parents(clazz: KtClass, resolvedType: MutableMap<String, LClass>): List<LClass> {
+    context(element: PsiElement, types: ResolvedTypes)
+    override fun lProperty(containingLClass: LClass): LProperty? {
+        val property = element.narrow<KtProperty>()
+        return analyze(property) {
+            // TODO Unresolved
+            val annotations = property.symbol.annotations.mapNotNull { resolve(it) }
+            val type = resolve(property.symbol.returnType) ?: return null
+            LProperty(property.name ?: return null, type, property.isAbstract(), annotations, property, containingLClass)
+        }
+    }
+
+    context(element: PsiElement)
+    override fun isAnnotationClass(): Boolean {
+        val clazz = element.narrow<KtClass>()
+        return clazz.isAnnotation()
+    }
+
+    context(project: Project)
+    override fun builtinType(name: String): PsiElement? {
+        TODO("Not yet implemented")
+    }
+
+    override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == KotlinLanguage.INSTANCE
+
+    context(types: ResolvedTypes)
+    fun parents(clazz: KtClass): List<LClass> {
         return analyze(clazz) {
             val symbol = clazz.symbol as? KaClassSymbol ?: return emptyList()
             symbol.superTypes
                 .filter { it.symbol!!.hasAnnotation(MappedSuperclass::class, Entity::class) }
                 .mapNotNull { it.symbol?.psi as? KtClass }
-                .mapNotNull { clazz(it, resolvedType) }
+                .mapNotNull { lClass(element = it) }
         }
     }
 
@@ -116,38 +124,8 @@ class KotlinProcessor : LanguageProcessor {
             .mapNotNull { (it as? KtLightClass)?.kotlinOrigin as? KtClass }
     }
 
-    fun properties(clazz: KtClass, containingLClass: LClass, resolvedType: MutableMap<String, LClass>): List<LProperty> {
-        // TODO Unresolved
-        return clazz.getProperties().mapNotNull { resolve(it, containingLClass, resolvedType) }
-    }
-
-    override fun resolve(element: PsiElement): LAnnotationOwner? {
-        return when (element) {
-            is KtClass -> clazz(element, mutableMapOf())
-            is KtProperty -> {
-                val owner = clazz(element.containingClass()!!, mutableMapOf())
-                owner?.allProperties?.firstOrNull { it.name == element.name }
-            }
-
-            is KtLightClass -> {
-                val ktClass = element.kotlinOrigin as? KtClass ?: return null
-                clazz(ktClass, mutableMapOf())
-            }
-
-            else -> null
-        }
-    }
-
-    fun resolve(property: KtProperty, containingLClass: LClass, resolvedType: MutableMap<String, LClass>): LProperty? {
-        return analyze(property) {
-            // TODO Unresolved
-            val annotations = property.symbol.annotations.mapNotNull { resolve(it) }
-            val type = resolve(property.symbol.returnType, resolvedType) ?: return null
-            LProperty(property.name ?: return null, type, property.isAbstract(), annotations, property, containingLClass)
-        }
-    }
-
-    fun KaSession.resolve(type: KaType, resolvedType: MutableMap<String, LClass>): LProperty.Type? {
+    context(types: ResolvedTypes)
+    fun KaSession.resolve(type: KaType): LProperty.Type? {
         if (type !is KaClassType) {
             return null
         }
@@ -169,7 +147,7 @@ class KotlinProcessor : LanguageProcessor {
 
             fqName == "kotlin.Array" -> when (val typeArgument = type.typeArguments[0]) {
                 is KaStarTypeProjection -> null
-                is KaTypeArgumentWithVariance -> LProperty.Type.Array(resolve(typeArgument.type, resolvedType) ?: return null, nullable)
+                is KaTypeArgumentWithVariance -> LProperty.Type.Array(resolve(typeArgument.type) ?: return null, nullable)
             }
 
             (symbol as? KaClassSymbol)?.classKind == KaClassKind.ENUM_CLASS -> {
@@ -188,7 +166,7 @@ class KotlinProcessor : LanguageProcessor {
             fqName == "kotlin.collections.List" || fqName == "java.util.List" -> {
                 val argType = type.typeArguments.first()
                 LProperty.Type.Collection(
-                    resolve(argType, resolvedType) ?: return null,
+                    resolve(argType) ?: return null,
                     LProperty.Type.Collection.Kind.List,
                     nullable,
                 )
@@ -197,7 +175,7 @@ class KotlinProcessor : LanguageProcessor {
             fqName == "kotlin.collections.Set" || fqName == "java.util.Set" -> {
                 val argType = type.typeArguments.first()
                 LProperty.Type.Collection(
-                    resolve(argType, resolvedType) ?: return null,
+                    resolve(argType) ?: return null,
                     LProperty.Type.Collection.Kind.Set,
                     nullable,
                 )
@@ -207,8 +185,8 @@ class KotlinProcessor : LanguageProcessor {
                 val keyType = type.typeArguments[0]
                 val valueType = type.typeArguments[1]
                 LProperty.Type.Map(
-                    resolve(keyType, resolvedType) ?: return null,
-                    resolve(valueType, resolvedType) ?: return null,
+                    resolve(keyType) ?: return null,
+                    resolve(valueType) ?: return null,
                     nullable,
                 )
             }
@@ -216,7 +194,7 @@ class KotlinProcessor : LanguageProcessor {
             else -> {
                 val psi = symbol.psi as? KtClass ?: return LProperty.Type.Scalar(fqName, nullable)
                 if (symbol.hasAnnotation(Entity::class, MappedSuperclass::class, Embeddable::class, Immutable::class)) {
-                    LProperty.Type.Clazz(clazz(psi, resolvedType) ?: return null, nullable, psi)
+                    LProperty.Type.Clazz(lClass(element = psi) ?: return null, nullable, psi)
                 } else {
                     LProperty.Type.Scalar(fqName, nullable)
                 }
@@ -224,10 +202,11 @@ class KotlinProcessor : LanguageProcessor {
         }
     }
 
-    fun KaSession.resolve(type: KaTypeProjection, resolvedType: MutableMap<String, LClass>): LProperty.Type? {
+    context(types: ResolvedTypes)
+    fun KaSession.resolve(type: KaTypeProjection): LProperty.Type? {
         return when (type) {
             is KaStarTypeProjection -> null
-            is KaTypeArgumentWithVariance -> resolve(type.type, resolvedType)
+            is KaTypeArgumentWithVariance -> resolve(type.type)
         }
     }
 

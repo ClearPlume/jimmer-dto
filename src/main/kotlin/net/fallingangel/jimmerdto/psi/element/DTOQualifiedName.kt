@@ -5,7 +5,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.search.ProjectScope
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.lsi.LClass
-import net.fallingangel.jimmerdto.lsi.LanguageProcessor
+import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.util.*
@@ -74,7 +74,7 @@ interface DTOQualifiedName : DTOElement {
 
     val resolvedLClass: LClass?
         get() {
-            val source = target?.source ?: return null
-            return LanguageProcessor.analyze(file).resolve(source) as? LClass
+            val target = target as? Resolution.Target.Type ?: return null
+            return process(target.source) { lClass() }
         }
 }
