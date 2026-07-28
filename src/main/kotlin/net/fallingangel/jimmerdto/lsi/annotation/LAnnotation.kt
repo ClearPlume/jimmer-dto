@@ -29,7 +29,7 @@ class LAnnotation(
                     is Enum -> value is Value.Enum && canonicalName == value.canonicalName
                     is Clazz -> value is Value.Clazz && accepts(value)
                     is Annotation -> value is Value.Annotation && canonicalName == value.annotation.canonicalName
-                    is Array -> value is Value.Array && value.elements.all { elementType.accepts(it) }
+                    is Array -> value is Value.Array && value.elements.filterNotNull().all { elementType.accepts(it) }
                 }
             }
 
@@ -64,7 +64,7 @@ class LAnnotation(
                         Kind.SHORT -> v is Short || (v is Int && v in Short.MIN_VALUE..Short.MAX_VALUE)
                         Kind.INT -> v is Int
                         Kind.LONG -> v is Long || v is Int
-                        Kind.FLOAT -> v is Float || v is Int
+                        Kind.FLOAT -> v is Float || v is Int || (v is Double && v in -Float.MAX_VALUE..Float.MAX_VALUE)
                         Kind.DOUBLE -> v is Double || v is Float || v is Int
                     }
                 }
@@ -221,8 +221,8 @@ class LAnnotation(
                 }
             }
 
-            class Array(val elements: List<Value>) : Value() {
-                override val presentation = elements.joinToString(separator = ", ", prefix = "[", postfix = "]") { it.presentation }
+            class Array(val elements: List<Value?>) : Value() {
+                override val presentation = elements.joinToString(separator = ", ", prefix = "[", postfix = "]") { it?.presentation ?: "?" }
 
                 override fun equals(other: Any?): Boolean {
                     if (this === other) return true

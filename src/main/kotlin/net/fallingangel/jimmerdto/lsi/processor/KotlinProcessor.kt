@@ -4,7 +4,6 @@ import com.intellij.lang.Language
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
-import com.intellij.psi.PsiAnnotationMethod
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
@@ -14,7 +13,6 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
-import net.fallingangel.jimmerdto.lsi.annotation.resolveParamValue
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import org.babyfish.jimmer.Immutable
@@ -34,10 +32,11 @@ import org.jetbrains.kotlin.analysis.api.types.*
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.base.analysis.api.utils.defaultValue
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtEnumEntry
 import org.jetbrains.kotlin.psi.KtParameter
 import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
 
@@ -103,6 +102,45 @@ class KotlinProcessor : LanguageProcessor {
     context(project: Project)
     override fun builtinType(name: String): PsiElement? {
         TODO("Not yet implemented")
+    }
+
+    context(element: PsiElement)
+    override fun canonicalName(): String? {
+        val clazz = element.narrow<KtClass>()
+        return clazz.fqName?.asString()
+    }
+
+    context(element: PsiElement)
+    override fun enum(): Pair<String, String>? {
+        val enum = element.narrow<KtEnumEntry>()
+        val clazz = enum.containingClass() ?: error("Enum constant ${enum.name} without containing class in ${enum.containingFile.name}")
+        val canonicalName = clazz.fqName?.asString() ?: return null
+        val entryName = enum.name ?: return null
+        return canonicalName to entryName
+    }
+
+    @OptIn(KaExperimentalApi::class)
+    context(element: PsiElement)
+    override fun lAnnotationParams(values: Map<String, ParamValue?>): List<LAnnotation.Param> {
+        val clazz = element.narrow<KtClass>()
+        return analyze(clazz) {
+            val valueParameters = clazz.primaryConstructor?.symbol?.valueParameters ?: return emptyList()
+            // TODO Unresolved
+            valueParameters.mapNotNull { parameter ->
+                val name = parameter.name.asString()
+                val type = resolveParamType(parameter.returnType) ?: return@mapNotNull null
+                val source = parameter.psi
+
+                val defaultValue = (source as? KtParameter)?.let {
+                    it.defaultValue?.let { defaultValue ->
+                        val defaultValue = defaultValue.evaluateAsAnnotationValue() ?: return@let null
+                        resolveParamValue(defaultValue)
+                    }
+                }
+
+                LAnnotation.Param(name, type, values[name], defaultValue, source)
+            }
+        }
     }
 
     override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == KotlinLanguage.INSTANCE
@@ -210,10 +248,9 @@ class KotlinProcessor : LanguageProcessor {
         }
     }
 
-    @OptIn(KaExperimentalApi::class)
     fun KaSession.resolve(annotation: KaAnnotation): LAnnotation? {
-        val constructor = annotation.constructorSymbol ?: return null
         val classId = annotation.classId ?: return null
+        val clazz = findClass(classId)?.psi ?: return null
         val values = annotation.arguments
             // TODO Unresolved
             .mapNotNull { argument ->
@@ -223,28 +260,7 @@ class KotlinProcessor : LanguageProcessor {
             }
             .toMap()
 
-        val params = constructor.valueParameters
-            // TODO Unresolved
-            .mapNotNull { parameter ->
-                val name = parameter.name.asString()
-                val type = resolveParamType(parameter.returnType) ?: return@mapNotNull null
-                val source = parameter.psi
-
-                val defaultValue = when (source) {
-                    is PsiAnnotationMethod -> source.defaultValue?.let(::resolveParamValue)
-
-                    is KtParameter -> {
-                        parameter.defaultValue?.let { defaultValue ->
-                            val defaultValue = defaultValue.evaluateAsAnnotationValue() ?: return@let null
-                            resolveParamValue(defaultValue)
-                        }
-                    }
-
-                    else -> null
-                }
-
-                LAnnotation.Param(name, type, values[name], defaultValue, source)
-            }
+        val params = process(clazz) { lAnnotationParams(values) } ?: return null
 
         return LAnnotation(
             classId.shortClassName.asString(),

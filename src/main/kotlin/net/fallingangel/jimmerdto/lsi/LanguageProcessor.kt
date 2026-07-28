@@ -6,6 +6,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
 import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.element.DTOAnnotationValue
 import net.fallingangel.jimmerdto.util.literalType
@@ -23,6 +24,15 @@ interface LanguageProcessor {
 
     context(element: PsiElement)
     fun isAnnotationClass(): Boolean
+
+    context(element: PsiElement)
+    fun canonicalName(): String?
+
+    context(element: PsiElement)
+    fun enum(): Pair<String, String>?
+
+    context(element: PsiElement)
+    fun lAnnotationParams(values: Map<String, LAnnotation.Param.Value?>): List<LAnnotation.Param>?
 
     context(project: Project)
     fun builtinType(name: String): PsiElement?
