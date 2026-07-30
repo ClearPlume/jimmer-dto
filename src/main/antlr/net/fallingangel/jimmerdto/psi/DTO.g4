@@ -258,7 +258,7 @@ annotationArrayValue
 
 nestedAnnotation
     :
-    At? qualifiedName LParen (annotationValue | annotationParameter)? (Comma annotationParameter)* RParen
+    At? qualifiedName LParen (annotationValue | annotationParameter)? (Comma (annotationValue | annotationParameter))* RParen
     ;
 
 enumBody
