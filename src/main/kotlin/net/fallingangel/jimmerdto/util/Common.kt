@@ -16,7 +16,6 @@ import com.intellij.util.indexing.FileBasedIndex
 import net.fallingangel.jimmerdto.ANNOTATION_CLASS_INDEX
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.DTOLanguage.xPath
-import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
@@ -48,7 +47,7 @@ val DTOElement.file: DTOFile
     get() = containingFile as DTOFile
 
 @Suppress("UnstableApiUsage")
-val PsiClass.icon: Icon
+val PsiClass.icon: Icon?
     get() = when (language) {
         is JavaLanguage -> when {
             isAnnotationType -> AllIcons.Nodes.Annotationtype
@@ -65,7 +64,7 @@ val PsiClass.icon: Icon
 
         is KotlinLanguage -> (this as KtLightClass).icon
 
-        else -> throw UnsupportedLanguageException("$language is unsupported")
+        else -> null
     }
 
 @Suppress("UnstableApiUsage")

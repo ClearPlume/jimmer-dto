@@ -7,7 +7,8 @@ import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.project.Project
-import com.intellij.psi.*
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
@@ -15,7 +16,6 @@ import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
-import net.fallingangel.jimmerdto.lsi.LanguageProcessor
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.lsi.findProperty
 import net.fallingangel.jimmerdto.lsi.jimmer.isEntityAssociation
@@ -26,6 +26,7 @@ import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
+import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationElement
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.structure.GenericType
@@ -289,11 +290,7 @@ class DTOAnnotator : Annotator {
          */
         override fun visitAnnotation(o: DTOAnnotation) {
             o.at.style(DTOSyntaxHighlighter.ANNOTATION)
-            o.qualifiedName.style(DTOSyntaxHighlighter.ANNOTATION)
-
-            val clazz = o.qualifiedName.clazz ?: return
-            visitAnnotationName(o.qualifiedName, clazz)
-            visitAnnotationParams(o, clazz, o.params, o.value)
+            visitAnnotation(o as DTOAnnotationElement)
         }
 
         /**
@@ -301,113 +298,117 @@ class DTOAnnotator : Annotator {
          */
         override fun visitNestAnnotation(o: DTONestAnnotation) {
             o.at?.style(DTOSyntaxHighlighter.ANNOTATION)
-            o.qualifiedName.style(DTOSyntaxHighlighter.ANNOTATION)
-
-            val clazz = o.qualifiedName.clazz ?: return
-            visitAnnotationName(o.qualifiedName, clazz)
-            visitAnnotationParams(o, clazz, o.params, o.value)
+            visitAnnotation(o)
         }
 
-        fun visitAnnotationName(name: DTOQualifiedName, clazz: PsiClass) {
-            val qualifiedName = clazz.qualifiedName ?: return
-            val `package` = qualifiedName.substringBeforeLast('.')
+        fun visitAnnotation(annotation: DTOAnnotationElement) {
+            visitAnnotationName(annotation.qualifiedName)
+            visitParamNames(annotation)
+            visitParamValues(annotation)
+        }
 
-            if (name.simpleName in setOf("Nullable", "NonNull")) {
-                name.error("Annotation `Nullable`、`NonNull` is forbidden")
+        fun visitAnnotationName(qualifiedName: DTOQualifiedName) {
+            val `package` = qualifiedName.`package`
+            val simpleName = qualifiedName.simpleName
+
+            if (simpleName in setOf("Nullable", "NonNull")) {
+                qualifiedName.error("Annotation `Nullable`、`NonNull` is forbidden")
             }
 
-            if (name.simpleName in setOf("Null", "NotNull")) {
+            if (simpleName in setOf("Null", "NotNull")) {
                 val packages = listOf("javax.validation.constraints", "jakarta.validation.constraints")
                 if (`package` !in packages) {
-                    name.error("Package \"${`package`}\" is forbidden")
+                    qualifiedName.error("Package \"${`package`}\" is forbidden")
                 }
             }
 
             if (`package`.startsWith("org.babyfish.jimmer") &&
                 !`package`.startsWith("org.babyfish.jimmer.client") &&
                 !`package`.startsWith("org.babyfish.jimmer.jackson") &&
-                qualifiedName != "org.babyfish.jimmer.kt.dto.KotlinDto"
+                qualifiedName.value != "org.babyfish.jimmer.kt.dto.KotlinDto"
             ) {
-                name.error("Jimmer annotation is forbidden")
+                qualifiedName.error("Jimmer annotation is forbidden")
             }
         }
 
-        /**
-         * @param value value参数
-         */
-        fun visitAnnotationParams(o: DTOElement, clazz: PsiClass, params: List<DTOAnnotationParameter>, value: DTOAnnotationValue?) {
-            val haveValue = value != null
-
-            // 必要参数是否给全
-            val allParams = clazz.methods
-                .filterIsInstance<PsiAnnotationMethod>()
-                .filter { it.defaultValue == null }
-                .associateBy { it.name }
-                .toSortedMap()
-            val currParams = params.map { it.name.text }.sorted()
-            val notGivenParams = allParams - currParams.toSet() - if (haveValue) setOf("value") else emptySet()
-            if (notGivenParams.isNotEmpty()) {
-                if (o is DTOAnnotation) {
-                    o.qualifiedName.error(
-                        "Not all the parameters required for `${o.qualifiedName.value}` are given",
-                        GenerateMissingAnnotationParam(o, notGivenParams.values),
-                    )
-                } else {
-                    o as DTONestAnnotation
-                    o.qualifiedName.error(
-                        "Not all the parameters required for `${o.qualifiedName.value}` are given",
-                        GenerateMissingAnnotationParam(o, notGivenParams.values),
-                    )
-                }
+        fun visitParamNames(annotation: DTOAnnotationElement) {
+            val writtenNames = buildList {
+                annotation.value?.let { add("value" to it) }
+                annotation.params.forEach { add(it.name.text to it.name) }
             }
 
-            val processor = LanguageProcessor.analyze(o.file)
-
-            // 参数类型是否匹配
-            params
-                .forEach { param ->
-                    val value = param.value ?: return@forEach
-                    val type = param.type ?: return@forEach
-                    validateAnnotationValues(type, value, processor)
+            writtenNames.groupBy { it.first }.values
+                .filter { it.size > 1 }
+                .flatten()
+                .forEach { (name, element) ->
+                    if (element is DTOAnnotationValue) {
+                        element.error(
+                            "Shorthand form is the `value` parameter, which duplicates the explicit `value`",
+                            RemoveElement(
+                                element.text,
+                                element,
+                                relatedElementsFinder = { listOfNotNull(it.siblingComma() ?: it.siblingComma(false)) },
+                            ),
+                        )
+                    } else {
+                        element.error(
+                            "Duplicated annotation parameter `$name`",
+                            RemoveElement(
+                                element.parent.text,
+                                element.parent,
+                                relatedElementsFinder = { listOfNotNull(it.siblingComma() ?: it.siblingComma(false)) },
+                            ),
+                        )
+                    }
                 }
+        }
 
-            if (value != null) {
-                val method = clazz.findMethodsByName("value", false).firstOrNull()
-                if (method == null) {
-                    value.error(
-                        "Annotation `@${clazz.name}` does not have a parameter named `value`, so the value cannot be abbreviated",
+        fun visitParamValues(annotation: DTOAnnotationElement) {
+            val declaredParams = annotation.lAnnotation?.params ?: return
+            val declaredNames = declaredParams.mapTo(mutableSetOf()) { it.name }
+
+            data class ParamEntry(val name: String, val nameElement: PsiElement, val value: DTOAnnotationValue?)
+
+            val writtenParams = buildList {
+                annotation.value?.let { add(ParamEntry("value", it, it)) }
+                annotation.params.forEach { add(ParamEntry(it.name.text, it.name, it.value)) }
+            }
+
+            // 使用处定义处没有的参数
+            writtenParams.forEach { (name, nameElement) ->
+                if (name !in declaredNames) {
+                    nameElement.error(
+                        "No parameter with name '$name' found",
                         RemoveElement(
-                            value.text,
-                            value,
-                            relatedElementsFinder = { listOfNotNull(it.siblingComma(true), it.siblingComma(false)) },
+                            name,
+                            nameElement as? DTOAnnotationValue ?: nameElement.parent,
+                            relatedElementsFinder = { listOfNotNull(it.siblingComma() ?: it.siblingComma(false)) },
                         ),
                     )
-                } else {
-                    val type = method.returnType ?: return
-                    validateAnnotationValues(type, value, processor)
                 }
             }
-        }
 
-        private fun validateAnnotationValues(type: PsiType, value: DTOAnnotationValue, processor: LanguageProcessor) {
-            val (expectedComponentType, isArrayExpected) = if (type is PsiArrayType) {
-                type.componentType to true
-            } else {
-                type to false
-            }
+            // 使用处没有写全必需参数
+            val writtenNames = writtenParams.mapTo(mutableSetOf()) { it.name }
+            val missedParams = declaredParams.filter { it.defaultValue == null && it.name !in writtenNames }
+            missedParams
+                .forEach { param ->
+                    val fixes = buildList {
+                        add(AddAnnotationParam(annotation, param))
+                        if (missedParams.size > 1) {
+                            add(AddAllAnnotationParams(annotation, missedParams))
+                        }
+                    }
+                    annotation.qualifiedName.error("Missing required parameter '${param.name}'", *fixes.toTypedArray())
+                }
 
-            val values = value.arrayValue?.values?.map { it to processor.type(it) }
-                ?: value.let { listOf(it to processor.type(it)) }
+            // 参数类型校验
+            writtenParams.forEach { (name, nameElement, valueElement) ->
+                val param = declaredParams.firstOrNull { it.name == name } ?: return@forEach
+                val value = valueElement?.value ?: return@forEach
 
-            if (!isArrayExpected && values.size > 1) {
-                value.error("Required: `${type.canonicalText}`, Actual: `${PsiArrayType(PsiTypes.voidType())}`")
-                return
-            }
-
-            values.forEach { (value, valueType) ->
-                valueType ?: return@forEach
-                if (!expectedComponentType.isAssignableFrom(valueType)) {
-                    value.error("Required: `${expectedComponentType.canonicalText}`, Actual: `${valueType.canonicalText}`")
+                if (!param.accepts(value)) {
+                    nameElement.error("Type mismatch: inferred type is '${value.typeName}' but '${param.type.presentation}' was expected")
                 }
             }
         }
@@ -416,29 +417,16 @@ class DTOAnnotator : Annotator {
          * 为注解无名参数上色
          */
         override fun visitAnnotationValue(o: DTOAnnotationValue) {
-            val anno = o.parent
-            if (anno is DTOAnnotation || anno is DTONestAnnotation) {
-                val prevSibling = o.siblings(forward = false, withSelf = false)
-                    .first { it.elementType != TokenType.WHITE_SPACE }
-                if (prevSibling.elementType != DTOLanguage.token[DTOParser.LParen]) {
-                    val params = if (anno is DTOAnnotation) {
-                        anno.params
-                    } else {
-                        anno as DTONestAnnotation
-                        anno.params
-                    }
-                    if (params.any { it.value == null }) {
-                        return
-                    }
-                    if (params.any { it.name.text == "value" }) {
-                        return
-                    }
-                    o.error(
-                        "value shorthand must be first or written as 'value = '",
-                        MoveAnnotationParam(o),
-                        AddValueParameterName(o),
-                    )
-                }
+            val annotation = o.parent as? DTOAnnotationElement ?: return
+
+            // value 简写应该在第一位
+            val siblings = o.siblings(forward = false, withSelf = false).filterIsInstance<DTOAnnotationParameter>()
+            if (siblings.any()) {
+                o.error(
+                    "Value shorthand must be the first parameter",
+                    MoveValueToFirst(annotation),
+                    AddValueParameterName(o),
+                )
             }
         }
 
@@ -447,28 +435,10 @@ class DTOAnnotator : Annotator {
          */
         override fun visitAnnotationParameter(o: DTOAnnotationParameter) {
             if (o.value == null) {
-                o.eq.error("Missing value after '='")
+                o.eq.error("Expecting an argument")
             }
-            if (o.resolve() != null) {
-                o.name.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
-                o.eq.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
-            } else if (o.value != null) {
-                val name = o.name.text
-                o.name.error(
-                    "No param with name '$name' found",
-                    RemoveElement(
-                        name,
-                        o.parent,
-                        { anno ->
-                            anno.children
-                                .filterIsInstance<DTOAnnotationParameter>()
-                                .find { it.name.text == name }!!
-                        },
-                        { listOf(it.nextSibling) },
-                    ),
-                    SelectAnnotationParam(o),
-                )
-            }
+            o.name.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
+            o.eq.style(DTOSyntaxHighlighter.NAMED_PARAMETER_NAME)
         }
 
         /**

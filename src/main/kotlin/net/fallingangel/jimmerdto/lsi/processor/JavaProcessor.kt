@@ -13,7 +13,6 @@ import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
-import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.nullable
 import org.babyfish.jimmer.Immutable
@@ -135,8 +134,6 @@ class JavaProcessor : LanguageProcessor {
             )
         }
     }
-
-    override fun supports(dtoFile: DTOFile) = dtoFile.projectLanguage == JavaLanguage.INSTANCE
 
     context(types: ResolvedTypes)
     fun parents(clazz: PsiClass): List<LClass> {

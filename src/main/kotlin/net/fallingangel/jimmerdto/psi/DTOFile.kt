@@ -1,24 +1,18 @@
 package net.fallingangel.jimmerdto.psi
 
 import com.intellij.extapi.psi.PsiFileBase
-import com.intellij.lang.Language
-import com.intellij.lang.java.JavaLanguage
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.FileViewProvider
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
-import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import net.fallingangel.jimmerdto.DTOFileType
 import net.fallingangel.jimmerdto.DTOLanguage
-import net.fallingangel.jimmerdto.exception.UnsupportedLanguageException
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.element.DTODtoName
@@ -26,9 +20,7 @@ import net.fallingangel.jimmerdto.psi.element.DTOExportStatement
 import net.fallingangel.jimmerdto.psi.element.DTOImportStatement
 import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
-import net.fallingangel.jimmerdto.util.notification
 import net.fallingangel.jimmerdto.util.psiClass
-import org.jetbrains.kotlin.idea.KotlinLanguage
 
 class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLanguage) {
     private val implicitPackage: String
@@ -37,28 +29,6 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             val root = generateSequence(dir, VirtualFile::getParent)
                 .firstOrNull { it.name == "dto" } ?: return ""
             return VfsUtilCore.getRelativePath(dir, root, '.') ?: ""
-        }
-
-    val projectLanguage: Language
-        get() {
-            val exportLine = Regex("""export\s+\w+(\s*\.\s*\w+)*""").find(text)?.value
-            val entity = exportLine?.let {
-                generateSequence(Regex("""\w+""").find(it, 6), MatchResult::next)
-                    .joinToString(".", transform = MatchResult::value)
-            }
-                ?: "$implicitPackage.${originalFile.virtualFile.nameWithoutExtension}"
-
-            val entityClass = JavaPsiFacade.getInstance(project).findClass(entity, ProjectScope.getContentScope(project))
-            entityClass ?: run {
-                project.notification("Can't retrieve the entity `$entity` DTO correspondence, please check!", NotificationType.ERROR)
-                throw IllegalStateException("Entity class $entity is null")
-            }
-
-            return when {
-                entityClass.language is JavaLanguage -> JavaLanguage.INSTANCE
-                entityClass.language is KotlinLanguage -> KotlinLanguage.INSTANCE
-                else -> throw UnsupportedLanguageException("Unsupported language ${entityClass.language}")
-            }
         }
 
     val export: DTOExportStatement?
