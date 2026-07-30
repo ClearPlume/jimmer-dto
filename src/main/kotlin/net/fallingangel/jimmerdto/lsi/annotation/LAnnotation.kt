@@ -29,7 +29,10 @@ class LAnnotation(
                     is Enum -> value is Value.Enum && canonicalName == value.canonicalName
                     is Clazz -> value is Value.Clazz && accepts(value)
                     is Annotation -> value is Value.Annotation && canonicalName == value.annotation.canonicalName
-                    is Array -> value is Value.Array && value.elements.filterNotNull().all { elementType.accepts(it) }
+                    is Array -> when (value) {
+                        is Value.Array -> value.elements.filterNotNull().all { elementType.accepts(it) }
+                        else -> elementType.accepts(value)
+                    }
                 }
             }
 
