@@ -1,14 +1,8 @@
 package net.fallingangel.jimmerdto.psi.element
 
 import com.intellij.psi.PsiElement
-import net.fallingangel.jimmerdto.psi.mixin.DTOElement
+import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationElement
 
-interface DTONestAnnotation : DTOElement {
+interface DTONestAnnotation : DTOAnnotationElement {
     val at: PsiElement?
-
-    val qualifiedName: DTOQualifiedName
-
-    val value: DTOAnnotationValue?
-
-    val params: List<DTOAnnotationParameter>
 }

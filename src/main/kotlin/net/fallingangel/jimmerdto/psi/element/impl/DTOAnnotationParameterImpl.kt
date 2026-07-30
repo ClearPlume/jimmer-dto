@@ -3,7 +3,11 @@ package net.fallingangel.jimmerdto.psi.element.impl
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
-import net.fallingangel.jimmerdto.psi.element.*
+import net.fallingangel.jimmerdto.psi.element.DTOAnnotationParameter
+import net.fallingangel.jimmerdto.psi.element.DTOAnnotationValue
+import net.fallingangel.jimmerdto.psi.element.DTOVisitor
+import net.fallingangel.jimmerdto.psi.element.createAnnotationParameter
+import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationElement
 import net.fallingangel.jimmerdto.psi.mixin.DTONamedElement
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
 import net.fallingangel.jimmerdto.refenerce.DTOReference
@@ -31,15 +35,8 @@ class DTOAnnotationParameterImpl(node: ASTNode) : DTONamedElementImpl(node), DTO
     override fun getReference() = DTOReference(this, name.textRangeInParent)
 
     override fun resolve(): PsiElement? {
-        val anno = parent
-        val annoClass = if (anno is DTOAnnotation) {
-            anno.qualifiedName.clazz
-        } else {
-            anno as DTONestAnnotation
-            anno.qualifiedName.clazz
-        }
-        annoClass ?: return null
-        return annoClass.methods.find { it.name == name.text }
+        val anno = (parent as? DTOAnnotationElement)?.lAnnotation ?: return null
+        return anno.params.firstOrNull { it.name == name.text }?.source
     }
 
     override fun accept(visitor: PsiElementVisitor) {
