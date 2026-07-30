@@ -225,7 +225,7 @@ orderItem
 
 annotation
     :
-    At qualifiedName (LParen (annotationValue | annotationParameter) (Comma (annotationValue | annotationParameter))* RParen)?
+    At qualifiedName (LParen (annotationValue | annotationParameter)? (Comma (annotationValue | annotationParameter))* RParen)?
     ;
 
 annotationParameter
@@ -251,14 +251,14 @@ annotationSingleValue
 
 annotationArrayValue
     :
-    LBrace annotationValue (Comma annotationValue)* RBrace
+    LBrace annotationValue? (Comma annotationValue)* RBrace
     |
-    LBracket annotationValue (Comma annotationValue)* RBracket
+    LBracket annotationValue? (Comma annotationValue)* RBracket
     ;
 
 nestedAnnotation
     :
-    At? qualifiedName LParen (annotationValue | annotationParameter) (Comma annotationParameter)* RParen
+    At? qualifiedName LParen (annotationValue | annotationParameter)? (Comma annotationParameter)* RParen
     ;
 
 enumBody
