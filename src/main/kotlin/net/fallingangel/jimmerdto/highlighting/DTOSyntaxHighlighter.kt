@@ -64,15 +64,18 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
         val ANNOTATION = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ANNOTATION", DefaultLanguageHighlighterColors.METADATA)
         val FUNCTION = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_FUNCTION", DefaultLanguageHighlighterColors.STATIC_METHOD)
         val MACRO = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_MACRO", DefaultLanguageHighlighterColors.FUNCTION_DECLARATION)
-        val PROP_CONFIG = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_PROP_CONFIG")
-        val NEGATIVE_PROP = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NEGATIVE_PROP", CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES)
-        val NAMED_PARAMETER_NAME = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NAMED_PARAMETER_NAME")
+        val PROP_CONFIG = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_PROP_CONFIG", DefaultLanguageHighlighterColors.METADATA)
+        val NEGATIVE_PROP = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_NEGATIVE_PROP", CodeInsightColors.DEPRECATED_ATTRIBUTES)
+        val NAMED_PARAMETER_NAME = TextAttributesKey.createTextAttributesKey(
+            "JIMMER_DTO_NAMED_PARAMETER_NAME",
+            DefaultLanguageHighlighterColors.PARAMETER,
+        )
         val ENUM_INSTANCE = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ENUM_INSTANCE", DefaultLanguageHighlighterColors.STATIC_FIELD)
         val VALUE = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_VALUE", DefaultLanguageHighlighterColors.INSTANCE_FIELD)
 
         val IDENTIFIER = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_IDENTIFIER", DefaultLanguageHighlighterColors.IDENTIFIER)
-        val ERROR = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ERROR")
-        val WEAK_WARNING = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_WEAK_WARNING")
-        val DUPLICATION = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_DUPLICATION")
+        val ERROR = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ERROR", CodeInsightColors.ERRORS_ATTRIBUTES)
+        val WEAK_WARNING = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_WEAK_WARNING", CodeInsightColors.WEAK_WARNING_ATTRIBUTES)
+        val DUPLICATION = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_DUPLICATION", CodeInsightColors.DUPLICATE_FROM_SERVER)
     }
 }

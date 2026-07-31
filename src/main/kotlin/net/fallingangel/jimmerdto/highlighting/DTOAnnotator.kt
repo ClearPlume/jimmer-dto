@@ -606,7 +606,7 @@ class DTOAnnotator : Annotator {
             val name = o.name?.value ?: return
             // 属性存在性校验
             if (o.containingLClass?.findProperty(name) != null) {
-                o.style(DTOSyntaxHighlighter.NEGATIVE_PROP)
+                o.name?.style(DTOSyntaxHighlighter.NEGATIVE_PROP)
             } else {
                 o.name?.error("`$name` does not exist")
             }
