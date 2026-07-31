@@ -1,44 +1,37 @@
 package net.fallingangel.jimmerdto.action
 
-import com.intellij.lang.java.JavaLanguage
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.findDirectory
 import com.intellij.openapi.vfs.findFile
-import com.intellij.openapi.vfs.findOrCreateDirectory
-import com.intellij.psi.PsiClass
-import net.fallingangel.jimmerdto.util.contentRoot
-import net.fallingangel.jimmerdto.util.hasAnnotation
-import net.fallingangel.jimmerdto.util.notification
+import com.intellij.openapi.vfs.findOrCreateFile
+import net.fallingangel.jimmerdto.lsi.LKind
+import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.util.open
 import org.babyfish.jimmer.sql.Entity
-import org.jetbrains.kotlin.analysis.api.analyze
-import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
-import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.idea.core.util.toPsiFile
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.psiUtil.getChildOfType
 
 class CreateJimmerDtoFile : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
-        val project = event.project!!
-
-        project.notification(
-            "Since the Dto language supports 'export', this operation is obsolete and will be removed in 0.0.8, so don't use it anymore!",
-            NotificationType.WARNING
-        )
-
-        val entityClass = event.getData(CommonDataKeys.VIRTUAL_FILE)?.toPsiFile(project)?.getChildOfType<PsiClass>() ?: return
-        val entityQualifiedName = entityClass.qualifiedName ?: return
+        val project = event.project ?: return
+        val entityElement = event.getData(CommonDataKeys.PSI_ELEMENT) ?: return
+        val entityQualifiedName = process(entityElement) { classQualifiedName() } ?: return
         val entityPackage = entityQualifiedName.substringBeforeLast('.', "")
-        val entityName = entityClass.name ?: return
-        val dtoFileName = entityClass.qualifiedName?.replaceAfterLast('.', "dto") ?: return
+        val entityName = entityQualifiedName.substringAfterLast('.')
+        val dtoFileName = buildString {
+            if (entityPackage.isNotEmpty()) {
+                append(entityPackage.replace('.', '/'))
+                append('/')
+            }
+            append("$entityName.dto")
+        }
 
-        val dtoRoot = entityClass.contentRoot?.findDirectory("dto") ?: return
+        val fileIndex = ProjectRootManager.getInstance(project).fileIndex
+        val sourceRoot = entityElement.containingFile?.virtualFile?.let { fileIndex.getSourceRootForFile(it) }
+        val dtoRoot = sourceRoot?.parent?.findDirectory("dto") ?: return
         val dtoFile = dtoRoot.findFile(dtoFileName)
 
         if (dtoFile != null) {
@@ -47,35 +40,20 @@ class CreateJimmerDtoFile : AnAction() {
         }
 
         WriteCommandAction.runWriteCommandAction(project) {
-            val dtoDir = dtoRoot.findOrCreateDirectory(entityPackage.replace('.', '/'))
-            dtoDir.createChildData(project, "$entityName.dto").open(project)
+            dtoRoot.findOrCreateFile(dtoFileName).open(project)
         }
     }
 
     override fun update(event: AnActionEvent) {
-        val project = event.project ?: return
-        val selectedFile = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
-        if (selectedFile.isDirectory) {
-            event.presentation.isVisible = false
-            return
-        }
-        val psiFile = selectedFile.toPsiFile(project) ?: return
-        event.presentation.isVisible = when (psiFile.language) {
-            JavaLanguage.INSTANCE -> {
-                val clazz = psiFile.getChildOfType<PsiClass>() ?: return
-                clazz.hasAnnotation(Entity::class)
-            }
+        val selectedElement = event.getData(CommonDataKeys.PSI_ELEMENT)
 
-            KotlinLanguage.INSTANCE -> {
-                val clazz = psiFile.getChildOfType<KtClass>() ?: return
-                analyze(clazz) {
-                    val symbol = clazz.symbol as? KaClassSymbol ?: return
-                    symbol.hasAnnotation(Entity::class)
-                }
+        val visible = selectedElement?.let {
+            process(it) {
+                kind() == LKind.Interface && hasAnnotation(Entity::class)
             }
-
-            else -> false
         }
+
+        event.presentation.isVisible = visible == true
     }
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT

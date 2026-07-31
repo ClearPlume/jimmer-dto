@@ -6,7 +6,6 @@ import com.intellij.lang.jvm.JvmModifier
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
@@ -36,12 +35,6 @@ import kotlin.reflect.KClass
 
 val PsiElement.virtualFile: VirtualFile
     get() = containingFile.originalFile.virtualFile
-
-val PsiElement.contentRoot: VirtualFile?
-    get() {
-        val fileIndex = ProjectRootManager.getInstance(project).fileIndex
-        return fileIndex.getContentRootForFile(virtualFile)
-    }
 
 val DTOElement.file: DTOFile
     get() = containingFile as DTOFile
