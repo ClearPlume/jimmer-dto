@@ -105,7 +105,7 @@ class KotlinProcessor : LanguageProcessor {
     }
 
     context(element: PsiElement)
-    override fun canonicalName(): String? {
+    override fun classQualifiedName(): String? {
         val clazz = element.narrow<KtClass>()
         return clazz.fqName?.asString()
     }

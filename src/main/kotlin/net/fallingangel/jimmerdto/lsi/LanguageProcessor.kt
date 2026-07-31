@@ -22,7 +22,7 @@ interface LanguageProcessor {
     fun isAnnotationClass(): Boolean
 
     context(element: PsiElement)
-    fun canonicalName(): String?
+    fun classQualifiedName(): String?
 
     context(element: PsiElement)
     fun enum(): Pair<String, String>?

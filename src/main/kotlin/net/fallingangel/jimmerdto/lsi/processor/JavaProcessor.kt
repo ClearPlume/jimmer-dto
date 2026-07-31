@@ -101,7 +101,7 @@ class JavaProcessor : LanguageProcessor {
     }
 
     context(element: PsiElement)
-    override fun canonicalName(): String? {
+    override fun classQualifiedName(): String? {
         val clazz = element.narrow<PsiClass>()
         return clazz.qualifiedName
     }
