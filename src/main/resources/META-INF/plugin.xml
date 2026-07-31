@@ -17,6 +17,7 @@
         <group id="JimmerDTOEntityPopupMenuWrapper">
             <reference ref="JimmerDTOEntityPopupMenu"/>
             <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="WeighingNewGroup"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="before" relative-to-action="EditorToggleColumnMode"/>
         </group>
 
         <action id="InsertEntityPropsToDto" class="net.fallingangel.jimmerdto.action.InsertEntityPropAction">
