@@ -30,6 +30,7 @@ import net.fallingangel.jimmerdto.psi.DTOParser.*
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.util.*
+import org.jetbrains.kotlin.idea.base.util.module
 import net.fallingangel.jimmerdto.psi.DTOParser.Modifier as ParserModifier
 import net.fallingangel.jimmerdto.psi.DTOParser.PropConfigName as ParserPropConfig
 
@@ -782,7 +783,7 @@ class DTOCompletionContributor : CompletionContributor() {
         val preludes = preludes.lookUp()
         val imports = file.importIndex.values
             .mapNotNull { it.singleOrNull() }
-            .mapNotNull { file.project.psiClass(it) }
+            .mapNotNull { file.module?.psiClass(it) }
             .filterNot { it.isAnnotationType }
             .lookUp()
         return preludes +

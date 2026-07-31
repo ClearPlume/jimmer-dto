@@ -5,8 +5,8 @@ import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.elementType
@@ -28,13 +28,11 @@ import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 import org.jetbrains.kotlin.psi.KtClass
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
 import org.jetbrains.kotlin.scripting.resolve.classId
 import javax.swing.Icon
 import kotlin.reflect.KClass
-
-val PsiElement.virtualFile: VirtualFile
-    get() = containingFile.originalFile.virtualFile
 
 val DTOElement.file: DTOFile
     get() = containingFile as DTOFile
@@ -209,13 +207,12 @@ fun Project.notification(content: String, type: NotificationType = NotificationT
         .notify(this)
 }
 
-fun Project.psiClass(qualifiedName: String): PsiClass? {
-    return JavaPsiFacade.getInstance(this).findClass(qualifiedName, ProjectScope.getAllScope(this))
+fun Module.psiClass(qualifiedName: String): PsiClass? {
+    return JavaPsiFacade.getInstance(project).findClass(qualifiedName, getModuleWithDependenciesAndLibrariesScope(false))
 }
 
-fun Project.ktClass(qualifiedName: String): List<KtClass> {
-    val results = KotlinFullClassNameIndex[qualifiedName, this, ProjectScope.getAllScope(this)]
-    return results.filterIsInstance<KtClass>().toList()
+fun Module.ktClass(qualifiedName: String): KtClassOrObject? {
+    return KotlinFullClassNameIndex[qualifiedName, project, getModuleWithDependenciesAndLibrariesScope(false)].firstOrNull()
 }
 
 /**

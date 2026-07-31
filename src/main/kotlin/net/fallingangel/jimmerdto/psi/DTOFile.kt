@@ -21,6 +21,7 @@ import net.fallingangel.jimmerdto.psi.element.DTOImportStatement
 import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
 import net.fallingangel.jimmerdto.util.psiClass
+import org.jetbrains.kotlin.idea.base.util.module
 
 class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLanguage) {
     private val implicitPackage: String
@@ -56,7 +57,7 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
 
     val clazz: LClass?
         get() = CachedValuesManager.getCachedValue(this, CACHED_CLASS_KEY) {
-            val clazz = project.psiClass(qualifiedEntity) ?: return@getCachedValue null
+            val clazz = module?.psiClass(qualifiedEntity) ?: return@getCachedValue null
             val entity = process(clazz) { lClass() } ?: return@getCachedValue null
 
             val classDependencies = mutableSetOf<PsiElement>()
