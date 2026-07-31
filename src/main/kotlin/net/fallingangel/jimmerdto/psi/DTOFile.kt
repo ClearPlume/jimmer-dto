@@ -47,9 +47,11 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
         get() = findChildren<DTOImportStatement>("/dtoFile/importStatement")
 
     val qualifiedEntity: String
-        get() {
-            val export = findChildNullable<DTOExportStatement>("/dtoFile/exportStatement")
-            return export?.export?.value ?: "$implicitPackage.${originalFile.virtualFile.nameWithoutExtension}"
+        get() = export?.export?.value ?: buildString {
+            if (implicitPackage.isNotEmpty()) {
+                append("$implicitPackage.")
+            }
+            append(originalFile.virtualFile.nameWithoutExtension)
         }
 
     val clazz: LClass?

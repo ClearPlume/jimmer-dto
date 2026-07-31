@@ -76,6 +76,7 @@
                            bundle="plugin" key="notification.group.jimmerdto.notification.group"/>
 
         <fileBasedIndex implementation="net.fallingangel.jimmerdto.index.AnnotationClassIndex"/>
+        <fileBasedIndex implementation="net.fallingangel.jimmerdto.index.DtoEntityIndex"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
