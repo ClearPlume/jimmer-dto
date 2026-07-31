@@ -75,7 +75,7 @@
         <notificationGroup id="JimmerDTO Notification Group" displayType="BALLOON"
                            bundle="plugin" key="notification.group.jimmerdto.notification.group"/>
 
-        <fileBasedIndex implementation="net.fallingangel.jimmerdto.AnnotationClassIndex"/>
+        <fileBasedIndex implementation="net.fallingangel.jimmerdto.index.AnnotationClassIndex"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">

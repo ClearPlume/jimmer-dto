@@ -12,9 +12,9 @@ import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.siblings
 import com.intellij.util.indexing.FileBasedIndex
-import net.fallingangel.jimmerdto.ANNOTATION_CLASS_INDEX
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.DTOLanguage.xPath
+import net.fallingangel.jimmerdto.index.ANNOTATION_CLASS_INDEX
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
@@ -229,7 +229,7 @@ fun Project.allClasses(`package`: String? = ""): List<PsiClass> {
 /**
  * @param `package` null为获取所有包下所有类
  */
-fun Project.allAnnotations(`package`: String? = ""): List<PsiClass> {
+fun Project.allAnnotations(`package`: String? = null): List<PsiClass> {
     return if (`package` == null) {
         val psiFacade = JavaPsiFacade.getInstance(this)
         val scope = ProjectScope.getAllScope(this)
