@@ -68,7 +68,7 @@
         <lang.commenter language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCommenter"/>
         <completion.contributor language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCompletionContributor"/>
 
-        <codeInsight.lineMarkerProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.DTOLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="" implementationClass="net.fallingangel.jimmerdto.DTOLineMarkerProvider"/>
         <codeInsight.inlayProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOInlayHintProvider"/>
 
         <backgroundPostStartupActivity implementation="net.fallingangel.jimmerdto.dto.DTOClassCleaner"/>

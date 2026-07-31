@@ -3,35 +3,57 @@ package net.fallingangel.jimmerdto
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.elementType
+import com.intellij.psi.PsiNameIdentifierOwner
+import com.intellij.util.indexing.FileBasedIndex
 import icons.Icons
-import net.fallingangel.jimmerdto.psi.DTOLexer
-import net.fallingangel.jimmerdto.psi.DTOParser
+import net.fallingangel.jimmerdto.index.DTO_ENTITY_INDEX
+import net.fallingangel.jimmerdto.lsi.LKind
+import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.element.DTODtoName
-import org.antlr.intellij.adaptor.lexer.RuleIElementType
-import org.antlr.intellij.adaptor.lexer.TokenIElementType
+import org.babyfish.jimmer.sql.Entity
+import org.jetbrains.kotlin.idea.base.util.projectScope
+import org.jetbrains.kotlin.idea.core.util.toPsiFile
+import org.jetbrains.kotlin.psi.KtClass
 
 class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
     override fun collectNavigationMarkers(element: PsiElement, result: MutableCollection<in RelatedItemLineMarkerInfo<*>>) {
-        // 针对DTO名称元素发起跳转
-        val type = element.elementType
-        val parentType = element.parent.elementType
-
-        if (type !is TokenIElementType || parentType !is RuleIElementType) {
+        // DTO 名称
+        if (element is DTODtoName) {
+            val dtoClass = element.resolve() ?: return
+            val anchor = element.nameIdentifier ?: return
+            result.add(
+                NavigationGutterIconBuilder.create(Icons.icon_16)
+                    .setTargets(dtoClass)
+                    .setTooltipText("Jump to generated class '${element.value}'")
+                    .createLineMarkerInfo(anchor)
+            )
             return
         }
 
-        if (type.antlrTokenType == DTOLexer.Identifier && parentType.ruleIndex == DTOParser.RULE_dtoName) {
-            val dtoName = element.parent as? DTODtoName ?: return
-            val dtoClass = dtoName.resolve() ?: return
+        // 实体
+        if (element is PsiClass || element is KtClass) {
+            val entityName = process(element) {
+                if (kind() == LKind.Interface && hasAnnotation(Entity::class)) {
+                    classQualifiedName()
+                } else {
+                    null
+                }
+            }
 
-            result.add(
-                NavigationGutterIconBuilder.create(Icons.icon_16)
-                        .setTargets(dtoClass)
-                        .setTooltipText("Jump to generated class [${dtoName.value}]")
-                        .createLineMarkerInfo(element)
-            )
+            if (entityName != null) {
+                val files = FileBasedIndex.getInstance().getContainingFiles(DTO_ENTITY_INDEX, entityName, element.project.projectScope())
+                if (files.isNotEmpty()) {
+                    val anchor = (element as? PsiNameIdentifierOwner)?.nameIdentifier ?: return
+                    result.add(
+                        NavigationGutterIconBuilder.create(Icons.icon_16)
+                            .setTargets(files.mapNotNull { it.toPsiFile(element.project) })
+                            .setTooltipText("Jump to DTO file [${files.joinToString { it.name }}]")
+                            .createLineMarkerInfo(anchor)
+                    )
+                }
+            }
         }
     }
 }
