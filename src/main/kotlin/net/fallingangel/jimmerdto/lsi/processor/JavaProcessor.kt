@@ -19,6 +19,7 @@ import org.babyfish.jimmer.Immutable
 import org.babyfish.jimmer.sql.Embeddable
 import org.babyfish.jimmer.sql.Entity
 import org.babyfish.jimmer.sql.MappedSuperclass
+import kotlin.reflect.KClass
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
 
@@ -133,6 +134,38 @@ class JavaProcessor : LanguageProcessor {
                 method,
             )
         }
+    }
+
+    context(element: PsiElement)
+    override fun kind(): LKind? {
+        return when (element) {
+            is PsiTypeParameter -> null
+
+            is PsiClass -> when {
+                element.isAnnotationType -> LKind.Annotation
+                element.isInterface -> LKind.Interface
+                element.isEnum -> LKind.Enum
+                else -> LKind.Class
+            }
+
+            is PsiAnnotationMethod -> LKind.Parameter
+
+            is PsiMethod -> {
+                val containingClass = element.containingClass ?: return null
+                when {
+                    containingClass.isInterface -> LKind.Property
+                    else -> null
+                }
+            }
+
+            else -> null
+        }
+    }
+
+    context(element: PsiElement)
+    override fun hasAnnotation(vararg annotation: KClass<out Annotation>): Boolean {
+        val annotated = element.narrow<PsiModifierListOwner>()
+        return annotation.mapNotNull(KClass<*>::qualifiedName).any(annotated::hasAnnotation)
     }
 
     context(types: ResolvedTypes)

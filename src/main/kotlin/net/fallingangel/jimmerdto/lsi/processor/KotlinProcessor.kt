@@ -27,15 +27,16 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaClassKind
 import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaEnumEntrySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaNamedClassSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.markers.KaAnnotatedSymbol
 import org.jetbrains.kotlin.analysis.api.types.*
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
-import org.jetbrains.kotlin.psi.KtClass
-import org.jetbrains.kotlin.psi.KtEnumEntry
-import org.jetbrains.kotlin.psi.KtParameter
-import org.jetbrains.kotlin.psi.KtProperty
+import org.jetbrains.kotlin.idea.facet.KotlinFacet
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
+import org.jetbrains.kotlin.scripting.resolve.classId
+import kotlin.reflect.KClass
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
 
@@ -140,6 +141,48 @@ class KotlinProcessor : LanguageProcessor {
                 LAnnotation.Param(name, type, values[name], defaultValue, source)
             }
         }
+    }
+
+    context(element: PsiElement)
+    override fun kind(): LKind? {
+        return when (element) {
+            is KtEnumEntry -> null
+
+            is KtClass -> when {
+                element.isAnnotation() -> LKind.Annotation
+                element.isInterface() -> LKind.Interface
+                element.isEnum() -> LKind.Enum
+                else -> LKind.Class
+            }
+
+            is KtParameter -> {
+                val containingClass = element.containingClass() ?: return null
+                when {
+                    containingClass.isAnnotation() -> LKind.Parameter
+                    else -> null
+                }
+            }
+
+            is KtProperty -> {
+                val containingClass = element.containingClass() ?: return null
+                when {
+                    containingClass.isInterface() -> LKind.Property
+                    else -> null
+                }
+            }
+
+            else -> null
+        }
+    }
+
+    context(element: PsiElement)
+    override fun hasAnnotation(vararg annotation: KClass<out Annotation>): Boolean {
+        val declaration = element.narrow<KtDeclaration>()
+        val classIds = analyze(declaration) {
+            val symbol = declaration.symbol as? KaAnnotatedSymbol ?: return false
+            symbol.annotations.classIds
+        }
+        return annotation.map(KClass<*>::classId).any { it in classIds }
     }
 
     context(types: ResolvedTypes)

@@ -5,6 +5,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
+import kotlin.reflect.KClass
 
 private val EP = ExtensionPointName.create<LanguageProcessor>("net.fallingangel.languageProcessor")
 
@@ -31,6 +32,12 @@ interface LanguageProcessor {
 
     context(project: Project)
     fun builtinType(name: String): PsiElement?
+
+    context(element: PsiElement)
+    fun kind(): LKind?
+
+    context(element: PsiElement)
+    fun hasAnnotation(vararg annotation: KClass<out Annotation>): Boolean
 }
 
 fun Language.processor(): LanguageProcessor? {
