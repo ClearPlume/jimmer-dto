@@ -71,6 +71,7 @@ class DTOAnnotator : Annotator {
             val clazz = o.type.target?.source
             if (clazz == null) {
                 o.type.error("Unresolved reference: ${o.type.value}")
+                return
             } else {
                 if ((clazz as? PsiClass)?.isAnnotationType == true || (clazz as? KtClass)?.isAnnotation() == true) {
                     o.style(DTOSyntaxHighlighter.ANNOTATION)
