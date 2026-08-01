@@ -15,12 +15,12 @@ import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
-import net.fallingangel.jimmerdto.DTOLanguage.preludes
 import net.fallingangel.jimmerdto.DTOLanguage.rule
 import net.fallingangel.jimmerdto.DTOLanguage.token
 import net.fallingangel.jimmerdto.completion.pattern.lsiElement
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
+import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.jimmer.isEntityAssociation
 import net.fallingangel.jimmerdto.lsi.jimmer.isList
@@ -779,7 +779,7 @@ class DTOCompletionContributor : CompletionContributor() {
             emptyList()
         }
 
-        val preludes = preludes.lookUp()
+        val preludes = StandardType.entries.map(Enum<*>::name).lookUp()
         val imports = file.importIndex.values
             .mapNotNull { it.singleOrNull() }
             .mapNotNull { file.psiClass(it) }
