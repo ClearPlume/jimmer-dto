@@ -73,7 +73,7 @@ class DTOAnnotator : Annotator {
                 o.type.error("Unresolved reference: ${o.type.value}")
                 return
             } else {
-                if ((clazz as? PsiClass)?.isAnnotationType == true || (clazz as? KtClass)?.isAnnotation() == true) {
+                if (process(clazz) { isAnnotationClass() } == true) {
                     o.style(DTOSyntaxHighlighter.ANNOTATION)
                 }
             }
