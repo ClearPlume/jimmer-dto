@@ -53,7 +53,9 @@ class DTOAnnotator : Annotator {
             if (o.groupedImport != null) {
                 return
             }
-            val type = o.qualifiedName.simpleName
+
+            // 重复导入
+            val type = o.alias?.value ?: o.qualifiedName.simpleName
             if ((o.file.importIndex[type]?.size ?: 0) > 1) {
                 o.error(
                     "Conflicting import: imported name `$type` is ambiguous",
