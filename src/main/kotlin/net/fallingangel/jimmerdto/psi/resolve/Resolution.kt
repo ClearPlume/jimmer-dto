@@ -6,6 +6,7 @@ import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.compiling
 import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.util.ktClass
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -21,6 +22,8 @@ object Resolution {
                 val facade = JavaPsiFacade.getInstance(file.project)
                 return facade.findClass(name, scope)?.let { Target.Type(it) }
                     ?: facade.findPackage(name)?.let(Target::Pkg)
+                    // Java 索引看不见 Kotlin builtins（kotlin.Int 等无类文件），两个索引并查才是完整的包内容
+                    ?: file.ktClass(name)?.let { Target.Type(it) }
             }
         }
 
@@ -83,6 +86,8 @@ object Resolution {
             override fun resolve(name: String): Target? {
                 return `package`.subPackages.find { it.name == name }?.let(Target::Pkg)
                     ?: `package`.classes.find { it.name == name }?.let { Target.Type(it) }
+                    // Java 索引看不见 Kotlin builtins（kotlin.Int 等无类文件），两个索引并查才是完整的包内容
+                    ?: `package`.ktClass("${`package`.qualifiedName}.$name")?.let { Target.Type(it) }
             }
         }
 
