@@ -28,7 +28,6 @@ import net.fallingangel.jimmerdto.psi.fix.*
 import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationElement
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
-import net.fallingangel.jimmerdto.structure.GenericType
 import net.fallingangel.jimmerdto.util.*
 import org.babyfish.jimmer.sql.Id
 import org.jetbrains.kotlin.idea.base.psi.childrenDfsSequence
@@ -729,14 +728,10 @@ class DTOAnnotator : Annotator {
 
             val type = o.type.value
             val clazz = o.type.target?.source
-            val (typeParameterNumber, qualifiedName) = when (clazz) {
-                is PsiClass -> clazz.typeParameters.size to clazz.qualifiedName
-                is KtClass -> clazz.typeParameters.size to clazz.fqName?.asString()
-                else -> 0 to ""
-            }
+            val qualifiedName = clazz?.let { process(it) { classQualifiedName() } }
 
             // 类型解析
-            if (clazz == null && type !in DTOLanguage.preludes) {
+            if (clazz == null && StandardType[type] == null) {
                 o.type.error(
                     "Unresolved reference: $type",
                     ImportClass(o.type),
@@ -745,9 +740,15 @@ class DTOAnnotator : Annotator {
             }
 
             // 泛型校验
-            val exceptedTypeParamNumber = GenericType[type]?.generics?.size ?: typeParameterNumber
-            if ((o.arguments?.values?.size ?: 0) != exceptedTypeParamNumber) {
-                o.type.error("Generic parameter mismatch, expected `$exceptedTypeParamNumber` but got `${o.arguments?.values?.size ?: 0}`")
+            val declaredArity = when (clazz) {
+                is PsiClass -> clazz.typeParameters.size
+                is KtClass -> clazz.typeParameters.size
+                else -> 0
+            }
+            val exceptedTypeParamNumber = StandardType[type]?.arity ?: declaredArity
+            val genericArguments = o.arguments ?: return
+            if (genericArguments.values.size != exceptedTypeParamNumber) {
+                genericArguments.error("Generic parameter mismatch, expected `$exceptedTypeParamNumber` but got `${genericArguments.values.size}`")
             }
 
             // Dto接口实现校验
@@ -797,7 +798,7 @@ class DTOAnnotator : Annotator {
 
             // 类型可空性校验
             val dto = o.parentOfType<DTODto>() ?: return
-            if (o.questionMark == null && dto notModifiedBy Modifier.Specification && type !in DTOLanguage.preludes) {
+            if (o.questionMark == null && dto notModifiedBy Modifier.Specification && StandardType[type] == null) {
                 o.type.error("Type `${o.text}` is not null and its default value cannot be determined")
             }
         }

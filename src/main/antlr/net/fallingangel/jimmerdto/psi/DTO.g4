@@ -326,7 +326,7 @@ typeRef
 
 genericArguments
     :
-    LessThan genericArgument (Comma genericArgument)? GreaterThan
+    LessThan genericArgument (Comma genericArgument)* GreaterThan
     ;
 
 genericArgument
