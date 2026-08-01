@@ -11,6 +11,7 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
+import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.util.hasAnnotation
@@ -105,21 +106,31 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun builtinType(name: String): PsiElement? {
-        val prelude = arrayOf(
-            "kotlin",
-            "kotlin.annotation",
-            "kotlin.collections",
-            "kotlin.comparisons",
-            "kotlin.io",
-            "kotlin.ranges",
-            "kotlin.sequences",
-            "kotlin.text",
-            "kotlin.jvm",
-        )
-        return prelude.firstNotNullOfOrNull { `package` ->
-            element.ktClass("$`package`.$name")
+    override fun builtinType(type: StandardType): PsiElement? {
+        val qualified = when (type) {
+            StandardType.Boolean -> "kotlin.Boolean"
+            StandardType.Char -> "kotlin.Char"
+            StandardType.Byte -> "kotlin.Byte"
+            StandardType.Short -> "kotlin.Short"
+            StandardType.Int -> "kotlin.Int"
+            StandardType.Long -> "kotlin.Long"
+            StandardType.Float -> "kotlin.Float"
+            StandardType.Double -> "kotlin.Double"
+            StandardType.Any -> "kotlin.Any"
+            StandardType.String -> "kotlin.String"
+            StandardType.Array -> "kotlin.Array"
+            StandardType.Iterable -> "kotlin.collections.Iterable"
+            StandardType.MutableIterable -> "kotlin.collections.MutableIterable"
+            StandardType.Collection -> "kotlin.collections.Collection"
+            StandardType.MutableCollection -> "kotlin.collections.MutableCollection"
+            StandardType.List -> "kotlin.collections.List"
+            StandardType.MutableList -> "kotlin.collections.MutableList"
+            StandardType.Set -> "kotlin.collections.Set"
+            StandardType.MutableSet -> "kotlin.collections.MutableSet"
+            StandardType.Map -> "kotlin.collections.Map"
+            StandardType.MutableMap -> "kotlin.collections.MutableMap"
         }
+        return element.ktClass(qualified)
     }
 
     context(element: PsiElement)

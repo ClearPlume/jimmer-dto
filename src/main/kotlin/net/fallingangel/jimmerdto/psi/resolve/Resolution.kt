@@ -1,6 +1,7 @@
 package net.fallingangel.jimmerdto.psi.resolve
 
 import com.intellij.psi.*
+import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.compiling
@@ -32,6 +33,13 @@ object Resolution {
                     return null
                 }
 
+                StandardType[name]?.let { standard ->
+                    // 内置类型截断在此：无论有无可跳转的声明都不再向下
+                    // Java 侧的 Array 无对应类，source 为 null，引用不解析
+                    val type = compiling(file) { builtinType(standard) } ?: return null
+                    return Target.Type(type)
+                }
+
                 val candidates = file.importIndex[name]
                 if (candidates != null) {
                     // 歧义：错误已报在 import 处，此处静默
@@ -39,14 +47,12 @@ object Resolution {
                     return global.resolve(qualified)
                 }
 
-                compiling(file) { builtinType(name) }
-                    ?.let { return Target.Type(it) }
-
                 if (name.first().isLowerCase()) {
                     return global.resolve(name)
                 }
 
-                return global.resolve(if (fallbackPackage.isEmpty()) name else "$fallbackPackage.$name")
+                val defaultQualified = if (fallbackPackage.isEmpty()) name else "$fallbackPackage.$name"
+                return global.resolve(defaultQualified)
             }
         }
 

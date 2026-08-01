@@ -11,6 +11,7 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
+import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.util.hasAnnotation
@@ -101,19 +102,26 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun builtinType(name: String): PsiElement? {
-        return when (name) {
-            "Int" -> element.psiClass("java.lang.Integer")
-            "Char" -> element.psiClass("java.lang.Character")
-            "Any" -> element.psiClass("java.lang.Object")
-            else -> element.psiClass("java.lang.$name") ?: run {
-                if (name.startsWith("Mutable")) {
-                    element.psiClass("java.util.${name.substring(7)}")
-                } else {
-                    element.psiClass("java.util.$name")
-                }
-            }
+    override fun builtinType(type: StandardType): PsiElement? {
+        val qualified = when (type) {
+            StandardType.Boolean -> "java.lang.Boolean"
+            StandardType.Char -> "java.lang.Character"
+            StandardType.Byte -> "java.lang.Byte"
+            StandardType.Short -> "java.lang.Short"
+            StandardType.Int -> "java.lang.Integer"
+            StandardType.Long -> "java.lang.Long"
+            StandardType.Float -> "java.lang.Float"
+            StandardType.Double -> "java.lang.Double"
+            StandardType.Any -> "java.lang.Object"
+            StandardType.String -> "java.lang.String"
+            StandardType.Array -> null
+            StandardType.Iterable, StandardType.MutableIterable -> "java.lang.Iterable"
+            StandardType.Collection, StandardType.MutableCollection -> "java.util.Collection"
+            StandardType.List, StandardType.MutableList -> "java.util.List"
+            StandardType.Set, StandardType.MutableSet -> "java.util.Set"
+            StandardType.Map, StandardType.MutableMap -> "java.util.Map"
         }
+        return qualified?.let(element::psiClass)
     }
 
     context(element: PsiElement)

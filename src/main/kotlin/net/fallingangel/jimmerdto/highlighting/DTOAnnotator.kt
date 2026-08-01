@@ -16,6 +16,7 @@ import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
+import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.lsi.findProperty
 import net.fallingangel.jimmerdto.lsi.jimmer.isEntityAssociation
@@ -123,11 +124,16 @@ class DTOAnnotator : Annotator {
                 o.style(DTOSyntaxHighlighter.IDENTIFIER)
             }
 
+            // 内置类型：解析目标可能不存在（Java 侧 Array 无对应类），存在性由表回答
+            if (o.prevPart == null && o.qualifiedName?.parts?.size == 1 && StandardType[o.part] != null) {
+                return
+            }
+
             when (val target = o.target) {
                 null -> {
                     // 在 `export a.b.c -> package a.b.c.d.e.f` 下的包不参与存在性校验
-                    val underPackage = o.parent<DTOExportStatement> { `package` != null } == null
-                    if (underPackage && (o.prevPart == null || o.prevPart?.target != null)) {
+                    val notUnderExportPackage = o.parent<DTOExportStatement> { `package` != null } == null
+                    if (notUnderExportPackage && (o.prevPart == null || o.prevPart?.target != null)) {
                         o.error("Unresolved reference: ${o.part}")
                     }
                 }
