@@ -5,7 +5,6 @@ import com.intellij.lang.java.JavaLanguage
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
-import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
@@ -207,12 +206,12 @@ fun Project.notification(content: String, type: NotificationType = NotificationT
         .notify(this)
 }
 
-fun Module.psiClass(qualifiedName: String): PsiClass? {
-    return JavaPsiFacade.getInstance(project).findClass(qualifiedName, getModuleWithDependenciesAndLibrariesScope(false))
+fun PsiElement.psiClass(qualifiedName: String): PsiClass? {
+    return JavaPsiFacade.getInstance(project).findClass(qualifiedName, resolveScope)
 }
 
-fun Module.ktClass(qualifiedName: String): KtClassOrObject? {
-    return KotlinFullClassNameIndex[qualifiedName, project, getModuleWithDependenciesAndLibrariesScope(false)].firstOrNull()
+fun PsiElement.ktClass(qualifiedName: String): KtClassOrObject? {
+    return KotlinFullClassNameIndex[qualifiedName, project, resolveScope].firstOrNull()
 }
 
 /**

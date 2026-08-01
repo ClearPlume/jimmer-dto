@@ -9,7 +9,6 @@ import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.util.*
-import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.psi.KtClass
 
 interface DTOQualifiedName : DTOElement {
@@ -56,7 +55,7 @@ interface DTOQualifiedName : DTOElement {
                     PropConfigName.Where.text, PropConfigName.OrderBy.text -> config.containingLClass?.let(Resolution.Space::Properties)
 
                     // TODO 常量
-                    PropConfigName.FetchType.text -> module?.psiClass("org.babyfish.jimmer.sql.fetcher.ReferenceFetchType")
+                    PropConfigName.FetchType.text -> psiClass("org.babyfish.jimmer.sql.fetcher.ReferenceFetchType")
                         ?.let(Resolution.Space::Type)
 
                     else -> Resolution.Space.GlobalWithImports(file, file.entityPackage)
