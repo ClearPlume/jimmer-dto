@@ -13,10 +13,8 @@ import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.enums.*
 import net.fallingangel.jimmerdto.enums.Function
-import net.fallingangel.jimmerdto.enums.Modifier
-import net.fallingangel.jimmerdto.enums.PropConfigName
-import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.lsi.findProperty
 import net.fallingangel.jimmerdto.lsi.jimmer.isEntityAssociation
@@ -85,12 +83,8 @@ class DTOAnnotator : Annotator {
                     "Conflicting import: imported name `$type` is ambiguous",
                     RemoveElement(
                         type,
-                        o.parent,
-                        {
-                            it as DTOGroupedImport
-                            it.types.find { type -> type.startOffsetInParent == o.startOffsetInParent }!!
-                        },
-                        { listOfNotNull(it.siblingComma(false), it.siblingComma()) },
+                        o,
+                        relatedElementsFinder = { listOfNotNull(it.siblingComma(false), it.siblingComma()) },
                     ),
                 )
             }
