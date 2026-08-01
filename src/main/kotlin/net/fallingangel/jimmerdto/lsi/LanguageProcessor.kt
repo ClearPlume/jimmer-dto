@@ -2,7 +2,6 @@ package net.fallingangel.jimmerdto.lsi
 
 import com.intellij.lang.Language
 import com.intellij.openapi.extensions.ExtensionPointName
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import kotlin.reflect.KClass
@@ -30,9 +29,6 @@ interface LanguageProcessor {
     context(element: PsiElement)
     fun lAnnotationParams(values: Map<String, LAnnotation.Param.Value?>): List<LAnnotation.Param>?
 
-    context(project: Project)
-    fun builtinType(name: String): PsiElement?
-
     context(element: PsiElement)
     fun kind(): LKind?
 
@@ -49,8 +45,4 @@ fun Language.processor(): LanguageProcessor? {
  */
 inline fun <R> process(element: PsiElement, action: context(PsiElement, ResolvedTypes) LanguageProcessor.() -> R): R? {
     return element.language.processor()?.let { action(element, ResolvedTypes(), it) }
-}
-
-inline fun <R> process(language: Language, project: Project, action: context(Project) LanguageProcessor.() -> R): R? {
-    return language.processor()?.let { action(project, it) }
 }

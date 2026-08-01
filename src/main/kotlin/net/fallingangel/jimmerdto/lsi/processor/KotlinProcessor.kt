@@ -1,8 +1,8 @@
 package net.fallingangel.jimmerdto.lsi.processor
 
 import com.intellij.lang.Language
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.ProjectScope
@@ -14,6 +14,7 @@ import com.intellij.psi.util.PsiModificationTracker
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.util.hasAnnotation
+import net.fallingangel.jimmerdto.util.ktClass
 import org.babyfish.jimmer.Immutable
 import org.babyfish.jimmer.sql.Embeddable
 import org.babyfish.jimmer.sql.Entity
@@ -40,11 +41,15 @@ import kotlin.reflect.KClass
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
 
-class KotlinProcessor : LanguageProcessor {
+class KotlinProcessor : LanguageProcessor, CompilerContext {
     private val childrenKey = Key.create<CachedValue<List<KtClass>>>("KOTLIN_CACHED_CHILDREN_CLASS")
 
     override fun supports(language: Language): Boolean {
         return language == KotlinLanguage.INSTANCE
+    }
+
+    override fun appliesTo(module: Module): Boolean {
+        return KotlinFacet.get(module) != null
     }
 
     context(element: PsiElement, types: ResolvedTypes)
@@ -99,9 +104,22 @@ class KotlinProcessor : LanguageProcessor {
         return clazz.isAnnotation()
     }
 
-    context(project: Project)
+    context(element: PsiElement)
     override fun builtinType(name: String): PsiElement? {
-        TODO("Not yet implemented")
+        val prelude = arrayOf(
+            "kotlin",
+            "kotlin.annotation",
+            "kotlin.collections",
+            "kotlin.comparisons",
+            "kotlin.io",
+            "kotlin.ranges",
+            "kotlin.sequences",
+            "kotlin.text",
+            "kotlin.jvm",
+        )
+        return prelude.firstNotNullOfOrNull { `package` ->
+            element.ktClass("$`package`.$name")
+        }
     }
 
     context(element: PsiElement)

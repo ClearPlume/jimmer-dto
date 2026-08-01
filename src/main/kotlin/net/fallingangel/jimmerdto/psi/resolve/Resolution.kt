@@ -1,15 +1,11 @@
 package net.fallingangel.jimmerdto.psi.resolve
 
-import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.*
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.compiling
 import net.fallingangel.jimmerdto.psi.DTOFile
-import net.fallingangel.jimmerdto.util.ktClass
-import net.fallingangel.jimmerdto.util.psiClass
-import net.fallingangel.jimmerdto.util.virtualFile
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtEnumEntry
@@ -35,7 +31,6 @@ object Resolution {
                 if (name.isEmpty()) {
                     return null
                 }
-                val project = file.project
 
                 val candidates = file.importIndex[name]
                 if (candidates != null) {
@@ -44,47 +39,8 @@ object Resolution {
                     return global.resolve(qualified)
                 }
 
-                val language = file.clazz?.source?.language
-                val target = when (language) {
-                    JavaLanguage.INSTANCE -> {
-                        when (name) {
-                            "Int" -> project.psiClass("java.lang.Integer")
-                            "Char" -> project.psiClass("java.lang.Character")
-                            "Any" -> project.psiClass("java.lang.Object")
-                            else -> project.psiClass("java.lang.$name") ?: run {
-                                if (name.startsWith("Mutable")) {
-                                    project.psiClass("java.util.${name.substring(7)}")
-                                } else {
-                                    project.psiClass("java.util.$name")
-                                }
-                            }
-                        }
-                    }
-
-                    KotlinLanguage.INSTANCE -> {
-                        val prelude = arrayOf(
-                            "kotlin",
-                            "kotlin.annotation",
-                            "kotlin.collections",
-                            "kotlin.comparisons",
-                            "kotlin.io",
-                            "kotlin.ranges",
-                            "kotlin.sequences",
-                            "kotlin.text",
-                            "kotlin.jvm",
-                        )
-
-                        prelude.firstNotNullOfOrNull { `package` ->
-                            project.ktClass("$`package`.$name")
-                                // 过滤掉不是来自 kotlin-stdlib 的同名类
-                                .filter { "org.jetbrains.kotlin/kotlin-stdlib" in it.virtualFile.path }
-                                .getOrNull(0)
-                        }
-                    }
-
-                    else -> null
-                }
-                target?.let { return Target.Type(it) }
+                compiling(file) { builtinType(name) }
+                    ?.let { return Target.Type(it) }
 
                 if (name.first().isLowerCase()) {
                     return global.resolve(name)

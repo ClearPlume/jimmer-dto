@@ -31,11 +31,18 @@
         <extensionPoint qualifiedName="net.fallingangel.languageProcessor"
                         interface="net.fallingangel.jimmerdto.lsi.LanguageProcessor"
                         dynamic="true"/>
+
+        <extensionPoint qualifiedName="net.fallingangel.compilerContext"
+                        interface="net.fallingangel.jimmerdto.lsi.CompilerContext"
+                        dynamic="true"/>
     </extensionPoints>
 
     <extensions defaultExtensionNs="net.fallingangel">
-        <languageProcessor implementation="net.fallingangel.jimmerdto.lsi.processor.JavaProcessor"/>
+        <languageProcessor implementation="net.fallingangel.jimmerdto.lsi.processor.JavaProcessor" order="last"/>
         <languageProcessor implementation="net.fallingangel.jimmerdto.lsi.processor.KotlinProcessor"/>
+
+        <compilerContext implementation="net.fallingangel.jimmerdto.lsi.processor.JavaProcessor" order="last"/>
+        <compilerContext implementation="net.fallingangel.jimmerdto.lsi.processor.KotlinProcessor"/>
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">

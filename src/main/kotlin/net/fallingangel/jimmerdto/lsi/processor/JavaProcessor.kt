@@ -2,7 +2,7 @@ package net.fallingangel.jimmerdto.lsi.processor
 
 import com.intellij.lang.Language
 import com.intellij.lang.java.JavaLanguage
-import com.intellij.openapi.project.Project
+import com.intellij.openapi.module.Module
 import com.intellij.openapi.util.Key
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
@@ -15,6 +15,7 @@ import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.nullable
+import net.fallingangel.jimmerdto.util.psiClass
 import org.babyfish.jimmer.Immutable
 import org.babyfish.jimmer.sql.Embeddable
 import org.babyfish.jimmer.sql.Entity
@@ -23,11 +24,15 @@ import kotlin.reflect.KClass
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
 
-class JavaProcessor : LanguageProcessor {
+class JavaProcessor : LanguageProcessor, CompilerContext {
     private val childrenKey = Key.create<CachedValue<List<PsiClass>>>("JAVA_CACHED_CHILDREN_CLASS")
 
     override fun supports(language: Language): Boolean {
         return language == JavaLanguage.INSTANCE
+    }
+
+    override fun appliesTo(module: Module): Boolean {
+        return true
     }
 
     context(element: PsiElement, types: ResolvedTypes)
@@ -95,9 +100,20 @@ class JavaProcessor : LanguageProcessor {
         return clazz.isAnnotationType
     }
 
-    context(project: Project)
+    context(element: PsiElement)
     override fun builtinType(name: String): PsiElement? {
-        TODO("Not yet implemented")
+        return when (name) {
+            "Int" -> element.psiClass("java.lang.Integer")
+            "Char" -> element.psiClass("java.lang.Character")
+            "Any" -> element.psiClass("java.lang.Object")
+            else -> element.psiClass("java.lang.$name") ?: run {
+                if (name.startsWith("Mutable")) {
+                    element.psiClass("java.util.${name.substring(7)}")
+                } else {
+                    element.psiClass("java.util.$name")
+                }
+            }
+        }
     }
 
     context(element: PsiElement)
