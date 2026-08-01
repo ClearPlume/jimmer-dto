@@ -60,6 +60,12 @@ class DTOAnnotator : Annotator {
                     RemoveElement(type, o),
                 )
             }
+
+            // 内置类型不可导入
+            val qualifiedType = o.qualifiedName.value
+            if (qualifiedType in AUTO_IMPORTED_TYPES) {
+                o.error("'$qualifiedType' cannot be imported because it is built-in type", RemoveElement(qualifiedType, o))
+            }
         }
 
         /**
@@ -83,6 +89,19 @@ class DTOAnnotator : Annotator {
                     "Conflicting import: imported name `$type` is ambiguous",
                     RemoveElement(
                         type,
+                        o,
+                        relatedElementsFinder = { listOfNotNull(it.siblingComma(false), it.siblingComma()) },
+                    ),
+                )
+            }
+
+            // 内置类型不可导入
+            val qualifiedType = process(clazz) { classQualifiedName() } ?: return
+            if (qualifiedType in AUTO_IMPORTED_TYPES) {
+                o.error(
+                    "'$qualifiedType' cannot be imported because it is built-in type",
+                    RemoveElement(
+                        qualifiedType,
                         o,
                         relatedElementsFinder = { listOfNotNull(it.siblingComma(false), it.siblingComma()) },
                     ),
