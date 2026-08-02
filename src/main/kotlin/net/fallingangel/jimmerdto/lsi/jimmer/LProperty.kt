@@ -4,6 +4,7 @@ package net.fallingangel.jimmerdto.lsi.jimmer
 
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import org.babyfish.jimmer.Formula
 import org.babyfish.jimmer.Immutable
@@ -58,3 +59,30 @@ val LProperty.isTransient: Boolean
  */
 val LProperty.isReference: Boolean
     get() = isEntityAssociation && !isList && !isTransient
+
+val LClass.idProperty: LProperty?
+    get() = properties.find { it.isId }
+
+val LProperty.idViewBaseProp: LProperty?
+    get() {
+        val annotation = annotations.find { it.canonicalName == IdView::class.qualifiedName } ?: return null
+        val baseParam = annotation.params.find { it.name == "value" } ?: return null
+        val declaredBase = (baseParam.value ?: baseParam.defaultValue)
+            ?.let { it as? LAnnotation.Param.Value.Scalar }
+            ?.value as? String
+        val base = declaredBase?.takeIf { it.isNotEmpty() } ?: defaultViewBasePropName ?: return null
+        if (base == name) return null
+
+        return containingLClass.findProperty(base)?.takeIf { it.isReference }
+    }
+
+val LProperty.defaultViewBasePropName: String?
+    get() = defaultViewBasePropName(name, isList)
+
+fun defaultViewBasePropName(name: String, isList: Boolean): String? {
+    if (isList) return null
+    if (name.length <= 2) return null
+    if (!name.endsWith("Id")) return null
+    if (name[name.length - 3].isUpperCase()) return null
+    return name.dropLast(2)
+}

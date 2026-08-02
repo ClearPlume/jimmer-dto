@@ -5,6 +5,10 @@ import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.compiling
+import net.fallingangel.jimmerdto.lsi.jimmer.defaultViewBasePropName
+import net.fallingangel.jimmerdto.lsi.jimmer.idProperty
+import net.fallingangel.jimmerdto.lsi.jimmer.idViewBaseProp
+import net.fallingangel.jimmerdto.lsi.jimmer.isReference
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.ktClass
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
@@ -93,8 +97,12 @@ object Resolution {
 
         class Properties(val clazz: LClass) : Space() {
             override fun resolve(name: String): Target? {
-                val property = clazz.findProperty(name) ?: clazz.findProperty(name.removeSuffix("Id"))
-                return property?.let(Target::Property)
+                clazz.findProperty(name)?.let { return Target.Property(it, it.idViewBaseProp) }
+
+                val base = defaultViewBasePropName(name, false) ?: return null
+                val reference = clazz.findProperty(base)?.takeIf { it.isReference } ?: return null
+
+                return reference.targetClass?.idProperty?.let { Target.Property(it, reference) }
             }
         }
     }
@@ -128,7 +136,10 @@ object Resolution {
             }
         }
 
-        class Property(val property: LProperty) : Target() {
+        /**
+         * @param referenceProp [property] 落在该引用关联的 id 上时，那个引用关联；直接命中的属性为 null
+         */
+        class Property(val property: LProperty, val referenceProp: LProperty? = null) : Target() {
             override val source: PsiElement?
                 get() = property.source
 
