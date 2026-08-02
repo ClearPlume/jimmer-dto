@@ -49,6 +49,10 @@ class DTOErrorListener : SyntaxErrorListener() {
                 error("Missing class name after 'class'")
             }
 
+            offendingSymbol.type == DTOLexer.StringLiteral && context.inside<WhereArgsContext>() -> {
+                error("String literals in SQL predicates must use single quotes")
+            }
+
             else -> error(msg)
         }
     }
