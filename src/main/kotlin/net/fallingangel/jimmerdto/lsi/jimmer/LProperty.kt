@@ -2,6 +2,8 @@
 
 package net.fallingangel.jimmerdto.lsi.jimmer
 
+import net.fallingangel.jimmerdto.enums.SimplePropType
+import net.fallingangel.jimmerdto.enums.SimplePropType.*
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
@@ -86,3 +88,23 @@ fun defaultViewBasePropName(name: String, isList: Boolean): String? {
     if (name[name.length - 3].isUpperCase()) return null
     return name.dropLast(2)
 }
+
+private val SIMPLE_PROP_TYPE_MAP = mapOf(
+    "boolean" to BOOLEAN, "java.lang.Boolean" to BOOLEAN, "kotlin.Boolean" to BOOLEAN,
+    "byte" to BYTE, "java.lang.Byte" to BYTE, "kotlin.Byte" to BYTE,
+    "short" to SHORT, "java.lang.Short" to SHORT, "kotlin.Short" to SHORT,
+    "int" to INT, "java.lang.Integer" to INT, "kotlin.Int" to INT,
+    "long" to LONG, "java.lang.Long" to LONG, "kotlin.Long" to LONG,
+    "float" to FLOAT, "java.lang.Float" to FLOAT, "kotlin.Float" to FLOAT,
+    "double" to DOUBLE, "java.lang.Double" to DOUBLE, "kotlin.Double" to DOUBLE,
+
+    "java.math.BigInteger" to BIG_INTEGER,
+    "java.math.BigDecimal" to BIG_DECIMAL,
+
+    "java.lang.String" to STRING, "kotlin.String" to STRING,
+)
+
+val LProperty.simplePropType: SimplePropType?
+    get() = (type as? LProperty.Type.Scalar)
+        ?.canonicalName
+        ?.let(SIMPLE_PROP_TYPE_MAP::get)

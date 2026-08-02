@@ -15,12 +15,8 @@ import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.enums.*
 import net.fallingangel.jimmerdto.enums.Function
-import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
-import net.fallingangel.jimmerdto.lsi.findProperty
-import net.fallingangel.jimmerdto.lsi.jimmer.isEntityAssociation
-import net.fallingangel.jimmerdto.lsi.jimmer.isList
-import net.fallingangel.jimmerdto.lsi.jimmer.isReference
-import net.fallingangel.jimmerdto.lsi.jimmer.resolvedLClass
+import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.jimmer.*
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
@@ -29,7 +25,6 @@ import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationElement
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.util.*
-import org.babyfish.jimmer.sql.Id
 import org.jetbrains.kotlin.idea.base.psi.childrenDfsSequence
 import org.jetbrains.kotlin.psi.KtClass
 
@@ -105,27 +100,6 @@ class DTOAnnotator : Annotator {
                         relatedElementsFinder = { listOfNotNull(it.siblingComma(false), it.siblingComma()) },
                     ),
                 )
-            }
-        }
-
-        /**
-         * 为全限定类名上色
-         */
-        override fun visitQualifiedName(o: DTOQualifiedName) {
-            if (o.parentOfType<DTOPropConfig>() != null && o.parts.size >= 2) {
-                val prop = o.parentOfType<DTOPositiveProp>() ?: return
-                val propClass = prop.property?.actualType?.resolvedLClass ?: return
-                val relationProp = propClass.findProperty(o.parts.dropLast(1).map { it.text }) ?: return
-                val idView = propClass.findProperty(o.parts.map { it.text }) ?: return
-
-                if (relationProp.isReference && relationProp.isEntityAssociation && idView.hasAnnotation(Id::class)) {
-                    val old = "${relationProp.name}.${idView.name}"
-                    val new = "${relationProp.name}Id"
-                    o.error(
-                        "Please replace `$old` to `$new`",
-                        ReplaceIdAccessorToView(o, old, new),
-                    )
-                }
             }
         }
 
@@ -805,6 +779,8 @@ class DTOAnnotator : Annotator {
 
         /**
          * 为用户属性默认值上色
+         * 
+         * TODO 类型校验优化
          */
         override fun visitDefaultValue(o: DTODefaultValue) {
             val prop = o.parent as DTOUserProp
@@ -1127,6 +1103,61 @@ class DTOAnnotator : Annotator {
                     o.name.error("Incorrect prop-config name `$configName`, available names are: $availableNames")
                 }
             }
+        }
+
+        /**
+         * !where 校验
+         */
+        override fun visitCompare(o: DTOCompare) {
+            val property = o.prop.validatePropPath() ?: return
+            val simpleType = property.simplePropType
+            if (simpleType == null) {
+                val lastPart = o.prop.parts.last()
+                lastPart.error("The '!where' in DTO must be simple predicate so that the last property '${property.name}' must be boolean, number, string")
+                return
+            }
+        }
+
+        /**
+         * 属性路径校验
+         */
+        fun DTOQualifiedName.validatePropPath(): LProperty? {
+            val lastIndex = parts.lastIndex
+
+            for ((index, part) in parts.withIndex()) {
+                val target = part.target as? Resolution.Target.Property ?: return null
+                val property = target.property
+                val propertyName = property.name
+
+                if (property.isEntityAssociation && property.isReference && index == lastIndex) {
+                    part.error(
+                        "Please replace '$propertyName' to '${property.name}Id'",
+                        ReplaceName(part, "${property.name}Id", Project::createQualifiedNamePart),
+                    )
+                    return null
+                }
+
+                if (property.isEntityAssociation && property.isReference && index < lastIndex) {
+                    val idPropName = property.targetClass?.idProperty?.name
+                    if (idPropName != null && parts[index + 1].part == idPropName) {
+                        val old = "${part.part}.$idPropName"
+                        val new = "${part.part}Id"
+                        part.error("Please replace '$old' to '$new'", ReplaceIdAccessorToView(this, index, old, new))
+                        return null
+                    }
+                }
+
+                if (property.isEntityAssociation && !property.isReference) {
+                    return null
+                }
+
+                if (!property.isEntityAssociation && !property.isEmbedded && index < lastIndex) {
+                    part.error("'$propertyName' is not last property but it is not embedded object")
+                    return null
+                }
+            }
+
+            return (target as? Resolution.Target.Property)?.property
         }
 
         /**
