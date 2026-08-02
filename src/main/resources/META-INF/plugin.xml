@@ -66,13 +66,15 @@
         <lang.documentationProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.DTODocumentationProvider"/>
         <lang.refactoringSupport language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.refactor.DTORefactoringSupport"/>
         <vetoRenameCondition implementation="net.fallingangel.jimmerdto.refactor.DTORenameCondition"/>
-        <lang.quoteHandler language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOQuoteHandler"/>
         <renamePsiElementProcessor implementation="net.fallingangel.jimmerdto.refactor.EntityRenameProcessor" order="last"/>
 
         <colorSettingsPage implementation="net.fallingangel.jimmerdto.highlighting.DTOColorSettingsPage"/>
         <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>
 
+        <lang.quoteHandler language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOQuoteHandler"/>
         <lang.braceMatcher language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOBraceMatcher"/>
+        <typedHandler implementation="net.fallingangel.jimmerdto.completion.DTOTypedHandler"/>
+        <backspaceHandlerDelegate implementation="net.fallingangel.jimmerdto.completion.DTOBackspaceHandler"/>
         <lang.commenter language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCommenter"/>
         <completion.contributor language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCompletionContributor"/>
 
