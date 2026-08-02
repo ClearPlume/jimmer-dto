@@ -2,8 +2,10 @@ package net.fallingangel.jimmerdto
 
 import net.fallingangel.jimmerdto.psi.DTOLexer
 import net.fallingangel.jimmerdto.psi.DTOParser
+import net.fallingangel.jimmerdto.psi.DTOParser.*
 import org.antlr.intellij.adaptor.parser.SyntaxError
 import org.antlr.intellij.adaptor.parser.SyntaxErrorListener
+import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.RecognitionException
 import org.antlr.v4.runtime.Recognizer
 import org.antlr.v4.runtime.Token
@@ -28,47 +30,30 @@ class DTOErrorListener : SyntaxErrorListener() {
         if (recognizer !is DTOParser || offendingSymbol !is Token) {
             return
         }
-        when (recognizer.context) {
-            is DTOParser.AliasGroupContext -> {
-                if (offendingSymbol.type in listOf(DTOLexer.StringLiteral, DTOLexer.SqlStringLiteral)) {
-                    syntaxErrors += SyntaxError(
-                        recognizer,
-                        offendingSymbol,
-                        line,
-                        charPositionInLine,
-                        "No quotation marks are needed here",
-                        e,
-                    )
-                }
-            }
 
-            is DTOParser.MorphismContext -> {
-                if (offendingSymbol.type == DTOLexer.Identifier) {
-                    syntaxErrors += SyntaxError(
-                        recognizer,
-                        offendingSymbol,
-                        line,
-                        charPositionInLine,
-                        "To rename the generated class, use 'class ${offendingSymbol.text}' syntax",
-                        e,
-                    )
-                }
-            }
-
-            is DTOParser.ClassDeclarationContext -> {
-                if (offendingSymbol.type == DTOLexer.LBrace) {
-                    syntaxErrors += SyntaxError(
-                        recognizer,
-                        offendingSymbol,
-                        line,
-                        charPositionInLine,
-                        "Missing class name after 'class'",
-                        e,
-                    )
-                }
-            }
-
-            else -> syntaxErrors += SyntaxError(recognizer, offendingSymbol, line, charPositionInLine, msg, e)
+        fun error(message: String?) {
+            syntaxErrors += SyntaxError(recognizer, offendingSymbol, line, charPositionInLine, message, e)
         }
+
+        val context = recognizer.context
+        when {
+            offendingSymbol.type in listOf(DTOLexer.StringLiteral, DTOLexer.SqlStringLiteral) && context.inside<AliasGroupContext>() -> {
+                error("No quotation marks are needed here")
+            }
+
+            offendingSymbol.type == DTOLexer.Identifier && context.inside<MorphismContext>() -> {
+                error("To rename the generated class, use 'class ${offendingSymbol.text}' syntax")
+            }
+
+            offendingSymbol.type == DTOLexer.LBrace && context.inside<ClassDeclarationContext>() -> {
+                error("Missing class name after 'class'")
+            }
+
+            else -> error(msg)
+        }
+    }
+
+    private inline fun <reified T : ParserRuleContext> ParserRuleContext?.inside(): Boolean {
+        return generateSequence(this) { it.parent as? ParserRuleContext }.any { it is T }
     }
 }
