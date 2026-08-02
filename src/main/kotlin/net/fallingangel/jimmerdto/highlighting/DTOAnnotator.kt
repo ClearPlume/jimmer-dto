@@ -746,9 +746,9 @@ class DTOAnnotator : Annotator {
                 else -> 0
             }
             val exceptedTypeParamNumber = StandardType[type]?.arity ?: declaredArity
-            val genericArguments = o.arguments ?: return
-            if (genericArguments.values.size != exceptedTypeParamNumber) {
-                genericArguments.error("Generic parameter mismatch, expected `$exceptedTypeParamNumber` but got `${genericArguments.values.size}`")
+            val writtenTypeParamNumber = o.arguments?.values?.size ?: 0
+            if (writtenTypeParamNumber != exceptedTypeParamNumber) {
+                o.error("Generic parameter mismatch, expected `$exceptedTypeParamNumber` but got `$writtenTypeParamNumber`")
             }
 
             // Dto接口实现校验
