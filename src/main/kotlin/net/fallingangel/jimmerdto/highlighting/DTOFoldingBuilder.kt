@@ -18,6 +18,7 @@ class DTOFoldingBuilder : FoldingBuilderEx(), DumbAware {
         DTOParser.RULE_aliasGroupBody,
         DTOParser.RULE_propBody,
         DTOParser.RULE_enumBody,
+        DTOParser.RULE_genericArguments,
     )
 
     override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> {
