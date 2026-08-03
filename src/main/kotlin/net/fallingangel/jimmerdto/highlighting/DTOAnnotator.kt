@@ -959,19 +959,28 @@ class DTOAnnotator : Annotator {
                     )
                 }
             }
+
+            // 属性 '!'
+            val exclamation = o.required
+            if (exclamation != null) {
+                val flat = Function.Flat.expression
+                if (functionName == flat) {
+                    exclamation.error("Illegal symbol '*', it's cannot decorate '$flat'")
+                }
+            }
         }
 
         private fun visitProp(o: DTOPositiveProp, propName: String) {
             val availableProperties = o.containingLClass?.allProperties ?: return
 
             // 属性是否存在
-            val prop = availableProperties.find { it.name == propName } ?: let {
+            val property = availableProperties.find { it.name == propName } ?: let {
                 o.name.error("`$propName` does not exist")
                 return
             }
 
             // 关联属性需要指定body
-            if (prop.isEntityAssociation && o.body == null && o.recursive == null) {
+            if (property.isEntityAssociation && o.body == null && o.recursive == null) {
                 o.name.error("`$propName` must have child body")
             }
 
@@ -995,16 +1004,51 @@ class DTOAnnotator : Annotator {
                 )
             }
 
-            // 属性递归标识
+            // 属性 '*'
             val star = o.recursive
-            if (star != null && !prop.isRecursive) {
+            if (star != null && !property.isRecursive) {
                 star.error("Illegal symbol '*', the property '$propName' is not recursive", RemoveElement("*", star))
             }
-            
+
             // 递归属性不可指定子类型体
             val body = o.body
             if (body != null && star != null) {
                 body.error("The child body of recursive property '${propName}' cannot be specified")
+            }
+
+            // 属性 '!'
+            val exclamation = o.required
+            val dto = o.parent<DTODto> { true } ?: return
+            if (exclamation != null) {
+                val specification = Modifier.Specification
+                val input = Modifier.Input
+                val unsafe = Modifier.Unsafe
+
+                if (property.isId) {
+                    if (dto notModifiedBy specification && dto notModifiedBy input) {
+                        exclamation.error(
+                            "'!' on id property requires 'input' or 'specification' dto",
+                            RemoveElement("!", exclamation),
+                        )
+                    }
+                } else {
+                    if (dto notModifiedBy specification && dto notModifiedBy unsafe) {
+                        exclamation.error(
+                            "'!' on non-id property requires 'unsafe' or 'specification' dto",
+                            RemoveElement("!", exclamation),
+                        )
+                        return
+                    }
+
+                    val flat = o.parent<DTOPositiveProp>(false) { name.value == Function.Flat.expression && this.property?.nullable == true }
+                    if (!property.nullable && flat == null && dto notModifiedBy Modifier.Specification) {
+                        // TODO 上游调整为非异常后调整为 Inspection
+                        exclamation.error(
+                            "'!' is not allowed, the property is already non-null",
+                            RemoveElement("!", exclamation),
+                        )
+                    }
+                }
             }
         }
 
