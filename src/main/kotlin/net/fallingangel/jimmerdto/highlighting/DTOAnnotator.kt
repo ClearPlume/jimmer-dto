@@ -965,8 +965,18 @@ class DTOAnnotator : Annotator {
             if (exclamation != null) {
                 val flat = Function.Flat.expression
                 if (functionName == flat) {
-                    exclamation.error("Illegal symbol '*', it's cannot decorate '$flat'")
+                    exclamation.error("Illegal symbol '!', it's cannot decorate '$flat'")
                 }
+            }
+
+            // 属性 '*'
+            val recursive = o.recursive
+            if (recursive != null) {
+                val value = arg.values.firstOrNull() ?: return
+                recursive.error(
+                    "Illegal symbol '*', the property '${value.text}' with function invocation '$functionName' cannot be recursive",
+                    RemoveElement("*", recursive),
+                )
             }
         }
 
@@ -1004,21 +1014,36 @@ class DTOAnnotator : Annotator {
                 )
             }
 
+            val dto = o.parent<DTODto> { true } ?: return
+
             // 属性 '*'
             val star = o.recursive
-            if (star != null && !property.isRecursive) {
-                star.error("Illegal symbol '*', the property '$propName' is not recursive", RemoveElement("*", star))
-            }
+            if (star != null) {
+                if (!property.isRecursive) {
+                    star.error(
+                        "Illegal symbol '*', the property '$propName' is not recursive",
+                        RemoveElement("*", star),
+                    )
+                } else {
+                    if (body != null) {
+                        star.error(
+                            "The child body of recursive property '${propName}' cannot be specified",
+                            RemoveElement("*", star),
+                            RemoveElement("child body", body),
+                        )
+                    }
 
-            // 递归属性不可指定子类型体
-            val body = o.body
-            if (body != null && star != null) {
-                body.error("The child body of recursive property '${propName}' cannot be specified")
+                    if (dto modifiedBy Modifier.Specification) {
+                        star.error(
+                            "Illegal symbol '*', recursive property cannot be declared in specification type",
+                            RemoveElement("*", star),
+                        )
+                    }
+                }
             }
 
             // 属性 '!'
             val exclamation = o.required
-            val dto = o.parent<DTODto> { true } ?: return
             if (exclamation != null) {
                 val specification = Modifier.Specification
                 val input = Modifier.Input
