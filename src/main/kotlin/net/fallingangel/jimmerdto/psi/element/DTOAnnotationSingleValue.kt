@@ -55,7 +55,7 @@ interface DTOAnnotationSingleValue : DTOElement {
                     }
                 }
 
-                else -> error("DTOAnnotationSingleValue without any value in ${containingFile.name}")
+                else -> grammarMismatch()
             }
         }
 

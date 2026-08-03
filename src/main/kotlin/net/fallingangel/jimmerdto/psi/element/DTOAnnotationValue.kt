@@ -16,7 +16,7 @@ interface DTOAnnotationValue : DTOElement {
             return when {
                 arrayValue != null -> LAnnotation.Param.Value.Array(arrayValue.values.map { it.value })
                 singleValue != null -> singleValue.value
-                else -> error("DTOAnnotationValue without singleValue or arrayValue in ${containingFile.name}")
+                else -> grammarMismatch()
             }
         }
 }
