@@ -3,7 +3,8 @@
 package net.fallingangel.jimmerdto.lsi.jimmer
 
 import net.fallingangel.jimmerdto.enums.SimplePropType
-import net.fallingangel.jimmerdto.enums.SimplePropType.*
+import net.fallingangel.jimmerdto.enums.SimplePropType.BigDecimal
+import net.fallingangel.jimmerdto.enums.SimplePropType.BigInteger
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
@@ -90,18 +91,18 @@ fun defaultViewBasePropName(name: String, isList: Boolean): String? {
 }
 
 private val SIMPLE_PROP_TYPE_MAP = mapOf(
-    "boolean" to BOOLEAN, "java.lang.Boolean" to BOOLEAN, "kotlin.Boolean" to BOOLEAN,
-    "byte" to BYTE, "java.lang.Byte" to BYTE, "kotlin.Byte" to BYTE,
-    "short" to SHORT, "java.lang.Short" to SHORT, "kotlin.Short" to SHORT,
-    "int" to INT, "java.lang.Integer" to INT, "kotlin.Int" to INT,
-    "long" to LONG, "java.lang.Long" to LONG, "kotlin.Long" to LONG,
-    "float" to FLOAT, "java.lang.Float" to FLOAT, "kotlin.Float" to FLOAT,
-    "double" to DOUBLE, "java.lang.Double" to DOUBLE, "kotlin.Double" to DOUBLE,
+    "boolean" to SimplePropType.Boolean, "java.lang.Boolean" to SimplePropType.Boolean, "kotlin.Boolean" to SimplePropType.Boolean,
+    "byte" to SimplePropType.Byte, "java.lang.Byte" to SimplePropType.Byte, "kotlin.Byte" to SimplePropType.Byte,
+    "short" to SimplePropType.Short, "java.lang.Short" to SimplePropType.Short, "kotlin.Short" to SimplePropType.Short,
+    "int" to SimplePropType.Int, "java.lang.Integer" to SimplePropType.Int, "kotlin.Int" to SimplePropType.Int,
+    "long" to SimplePropType.Long, "java.lang.Long" to SimplePropType.Long, "kotlin.Long" to SimplePropType.Long,
+    "float" to SimplePropType.Float, "java.lang.Float" to SimplePropType.Float, "kotlin.Float" to SimplePropType.Float,
+    "double" to SimplePropType.Double, "java.lang.Double" to SimplePropType.Double, "kotlin.Double" to SimplePropType.Double,
 
-    "java.math.BigInteger" to BIG_INTEGER,
-    "java.math.BigDecimal" to BIG_DECIMAL,
+    "java.math.BigInteger" to BigInteger,
+    "java.math.BigDecimal" to BigDecimal,
 
-    "java.lang.String" to STRING, "kotlin.String" to STRING,
+    "java.lang.String" to SimplePropType.String, "kotlin.String" to SimplePropType.String,
 )
 
 val LProperty.simplePropType: SimplePropType?

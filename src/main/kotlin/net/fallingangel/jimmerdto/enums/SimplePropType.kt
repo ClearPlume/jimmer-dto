@@ -1,6 +1,6 @@
 package net.fallingangel.jimmerdto.enums
 
 enum class SimplePropType {
-    BOOLEAN, BYTE, SHORT, INT, LONG, FLOAT, DOUBLE,
-    BIG_INTEGER, BIG_DECIMAL, STRING
+    Boolean, Byte, Short, Int, Long, Float, Double,
+    BigInteger, BigDecimal, String,
 }
