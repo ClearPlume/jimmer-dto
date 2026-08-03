@@ -994,6 +994,16 @@ class DTOAnnotator : Annotator {
                 o.name.error("`$propName` must have child body")
             }
 
+            // 枚举体
+            val body = o.body
+            val enumBody = body?.enumBody
+            if (enumBody != null && property.type !is LProperty.Type.Enum) {
+                body.error(
+                    "Enum body cannot be specified for non-enum property '$propName'",
+                    RemoveElement("enum body", body),
+                )
+            }
+
             // as组中不允许直接子级使用as别名
             val alias = o.alias
             if (alias != null && o.parent.elementType == DTOLanguage.rule[DTOParser.RULE_aliasGroupBody]) {
