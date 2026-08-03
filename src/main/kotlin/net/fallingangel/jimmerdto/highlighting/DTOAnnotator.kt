@@ -994,6 +994,12 @@ class DTOAnnotator : Annotator {
                     ),
                 )
             }
+
+            // 属性递归标识
+            val star = o.recursive
+            if (star != null && !prop.isRecursive) {
+                star.error("Illegal symbol '*', the property '${prop.name}' is not recursive", RemoveElement("*", star))
+            }
         }
 
         /**
