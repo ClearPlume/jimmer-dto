@@ -58,6 +58,15 @@ interface DTOPositiveProp : DTOElement {
     val property: LProperty?
         get() = containingLClass?.findProperty(name.value)
 
+    val isOptional: Boolean
+        get() = optional != null
+
+    val isRequired: Boolean
+        get() = required != null
+
+    val isRecursive: Boolean
+        get() = recursive != null
+
     fun functions(): List<LookupInfo> {
         val dto = parentOfType<DTODto>() ?: return emptyList()
         val functions = listOf(
