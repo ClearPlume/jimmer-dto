@@ -998,7 +998,13 @@ class DTOAnnotator : Annotator {
             // 属性递归标识
             val star = o.recursive
             if (star != null && !prop.isRecursive) {
-                star.error("Illegal symbol '*', the property '${prop.name}' is not recursive", RemoveElement("*", star))
+                star.error("Illegal symbol '*', the property '$propName' is not recursive", RemoveElement("*", star))
+            }
+            
+            // 递归属性不可指定子类型体
+            val body = o.body
+            if (body != null && star != null) {
+                body.error("The child body of recursive property '${propName}' cannot be specified")
             }
         }
 
