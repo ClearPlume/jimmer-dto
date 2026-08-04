@@ -821,6 +821,8 @@ class DTOAnnotator : Annotator {
          */
         override fun visitPositiveProp(o: DTOPositiveProp) {
             val propName = o.name.value
+            val dto = o.parentOfType<DTODto>() ?: return
+
             // 当前属性为方法
             if (o.arg != null) {
                 visitFunction(o, propName)
@@ -829,6 +831,8 @@ class DTOAnnotator : Annotator {
             if (o.arg == null) {
                 visitProp(o, propName)
             }
+
+            o.optional?.let { checkOptional(dto, o, it) }
         }
 
         private fun visitFunction(o: DTOPositiveProp, functionName: String) {
@@ -1084,6 +1088,48 @@ class DTOAnnotator : Annotator {
                         )
                     }
                 }
+            }
+        }
+
+        // TODO 上游调整为非异常后调整为 Inspection
+        fun checkOptional(dto: DTODto, prop: DTOPositiveProp, optional: PsiElement) {
+            if (dto modifiedBy Modifier.Specification) {
+                optional.error(
+                    "'?' is not allowed, all properties of specification are already nullable",
+                    RemoveElement("?", optional),
+                )
+                return
+            }
+
+            val propName = prop.name.value
+            val flatFunctionName = Function.Flat.expression
+            val propArg = prop.arg
+
+            if (propArg != null && propName == flatFunctionName) {
+                optional.error(
+                    "'?' is not allowed for the function 'flat'",
+                    RemoveElement("?", optional),
+                )
+                return
+            }
+
+            if ((propArg == null && prop.property?.nullable == true) || (propArg != null && propArg.values.firstOrNull()?.property?.nullable == true)) {
+                val basePropName = if (propArg == null) propName else propArg.values.first().text
+                optional.error(
+                    "'?' is not allowed, the property '$basePropName' is already nullable",
+                    RemoveElement("?", optional),
+                )
+                return
+            }
+
+            val parentFlat = prop.parent<DTOPositiveProp>(false) { name.value == flatFunctionName && baseProperty?.nullable == true }
+            if (parentFlat != null) {
+                val flatArg = parentFlat.baseProperty!!.name
+                optional.error(
+                    "'?' is not allowed, the enclosing '$flatFunctionName($flatArg)' is already nullable",
+                    RemoveElement("?", optional),
+                )
+                return
             }
         }
 
