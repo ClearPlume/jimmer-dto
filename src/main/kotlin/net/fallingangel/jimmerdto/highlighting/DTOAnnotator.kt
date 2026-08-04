@@ -1075,7 +1075,7 @@ class DTOAnnotator : Annotator {
                         return
                     }
 
-                    val flat = o.parent<DTOPositiveProp>(false) { name.value == Function.Flat.expression && this.property?.nullable == true }
+                    val flat = prop.parent<DTOPositiveProp>(false) { name.value == Function.Flat.expression && baseProperty?.nullable == true }
                     if (!property.nullable && flat == null && dto notModifiedBy Modifier.Specification) {
                         // TODO 上游调整为非异常后调整为 Inspection
                         exclamation.error(

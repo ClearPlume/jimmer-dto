@@ -9,6 +9,7 @@ import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
+import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
 import org.babyfish.jimmer.Formula
 import org.babyfish.jimmer.Immutable
 import org.babyfish.jimmer.sql.*
@@ -109,3 +110,10 @@ val LProperty.simplePropType: SimplePropType?
     get() = (type as? LProperty.Type.Scalar)
         ?.canonicalName
         ?.let(SIMPLE_PROP_TYPE_MAP::get)
+
+// TODO 多参函数
+val DTOPositiveProp.baseProperty: LProperty?
+    get() {
+        val arg = arg
+        return if (arg != null) arg.values.first().property else property
+    }
