@@ -9,9 +9,11 @@ import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiEnumConstant
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
+import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.enums.*
 import net.fallingangel.jimmerdto.enums.Function
@@ -1164,15 +1166,19 @@ class DTOAnnotator : Annotator {
 
                 PropConfigName.FetchType.text -> {
                     val fetchType = o.qualifiedName
-                    if (fetchType == null) {
-                        o.name.error("!fetchType accepts only one identifier value")
-                    } else {
-                        fetchType.style(DTOSyntaxHighlighter.VALUE)
+                    if (fetchType != null) {
+                        val target = fetchType.target
+                        if (target is Resolution.Target.EnumConst) {
+                            fetchType.style(DTOSyntaxHighlighter.VALUE)
+                        } else {
+                            val referenceFetchType = o.psiClass(Constant.REFERENCE_FETCH_TYPE) ?: return
+                            val availableTypes = referenceFetchType.fields.filterIsInstance<PsiEnumConstant>().map(PsiEnumConstant::getName)
+                            val fetchTypeValue = fetchType.value
 
-                        val fetchTypeValue = fetchType.value
-                        if (fetchTypeValue !in DTOLanguage.availableFetchTypes) {
-                            val availableTypes = DTOLanguage.availableFetchTypes.joinToString()
-                            fetchType.error("Incorrect fetchType `$fetchTypeValue`, available types are: $availableTypes")
+                            fetchType.error(
+                                "Incorrect fetchType '$fetchTypeValue'",
+                                ChangeReferenceFix(fetchType, availableTypes),
+                            )
                         }
                     }
                 }

@@ -3,6 +3,7 @@ package net.fallingangel.jimmerdto.psi.element
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.search.ProjectScope
+import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.process
@@ -54,9 +55,7 @@ interface DTOQualifiedName : DTOElement {
                 return when (config.name.text) {
                     PropConfigName.Where.text, PropConfigName.OrderBy.text -> config.containingLClass?.let(Resolution.Space::Properties)
 
-                    // TODO 常量
-                    PropConfigName.FetchType.text -> psiClass("org.babyfish.jimmer.sql.fetcher.ReferenceFetchType")
-                        ?.let(Resolution.Space::Type)
+                    PropConfigName.FetchType.text -> psiClass(Constant.REFERENCE_FETCH_TYPE)?.let(Resolution.Space::Type)
 
                     else -> Resolution.Space.GlobalWithImports(file, file.entityPackage)
                 }

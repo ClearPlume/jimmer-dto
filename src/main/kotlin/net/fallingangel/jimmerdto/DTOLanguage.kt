@@ -19,10 +19,6 @@ object DTOLanguage : Language(LANGUAGE_NAME) {
     val rule: List<IElementType>
         get() = PSIElementTypeFactory.getRuleIElementTypes(DTOLanguage)
 
-    // org.babyfish.jimmer.sql.fetcher.ReferenceFetchType
-    val availableFetchTypes: Set<String>
-        get() = setOf("AUTO", "SELECT", "JOIN_IF_NO_CACHE", "JOIN_ALWAYS")
-
     val softKeywords: Set<String>
         get() = setOf("like", "null", "desc", "asc")
 
