@@ -820,39 +820,38 @@ class DTOAnnotator : Annotator {
          * 为属性上色
          */
         override fun visitPositiveProp(o: DTOPositiveProp) {
-            val propName = o.name.value
             val dto = o.parentOfType<DTODto>() ?: return
 
             // 当前属性为方法
             if (o.arg != null) {
-                visitFunction(o, propName)
+                visitFunction(dto, o, o.name.value)
             }
             // 当前属性为非方法属性
             if (o.arg == null) {
-                visitProp(o, propName)
+                visitProp(dto, o, o.name.value)
             }
 
             o.optional?.let { checkOptional(dto, o, it) }
         }
 
-        private fun visitFunction(o: DTOPositiveProp, functionName: String) {
+        private fun visitFunction(dto: DTODto, prop: DTOPositiveProp, functionName: String) {
             // 方法存在性校验
             val function = Function.entries.find { it.expression == functionName }
 
             if (function == null) {
-                o.name.error("Unknown function `$functionName`")
+                prop.name.error("Unknown function `$functionName`")
                 return
             } else {
-                o.name.style(DTOSyntaxHighlighter.FUNCTION)
+                prop.name.style(DTOSyntaxHighlighter.FUNCTION)
             }
 
             // fold 校验
             if (function == Function.Fold) {
-                if (o.haveParent<DTOAliasGroup>()) {
-                    o.name.error("`fold` cannot be used inside alias group", RemoveElement("fold", o))
+                if (prop.haveParent<DTOAliasGroup>()) {
+                    prop.name.error("`fold` cannot be used inside alias group", RemoveElement("fold", prop))
                 }
                 // 方法参数不可为空校验
-                val arg = o.arg ?: return
+                val arg = prop.arg ?: return
                 if (arg.isEmpty) {
                     arg.error("Function arg list cannot be empty")
                     return
@@ -862,24 +861,22 @@ class DTOAnnotator : Annotator {
             }
 
             // 方法参数不可为空校验
-            val arg = o.arg ?: return
+            val arg = prop.arg ?: return
             if (arg.isEmpty) {
                 arg.error("Function arg list cannot be empty")
                 return
             }
 
-            val dto = o.parentOfType<DTODto>() ?: return
-
             // Spec 方法校验
             if (functionName == "id" && dto modifiedBy Modifier.Specification) {
-                o.name.error(
+                prop.name.error(
                     "`id` is forbidden by specification, replace it to `associatedIdEq`",
-                    ReplaceName(o.name, "associatedIdEq", Project::createPropName),
+                    ReplaceName(prop.name, "associatedIdEq", Project::createPropName),
                 )
             }
 
             if (function.whetherSpec && dto notModifiedBy Modifier.Specification) {
-                o.name.error("Cannot call the function `$functionName` because the current dto type is not specification")
+                prop.name.error("Cannot call the function `$functionName` because the current dto type is not specification")
                 return
             }
 
@@ -922,8 +919,8 @@ class DTOAnnotator : Annotator {
 
             // 多方法参数别名校验
             if (function.whetherMultiArg) {
-                if (arg.values.size > 1 && o.alias == null) {
-                    o.error("An alias must be specified because `$functionName` has multiple arguments")
+                if (arg.values.size > 1 && prop.alias == null) {
+                    prop.error("An alias must be specified because `$functionName` has multiple arguments")
                 }
             }
 
@@ -931,9 +928,8 @@ class DTOAnnotator : Annotator {
             if (function == Function.Id) {
                 val value = arg.values[0]
                 if (value.property?.isList == true) {
-                    if (o.alias == null) {
-                        val prop = value.text
-                        o.error("An alias must be specified because the property `$prop` is a list association")
+                    if (prop.alias == null) {
+                        prop.error("An alias must be specified because the property `${value.text}` is a list association")
                     }
                 }
             }
@@ -943,16 +939,16 @@ class DTOAnnotator : Annotator {
                 val value = arg.values[0]
                 if (dto notModifiedBy Modifier.Specification) {
                     if (value.property?.isList == true) {
-                        o.error("`flat` can only handle collection associations in specific modified dto")
+                        prop.error("`flat` can only handle collection associations in specific modified dto")
                     }
                 }
             }
 
             // like方法校验
-            val flag = o.flag
+            val flag = prop.flag
             if (flag != null) {
                 if (function != Function.Like) {
-                    o.name.error("`/` can only be used to decorate the function `like`", RemoveElement(flag.text, flag))
+                    prop.name.error("`/` can only be used to decorate the function `like`", RemoveElement(flag.text, flag))
                 }
 
                 val insensitive = flag.insensitive
@@ -965,7 +961,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 属性 '!'
-            val exclamation = o.required
+            val exclamation = prop.required
             if (exclamation != null) {
                 val flat = Function.Flat.expression
                 if (functionName == flat) {
@@ -974,7 +970,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 属性 '*'
-            val recursive = o.recursive
+            val recursive = prop.recursive
             if (recursive != null) {
                 val value = arg.values.firstOrNull() ?: return
                 recursive.error(
@@ -984,22 +980,22 @@ class DTOAnnotator : Annotator {
             }
         }
 
-        private fun visitProp(o: DTOPositiveProp, propName: String) {
-            val availableProperties = o.containingLClass?.allProperties ?: return
+        private fun visitProp(dto: DTODto, prop: DTOPositiveProp, propName: String) {
+            val availableProperties = prop.containingLClass?.allProperties ?: return
 
             // 属性是否存在
             val property = availableProperties.find { it.name == propName } ?: let {
-                o.name.error("`$propName` does not exist")
+                prop.name.error("`$propName` does not exist")
                 return
             }
 
             // 关联属性需要指定body
-            if (property.isEntityAssociation && o.body == null && o.recursive == null) {
-                o.name.error("`$propName` must have child body")
+            if (property.isEntityAssociation && prop.body == null && prop.recursive == null) {
+                prop.name.error("`$propName` must have child body")
             }
 
             // 枚举体
-            val body = o.body
+            val body = prop.body
             val enumBody = body?.enumBody
             if (enumBody != null && property.type !is LProperty.Type.Enum) {
                 body.error(
@@ -1009,13 +1005,13 @@ class DTOAnnotator : Annotator {
             }
 
             // as组中不允许直接子级使用as别名
-            val alias = o.alias
-            if (alias != null && o.parent.elementType == DTOLanguage.rule[DTOParser.RULE_aliasGroupBody]) {
-                o.error(
+            val alias = prop.alias
+            if (alias != null && prop.parent.elementType == DTOLanguage.rule[DTOParser.RULE_aliasGroupBody]) {
+                prop.error(
                     "Alias definition for direct children is prohibited in `alias-group`",
                     RemoveElement(
                         "Alias `${alias.text}` for $propName",
-                        o,
+                        prop,
                         {
                             it as DTOPositiveProp
                             it.alias!!
@@ -1028,10 +1024,8 @@ class DTOAnnotator : Annotator {
                 )
             }
 
-            val dto = o.parent<DTODto> { true } ?: return
-
             // 属性 '*'
-            val star = o.recursive
+            val star = prop.recursive
             if (star != null) {
                 if (!property.isRecursive) {
                     star.error(
@@ -1057,7 +1051,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 属性 '!'
-            val exclamation = o.required
+            val exclamation = prop.required
             if (exclamation != null) {
                 val specification = Modifier.Specification
                 val input = Modifier.Input
