@@ -19,7 +19,7 @@ class DTOTypeRefImpl(node: ASTNode) : ANTLRPsiNode(node), DTOTypeRef {
         get() = findChildNullable("/typeRef/genericArguments")
 
     override val questionMark: PsiElement?
-        get() = findChildNullable("/typeRef/'?'")
+        get() = findChildNullable("/typeRef/QuestionMark")
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {

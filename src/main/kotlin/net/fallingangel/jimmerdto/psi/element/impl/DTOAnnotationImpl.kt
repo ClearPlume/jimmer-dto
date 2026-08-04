@@ -11,7 +11,7 @@ import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
 class DTOAnnotationImpl(node: ASTNode) : ANTLRPsiNode(node), DTOAnnotation {
     override val at: PsiElement
-        get() = findChild("/annotation/'@'")
+        get() = findChild("/annotation/At")
 
     override val qualifiedName: DTOQualifiedName
         get() = findChild("/annotation/qualifiedName")

@@ -14,19 +14,19 @@ import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
 class DTOAliasGroupImpl(node: ASTNode) : ANTLRPsiNode(node), DTOAliasGroup {
     override val `as`: PsiElement
-        get() = findChild("/aliasGroup/'as'")
+        get() = findChild("/aliasGroup/As")
 
     override val power: PsiElement?
-        get() = findChildNullable("/aliasGroup/'^'")
+        get() = findChildNullable("/aliasGroup/Power")
 
     override val original: PsiElement?
         get() = findChildNullable("/aliasGroup/original")
 
     override val dollar: PsiElement?
-        get() = findChildNullable("/aliasGroup/'$'")
+        get() = findChildNullable("/aliasGroup/Dollar")
 
     override val arrow: PsiElement?
-        get() = findChildNullable("/aliasGroup/'->'")
+        get() = findChildNullable("/aliasGroup/Arrow")
 
     override val replacement: PsiElement?
         get() = findChildNullable("/aliasGroup/replacement")

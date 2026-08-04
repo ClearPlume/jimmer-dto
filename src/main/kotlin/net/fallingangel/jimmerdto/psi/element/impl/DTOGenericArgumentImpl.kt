@@ -11,7 +11,7 @@ import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
 class DTOGenericArgumentImpl(node: ASTNode) : ANTLRPsiNode(node), DTOGenericArgument {
     override val star: PsiElement?
-        get() = findChildNullable("/genericArgument/'*'")
+        get() = findChildNullable("/genericArgument/Star")
 
     override val modifier: PsiElement?
         get() = findChildNullable("/genericArgument/Modifier")

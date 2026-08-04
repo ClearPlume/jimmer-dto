@@ -29,7 +29,7 @@ object DTOLanguage : Language(Constant.NAME) {
 
         PSIElementTypeFactory.defineLanguageIElementTypes(
             DTOLanguage,
-            Array(vocab.maxTokenType + 1) { vocab.getDisplayName(it) },
+            Array(vocab.maxTokenType + 1) { vocab.getSymbolicName(it) ?: "<INVALID>" },
             DTOParser.ruleNames,
         )
     }

@@ -12,13 +12,13 @@ import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
 class DTOMacroArgsImpl(node: ASTNode) : ANTLRPsiNode(node), DTOMacroArgs {
     override val l: PsiElement
-        get() = findChild("/macroArgs/'('")
+        get() = findChild("/macroArgs/LParen")
 
     override val values: List<DTOMacroArg>
         get() = findChildren("/macroArgs/macroArg")
 
     override val r: PsiElement
-        get() = findChild("/macroArgs/')'")
+        get() = findChild("/macroArgs/RParen")
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {

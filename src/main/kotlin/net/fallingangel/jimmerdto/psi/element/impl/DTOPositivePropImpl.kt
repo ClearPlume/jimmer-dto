@@ -33,19 +33,19 @@ class DTOPositivePropImpl(node: ASTNode) : ANTLRPsiNode(node), DTOPositiveProp {
         get() = findChildNullable("/positiveProp/propBody")
 
     override val `as`: PsiElement?
-        get() = findChildNullable("/positiveProp/'as'")
+        get() = findChildNullable("/positiveProp/As")
 
     override val alias: DTOAlias?
         get() = findChildNullable("/positiveProp/alias")
 
     override val optional: PsiElement?
-        get() = findChildNullable("/positiveProp/'?'")
+        get() = findChildNullable("/positiveProp/QuestionMark")
 
     override val required: PsiElement?
-        get() = findChildNullable("/positiveProp/'!'")
+        get() = findChildNullable("/positiveProp/ExclamationMark")
 
     override val recursive: PsiElement?
-        get() = findChildNullable("/positiveProp/'*'")
+        get() = findChildNullable("/positiveProp/Star")
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {

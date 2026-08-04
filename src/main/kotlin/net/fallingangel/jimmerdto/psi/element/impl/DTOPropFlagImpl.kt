@@ -13,10 +13,10 @@ class DTOPropFlagImpl(node: ASTNode) : ANTLRPsiNode(node), DTOPropFlag {
         get() = findChildNullable("/propFlag/Identifier")
 
     override val power: PsiElement?
-        get() = findChildNullable("/propFlag/'^'")
+        get() = findChildNullable("/propFlag/Power")
 
     override val dollar: PsiElement?
-        get() = findChildNullable("/propFlag/'$'")
+        get() = findChildNullable("/propFlag/Dollar")
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {

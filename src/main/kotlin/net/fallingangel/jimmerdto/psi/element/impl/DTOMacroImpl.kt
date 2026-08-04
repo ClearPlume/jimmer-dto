@@ -13,7 +13,7 @@ import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
 class DTOMacroImpl(node: ASTNode) : ANTLRPsiNode(node), DTOMacro {
     override val hash: PsiElement
-        get() = findChild<PsiElement>("/macro/'#'")
+        get() = findChild<PsiElement>("/macro/Hash")
 
     override val name: DTOMacroName
         get() = findChild("/macro/macroName")
@@ -22,10 +22,10 @@ class DTOMacroImpl(node: ASTNode) : ANTLRPsiNode(node), DTOMacro {
         get() = findChildNullable("/macro/macroArgs")
 
     override val optional: PsiElement?
-        get() = findChildNullable("/macro/'?'")
+        get() = findChildNullable("/macro/QuestionMark")
 
     override val required: PsiElement?
-        get() = findChildNullable("/macro/'!'")
+        get() = findChildNullable("/macro/ExclamationMark")
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {

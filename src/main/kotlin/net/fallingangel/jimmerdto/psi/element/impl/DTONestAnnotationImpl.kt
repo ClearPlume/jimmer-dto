@@ -11,7 +11,7 @@ import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
 class DTONestAnnotationImpl(node: ASTNode) : ANTLRPsiNode(node), DTONestAnnotation {
     override val at: PsiElement?
-        get() = findChildNullable("/nestedAnnotation/'@'")
+        get() = findChildNullable("/nestedAnnotation/At")
 
     override val qualifiedName: DTOQualifiedName
         get() = findChild("/nestedAnnotation/qualifiedName")

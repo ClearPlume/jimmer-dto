@@ -19,7 +19,7 @@ class DTOAnnotationParameterImpl(node: ASTNode) : DTONamedElementImpl(node), DTO
         get() = findChild("/annotationParameter/Identifier")
 
     override val eq: PsiElement
-        get() = findChild("/annotationParameter/'='")
+        get() = findChild("/annotationParameter/Equals")
 
     override val value: DTOAnnotationValue?
         get() = findChildNullable("/annotationParameter/annotationValue")
