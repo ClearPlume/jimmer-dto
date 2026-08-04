@@ -7,7 +7,9 @@ import net.fallingangel.jimmerdto.psi.DTOParser
 import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory
 import org.antlr.intellij.adaptor.xpath.XPath
 
-object DTOLanguage : Language(Constant.NAME) {
+const val LANGUAGE_NAME = "JimmerDTO"
+
+object DTOLanguage : Language(LANGUAGE_NAME) {
     val xPath: XPath
         get() = XPath(DTOLanguage, "")
 

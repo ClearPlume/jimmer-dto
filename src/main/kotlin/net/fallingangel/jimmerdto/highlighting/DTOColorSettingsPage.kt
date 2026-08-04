@@ -5,7 +5,7 @@ import com.intellij.openapi.options.colors.AttributesDescriptor
 import com.intellij.openapi.options.colors.ColorDescriptor
 import com.intellij.openapi.options.colors.ColorSettingsPage
 import icons.Icons
-import net.fallingangel.jimmerdto.Constant
+import net.fallingangel.jimmerdto.LANGUAGE_NAME
 
 class DTOColorSettingsPage : ColorSettingsPage {
     override fun getAttributeDescriptors() = arrayOf(
@@ -33,7 +33,7 @@ class DTOColorSettingsPage : ColorSettingsPage {
 
     override fun getColorDescriptors(): Array<ColorDescriptor> = ColorDescriptor.EMPTY_ARRAY
 
-    override fun getDisplayName() = Constant.NAME
+    override fun getDisplayName() = LANGUAGE_NAME
 
     override fun getIcon() = Icons.icon_16
 
