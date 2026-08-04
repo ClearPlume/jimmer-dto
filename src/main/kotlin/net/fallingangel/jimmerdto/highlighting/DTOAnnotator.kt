@@ -114,7 +114,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 内置类型：解析目标可能不存在（Java 侧 Array 无对应类），存在性由表回答
-            if (o.prevPart == null && o.qualifiedName?.parts?.size == 1 && StandardType[o.part] != null) {
+            if (o.prevPart == null && o.qualifiedName.parts.size == 1 && StandardType[o.part] != null) {
                 return
             }
 
@@ -130,9 +130,8 @@ class DTOAnnotator : Annotator {
                 is Resolution.Target.EnumConst -> o.style(DTOSyntaxHighlighter.ENUM_INSTANCE)
 
                 is Resolution.Target.Pkg -> {
-                    val qualifiedName = o.qualifiedName ?: return
-                    val importStatement = qualifiedName.parent as? DTOImportStatement ?: return
-                    if (importStatement.groupedImport == null && qualifiedName.parts.last() === o) {
+                    val importStatement = o.qualifiedName.parent as? DTOImportStatement ?: return
+                    if (importStatement.groupedImport == null && o.qualifiedName.parts.last() === o) {
                         val packageAction = when {
                             o.haveParent<DTOExportStatement>() -> "exported"
                             o.haveParent<DTOImportStatement>() -> "imported"

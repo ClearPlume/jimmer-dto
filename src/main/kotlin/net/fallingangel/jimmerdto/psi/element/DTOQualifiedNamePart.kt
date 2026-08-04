@@ -10,12 +10,15 @@ interface DTOQualifiedNamePart : DTONamedElement {
     val prevPart: DTOQualifiedNamePart?
         get() = prevSiblingOfSameType()
 
-    val qualifiedName: DTOQualifiedName?
-        get() = parent as DTOQualifiedName?
+    val qualifiedName: DTOQualifiedName
+        get() = parent as DTOQualifiedName
+
+    val space: Resolution.Space?
+        get() {
+            val predecessor = prevPart ?: return qualifiedName.initialSpace
+            return predecessor.target?.spaceForMembers()
+        }
 
     val target: Resolution.Target?
-        get() {
-            val predecessor = prevPart ?: return qualifiedName?.initialSpace?.resolve(part)
-            return predecessor.target?.spaceForMembers()?.resolve(part)
-        }
+        get() = space?.resolve(part)
 }
