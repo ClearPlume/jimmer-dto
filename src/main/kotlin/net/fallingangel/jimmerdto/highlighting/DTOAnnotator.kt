@@ -1267,7 +1267,7 @@ class DTOAnnotator : Annotator {
 
                 if (property.isEntityAssociation && property.isReference && index == lastIndex) {
                     part.error(
-                        "Please replace '$propertyName' to '${property.name}Id'",
+                        "Association '$propertyName' cannot be used here, use its id view '${propertyName}Id'",
                         ReplaceName(part, "${property.name}Id", Project::createQualifiedNamePart),
                     )
                     return null
@@ -1276,9 +1276,12 @@ class DTOAnnotator : Annotator {
                 if (property.isEntityAssociation && property.isReference && index < lastIndex) {
                     val idPropName = property.targetClass?.idProperty?.name
                     if (idPropName != null && parts[index + 1].part == idPropName) {
-                        val old = "${part.part}.$idPropName"
-                        val new = "${part.part}Id"
-                        part.error("Please replace '$old' to '$new'", ReplaceIdAccessorToView(this, index, old, new))
+                        val old = "$propertyName.$idPropName"
+                        val new = "${propertyName}Id"
+                        part.error(
+                            "The id of '$propertyName' should be accessed by id view '$new', not by '$old'",
+                            ReplaceIdAccessorToView(this, index, old, new),
+                        )
                         return null
                     }
                 }
@@ -1288,7 +1291,7 @@ class DTOAnnotator : Annotator {
                 }
 
                 if (!property.isEntityAssociation && !property.isEmbedded && index < lastIndex) {
-                    part.error("'$propertyName' is not last property but it is not embedded object")
+                    part.error("Cannot access members of '$propertyName', only embedded properties can be traversed")
                     return null
                 }
             }
