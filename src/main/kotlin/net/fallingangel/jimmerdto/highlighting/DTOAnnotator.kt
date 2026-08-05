@@ -1134,6 +1134,10 @@ class DTOAnnotator : Annotator {
         override fun visitPropConfig(o: DTOPropConfig) {
             val configName = o.name.text
             o.name.style(DTOSyntaxHighlighter.PROP_CONFIG)
+            val prop = o.parent<DTOPositiveProp> { true } ?: return
+            val property = prop.baseProperty ?: return
+
+            o.qualifiedName?.validatePropPath()
 
             when (configName) {
                 PropConfigName.Where.text -> {
@@ -1242,7 +1246,7 @@ class DTOAnnotator : Annotator {
         }
 
         /**
-         * !where 校验
+         * !where 条件校验
          */
         override fun visitCompare(o: DTOCompare) {
             val property = o.prop.validatePropPath() ?: return
@@ -1252,6 +1256,44 @@ class DTOAnnotator : Annotator {
                 lastPart.error("The '!where' in DTO must be simple predicate so that the last property '${property.name}' must be boolean, number, string")
                 return
             }
+            val symbol = o.symbol ?: return
+            val required = symbol.kind.requires
+            if (required != null && simpleType.family != required) {
+                symbol.error("The operator '${symbol.text}' is not allowed here because the left operand is not ${required.presentation}")
+            }
+
+            val value = o.value ?: return
+            if (value.kind.accepted != simpleType.family) {
+                value.error("Illegal ${value.kind.literalName} literal, the left operand is ${simpleType.family.presentation}")
+            } else if (!simpleType.fits(value.text)) {
+                value.error("Illegal ${value.kind.literalName} literal '${value.text}', it is out of the range of $simpleType")
+            }
+        }
+
+        /**
+         * 空表达式校验
+         */
+        override fun visitNullity(o: DTONullity) {
+            o.prop.validatePropPath()
+        }
+
+        /**
+         * 排序属性配置校验
+         */
+        override fun visitOrderItem(o: DTOOrderItem) {
+            o.prop.validatePropPath()
+        }
+
+        /**
+         * 排序方向校验
+         */
+        override fun visitOrderDirection(o: DTOOrderDirection) {
+            val identifier = o.identifier
+            identifier?.error(
+                "The order mode is neither 'asc' nor 'desc'",
+                ReplaceName(identifier, "asc", Project::createOrderDirection),
+                ReplaceName(identifier, "desc", Project::createOrderDirection),
+            )
         }
 
         /**

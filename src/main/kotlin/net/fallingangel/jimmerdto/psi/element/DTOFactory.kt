@@ -116,6 +116,16 @@ fun Project.createPropName(name: String): DTOPropName {
         .name
 }
 
+fun Project.createOrderDirection(direction: String): DTOOrderDirection {
+    return createDTO("Dummy", positiveProps = listOf("!orderBy(x $direction) p"))
+        .dtoBody
+        .positiveProps[0]
+        .configs[0]
+        .orderByArgs!!
+        .orderItems[0]
+        .direction!!
+}
+
 fun Project.createAlias(alias: String): DTOAlias {
     return createDTO("Dummy", positiveProps = listOf("dummy as $alias"))
         .dtoBody

@@ -155,6 +155,10 @@ open class DTOVisitor : PsiElementVisitor() {
         visitElement(o)
     }
 
+    open fun visitOrderDirection(o: DTOOrderDirection) {
+        visitElement(o)
+    }
+
     open fun visitPropValue(o: DTOPropValue) {
         visitElement(o)
     }

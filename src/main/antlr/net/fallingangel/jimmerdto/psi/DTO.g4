@@ -200,7 +200,7 @@ andPredicate
 
 compare
     :
-    qualifiedName compareSymbol propValue
+    qualifiedName compareSymbol? propValue?
     ;
 
 compareSymbol
@@ -220,7 +220,12 @@ propValue
 
 orderItem
     :
-    qualifiedName (Asc | Desc)?
+    qualifiedName orderDirection?
+    ;
+
+orderDirection
+    :
+    Asc | Desc | Identifier
     ;
 
 annotation

@@ -100,6 +100,7 @@ class DTOParserDefinition : ParserDefinition {
             DTOParser.RULE_nullity -> DTONullityImpl(node)
             DTOParser.RULE_orderByArgs -> DTOOrderByArgsImpl(node)
             DTOParser.RULE_orderItem -> DTOOrderItemImpl(node)
+            DTOParser.RULE_orderDirection -> DTOOrderDirectionImpl(node)
             DTOParser.RULE_propValue -> DTOPropValueImpl(node)
             DTOParser.RULE_intPair -> DTOIntPairImpl(node)
             DTOParser.RULE_propName -> DTOPropNameImpl(node)
