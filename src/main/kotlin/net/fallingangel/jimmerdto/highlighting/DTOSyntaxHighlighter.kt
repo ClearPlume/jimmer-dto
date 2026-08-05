@@ -34,7 +34,7 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
             DTOLexer.Not,
             DTOLexer.And,
             DTOLexer.Like,
-            DTOLexer.Ilike,
+            DTOLexer.ILike,
             DTOLexer.Or,
             DTOLexer.Asc,
             DTOLexer.Desc -> arrayOf(KEYWORD)

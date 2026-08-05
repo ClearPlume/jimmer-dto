@@ -34,7 +34,7 @@ class DTOCompareSymbolImpl(node: ASTNode) : ANTLRPsiNode(node), DTOCompareSymbol
         get() = findChildNullable("/compareSymbol/Like")
 
     override val ilike: PsiElement?
-        get() = findChildNullable("/compareSymbol/Ilike")
+        get() = findChildNullable("/compareSymbol/ILike")
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {

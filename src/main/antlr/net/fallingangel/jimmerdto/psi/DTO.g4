@@ -205,7 +205,7 @@ compare
 
 compareSymbol
     :
-    Equals | NotEquals1 | NotEquals2 | LessThan | LessThanEquals | GreaterThan | GreaterThanEquals | Like | Ilike
+    Equals | NotEquals1 | NotEquals2 | LessThan | LessThanEquals | GreaterThan | GreaterThanEquals | Like | ILike
     ;
 
 nullity
@@ -383,7 +383,7 @@ Import: 'import';
 As: 'as';
 Implements: 'implements';
 Like: 'like';
-Ilike: 'ilike';
+ILike: 'ilike';
 Null: 'null';
 And: 'and';
 Or: 'or';
