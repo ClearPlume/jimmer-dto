@@ -512,3 +512,8 @@ FloatingPointLiteral
     :
     '-'? [0-9]+ '.' [0-9]+
     ;
+
+ErrorChar
+    :
+    [\u0000-\uD7FF\uE000-\uFFFF] | [\uD800-\uDBFF][\uDC00-\uDFFF]
+    ;
