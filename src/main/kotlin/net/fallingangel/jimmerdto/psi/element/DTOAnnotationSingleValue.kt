@@ -46,7 +46,7 @@ interface DTOAnnotationSingleValue : DTOElement {
                 qualifiedName != null -> {
                     if (classSuffix == null) {
                         val target = qualifiedName.target as? Resolution.Target.EnumConst ?: return null
-                        val (canonicalName, constantName) = process(target.enum) { enum() } ?: return null
+                        val (canonicalName, constantName) = process(target.enum) { qualifiedEnumConstant() } ?: return null
                         ParamValue.Enum(canonicalName, constantName)
                     } else {
                         val target = qualifiedName.target as? Resolution.Target.Type ?: return null

@@ -137,7 +137,7 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun enum(): Pair<String, String>? {
+    override fun qualifiedEnumConstant(): Pair<String, String>? {
         val enum = element.narrow<PsiEnumConstant>()
         val clazz = enum.containingClass ?: error("Enum constant ${enum.name} without containing class in ${enum.containingFile.name}")
         val canonicalName = clazz.qualifiedName ?: return null
