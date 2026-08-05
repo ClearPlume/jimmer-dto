@@ -115,5 +115,5 @@ val LProperty.simplePropType: SimplePropType?
 val DTOPositiveProp.baseProperty: LProperty?
     get() {
         val arg = arg
-        return if (arg != null) arg.values.first().property else property
+        return if (arg != null) arg.values.firstOrNull()?.property else property
     }

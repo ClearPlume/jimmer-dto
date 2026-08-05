@@ -28,7 +28,7 @@ interface DTODtoBody : DTOElement {
                     val prop = parent.parent as DTOPositiveProp
                     when (prop.name.value) {
                         Function.Fold.expression -> prop.containingLClass
-                        Function.Flat.expression -> prop.arg!!.values[0].resolvedLClass
+                        Function.Flat.expression -> prop.arg!!.values.firstOrNull()?.resolvedLClass
                         else -> prop.property?.actualType?.resolvedLClass
                     }
                 }
