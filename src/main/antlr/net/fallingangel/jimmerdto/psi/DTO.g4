@@ -435,12 +435,12 @@ WhiteSpace
 
 DocComment
     :
-    ('/**' .*? '*/')
+    '/**' ('*/' | EOF | ~'/' .*? ('*/' | EOF))
     ;
 
 BlockComment
     :
-    ('/*' .*? '*/') -> channel(HIDDEN)
+    ('/*' .*? '*/' | '/*' .*? EOF) -> channel(HIDDEN)
     ;
 
 LineComment
