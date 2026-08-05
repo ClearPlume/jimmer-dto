@@ -1259,11 +1259,13 @@ class DTOAnnotator : Annotator {
          */
         fun DTOQualifiedName.validatePropPath(): LProperty? {
             val lastIndex = parts.lastIndex
+            var resolved: LProperty? = null
 
             for ((index, part) in parts.withIndex()) {
                 val target = part.target as? Resolution.Target.Property ?: return null
                 val property = target.property
                 val propertyName = property.name
+                resolved = property
 
                 if (property.isEntityAssociation && property.isReference && index == lastIndex) {
                     part.error(
@@ -1296,7 +1298,7 @@ class DTOAnnotator : Annotator {
                 }
             }
 
-            return (target as? Resolution.Target.Property)?.property
+            return resolved
         }
 
         /**
