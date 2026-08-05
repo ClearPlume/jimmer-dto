@@ -106,6 +106,12 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
+    override fun isEnumClass(): Boolean {
+        val clazz = element.narrow<KtClass>()
+        return clazz.isEnum()
+    }
+
+    context(element: PsiElement)
     override fun builtinType(type: StandardType): PsiElement? {
         val qualified = when (type) {
             StandardType.Boolean -> "kotlin.Boolean"

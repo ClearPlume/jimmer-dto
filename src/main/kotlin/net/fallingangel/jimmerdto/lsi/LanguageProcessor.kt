@@ -21,6 +21,9 @@ interface LanguageProcessor {
     fun isAnnotationClass(): Boolean
 
     context(element: PsiElement)
+    fun isEnumClass(): Boolean
+
+    context(element: PsiElement)
     fun classQualifiedName(): String?
 
     context(element: PsiElement)
