@@ -14,9 +14,9 @@ class DTOCommenter : CodeDocumentationAwareCommenter {
 
     override fun getBlockCommentSuffix() = "*/"
 
-    override fun getCommentedBlockCommentPrefix() = "*"
+    override fun getCommentedBlockCommentPrefix() = null
 
-    override fun getCommentedBlockCommentSuffix() = ""
+    override fun getCommentedBlockCommentSuffix() = null
 
     override fun getBlockCommentTokenType() = DTOLanguage.token[DTOParser.BlockComment]
 
