@@ -76,6 +76,7 @@
         <typedHandler implementation="net.fallingangel.jimmerdto.completion.DTOTypedHandler"/>
         <backspaceHandlerDelegate implementation="net.fallingangel.jimmerdto.completion.DTOBackspaceHandler"/>
         <lang.commenter language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCommenter"/>
+        <enterHandlerDelegate implementation="net.fallingangel.jimmerdto.completion.DTOEnterHandler"/>
         <completion.contributor language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.completion.DTOCompletionContributor"/>
 
         <codeInsight.lineMarkerProvider language="" implementationClass="net.fallingangel.jimmerdto.DTOLineMarkerProvider"/>
