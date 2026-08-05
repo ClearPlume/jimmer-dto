@@ -1136,6 +1136,10 @@ class DTOAnnotator : Annotator {
             o.name.style(DTOSyntaxHighlighter.PROP_CONFIG)
             val prop = o.parent<DTOPositiveProp> { true } ?: return
             val property = prop.baseProperty ?: return
+            if (prop.arg != null) {
+                o.name.error("Prop config '$configName' cannot be applied to the function '${prop.name.value}'")
+                return
+            }
 
             o.qualifiedName?.validatePropPath()
 
