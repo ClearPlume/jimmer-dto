@@ -62,6 +62,7 @@
                 language="JimmerDTO"
                 implementationClass="net.fallingangel.jimmerdto.highlighting.DTOSyntaxHighlighterFactory"/>
         <lang.formatter language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.formatting.Formatter"/>
+        <langCodeStyleSettingsProvider implementation="net.fallingangel.jimmerdto.formatting.DTOLanguageCodeStyleSettingsProvider"/>
         <lang.foldingBuilder language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOFoldingBuilder"/>
         <lang.documentationProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.DTODocumentationProvider"/>
         <lang.refactoringSupport language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.refactor.DTORefactoringSupport"/>
