@@ -7,7 +7,7 @@ import net.fallingangel.jimmerdto.psi.element.DTODto
 import net.fallingangel.jimmerdto.psi.element.createModifier
 
 @Suppress("UnstableApiUsage")
-class ReorderingModifier(dto: DTODto) : PsiUpdateModCommandAction<DTODto>(dto) {
+class SortModifiers(dto: DTODto) : PsiUpdateModCommandAction<DTODto>(dto) {
     override fun getFamilyName() = "Reordering modifiers"
 
     override fun invoke(context: ActionContext, element: DTODto, updater: ModPsiUpdater) {

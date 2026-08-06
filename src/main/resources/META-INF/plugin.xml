@@ -98,6 +98,9 @@
     <extensions defaultExtensionNs="com.intellij">
         <localInspection language="JimmerDTO" groupName="Jimmer DTO" displayName="Shadowed prop config" enabledByDefault="true" level="WARNING"
                          implementationClass="net.fallingangel.jimmerdto.inspection.ShadowedPropConfigInspection"/>
+        <localInspection language="JimmerDTO" groupName="Jimmer DTO" displayName="Non-canonical modifier order"
+                         enabledByDefault="true" level="WEAK WARNING"
+                         implementationClass="net.fallingangel.jimmerdto.inspection.DTOSortModifiersInspection"/>
     </extensions>
 
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.

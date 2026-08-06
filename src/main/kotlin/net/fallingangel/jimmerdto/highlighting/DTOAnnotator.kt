@@ -238,21 +238,6 @@ class DTOAnnotator : Annotator {
                 return
             }
 
-            // 修饰符排序
-            val orders = o.modifiers.map(Modifier::order)
-            if (orders != orders.sorted()) {
-                currentModifiers
-                    .forEach {
-                        it.fix(
-                            DTOSyntaxHighlighter.WEAK_WARNING,
-                            HighlightSeverity.WEAK_WARNING,
-                            ProblemHighlightType.WEAK_WARNING,
-                            "Non-canonical modifier order",
-                            ReorderingModifier(o),
-                        )
-                    }
-            }
-
             // sealed 不允许在 Specification dto 上使用
             if (o modifiedBy Modifier.Specification) {
                 val sealed = o.modifierElements.find { it.text == Modifier.Sealed.name.lowercase() }
@@ -1488,17 +1473,7 @@ class DTOAnnotator : Annotator {
             style: TextAttributesKey = DTOSyntaxHighlighter.ERROR,
             highlightType: ProblemHighlightType = ProblemHighlightType.GENERIC_ERROR
         ) {
-            fix(style, HighlightSeverity.ERROR, highlightType, message, *fixes)
-        }
-
-        private fun PsiElement.fix(
-            style: TextAttributesKey,
-            severity: HighlightSeverity,
-            highlightType: ProblemHighlightType,
-            message: String,
-            vararg fixes: CommonIntentionAction,
-        ) {
-            val fixerBuilder = holder.newAnnotation(severity, message)
+            val fixerBuilder = holder.newAnnotation(HighlightSeverity.ERROR, message)
             fixerBuilder
                 .range(this)
                 .textAttributes(style)

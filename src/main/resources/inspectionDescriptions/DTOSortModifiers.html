@@ -1,0 +1,14 @@
+<html lang="en">
+<body>
+Reports modifiers that are not written in the canonical order.
+The order does not change the meaning of the declaration, but keeping it consistent makes declarations easier to scan.
+<p><b>Example:</b></p>
+<pre><code>
+input unsafe BookInput { ... }
+</code></pre>
+<p>After the quick-fix is applied:</p>
+<pre><code>
+unsafe input BookInput { ... }
+</code></pre>
+</body>
+</html>

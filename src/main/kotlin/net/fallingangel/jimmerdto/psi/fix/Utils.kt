@@ -70,6 +70,6 @@ val ValueType.typeName: String
     }
 
 @Suppress("UnstableApiUsage")
-fun PsiUpdateModCommandAction<PsiElement>.asQuickFix(): LocalQuickFix {
+fun <P : PsiElement> PsiUpdateModCommandAction<P>.asQuickFix(): LocalQuickFix {
     return ModCommandService.getInstance().wrapToQuickFix(this)
 }
