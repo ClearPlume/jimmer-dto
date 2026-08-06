@@ -205,6 +205,12 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
         return (substituted as? PsiClassType)?.resolve()
     }
 
+    context(_: PsiElement)
+    override fun filterEntity(filterClass: PsiElement): PsiElement? {
+        val tableClass = process(filterClass) { typeArgumentFor("org.babyfish.jimmer.sql.fetcher.FieldFilter") } ?: return null
+        return process(tableClass) { typeArgumentFor("org.babyfish.jimmer.sql.ast.table.Table") }
+    }
+
     context(types: ResolvedTypes)
     fun parents(clazz: PsiClass): List<LClass> {
         return clazz.supers

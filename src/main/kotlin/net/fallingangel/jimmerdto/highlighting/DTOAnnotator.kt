@@ -18,6 +18,7 @@ import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.enums.*
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.compiling
 import net.fallingangel.jimmerdto.lsi.jimmer.*
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOParser
@@ -1159,8 +1160,25 @@ class DTOAnnotator : Annotator {
                         o.name.error("!filter accepts only one identifier value")
                     }
 
-                    if (o.qualifiedName == null) {
+                    val qualifiedName = o.qualifiedName
+                    if (qualifiedName == null) {
                         o.name.error("Missing filter class in '!filter'")
+                    } else {
+                        val target = qualifiedName.target
+                        if (target is Resolution.Target.Type) {
+                            val targetEntity = property.targetClass?.source ?: return
+                            val filterEntity = compiling(prop) { filterEntity(target.type) } ?: return
+
+                            if (!targetEntity.isEquivalentTo(filterEntity)) {
+                                val targetEntityName = process(targetEntity) { classQualifiedName() } ?: return
+                                val filterEntityName = process(filterEntity) { classQualifiedName() } ?: return
+                                qualifiedName.error(
+                                    "The filter class '${qualifiedName.text}' is illegal, " +
+                                            "it specifies the entity type '$filterEntityName', " +
+                                            "which is not the target entity type '$targetEntityName' of property '${property.name}'"
+                                )
+                            }
+                        }
                     }
                 }
 

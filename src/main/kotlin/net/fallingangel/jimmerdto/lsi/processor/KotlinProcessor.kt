@@ -234,6 +234,11 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         }
     }
 
+    context(_: PsiElement)
+    override fun filterEntity(filterClass: PsiElement): PsiElement? {
+        return process(filterClass) { typeArgumentFor("org.babyfish.jimmer.sql.kt.fetcher.KFieldFilter") }
+    }
+
     context(types: ResolvedTypes)
     fun parents(clazz: KtClass): List<LClass> {
         return analyze(clazz) {

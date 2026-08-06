@@ -13,6 +13,9 @@ interface CompilerContext {
 
     context(element: PsiElement)
     fun builtinType(type: StandardType): PsiElement?
+    
+    context(_: PsiElement)
+    fun filterEntity(filterClass: PsiElement): PsiElement?
 }
 
 fun Module.context(): CompilerContext? {
