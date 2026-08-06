@@ -1173,11 +1173,19 @@ class DTOAnnotator : Annotator {
                     if (o.qualifiedName == null) {
                         o.name.error("!filter accepts only one identifier value")
                     }
+
+                    if (o.qualifiedName == null) {
+                        o.name.error("Missing filter class in '!filter'")
+                    }
                 }
 
                 PropConfigName.Recursion.text -> {
                     if (o.qualifiedName == null) {
                         o.name.error("!recursion accepts only one identifier value")
+                    }
+
+                    if (o.qualifiedName == null) {
+                        o.name.error("Missing recursion strategy class in '!recursion'")
                     }
                 }
 
@@ -1197,6 +1205,8 @@ class DTOAnnotator : Annotator {
                                 ChangeReferenceFix(fetchType, availableTypes),
                             )
                         }
+                    } else {
+                        o.name.error("Missing fetch type in '!fetchType'")
                     }
                 }
 
@@ -1218,6 +1228,8 @@ class DTOAnnotator : Annotator {
                                 offset.error("offset cannot be less than 0")
                             }
                         }
+                    } else {
+                        o.name.error("Missing limit in '!limit'")
                     }
                 }
 
@@ -1233,6 +1245,8 @@ class DTOAnnotator : Annotator {
                         }
 
                         intPair.second?.error("!batch accepts only one numeric value")
+                    } else {
+                        o.name.error("Missing batch size in '!batch'")
                     }
                 }
 
@@ -1248,6 +1262,8 @@ class DTOAnnotator : Annotator {
                         }
 
                         intPair.second?.error("!depth accepts only one numeric value")
+                    } else {
+                        o.name.error("Missing depth in '!depth'")
                     }
                 }
 
@@ -1262,11 +1278,15 @@ class DTOAnnotator : Annotator {
          * !where 条件校验
          */
         override fun visitCompare(o: DTOCompare) {
+            if (o.symbol == null && o.value == null) {
+                o.prop.error("Missing comparison operator and value after '${o.prop.text}'")
+            }
+
             val property = o.prop.validatePropPath() ?: return
             val simpleType = property.simplePropType
             if (simpleType == null) {
                 val lastPart = o.prop.parts.last()
-                lastPart.error("The '!where' in DTO must be simple predicate so that the last property '${property.name}' must be boolean, number, string")
+                lastPart.error("Property '${property.name}' has type '${property.type.presentation}', which cannot be used as an operand in '!where'; expected boolean, numeric, or string")
                 return
             }
             val symbol = o.symbol ?: return
@@ -1275,7 +1295,10 @@ class DTOAnnotator : Annotator {
                 symbol.error("The operator '${symbol.text}' is not allowed here because the left operand is not ${required.presentation}")
             }
 
-            val value = o.value ?: return
+            val value = o.value ?: run {
+                symbol.error("Missing value after comparison operator '${symbol.text}'")
+                return
+            }
             if (value.kind.accepted != simpleType.family) {
                 value.error("Illegal ${value.kind.literalName} literal, the left operand is ${simpleType.family.presentation}")
             } else if (!simpleType.fits(value.text)) {
