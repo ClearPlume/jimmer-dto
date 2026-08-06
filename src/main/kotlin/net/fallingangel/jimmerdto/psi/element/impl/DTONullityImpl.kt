@@ -20,8 +20,8 @@ class DTONullityImpl(node: ASTNode) : ANTLRPsiNode(node), DTONullity {
     override val not: PsiElement?
         get() = findChildNullable("/nullity/Not")
 
-    override val `null`: PsiElement
-        get() = findChild("/nullity/Null")
+    override val `null`: PsiElement?
+        get() = findChildNullable("/nullity/Null")
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {

@@ -210,7 +210,7 @@ compareSymbol
 
 nullity
     :
-    qualifiedName Is Not? Null
+    qualifiedName Is Not? Null?
     ;
 
 propValue

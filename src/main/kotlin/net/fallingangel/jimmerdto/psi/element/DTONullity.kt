@@ -10,5 +10,5 @@ interface DTONullity : DTOElement {
 
     val not: PsiElement?
 
-    val `null`: PsiElement
+    val `null`: PsiElement?
 }

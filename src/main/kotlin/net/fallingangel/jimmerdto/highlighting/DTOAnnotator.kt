@@ -1279,6 +1279,10 @@ class DTOAnnotator : Annotator {
          */
         override fun visitNullity(o: DTONullity) {
             o.prop.validatePropPath()
+
+            if (o.`null` == null) {
+                o.`is`.error("Missing 'null' after 'is'")
+            }
         }
 
         /**
