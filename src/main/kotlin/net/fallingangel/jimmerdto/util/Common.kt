@@ -17,7 +17,6 @@ import net.fallingangel.jimmerdto.index.ANNOTATION_CLASS_INDEX
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
-import net.fallingangel.jimmerdto.structure.JavaNullableType
 import org.babyfish.jimmer.Immutable
 import org.babyfish.jimmer.sql.Embeddable
 import org.babyfish.jimmer.sql.Entity
@@ -76,7 +75,7 @@ val KtLightClass.icon: Icon
     }
 
 val PsiType.nullable: Boolean
-    get() = presentableText in JavaNullableType.entries.map { it.name }
+    get() = this is PsiClassType && PsiPrimitiveType.getUnboxedType(this) != null
 
 val PsiType?.defaultValue: String
     get() = when (this) {
