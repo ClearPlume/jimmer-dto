@@ -1149,6 +1149,10 @@ class DTOAnnotator : Annotator {
                     if (predicates == null) {
                         o.name.error("!where accepts only predicates")
                     }
+
+                    if (o.whereArgs == null) {
+                        o.name.error("Missing predicate in '!where'")
+                    }
                 }
 
                 PropConfigName.OrderBy.text -> {
@@ -1157,6 +1161,11 @@ class DTOAnnotator : Annotator {
                         if (o.qualifiedName == null) {
                             o.name.error("!orderBy accepts only orderItems")
                         }
+                    }
+
+                    val orderByArgs = o.orderByArgs
+                    if ((orderByArgs == null || orderByArgs.orderItems.isEmpty()) && o.qualifiedName == null) {
+                        o.name.error("Missing order items in '!orderBy'")
                     }
                 }
 

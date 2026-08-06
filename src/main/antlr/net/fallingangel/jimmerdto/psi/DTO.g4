@@ -170,12 +170,12 @@ propConfig
 
 whereArgs
     :
-    predicate ((And | Or) predicate)*
+    predicate? ((And | Or) predicate)*
     ;
 
 orderByArgs
     :
-    orderItem ((Comma) orderItem)*
+    orderItem? ((Comma) orderItem)*
     ;
 
 intPair
