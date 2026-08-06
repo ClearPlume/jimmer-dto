@@ -220,6 +220,20 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         return annotation.map(KClass<*>::classId).any { it in classIds }
     }
 
+    context(element: PsiElement)
+    override fun typeArgumentFor(superName: String, index: Int): PsiElement? {
+        val clazz = element.narrow<KtClass>()
+        return analyze(clazz) {
+            val symbol = clazz.symbol as? KaClassSymbol ?: return null
+            val superType = symbol.defaultType.allSupertypes
+                .filterIsInstance<KaClassType>()
+                .firstOrNull { it.classId.asFqNameString() == superName }
+                ?: return null
+            val typeParameter = superType.typeArguments.getOrNull(index)?.type ?: return null
+            (typeParameter as? KaClassType)?.symbol?.psi
+        }
+    }
+
     context(types: ResolvedTypes)
     fun parents(clazz: KtClass): List<LClass> {
         return analyze(clazz) {

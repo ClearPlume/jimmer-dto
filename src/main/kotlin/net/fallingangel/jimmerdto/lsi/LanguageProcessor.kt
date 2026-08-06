@@ -37,6 +37,9 @@ interface LanguageProcessor {
 
     context(element: PsiElement)
     fun hasAnnotation(vararg annotation: KClass<out Annotation>): Boolean
+
+    context(element: PsiElement)
+    fun typeArgumentFor(superName: String, index: Int = 0): PsiElement?
 }
 
 fun Language.processor(): LanguageProcessor? {

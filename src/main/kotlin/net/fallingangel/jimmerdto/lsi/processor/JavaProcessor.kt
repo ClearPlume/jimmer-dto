@@ -7,10 +7,7 @@ import com.intellij.openapi.util.Key
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
-import com.intellij.psi.util.CachedValue
-import com.intellij.psi.util.CachedValueProvider
-import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiModificationTracker
+import com.intellij.psi.util.*
 import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
@@ -196,6 +193,16 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     override fun hasAnnotation(vararg annotation: KClass<out Annotation>): Boolean {
         val annotated = element.narrow<PsiModifierListOwner>()
         return annotation.mapNotNull(KClass<*>::qualifiedName).any(annotated::hasAnnotation)
+    }
+
+    context(element: PsiElement)
+    override fun typeArgumentFor(superName: String, index: Int): PsiElement? {
+        val clazz = element.narrow<PsiClass>()
+        val superClass = element.psiClass(superName) ?: return null
+        val substitutor = TypeConversionUtil.getClassSubstitutor(superClass, clazz, PsiSubstitutor.EMPTY) ?: return null
+        val typeParameter = superClass.typeParameters.getOrNull(index) ?: return null
+        val substituted = substitutor.substitute(typeParameter) ?: return null
+        return (substituted as? PsiClassType)?.resolve()
     }
 
     context(types: ResolvedTypes)
