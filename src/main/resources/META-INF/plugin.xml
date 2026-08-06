@@ -95,6 +95,11 @@
         <supportsKotlinPluginMode supportsK1="false" supportsK2="true"/>
     </extensions>
 
+    <extensions defaultExtensionNs="com.intellij">
+        <localInspection language="JimmerDTO" groupName="Jimmer DTO" displayName="Shadowed prop config" enabledByDefault="true" level="WARNING"
+                         implementationClass="net.fallingangel.jimmerdto.inspection.ShadowedPropConfigInspection"/>
+    </extensions>
+
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->

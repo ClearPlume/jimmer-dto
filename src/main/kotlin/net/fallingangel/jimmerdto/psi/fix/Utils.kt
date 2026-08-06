@@ -3,6 +3,10 @@ package net.fallingangel.jimmerdto.psi.fix
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.codeInsight.template.Expression
 import com.intellij.codeInsight.template.impl.ConstantNode
+import com.intellij.codeInspection.LocalQuickFix
+import com.intellij.modcommand.ModCommandService
+import com.intellij.modcommand.PsiUpdateModCommandAction
+import com.intellij.psi.PsiElement
 import com.jetbrains.rd.util.firstOrNull
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type.Clazz
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type.Scalar
@@ -64,3 +68,8 @@ val ValueType.typeName: String
         is ValueType.Annotation -> annotation.canonicalName
         is ValueType.Array -> elements.filterNotNull().firstOrNull()?.typeName?.plus("[]") ?: "Array"
     }
+
+@Suppress("UnstableApiUsage")
+fun PsiUpdateModCommandAction<PsiElement>.asQuickFix(): LocalQuickFix {
+    return ModCommandService.getInstance().wrapToQuickFix(this)
+}
