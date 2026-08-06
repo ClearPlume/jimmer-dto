@@ -10,6 +10,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiEnumConstant
+import com.intellij.psi.PsiTypeParameter
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
@@ -1187,8 +1188,26 @@ class DTOAnnotator : Annotator {
                         o.name.error("!recursion accepts only one identifier value")
                     }
 
-                    if (o.qualifiedName == null) {
+                    val qualifiedName = o.qualifiedName
+                    if (qualifiedName == null) {
                         o.name.error("Missing recursion strategy class in '!recursion'")
+                    } else {
+                        val target = qualifiedName.target
+                        if (target is Resolution.Target.Type) {
+                            val targetEntity = property.targetClass?.source ?: return
+                            val strategyEntity = process(target.type) { typeArgumentFor("org.babyfish.jimmer.sql.fetcher.RecursionStrategy") }
+                            strategyEntity?.takeIf { it !is PsiTypeParameter } ?: return
+
+                            if (!targetEntity.isEquivalentTo(strategyEntity)) {
+                                val targetEntityName = process(targetEntity) { classQualifiedName() } ?: return
+                                val strategyName = process(strategyEntity) { classQualifiedName() } ?: return
+                                qualifiedName.error(
+                                    "The recursion class '${qualifiedName.text}' is illegal, " +
+                                            "it specifies the entity type '$strategyName', " +
+                                            "which is not the target entity type '$targetEntityName' of property '${property.name}'"
+                                )
+                            }
+                        }
                     }
                 }
 
