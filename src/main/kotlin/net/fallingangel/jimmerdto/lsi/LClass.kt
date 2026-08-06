@@ -17,7 +17,7 @@ class LClass(
     parentsHolder: Lazy<List<LClass>>,
     val childrenProvider: () -> List<LClass>,
     propertiesHolder: Lazy<List<LProperty>>,
-    override val source: PsiElement?,
+    override val source: PsiElement,
 ) : LElement, LAnnotationOwner, LPsiDependent {
     override val annotations by annotationsHolder
 
