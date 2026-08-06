@@ -1121,20 +1121,46 @@ class DTOAnnotator : Annotator {
         override fun visitPropConfig(o: DTOPropConfig) {
             val configName = o.name.text
             o.name.style(DTOSyntaxHighlighter.PROP_CONFIG)
+
             val prop = o.parent<DTOPositiveProp> { true } ?: return
-            val property = prop.baseProperty ?: return
             if (prop.arg != null) {
                 o.name.error("Prop config '$configName' cannot be applied to the function '${prop.name.value}'")
                 return
             }
 
+            val dto = o.parent<DTODto> { true } ?: return
+            if (dto modifiedBy Modifier.Specification || dto modifiedBy Modifier.Input) {
+                o.error("Configuration can only be applied to output DTO")
+            }
+
+            val availableNames = PropConfigName.availableNames
+            if (configName !in availableNames) {
+                o.name.error(
+                    "Incorrect prop-config name '$configName'",
+                    ChangeReferenceFix(o.name, availableNames)
+                )
+                return
+            }
+
+            val conflicts = PropConfigName.exclusive[configName].orEmpty()
+            prop.configs
+                .takeWhile { it !== o }
+                .firstOrNull { it.name.text in conflicts }
+                ?.let {
+                    o.name.error("Cannot specify '${o.name.text}' when '${it.name.text}' exists")
+                }
+
+            val property = prop.property ?: return
             o.qualifiedName?.validatePropPath()
 
             when (configName) {
                 PropConfigName.Where.text -> {
-                    val predicates = o.whereArgs?.predicates
-                    if (predicates == null) {
-                        o.name.error("!where accepts only predicates")
+                    if (!property.isEntityAssociation) {
+                        o.name.error("Cannot specify '!where' when the property is not association")
+                    }
+
+                    if (property.isReference && !property.nullable) {
+                        o.name.error("Cannot specify '!where' when the property is non-null reference")
                     }
 
                     if (o.whereArgs == null) {
@@ -1143,11 +1169,8 @@ class DTOAnnotator : Annotator {
                 }
 
                 PropConfigName.OrderBy.text -> {
-                    val orderItems = o.orderByArgs?.orderItems
-                    if (orderItems == null) {
-                        if (o.qualifiedName == null) {
-                            o.name.error("!orderBy accepts only orderItems")
-                        }
+                    if (!property.isEntityAssociation || !property.isList) {
+                        o.name.error("Cannot specify '!orderBy' when the property is not associated list")
                     }
 
                     val orderByArgs = o.orderByArgs
@@ -1157,8 +1180,8 @@ class DTOAnnotator : Annotator {
                 }
 
                 PropConfigName.Filter.text -> {
-                    if (o.qualifiedName == null) {
-                        o.name.error("!filter accepts only one identifier value")
+                    if (!property.isEntityAssociation || !property.isList) {
+                        o.name.error("Cannot specify '!filter' when the property is not associated list")
                     }
 
                     val qualifiedName = o.qualifiedName
@@ -1184,8 +1207,8 @@ class DTOAnnotator : Annotator {
                 }
 
                 PropConfigName.Recursion.text -> {
-                    if (o.qualifiedName == null) {
-                        o.name.error("!recursion accepts only one identifier value")
+                    if (!prop.isRecursive || !property.isRecursive) {
+                        o.name.error("'!recursion' can only be applied for recursive property")
                     }
 
                     val qualifiedName = o.qualifiedName
@@ -1212,16 +1235,22 @@ class DTOAnnotator : Annotator {
                 }
 
                 PropConfigName.FetchType.text -> {
+                    if (!property.isEntityAssociation || property.isList) {
+                        o.name.error("Cannot specify '!fetchType' when the property is not associated reference")
+                    }
+
                     val fetchType = o.qualifiedName
                     if (fetchType != null) {
+                        val fetchTypeValue = fetchType.value
+                        val referenceFetchType = o.psiClass(Constant.REFERENCE_FETCH_TYPE) ?: return
+                        val availableTypes = referenceFetchType.fields
+                            .filterIsInstance<PsiEnumConstant>()
+                            .map(PsiEnumConstant::getName)
+                            .filter { it != "AUTO" }
                         val target = fetchType.target
-                        if (target is Resolution.Target.EnumConst) {
+                        if (target is Resolution.Target.EnumConst && fetchTypeValue in availableTypes) {
                             fetchType.style(DTOSyntaxHighlighter.VALUE)
                         } else {
-                            val referenceFetchType = o.psiClass(Constant.REFERENCE_FETCH_TYPE) ?: return
-                            val availableTypes = referenceFetchType.fields.filterIsInstance<PsiEnumConstant>().map(PsiEnumConstant::getName)
-                            val fetchTypeValue = fetchType.value
-
                             fetchType.error(
                                 "Incorrect fetchType '$fetchTypeValue'",
                                 ChangeReferenceFix(fetchType, availableTypes),
@@ -1233,21 +1262,23 @@ class DTOAnnotator : Annotator {
                 }
 
                 PropConfigName.Limit.text -> {
+                    if (!property.isEntityAssociation || !property.isList) {
+                        o.name.error("Cannot specify '!limit' when the property is not associated list")
+                    }
+
                     val intPair = o.intPair
-                    if (intPair == null) {
-                        o.name.error("!limit accepts only numeric value")
-                    } else {
+                    if (intPair != null) {
                         val limit = intPair.first
-                        val limitValue = limit.text.toInt()
-                        if (limitValue < 1) {
-                            limit.error("limit cannot be less than 1")
+                        when (val limitValue = limit.text.toIntOrNull()) {
+                            null -> limit.error("The limit is out of range")
+                            else -> if (limitValue < 1) limit.error("The limit cannot be less than 1")
                         }
 
                         val offset = intPair.second
                         if (offset != null) {
-                            val offsetValue = offset.text.toInt()
-                            if (offsetValue < 0) {
-                                offset.error("offset cannot be less than 0")
+                            when (val offsetValue = offset.text.toIntOrNull()) {
+                                null -> offset.error("The offset is out of range")
+                                else -> if (offsetValue < 0) offset.error("The offset cannot be less than 0")
                             }
                         }
                     } else {
@@ -1256,42 +1287,41 @@ class DTOAnnotator : Annotator {
                 }
 
                 PropConfigName.Batch.text -> {
+                    if (!property.isEntityAssociation || !property.isList) {
+                        o.name.error("Cannot specify '!batch' when the property is not associated list")
+                    }
+
                     val intPair = o.intPair
-                    if (intPair == null) {
-                        o.name.error("!batch accepts only numeric value")
-                    } else {
+                    if (intPair != null) {
                         val batch = intPair.first
-                        val batchValue = batch.text.toInt()
-                        if (batchValue < 1) {
-                            batch.error("batch cannot be less than 1")
+                        when (val batchValue = batch.text.toIntOrNull()) {
+                            null -> batch.error("The batch is out of range")
+                            else -> if (batchValue < 1) batch.error("The batch cannot be less than 1")
                         }
 
-                        intPair.second?.error("!batch accepts only one numeric value")
+                        intPair.second?.error("'!batch' accepts only one numeric value")
                     } else {
                         o.name.error("Missing batch size in '!batch'")
                     }
                 }
 
                 PropConfigName.Depth.text -> {
+                    if (!prop.isRecursive || !property.isRecursive) {
+                        o.name.error("'!depth' can only be applied for recursive property")
+                    }
+
                     val intPair = o.intPair
-                    if (intPair == null) {
-                        o.name.error("!depth accepts only numeric value")
-                    } else {
+                    if (intPair != null) {
                         val depth = intPair.first
-                        val depthValue = depth.text.toInt()
-                        if (depthValue < 0) {
-                            depth.error("depth cannot be less than 1")
+                        when (val depthValue = depth.text.toIntOrNull()) {
+                            null -> depth.error("The limit is out of range")
+                            else -> if (depthValue < 0) depth.error("The depth cannot be less than 0")
                         }
 
                         intPair.second?.error("!depth accepts only one numeric value")
                     } else {
                         o.name.error("Missing depth in '!depth'")
                     }
-                }
-
-                else -> {
-                    val availableNames = PropConfigName.availableNames
-                    o.name.error("Incorrect prop-config name `$configName`, available names are: $availableNames")
                 }
             }
         }

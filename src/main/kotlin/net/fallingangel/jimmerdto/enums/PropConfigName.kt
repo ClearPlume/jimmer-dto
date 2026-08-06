@@ -11,6 +11,10 @@ enum class PropConfigName(val text: String) {
     Depth("!depth");
 
     companion object {
-        val availableNames = entries.map(PropConfigName::text).joinToString { "'$it'" }
+        val availableNames = entries.map(PropConfigName::text)
+
+        val exclusive = listOf(Where to Filter, OrderBy to Filter, Recursion to Depth)
+            .flatMap { (a, b) -> listOf(a.text to b.text, b.text to a.text) }
+            .groupBy({ it.first }, { it.second })
     }
 }
