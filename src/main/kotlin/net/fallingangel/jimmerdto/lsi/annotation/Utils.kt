@@ -1,14 +1,14 @@
 package net.fallingangel.jimmerdto.lsi.annotation
 
-import kotlin.reflect.KClass
+import org.jetbrains.kotlin.name.ClassId
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
 
-fun LAnnotationOwner.hasAnnotation(annotationClass: KClass<out Annotation>): Boolean {
-    return annotations.any { it.canonicalName == annotationClass.qualifiedName }
+fun LAnnotationOwner.hasAnnotation(annotationClass: ClassId): Boolean {
+    return annotations.any { it.canonicalName == annotationClass.asFqNameString() }
 }
 
-fun LAnnotationOwner.hasAnnotation(vararg annotationClass: KClass<out Annotation>): Boolean {
-    return annotations.any { it.canonicalName in annotationClass.map(KClass<*>::qualifiedName) }
+fun LAnnotationOwner.hasAnnotation(vararg annotationClass: ClassId): Boolean {
+    return annotations.any { it.canonicalName in annotationClass.map(ClassId::asFqNameString) }
 }
 
 fun LAnnotationOwner.hasAnnotationBySimple(vararg simpleAnnotation: String): Boolean {

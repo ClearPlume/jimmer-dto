@@ -6,10 +6,6 @@ import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.lsi.jimmer.*
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
-import org.babyfish.jimmer.sql.ExcludeFromAllScalars
-import org.babyfish.jimmer.sql.IdView
-import org.babyfish.jimmer.sql.LogicalDeleted
-import org.babyfish.jimmer.sql.ManyToManyView
 
 interface DTOMacro : DTOElement {
     val hash: PsiElement
@@ -75,10 +71,10 @@ interface DTOMacro : DTOElement {
                         !it.isFormula &&
                         !it.isTransient &&
                         !it.isList &&
-                        !it.hasAnnotation(IdView::class) &&
-                        !it.hasAnnotation(ManyToManyView::class) &&
-                        !it.hasAnnotation(LogicalDeleted::class) &&
-                        !it.hasAnnotation(ExcludeFromAllScalars::class)
+                        !it.hasAnnotation(JimmerAnnotations.IdView) &&
+                        !it.hasAnnotation(JimmerAnnotations.ManyToManyView) &&
+                        !it.hasAnnotation(JimmerAnnotations.LogicalDeleted) &&
+                        !it.hasAnnotation(JimmerAnnotations.ExcludeFromAllScalars)
             } else {
                 it.isReference
             }

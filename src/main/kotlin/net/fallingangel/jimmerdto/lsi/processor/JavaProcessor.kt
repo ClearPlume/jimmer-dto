@@ -11,14 +11,11 @@ import com.intellij.psi.util.*
 import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.nullable
 import net.fallingangel.jimmerdto.util.psiClass
-import org.babyfish.jimmer.Immutable
-import org.babyfish.jimmer.sql.Embeddable
-import org.babyfish.jimmer.sql.Entity
-import org.babyfish.jimmer.sql.MappedSuperclass
-import kotlin.reflect.KClass
+import org.jetbrains.kotlin.name.ClassId
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
 
@@ -190,9 +187,9 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun hasAnnotation(vararg annotation: KClass<out Annotation>): Boolean {
+    override fun hasAnnotation(vararg annotation: ClassId): Boolean {
         val annotated = element.narrow<PsiModifierListOwner>()
-        return annotation.mapNotNull(KClass<*>::qualifiedName).any(annotated::hasAnnotation)
+        return annotation.map(ClassId::asFqNameString).any(annotated::hasAnnotation)
     }
 
     context(element: PsiElement)
@@ -281,7 +278,14 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
                     }
 
                     else -> {
-                        if (typeClass.hasAnnotation(Entity::class, MappedSuperclass::class, Embeddable::class, Immutable::class)) {
+                        if (
+                            typeClass.hasAnnotation(
+                                JimmerAnnotations.Entity,
+                                JimmerAnnotations.MappedSuperclass,
+                                JimmerAnnotations.Embeddable,
+                                JimmerAnnotations.Immutable
+                            )
+                        ) {
                             LProperty.Type.Clazz(lClass(element = typeClass) ?: return null, type.nullable, typeClass)
                         } else {
                             LProperty.Type.Scalar(type.canonicalText, type.nullable)

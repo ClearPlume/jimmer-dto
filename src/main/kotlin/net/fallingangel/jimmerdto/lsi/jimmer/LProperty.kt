@@ -9,10 +9,16 @@ import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Embeddable
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Entity
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Formula
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Id
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.IdView
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Immutable
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Key
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.MappedSuperclass
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Transient
 import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
-import org.babyfish.jimmer.Formula
-import org.babyfish.jimmer.Immutable
-import org.babyfish.jimmer.sql.*
 
 val LProperty.Type.resolvedLClass: LClass?
     get() = (this as? LProperty.Type.Clazz)?.clazz
@@ -22,7 +28,7 @@ val LProperty.Type.resolvedLClass: LClass?
  * 结构上像关联（有嵌套属性），语义上不是。
  */
 val LProperty.isEmbedded: Boolean
-    get() = targetClass?.hasAnnotation(Embeddable::class) == true
+    get() = targetClass?.hasAnnotation(Embeddable) == true
 
 /**
  * 目标类型标注了 [Entity]——真正的关联：有外键，有独立表，有 id。
@@ -37,16 +43,16 @@ val LProperty.isEmbedded: Boolean
  * 所以不需要这个并集——每个场景直接用 isEntityAssociation 或 isEmbedded。
  */
 val LProperty.isEntityAssociation: Boolean
-    get() = targetClass?.hasAnnotation(Entity::class) == true
+    get() = targetClass?.hasAnnotation(Entity) == true
 
 val LProperty.isFormula: Boolean
-    get() = hasAnnotation(Formula::class)
+    get() = hasAnnotation(Formula)
 
 val LProperty.isId: Boolean
-    get() = hasAnnotation(Id::class)
+    get() = hasAnnotation(Id)
 
 val LProperty.isKey: Boolean
-    get() = hasAnnotation(Key::class)
+    get() = hasAnnotation(Key)
 
 val LProperty.isRecursive: Boolean
     get() = isEntityAssociation && containingLClass == targetClass
@@ -55,7 +61,7 @@ val LProperty.isList: Boolean
     get() = type is LProperty.Type.Collection
 
 val LProperty.isTransient: Boolean
-    get() = hasAnnotation(Transient::class)
+    get() = hasAnnotation(Transient)
 
 /**
  * 单引用实体关联——实体关联、非集合、非 transient。
@@ -69,7 +75,7 @@ val LClass.idProperty: LProperty?
 
 val LProperty.idViewBaseProp: LProperty?
     get() {
-        val annotation = annotations.find { it.canonicalName == IdView::class.qualifiedName } ?: return null
+        val annotation = annotations.find { it.canonicalName == IdView.asFqNameString() } ?: return null
         val baseParam = annotation.params.find { it.name == "value" } ?: return null
         val declaredBase = (baseParam.value ?: baseParam.defaultValue)
             ?.let { it as? LAnnotation.Param.Value.Scalar }

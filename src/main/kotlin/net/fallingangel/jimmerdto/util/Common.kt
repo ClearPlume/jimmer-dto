@@ -14,23 +14,20 @@ import com.intellij.util.indexing.FileBasedIndex
 import net.fallingangel.jimmerdto.DTOLanguage
 import net.fallingangel.jimmerdto.DTOLanguage.xPath
 import net.fallingangel.jimmerdto.index.ANNOTATION_CLASS_INDEX
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
-import org.babyfish.jimmer.Immutable
-import org.babyfish.jimmer.sql.Embeddable
-import org.babyfish.jimmer.sql.Entity
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.KotlinIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtObjectDeclaration
-import org.jetbrains.kotlin.scripting.resolve.classId
 import javax.swing.Icon
-import kotlin.reflect.KClass
 
 val DTOElement.file: DTOFile
     get() = containingFile as DTOFile
@@ -241,20 +238,22 @@ fun Project.allAnnotations(`package`: String? = null): List<PsiClass> {
  * @param `package` null等同于空字符串
  */
 fun Project.allEntities(`package`: String? = ""): List<PsiClass> {
-    return allClasses(`package` ?: "").filter { it.isInterface && it.hasAnnotation(Entity::class, Embeddable::class, Immutable::class) }
+    return allClasses(`package` ?: "").filter {
+        it.isInterface && it.hasAnnotation(JimmerAnnotations.Entity, JimmerAnnotations.Embeddable, JimmerAnnotations.Immutable)
+    }
 }
 
 fun Project.allPackages(`package`: String): List<PsiPackage> {
     return JavaPsiFacade.getInstance(this).findPackage(`package`)?.subPackages?.toList() ?: emptyList()
 }
 
-fun PsiModifierListOwner.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
+fun PsiModifierListOwner.hasAnnotation(vararg anno: ClassId): Boolean {
     val annotations = annotations.mapNotNull(PsiAnnotation::getQualifiedName)
-    return anno.any { it.qualifiedName in annotations }
+    return anno.any { it.asFqNameString() in annotations }
 }
 
-fun KaAnnotated.hasAnnotation(vararg anno: KClass<out Annotation>): Boolean {
-    return anno.any { it.classId in annotations }
+fun KaAnnotated.hasAnnotation(vararg anno: ClassId): Boolean {
+    return anno.any { it in annotations }
 }
 
 fun Project.literalType(literal: String): PsiType? {

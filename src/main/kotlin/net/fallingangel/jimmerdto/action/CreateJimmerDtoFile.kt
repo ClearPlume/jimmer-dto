@@ -10,9 +10,9 @@ import com.intellij.openapi.vfs.findDirectory
 import com.intellij.openapi.vfs.findFile
 import com.intellij.openapi.vfs.findOrCreateFile
 import net.fallingangel.jimmerdto.lsi.LKind
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.util.open
-import org.babyfish.jimmer.sql.Entity
 
 class CreateJimmerDtoFile : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
@@ -49,7 +49,7 @@ class CreateJimmerDtoFile : AnAction() {
 
         val visible = selectedElement?.let {
             process(it) {
-                kind() == LKind.Interface && hasAnnotation(Entity::class)
+                kind() == LKind.Interface && hasAnnotation(JimmerAnnotations.Entity)
             }
         }
 

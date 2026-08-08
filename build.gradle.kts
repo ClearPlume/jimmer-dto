@@ -48,7 +48,6 @@ dependencies {
     }
     implementation(libs.antlr4.runtime)
     implementation(libs.antlr4.intellij.adaptor)
-    implementation(libs.jimmer.core)
 
     testImplementation(libs.junit)
 }

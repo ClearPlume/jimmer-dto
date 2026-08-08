@@ -4,10 +4,10 @@ import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.util.modifiedBy
-import org.babyfish.jimmer.sql.Entity
 
 interface DTODto : DTOElement {
     val annotations: List<DTOAnnotation>
@@ -24,7 +24,7 @@ interface DTODto : DTOElement {
         get() = (containingFile as DTOFile).clazz
 
     val classIsEntity: Boolean
-        get() = clazz?.hasAnnotation(Entity::class) == true
+        get() = clazz?.hasAnnotation(JimmerAnnotations.Entity) == true
 
     val modifiers: List<Modifier>
         get() = modifierElements.map { modifier ->

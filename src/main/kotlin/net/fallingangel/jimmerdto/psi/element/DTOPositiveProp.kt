@@ -6,16 +6,11 @@ import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.lsi.findProperty
-import net.fallingangel.jimmerdto.lsi.jimmer.isEmbedded
-import net.fallingangel.jimmerdto.lsi.jimmer.isEntityAssociation
-import net.fallingangel.jimmerdto.lsi.jimmer.isReference
-import net.fallingangel.jimmerdto.lsi.jimmer.resolvedLClass
+import net.fallingangel.jimmerdto.lsi.jimmer.*
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.util.modifiedBy
-import org.babyfish.jimmer.sql.Id
 
 interface DTOPositiveProp : DTOElement {
     val annotations: List<DTOAnnotation>
@@ -118,7 +113,7 @@ interface DTOPositiveProp : DTOElement {
             .filter(LProperty::isEntityAssociation)
             .mapNotNull { prop ->
                 val idType = prop.targetClass!!.properties
-                    .find { it.hasAnnotation(Id::class) }
+                    .find { it.isId }
                     ?.presentableType
                     ?: return@mapNotNull null
                 "${prop.name}Id" to idType

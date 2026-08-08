@@ -2,7 +2,7 @@ package net.fallingangel.jimmerdto.lsi
 
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.lsi.annotation.*
-import org.babyfish.jimmer.client.TNullable
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 
 class LProperty(
     override val name: String,
@@ -193,7 +193,7 @@ class LProperty(
     }
 
     val nullable = hasAnnotationBySimple("Null", "Nullable")
-            || hasAnnotation(TNullable::class)
+            || hasAnnotation(JimmerAnnotations.TNullable)
             || type.nullable
 
     val actualType = type.actualType

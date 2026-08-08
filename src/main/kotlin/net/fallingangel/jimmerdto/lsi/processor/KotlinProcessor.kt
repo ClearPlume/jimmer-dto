@@ -14,12 +14,9 @@ import com.intellij.psi.util.PsiModificationTracker
 import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.ktClass
-import org.babyfish.jimmer.Immutable
-import org.babyfish.jimmer.sql.Embeddable
-import org.babyfish.jimmer.sql.Entity
-import org.babyfish.jimmer.sql.MappedSuperclass
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
@@ -35,10 +32,9 @@ import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
+import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
-import org.jetbrains.kotlin.scripting.resolve.classId
-import kotlin.reflect.KClass
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
 
@@ -211,13 +207,13 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun hasAnnotation(vararg annotation: KClass<out Annotation>): Boolean {
+    override fun hasAnnotation(vararg annotation: ClassId): Boolean {
         val declaration = element.narrow<KtDeclaration>()
         val classIds = analyze(declaration) {
             val symbol = declaration.symbol as? KaAnnotatedSymbol ?: return false
             symbol.annotations.classIds
         }
-        return annotation.map(KClass<*>::classId).any { it in classIds }
+        return annotation.any { it in classIds }
     }
 
     context(element: PsiElement)
@@ -244,7 +240,6 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         return analyze(clazz) {
             val symbol = clazz.symbol as? KaClassSymbol ?: return emptyList()
             symbol.superTypes
-                .filter { it.symbol!!.hasAnnotation(MappedSuperclass::class, Entity::class) }
                 .mapNotNull { it.symbol?.psi as? KtClass }
                 .mapNotNull { lClass(element = it) }
         }
@@ -325,7 +320,14 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
             else -> {
                 val psi = symbol.psi as? KtClass ?: return LProperty.Type.Scalar(fqName, nullable)
-                if (symbol.hasAnnotation(Entity::class, MappedSuperclass::class, Embeddable::class, Immutable::class)) {
+                if (
+                    symbol.hasAnnotation(
+                        JimmerAnnotations.Entity,
+                        JimmerAnnotations.MappedSuperclass,
+                        JimmerAnnotations.Embeddable,
+                        JimmerAnnotations.Immutable
+                    )
+                ) {
                     LProperty.Type.Clazz(lClass(element = psi) ?: return null, nullable, psi)
                 } else {
                     LProperty.Type.Scalar(fqName, nullable)
