@@ -291,26 +291,35 @@ class DTOAnnotator : Annotator {
         }
 
         fun visitAnnotationName(qualifiedName: DTOQualifiedName) {
-            val `package` = qualifiedName.`package`
+            val type = (qualifiedName.target as? Resolution.Target.Type)?.type ?: return
+            val annotationName = process(type) { classQualifiedName() } ?: return
             val simpleName = qualifiedName.simpleName
 
             if (simpleName in setOf("Nullable", "NonNull")) {
-                qualifiedName.error("Annotation `Nullable`、`NonNull` is forbidden")
+                qualifiedName.error("Annotation '$simpleName' is reserved by DTO language")
+                return
             }
 
             if (simpleName in setOf("Null", "NotNull")) {
-                val packages = listOf("javax.validation.constraints", "jakarta.validation.constraints")
-                if (`package` !in packages) {
-                    qualifiedName.error("Package \"${`package`}\" is forbidden")
+                val packages = setOf("javax.validation.constraints", "jakarta.validation.constraints")
+                if (annotationName.substringBeforeLast('.') !in packages) {
+                    qualifiedName.error("Only ${packages.joinToString { "'$it.$simpleName'" }} are accepted by DTO language")
                 }
+                return
             }
 
-            if (`package`.startsWith("org.babyfish.jimmer") &&
-                !`package`.startsWith("org.babyfish.jimmer.client") &&
-                !`package`.startsWith("org.babyfish.jimmer.jackson") &&
-                qualifiedName.value != "org.babyfish.jimmer.kt.dto.KotlinDto"
+            if (simpleName == "TNullable" && annotationName != JimmerAnnotations.TNullable.asFqNameString()) {
+                qualifiedName.error("Only '${JimmerAnnotations.TNullable.asFqNameString()}' is accepted by DTO language")
+                return
+            }
+
+            if (annotationName.startsWith("org.babyfish.jimmer.") &&
+                !annotationName.startsWith("org.babyfish.jimmer.client.") &&
+                !annotationName.startsWith("org.babyfish.jimmer.jackson.") &&
+                annotationName != "org.babyfish.jimmer.kt.dto.KotlinDto"
             ) {
-                qualifiedName.error("Jimmer annotation is forbidden")
+                qualifiedName.error("Jimmer annotation '$annotationName' is forbidden by DTO language")
+                return
             }
         }
 
