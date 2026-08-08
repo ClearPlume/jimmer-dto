@@ -2,7 +2,6 @@ package net.fallingangel.jimmerdto.refactor
 
 import com.intellij.openapi.util.Condition
 import com.intellij.psi.PsiElement
-import net.fallingangel.jimmerdto.psi.element.DTOMacroName
 import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
 
 /**
@@ -10,6 +9,6 @@ import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
  */
 class DTORenameCondition : Condition<PsiElement> {
     override fun value(element: PsiElement?): Boolean {
-        return element is DTOMacroName || (element?.parent as? DTOPositiveProp)?.arg != null
+        return (element?.parent as? DTOPositiveProp)?.arg != null
     }
 }

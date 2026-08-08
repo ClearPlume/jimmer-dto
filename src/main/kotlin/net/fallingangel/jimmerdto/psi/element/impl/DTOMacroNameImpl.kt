@@ -5,16 +5,12 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import net.fallingangel.jimmerdto.psi.element.DTOMacroName
 import net.fallingangel.jimmerdto.psi.element.DTOVisitor
-import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
 import net.fallingangel.jimmerdto.util.findChild
+import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
-class DTOMacroNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOMacroName {
+class DTOMacroNameImpl(node: ASTNode) : ANTLRPsiNode(node), DTOMacroName {
     override val value: String
-        get() = nameIdentifier.text
-
-    override fun getNameIdentifier(): PsiElement {
-        return findChild("/macroName/Identifier")
-    }
+        get() = findChild<PsiElement>("/macroName/Identifier").text
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {
