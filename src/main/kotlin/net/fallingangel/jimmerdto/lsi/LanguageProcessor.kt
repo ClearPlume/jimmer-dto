@@ -18,6 +18,9 @@ interface LanguageProcessor {
     fun lProperty(containingLClass: LClass): LProperty?
 
     context(element: PsiElement)
+    fun containingClass(): PsiElement?
+
+    context(element: PsiElement)
     fun isAnnotationClass(): Boolean
 
     context(element: PsiElement)

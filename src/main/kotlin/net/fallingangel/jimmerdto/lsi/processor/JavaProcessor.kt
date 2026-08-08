@@ -90,6 +90,12 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
+    override fun containingClass(): PsiElement? {
+        val property = element as? PsiMethod ?: return null
+        return property.containingClass
+    }
+
+    context(element: PsiElement)
     override fun isAnnotationClass(): Boolean {
         val clazz = element.narrow<PsiClass>()
         return clazz.isAnnotationType
