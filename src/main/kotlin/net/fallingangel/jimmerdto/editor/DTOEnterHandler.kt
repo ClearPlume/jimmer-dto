@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto.completion
+package net.fallingangel.jimmerdto.editor
 
 import com.intellij.codeInsight.editorActions.enter.EnterHandlerDelegate.Result
 import com.intellij.codeInsight.editorActions.enter.EnterHandlerDelegateAdapter

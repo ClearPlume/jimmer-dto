@@ -15,8 +15,8 @@ import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
-import net.fallingangel.jimmerdto.DTOLanguage.rule
-import net.fallingangel.jimmerdto.DTOLanguage.token
+import net.fallingangel.jimmerdto.core.DTOLanguage.rule
+import net.fallingangel.jimmerdto.core.DTOLanguage.token
 import net.fallingangel.jimmerdto.completion.pattern.lsiElement
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName

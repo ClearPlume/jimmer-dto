@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto
+package net.fallingangel.jimmerdto.core
 
 import net.fallingangel.jimmerdto.psi.DTOLexer
 import net.fallingangel.jimmerdto.psi.DTOParser

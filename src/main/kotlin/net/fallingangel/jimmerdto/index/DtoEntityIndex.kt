@@ -4,7 +4,7 @@ import com.intellij.util.indexing.*
 import com.intellij.util.io.BooleanDataDescriptor
 import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.EnumeratorStringDescriptor
-import net.fallingangel.jimmerdto.DTOFileType
+import net.fallingangel.jimmerdto.core.DTOFileType
 import net.fallingangel.jimmerdto.psi.DTOFile
 import java.util.*
 

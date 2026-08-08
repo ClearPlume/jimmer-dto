@@ -15,7 +15,7 @@ import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.Constant
-import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.enums.*
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.lsi.LProperty

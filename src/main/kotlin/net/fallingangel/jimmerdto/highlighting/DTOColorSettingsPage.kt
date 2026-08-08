@@ -5,7 +5,7 @@ import com.intellij.openapi.options.colors.AttributesDescriptor
 import com.intellij.openapi.options.colors.ColorDescriptor
 import com.intellij.openapi.options.colors.ColorSettingsPage
 import icons.Icons
-import net.fallingangel.jimmerdto.LANGUAGE_NAME
+import net.fallingangel.jimmerdto.core.LANGUAGE_NAME
 
 class DTOColorSettingsPage : ColorSettingsPage {
     override fun getAttributeDescriptors() = arrayOf(

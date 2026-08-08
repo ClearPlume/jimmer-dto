@@ -1,10 +1,10 @@
-package net.fallingangel.jimmerdto.completion
+package net.fallingangel.jimmerdto.editor
 
 import com.intellij.lang.BracePair
 import com.intellij.lang.PairedBraceMatcher
 import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IElementType
-import net.fallingangel.jimmerdto.DTOLanguage.token
+import net.fallingangel.jimmerdto.core.DTOLanguage.token
 import net.fallingangel.jimmerdto.psi.DTOParser.*
 
 class DTOBraceMatcher : PairedBraceMatcher {

@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto
+package net.fallingangel.jimmerdto.core
 
 import com.intellij.lang.ASTNode
 import com.intellij.lang.ParserDefinition

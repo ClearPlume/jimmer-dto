@@ -3,7 +3,7 @@ package net.fallingangel.jimmerdto.reference
 import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
-import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.psi.element.DTOQualifiedNamePart
 import net.fallingangel.jimmerdto.psi.resolve.Resolution.Target.Property as TargetProperty
 

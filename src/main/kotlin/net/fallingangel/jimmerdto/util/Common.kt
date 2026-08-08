@@ -11,8 +11,8 @@ import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.siblings
 import com.intellij.util.indexing.FileBasedIndex
-import net.fallingangel.jimmerdto.DTOLanguage
-import net.fallingangel.jimmerdto.DTOLanguage.xPath
+import net.fallingangel.jimmerdto.core.DTOLanguage
+import net.fallingangel.jimmerdto.core.DTOLanguage.xPath
 import net.fallingangel.jimmerdto.index.ANNOTATION_CLASS_INDEX
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 import net.fallingangel.jimmerdto.psi.DTOFile

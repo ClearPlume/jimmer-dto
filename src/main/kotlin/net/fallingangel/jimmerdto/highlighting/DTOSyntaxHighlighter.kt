@@ -5,7 +5,7 @@ import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.TextAttributesKey
 import com.intellij.openapi.fileTypes.SyntaxHighlighterBase
 import com.intellij.psi.tree.IElementType
-import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.psi.DTOLexer
 import org.antlr.intellij.adaptor.lexer.ANTLRLexerAdaptor
 import org.antlr.intellij.adaptor.lexer.TokenIElementType
@@ -75,7 +75,6 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
 
         val IDENTIFIER = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_IDENTIFIER", DefaultLanguageHighlighterColors.IDENTIFIER)
         val ERROR = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_ERROR", CodeInsightColors.ERRORS_ATTRIBUTES)
-        val WEAK_WARNING = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_WEAK_WARNING", CodeInsightColors.WEAK_WARNING_ATTRIBUTES)
         val DUPLICATION = TextAttributesKey.createTextAttributesKey("JIMMER_DTO_DUPLICATION", CodeInsightColors.DUPLICATE_FROM_SERVER)
     }
 }

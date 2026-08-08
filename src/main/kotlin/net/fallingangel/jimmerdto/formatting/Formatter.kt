@@ -1,9 +1,9 @@
 package net.fallingangel.jimmerdto.formatting
 
 import com.intellij.formatting.*
-import net.fallingangel.jimmerdto.DTOLanguage
-import net.fallingangel.jimmerdto.DTOLanguage.rule
-import net.fallingangel.jimmerdto.DTOLanguage.token
+import net.fallingangel.jimmerdto.core.DTOLanguage
+import net.fallingangel.jimmerdto.core.DTOLanguage.rule
+import net.fallingangel.jimmerdto.core.DTOLanguage.token
 import net.fallingangel.jimmerdto.psi.DTOParser.*
 
 class Formatter : FormattingModelBuilder {

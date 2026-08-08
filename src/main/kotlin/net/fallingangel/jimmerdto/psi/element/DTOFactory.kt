@@ -3,7 +3,7 @@ package net.fallingangel.jimmerdto.psi.element
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
-import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.findChild
 

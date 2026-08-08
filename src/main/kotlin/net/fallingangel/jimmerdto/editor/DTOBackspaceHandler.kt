@@ -1,10 +1,10 @@
-package net.fallingangel.jimmerdto.completion
+package net.fallingangel.jimmerdto.editor
 
 import com.intellij.codeInsight.editorActions.BackspaceHandlerDelegate
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.elementType
-import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOLexer
 import net.fallingangel.jimmerdto.psi.element.DTOPropConfig

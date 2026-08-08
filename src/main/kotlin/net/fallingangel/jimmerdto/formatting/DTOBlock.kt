@@ -4,9 +4,9 @@ import com.intellij.formatting.*
 import com.intellij.lang.ASTNode
 import com.intellij.psi.TokenType
 import com.intellij.psi.formatter.common.AbstractBlock
-import net.fallingangel.jimmerdto.DTOLanguage
-import net.fallingangel.jimmerdto.DTOLanguage.rule
-import net.fallingangel.jimmerdto.DTOLanguage.token
+import net.fallingangel.jimmerdto.core.DTOLanguage
+import net.fallingangel.jimmerdto.core.DTOLanguage.rule
+import net.fallingangel.jimmerdto.core.DTOLanguage.token
 import net.fallingangel.jimmerdto.psi.DTOParser.*
 
 class DTOBlock(

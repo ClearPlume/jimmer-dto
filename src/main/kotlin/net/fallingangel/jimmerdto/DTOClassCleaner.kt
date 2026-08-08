@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto.dto
+package net.fallingangel.jimmerdto
 
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -6,8 +6,7 @@ import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.openapi.vfs.AsyncFileListener
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiFile
-import net.fallingangel.jimmerdto.DTOFileType
-import net.fallingangel.jimmerdto.DTOPluginDisposable
+import net.fallingangel.jimmerdto.core.DTOFileType
 import net.fallingangel.jimmerdto.psi.element.DTODto
 import net.fallingangel.jimmerdto.util.findChildren
 import org.jetbrains.kotlin.idea.core.util.toPsiFile

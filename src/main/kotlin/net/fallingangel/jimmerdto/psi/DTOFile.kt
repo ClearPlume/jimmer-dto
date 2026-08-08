@@ -11,8 +11,8 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import net.fallingangel.jimmerdto.DTOFileType
-import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.core.DTOFileType
+import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.element.DTODtoName

@@ -6,7 +6,7 @@ import com.intellij.lang.Language
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
 import net.fallingangel.jimmerdto.psi.element.DTOPropName

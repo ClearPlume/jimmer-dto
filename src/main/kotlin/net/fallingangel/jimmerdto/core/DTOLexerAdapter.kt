@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto
+package net.fallingangel.jimmerdto.core
 
 import net.fallingangel.jimmerdto.psi.DTOLexer
 import org.antlr.intellij.adaptor.lexer.ANTLRLexerAdaptor

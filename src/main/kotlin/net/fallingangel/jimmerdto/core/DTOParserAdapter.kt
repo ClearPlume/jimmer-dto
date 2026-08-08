@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto
+package net.fallingangel.jimmerdto.core
 
 import com.intellij.psi.tree.IElementType
 import net.fallingangel.jimmerdto.psi.DTOParser

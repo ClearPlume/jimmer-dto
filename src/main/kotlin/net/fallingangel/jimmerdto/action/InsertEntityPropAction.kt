@@ -7,7 +7,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.psi.PsiWhiteSpace
 import com.intellij.psi.util.parentOfType
-import net.fallingangel.jimmerdto.DTOFileType
+import net.fallingangel.jimmerdto.core.DTOFileType
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.element.DTODtoBody

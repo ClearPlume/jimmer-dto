@@ -1,8 +1,8 @@
-package net.fallingangel.jimmerdto.completion
+package net.fallingangel.jimmerdto.editor
 
 import com.intellij.lang.CodeDocumentationAwareCommenter
 import com.intellij.psi.PsiComment
-import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.psi.DTOParser
 
 class DTOCommenter : CodeDocumentationAwareCommenter {

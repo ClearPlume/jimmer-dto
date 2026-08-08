@@ -3,7 +3,7 @@ package net.fallingangel.jimmerdto.formatting
 import com.intellij.psi.codeStyle.CodeStyleSettingsCustomizable
 import com.intellij.psi.codeStyle.CommonCodeStyleSettings
 import com.intellij.psi.codeStyle.LanguageCodeStyleSettingsProvider
-import net.fallingangel.jimmerdto.DTOLanguage
+import net.fallingangel.jimmerdto.core.DTOLanguage
 
 class DTOLanguageCodeStyleSettingsProvider : LanguageCodeStyleSettingsProvider() {
     override fun getLanguage() = DTOLanguage
