@@ -69,6 +69,8 @@
         <vetoRenameCondition implementation="net.fallingangel.jimmerdto.refactor.DTORenameCondition"/>
         <renamePsiElementProcessor implementation="net.fallingangel.jimmerdto.refactor.EntityRenameProcessor" order="last"/>
 
+        <gotoDeclarationHandler implementation="net.fallingangel.jimmerdto.reference.DTOGotoDeclarationHandler"/>
+
         <colorSettingsPage implementation="net.fallingangel.jimmerdto.highlighting.DTOColorSettingsPage"/>
         <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>
 

@@ -8,6 +8,7 @@ import net.fallingangel.jimmerdto.psi.element.DTOVisitor
 import net.fallingangel.jimmerdto.psi.element.createQualifiedNamePart
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
 import net.fallingangel.jimmerdto.util.findChildNullable
+import net.fallingangel.jimmerdto.psi.resolve.Resolution.Target.Property as TargetProperty
 
 class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQualifiedNamePart {
     override val part: String
@@ -34,6 +35,8 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
     }
 
     override fun resolve(): PsiElement? {
-        return target?.source
+        val target = target as? TargetProperty ?: return target?.source
+        val via = target.via as? TargetProperty.Via.ImplicitId ?: return target.source
+        return via.reference.source ?: target.source
     }
 }
