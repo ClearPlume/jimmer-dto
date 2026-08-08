@@ -158,6 +158,10 @@ propName
 //      :
 //      PropConfigName (LParen ... RParen)?
 //      ;
+//  PropConfigName 是笼统的 '!' Identifier，导致 propConfig 的三个 LParen 分支靠顺序消歧，!orderBy(firstName)（无 asc/desc）被第一分支 LParen qualifiedName RParen 吞掉，PSI 结构与语义不符。
+//  改为每个配置名一个 lexer token，propConfig 按名字分派产生式。同时保留 PropConfigName 作为兜底，annotator 只要看到 unknownConfig，就直接“Unknown prop config name”。
+//  propConfig 节点提供自己的初始解析空间，DTOQualifiedName.initialSpace 只做转发。
+//  拆分时 intPair 一并改为 intArgs（IntegerLiteral (Comma IntegerLiteral)*），参数个数校验从语法层移到 annotator，措辞与其余 propConfig 对齐。
 propConfig
     :
     PropConfigName
