@@ -921,6 +921,17 @@ class DTOAnnotator : Annotator {
                 }
             }
 
+            // 方法体存在性校验
+            if (function.whetherBody) {
+                if (prop.body == null) {
+                    prop.name.error("The function '$functionName' requires a body", AddDtoBody(prop, functionName))
+                }
+            } else {
+                prop.body?.let {
+                    it.error("The function $functionName cannot have a body", RemoveElement("'$functionName' body", it))
+                }
+            }
+
             // id方法参数为list时别名校验
             if (function == Function.Id) {
                 val value = arg.values[0]

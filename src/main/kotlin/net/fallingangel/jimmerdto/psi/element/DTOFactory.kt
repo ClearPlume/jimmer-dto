@@ -76,6 +76,12 @@ fun Project.createDTOName(name: String): DTODtoName {
     return createDTO(name).name
 }
 
+fun Project.createDtoBody(): DTODtoBody {
+    return createDTOFile("Dummy {}")
+        .findChild<DTODto>("/dtoFile/dto")
+        .dtoBody
+}
+
 fun Project.createEnumMappingProp(name: String, mappings: List<String>): DTOPositiveProp {
     val mapping = mappings.joinToString(System.lineSeparator())
     val enumMapping = """$name -> {
