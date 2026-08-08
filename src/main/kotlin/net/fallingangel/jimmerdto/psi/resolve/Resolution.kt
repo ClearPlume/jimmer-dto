@@ -97,12 +97,15 @@ object Resolution {
 
         class Properties(val clazz: LClass) : Space() {
             override fun resolve(name: String): Target? {
-                clazz.findProperty(name)?.let { return Target.Property(it, it.idViewBaseProp) }
+                clazz.findProperty(name)?.let { prop ->
+                    val via = prop.idViewBaseProp?.let { Target.Property.Via.IdView(it) }
+                    return Target.Property(prop, via)
+                }
 
                 val base = defaultViewBasePropName(name, false) ?: return null
                 val reference = clazz.findProperty(base)?.takeIf { it.isReference } ?: return null
 
-                return reference.targetClass?.idProperty?.let { Target.Property(it, reference) }
+                return reference.targetClass?.idProperty?.let { Target.Property(it, Target.Property.Via.ImplicitId(reference)) }
             }
         }
     }
@@ -136,10 +139,12 @@ object Resolution {
             }
         }
 
-        /**
-         * @param referenceProp [property] 落在该引用关联的 id 上时，那个引用关联；直接命中的属性为 null
-         */
-        class Property(val property: LProperty, val referenceProp: LProperty? = null) : Target() {
+        class Property(val property: LProperty, val via: Via? = null) : Target() {
+            sealed class Via {
+                class IdView(val reference: LProperty) : Via()
+                class ImplicitId(val reference: LProperty) : Via()
+            }
+
             override val source: PsiElement?
                 get() = property.source
 
