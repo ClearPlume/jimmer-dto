@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto.refenerce
+package net.fallingangel.jimmerdto.reference
 
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.TextRange

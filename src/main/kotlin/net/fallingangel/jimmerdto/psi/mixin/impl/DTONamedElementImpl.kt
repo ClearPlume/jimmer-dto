@@ -3,7 +3,7 @@ package net.fallingangel.jimmerdto.psi.mixin.impl
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.psi.mixin.DTONamedElement
-import net.fallingangel.jimmerdto.refenerce.DTOReference
+import net.fallingangel.jimmerdto.reference.DTOReference
 import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
 abstract class DTONamedElementImpl(node: ASTNode) : ANTLRPsiNode(node), DTONamedElement {

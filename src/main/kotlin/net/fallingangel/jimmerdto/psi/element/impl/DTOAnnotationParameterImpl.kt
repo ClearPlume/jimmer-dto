@@ -10,7 +10,7 @@ import net.fallingangel.jimmerdto.psi.element.createAnnotationParameter
 import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationElement
 import net.fallingangel.jimmerdto.psi.mixin.DTONamedElement
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
-import net.fallingangel.jimmerdto.refenerce.DTOReference
+import net.fallingangel.jimmerdto.reference.DTOReference
 import net.fallingangel.jimmerdto.util.findChild
 import net.fallingangel.jimmerdto.util.findChildNullable
 
