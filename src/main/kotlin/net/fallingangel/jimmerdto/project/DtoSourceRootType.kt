@@ -10,13 +10,14 @@ import org.jetbrains.jps.model.ex.JpsElementTypeWithDummyProperties
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType
 
 class DtoSourceRootType private constructor(
-    val forTests: Boolean
+    val forTests: Boolean,
+    val typeId: String,
 ) : JpsModuleSourceRootType<JpsDummyElement>, JpsElementTypeWithDummyProperties() {
     override fun isForTests() = forTests
 
     companion object {
-        val SOURCE = DtoSourceRootType(false)
-        val TEST_SOURCE = DtoSourceRootType(true)
+        val SOURCE = DtoSourceRootType(false, "jimmer-dto-source")
+        val TEST_SOURCE = DtoSourceRootType(true, "jimmer-dto-test-source")
     }
 }
 
