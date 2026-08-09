@@ -10,7 +10,7 @@ class DTOFileType : LanguageFileType(DTOLanguage) {
 
     override fun getDefaultExtension() = "dto"
 
-    override fun getIcon() = Icons.icon_16
+    override fun getIcon() = Icons.PluginIcon
 
     @Suppress("CompanionObjectInExtension")
     companion object {

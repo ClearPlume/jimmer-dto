@@ -10,7 +10,7 @@
             <separator/>
         </group>
 
-        <action id="CreateOrJumpToJimmerDtoFile" class="net.fallingangel.jimmerdto.action.CreateJimmerDtoFile" icon="Icons.icon_16">
+        <action id="CreateOrJumpToJimmerDtoFile" class="net.fallingangel.jimmerdto.action.CreateJimmerDtoFile" icon="Icons.PluginIcon">
             <add-to-group group-id="JimmerDTOEntityPopupMenu"/>
         </action>
 

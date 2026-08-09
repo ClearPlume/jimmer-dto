@@ -24,7 +24,7 @@ class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
             val dtoClass = element.resolve() ?: return
             val anchor = element.nameIdentifier ?: return
             result.add(
-                NavigationGutterIconBuilder.create(Icons.icon_16)
+                NavigationGutterIconBuilder.create(Icons.PluginIcon)
                     .setTargets(dtoClass)
                     .setTooltipText("Jump to generated class '${element.value}'")
                     .createLineMarkerInfo(anchor)
@@ -47,7 +47,7 @@ class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
                 if (files.isNotEmpty()) {
                     val anchor = (element as? PsiNameIdentifierOwner)?.nameIdentifier ?: return
                     result.add(
-                        NavigationGutterIconBuilder.create(Icons.icon_16)
+                        NavigationGutterIconBuilder.create(Icons.PluginIcon)
                             .setTargets(files.mapNotNull { it.toPsiFile(element.project) })
                             .setTooltipText("Jump to DTO file [${files.joinToString { it.name }}]")
                             .createLineMarkerInfo(anchor)

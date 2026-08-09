@@ -35,7 +35,7 @@ class DTOColorSettingsPage : ColorSettingsPage {
 
     override fun getDisplayName() = LANGUAGE_NAME
 
-    override fun getIcon() = Icons.icon_16
+    override fun getIcon() = Icons.PluginIcon
 
     override fun getHighlighter() = DTOSyntaxHighlighter()
 
