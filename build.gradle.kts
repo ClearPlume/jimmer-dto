@@ -38,7 +38,7 @@ repositories {
 dependencies {
     intellijPlatform {
         intellijIdeaCommunity(ideVersion)
-        bundledPlugins("com.intellij.java", "org.jetbrains.kotlin")
+        bundledPlugins("com.intellij.java", "org.jetbrains.kotlin", "com.intellij.gradle", "org.jetbrains.idea.maven")
 
         testFramework(TestFrameworkType.Platform)
     }
@@ -48,6 +48,7 @@ dependencies {
     }
     implementation(libs.antlr4.runtime)
     implementation(libs.antlr4.intellij.adaptor)
+    implementation(project(":gradle-tooling"))
 
     testImplementation(libs.junit)
 }

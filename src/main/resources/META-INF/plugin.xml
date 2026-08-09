@@ -3,6 +3,8 @@
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.java</depends>
     <depends>org.jetbrains.kotlin</depends>
+    <depends optional="true" config-file="jimmer-dto-gradle.xml">com.intellij.gradle</depends>
+    <depends optional="true" config-file="jimmer-dto-maven.xml">org.jetbrains.idea.maven</depends>
 
     <resource-bundle>plugin</resource-bundle>
 

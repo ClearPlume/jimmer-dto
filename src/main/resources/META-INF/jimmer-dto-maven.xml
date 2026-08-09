@@ -1,0 +1,6 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="org.jetbrains.idea.maven">
+        <!--suppress PluginXmlValidity -->
+        <importing.workspaceConfigurator implementation="net.fallingangel.jimmerdto.project.maven.JimmerMavenConfigurator"/>
+    </extensions>
+</idea-plugin>

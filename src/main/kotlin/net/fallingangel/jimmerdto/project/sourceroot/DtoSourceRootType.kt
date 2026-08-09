@@ -18,6 +18,14 @@ class DtoSourceRootType private constructor(
     companion object {
         val SOURCE = DtoSourceRootType(false, "jimmer-dto-source")
         val TEST_SOURCE = DtoSourceRootType(true, "jimmer-dto-test-source")
+
+        fun fromTypeId(typeId: String): DtoSourceRootType {
+            return when (typeId) {
+                "jimmer-dto-source" -> SOURCE
+                "jimmer-dto-test-source" -> TEST_SOURCE
+                else -> throw IllegalArgumentException("unknown typeId: $typeId")
+            }
+        }
     }
 }
 

@@ -1,0 +1,8 @@
+<idea-plugin>
+    <extensions defaultExtensionNs="com.intellij">
+        <externalProjectDataService implementation="net.fallingangel.jimmerdto.project.gradle.DtoSourceRootDataService"/>
+    </extensions>
+    <extensions defaultExtensionNs="org.jetbrains.plugins.gradle">
+        <projectResolve implementation="net.fallingangel.jimmerdto.project.gradle.JimmerGradleResolverExtension"/>
+    </extensions>
+</idea-plugin>
