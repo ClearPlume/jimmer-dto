@@ -1,3 +1,4 @@
+<!--suppress PluginXmlI18n -->
 <idea-plugin require-restart="false">
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.java</depends>
@@ -10,7 +11,8 @@
             <separator/>
         </group>
 
-        <action id="CreateOrJumpToJimmerDtoFile" class="net.fallingangel.jimmerdto.action.CreateJimmerDtoFile" icon="Icons.PluginIcon">
+        <action id="CreateOrJumpToJimmerDtoFile" class="net.fallingangel.jimmerdto.action.CreateJimmerDtoFile" icon="Icons.PluginIcon"
+                text="JimmerDto File" description="Create new JimmerDTO file or jump to it if exists">
             <add-to-group group-id="JimmerDTOEntityPopupMenu"/>
         </action>
 
@@ -20,7 +22,8 @@
             <add-to-group group-id="EditorPopupMenu" anchor="before" relative-to-action="EditorToggleColumnMode"/>
         </group>
 
-        <action id="InsertEntityPropsToDto" class="net.fallingangel.jimmerdto.action.InsertEntityPropAction">
+        <action id="InsertEntityPropsToDto" class="net.fallingangel.jimmerdto.action.InsertEntityPropAction"
+                text="Insert Entity Props to Here" description="Insert all props from the associated entity to current cursor position">
             <add-to-group group-id="GenerateGroup" anchor="first"/>
         </action>
 
@@ -97,8 +100,7 @@
         <codeInsight.inlayProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOInlayHintProvider"/>
 
         <backgroundPostStartupActivity implementation="net.fallingangel.jimmerdto.DTOClassCleaner"/>
-        <notificationGroup id="JimmerDTO Notification Group" displayType="BALLOON"
-                           bundle="plugin" key="notification.group.jimmerdto.notification.group"/>
+        <notificationGroup id="JimmerDTO Notification Group" displayType="BALLOON" bundle="plugin" key="notification.group.jimmer.dto"/>
 
         <fileBasedIndex implementation="net.fallingangel.jimmerdto.index.AnnotationClassIndex"/>
         <fileBasedIndex implementation="net.fallingangel.jimmerdto.index.DtoEntityIndex"/>
