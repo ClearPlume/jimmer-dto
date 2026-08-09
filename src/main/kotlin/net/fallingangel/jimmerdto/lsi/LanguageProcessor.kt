@@ -43,6 +43,9 @@ interface LanguageProcessor {
 
     context(element: PsiElement)
     fun typeArgumentFor(superName: String, index: Int = 0): PsiElement?
+
+    context(element: PsiElement)
+    fun topLevelClasses(): List<PsiElement>
 }
 
 fun Language.processor(): LanguageProcessor? {

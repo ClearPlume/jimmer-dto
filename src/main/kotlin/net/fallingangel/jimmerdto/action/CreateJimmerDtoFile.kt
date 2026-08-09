@@ -17,7 +17,9 @@ import net.fallingangel.jimmerdto.util.open
 class CreateJimmerDtoFile : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
-        val entityElement = event.getData(CommonDataKeys.PSI_ELEMENT) ?: return
+        val selectedElement = event.getData(CommonDataKeys.PSI_ELEMENT) ?: return
+        val entityElement = process(selectedElement.containingFile) { topLevelClasses() }?.singleOrNull() ?: return
+
         val entityQualifiedName = process(entityElement) { classQualifiedName() } ?: return
         val entityPackage = entityQualifiedName.substringBeforeLast('.', "")
         val entityName = entityQualifiedName.substringAfterLast('.')
@@ -45,15 +47,14 @@ class CreateJimmerDtoFile : AnAction() {
     }
 
     override fun update(event: AnActionEvent) {
-        val selectedElement = event.getData(CommonDataKeys.PSI_ELEMENT)
+        val selectedElement = event.getData(CommonDataKeys.PSI_ELEMENT) ?: return
+        val classes = process(selectedElement.containingFile) { topLevelClasses() } ?: return
 
-        val visible = selectedElement?.let {
+        event.presentation.isVisible = classes.filter {
             process(it) {
                 kind() == LKind.Interface && hasAnnotation(JimmerAnnotations.Entity)
-            }
-        }
-
-        event.presentation.isVisible = visible == true
+            } == true
+        }.size == 1
     }
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT

@@ -208,6 +208,11 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
         return (substituted as? PsiClassType)?.resolve()
     }
 
+    context(element: PsiElement)
+    override fun topLevelClasses(): List<PsiElement> {
+        return (element as? PsiJavaFile)?.classes?.asList().orEmpty()
+    }
+
     context(_: PsiElement)
     override fun filterEntity(filterClass: PsiElement): PsiElement? {
         val tableClass = process(filterClass) { typeArgumentFor("org.babyfish.jimmer.sql.fetcher.FieldFilter") } ?: return null
