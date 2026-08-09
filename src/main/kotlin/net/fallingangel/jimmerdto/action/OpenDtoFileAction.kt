@@ -79,8 +79,9 @@ class OpenDtoFileAction : AnAction() {
     }
 
     override fun update(event: AnActionEvent) {
+        event.presentation.isVisible = false
         val selectedElement = event.getData(CommonDataKeys.PSI_ELEMENT) ?: return
-        val classes = process(selectedElement.containingFile) { topLevelClasses() } ?: return
+        val classes = process(selectedElement.containingFile ?: return) { topLevelClasses() } ?: return
 
         event.presentation.isVisible = classes.filter {
             process(it) {
