@@ -11,8 +11,8 @@
             <separator/>
         </group>
 
-        <action id="CreateOrJumpToJimmerDtoFile" class="net.fallingangel.jimmerdto.action.CreateJimmerDtoFile" icon="Icons.PluginIcon"
-                text="JimmerDto File" description="Create new JimmerDTO file or jump to it if exists">
+        <action id="OpenDtoFileAction" class="net.fallingangel.jimmerdto.action.OpenDtoFileAction" icon="Icons.PluginIcon"
+                text="JimmerDto File" description="Open the DTO file of the entity, creating it if necessary">
             <add-to-group group-id="JimmerDTOEntityPopupMenu"/>
         </action>
 

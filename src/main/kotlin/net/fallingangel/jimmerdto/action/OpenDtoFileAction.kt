@@ -14,7 +14,7 @@ import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.util.open
 
-class CreateJimmerDtoFile : AnAction() {
+class OpenDtoFileAction : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
         val selectedElement = event.getData(CommonDataKeys.PSI_ELEMENT) ?: return
