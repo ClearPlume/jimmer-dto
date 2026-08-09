@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto.project
+package net.fallingangel.jimmerdto.project.sourceroot
 
 import com.intellij.openapi.actionSystem.CustomShortcutSet
 import com.intellij.openapi.roots.ui.configuration.ModuleSourceRootEditHandler

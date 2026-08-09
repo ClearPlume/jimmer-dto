@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto.project
+package net.fallingangel.jimmerdto.project.sourceroot
 
 import org.jdom.Element
 import org.jetbrains.jps.model.JpsDummyElement

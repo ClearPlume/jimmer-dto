@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto.project
+package net.fallingangel.jimmerdto.project.sourceroot
 
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.Project

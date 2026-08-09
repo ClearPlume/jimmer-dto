@@ -1,4 +1,4 @@
-package net.fallingangel.jimmerdto.project
+package net.fallingangel.jimmerdto.project.sourceroot
 
 import org.jetbrains.jps.model.serialization.JpsModelSerializerExtension
 import org.jetbrains.jps.model.serialization.module.JpsModuleSourceRootPropertiesSerializer

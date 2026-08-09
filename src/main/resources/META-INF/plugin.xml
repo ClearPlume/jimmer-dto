@@ -27,10 +27,10 @@
             <add-to-group group-id="GenerateGroup" anchor="first"/>
         </action>
 
-        <action id="MarkDtoSourceRoot" class="net.fallingangel.jimmerdto.project.MarkDtoSourceRootAction">
+        <action id="MarkDtoSourceRoot" class="net.fallingangel.jimmerdto.project.sourceroot.MarkDtoSourceRootAction">
             <add-to-group group-id="MarkRootGroup"/>
         </action>
-        <action id="MarkDtoTestSourceRoot" class="net.fallingangel.jimmerdto.project.MarkDtoTestSourceRootAction">
+        <action id="MarkDtoTestSourceRoot" class="net.fallingangel.jimmerdto.project.sourceroot.MarkDtoTestSourceRootAction">
             <add-to-group group-id="MarkRootGroup"/>
         </action>
     </actions>
@@ -63,8 +63,8 @@
                 language="JimmerDTO"
                 extensions="dto"
         />
-        <projectStructure.sourceRootEditHandler implementation="net.fallingangel.jimmerdto.project.DtoProductionSourceRootEditHandler"/>
-        <projectStructure.sourceRootEditHandler implementation="net.fallingangel.jimmerdto.project.DtoTestSourceRootEditHandler"/>
+        <projectStructure.sourceRootEditHandler implementation="net.fallingangel.jimmerdto.project.sourceroot.DtoProductionSourceRootEditHandler"/>
+        <projectStructure.sourceRootEditHandler implementation="net.fallingangel.jimmerdto.project.sourceroot.DtoTestSourceRootEditHandler"/>
         <jps.plugin/>
 
         <lang.parserDefinition
