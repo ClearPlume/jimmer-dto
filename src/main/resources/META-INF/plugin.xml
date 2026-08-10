@@ -88,6 +88,7 @@
         <referencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOAssociationIdReferencesSearcher"/>
         <referencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOBuiltinTypeReferencesSearcher"/>
         <methodReferencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOAssociationIdMethodReferencesSearcher"/>
+        <methodReferencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOBeanStyleMethodReferencesSearcher"/>
 
         <colorSettingsPage implementation="net.fallingangel.jimmerdto.highlighting.DTOColorSettingsPage"/>
         <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>
