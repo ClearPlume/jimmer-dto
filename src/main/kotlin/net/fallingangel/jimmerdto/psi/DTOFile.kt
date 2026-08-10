@@ -2,10 +2,10 @@ package net.fallingangel.jimmerdto.psi
 
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.openapi.project.DumbService
+import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValue
@@ -25,9 +25,9 @@ import net.fallingangel.jimmerdto.util.psiClass
 class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLanguage) {
     private val implicitPackage: String
         get() {
-            val dir = originalFile.virtualFile?.parent ?: return ""
-            val root = generateSequence(dir, VirtualFile::getParent)
-                .firstOrNull { it.name == "dto" } ?: return ""
+            val file = originalFile.virtualFile ?: return ""
+            val dir = file.parent ?: return ""
+            val root = ProjectFileIndex.getInstance(project).getSourceRootForFile(file) ?: return ""
             return VfsUtilCore.getRelativePath(dir, root, '.') ?: ""
         }
 
