@@ -85,7 +85,8 @@
         <renamePsiElementProcessor implementation="net.fallingangel.jimmerdto.refactor.EntityRenameProcessor" order="last"/>
 
         <gotoDeclarationHandler implementation="net.fallingangel.jimmerdto.reference.DTOGotoDeclarationHandler"/>
-        <referencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOAssociationIdSearchWordContributor"/>
+        <referencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOAssociationIdReferencesSearcher"/>
+        <methodReferencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOAssociationIdMethodReferencesSearcher"/>
 
         <colorSettingsPage implementation="net.fallingangel.jimmerdto.highlighting.DTOColorSettingsPage"/>
         <annotator language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOAnnotator"/>
