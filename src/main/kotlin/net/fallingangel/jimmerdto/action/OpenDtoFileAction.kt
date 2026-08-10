@@ -13,8 +13,7 @@ import com.intellij.openapi.vfs.findFile
 import com.intellij.openapi.vfs.findOrCreateFile
 import com.intellij.util.indexing.FileBasedIndex
 import net.fallingangel.jimmerdto.index.DTO_ENTITY_INDEX
-import net.fallingangel.jimmerdto.lsi.LKind
-import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
+import net.fallingangel.jimmerdto.lsi.jimmer.isEntity
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.open
@@ -83,11 +82,7 @@ class OpenDtoFileAction : AnAction() {
         val selectedElement = event.getData(CommonDataKeys.PSI_ELEMENT) ?: return
         val classes = process(selectedElement.containingFile ?: return) { topLevelClasses() } ?: return
 
-        event.presentation.isVisible = classes.filter {
-            process(it) {
-                kind() == LKind.Interface && hasAnnotation(JimmerAnnotations.Entity)
-            } == true
-        }.size == 1
+        event.presentation.isVisible = classes.filter { process(it) { isEntity() } == true }.size == 1
     }
 
     override fun getActionUpdateThread() = ActionUpdateThread.BGT

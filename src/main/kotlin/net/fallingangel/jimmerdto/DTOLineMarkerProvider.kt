@@ -9,8 +9,7 @@ import com.intellij.psi.PsiNameIdentifierOwner
 import com.intellij.util.indexing.FileBasedIndex
 import icons.Icons
 import net.fallingangel.jimmerdto.index.DTO_ENTITY_INDEX
-import net.fallingangel.jimmerdto.lsi.LKind
-import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
+import net.fallingangel.jimmerdto.lsi.jimmer.isEntity
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.element.DTODtoName
 import org.jetbrains.kotlin.idea.base.util.projectScope
@@ -34,14 +33,7 @@ class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
         // 实体
         if (element is PsiClass || element is KtClass) {
-            val entityName = process(element) {
-                if (kind() == LKind.Interface && hasAnnotation(JimmerAnnotations.Entity)) {
-                    classQualifiedName()
-                } else {
-                    null
-                }
-            }
-
+            val entityName = process(element) { takeIf { isEntity() }?.classQualifiedName() }
             if (entityName != null) {
                 val files = FileBasedIndex.getInstance().getContainingFiles(DTO_ENTITY_INDEX, entityName, element.project.projectScope())
                 if (files.isNotEmpty()) {
