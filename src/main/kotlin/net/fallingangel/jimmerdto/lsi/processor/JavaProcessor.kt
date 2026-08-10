@@ -12,9 +12,11 @@ import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerOptions
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.nullable
 import net.fallingangel.jimmerdto.util.psiClass
+import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.name.ClassId
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
@@ -68,16 +70,24 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     context(element: PsiElement, types: ResolvedTypes)
     override fun lProperty(containingLClass: LClass): LProperty? {
         val method = element.narrow<PsiMethod>()
+
+        val type = method.returnType ?: return null
+        val keepIsPrefix = JimmerOptions.of(element.module).keepIsPrefix
+        val methodName = method.name
+        val name = when {
+            !keepIsPrefix && type == PsiTypes.booleanType() && methodName.startsWith("is") && methodName.length > 2 && methodName[2].isUpperCase() -> {
+                methodName[2].lowercase() + methodName.substring(3)
+            }
+
+            methodName.startsWith("get") && methodName.length > 3 && methodName[3].isUpperCase() -> {
+                methodName[3].lowercase() + methodName.substring(4)
+            }
+
+            else -> methodName
+        }
+
         // TODO Unresolved
         val annotations = method.annotations.mapNotNull { resolveAnnotation(it) }
-        // TODO 属性类型为Boolean时，jimmer.keepIsPrefix
-        val methodName = method.name
-        val name = if (methodName.startsWith("get") && methodName.length > 3 && methodName[3].isUpperCase()) {
-            methodName[3].lowercaseChar() + methodName.substring(4)
-        } else {
-            methodName
-        }
-        val type = method.returnType ?: return null
 
         return LProperty(
             name,
