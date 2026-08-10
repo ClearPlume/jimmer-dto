@@ -1,9 +1,7 @@
 package net.fallingangel.jimmerdto.project.sourceroot
 
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
-import com.intellij.openapi.roots.ProjectFileIndex
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.jps.model.JpsDummyElement
 import org.jetbrains.jps.model.ex.JpsElementTypeWithDummyProperties
@@ -29,15 +27,7 @@ class DtoSourceRootType private constructor(
     }
 }
 
-fun Module.dtoSourceRoots(includeTests: Boolean = false): List<VirtualFile> {
+fun Module.dtoSourceRoots(vararg types: DtoSourceRootType): List<VirtualFile> {
     val manager = ModuleRootManager.getInstance(this)
-    return if (includeTests) {
-        manager.getSourceRoots(setOf(DtoSourceRootType.SOURCE, DtoSourceRootType.TEST_SOURCE))
-    } else {
-        manager.getSourceRoots(DtoSourceRootType.SOURCE)
-    }
-}
-
-fun VirtualFile.inDtoSourceRoot(project: Project): Boolean {
-    return ProjectFileIndex.getInstance(project).isUnderSourceRootOfType(this, setOf(DtoSourceRootType.SOURCE, DtoSourceRootType.TEST_SOURCE))
+    return manager.getSourceRoots(types.toSet())
 }
