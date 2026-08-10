@@ -49,6 +49,9 @@ interface LanguageProcessor {
 
     context(element: PsiElement)
     fun topLevelClasses(): List<PsiElement>
+
+    context(element: PsiElement)
+    fun builtinAliases(): List<String>
 }
 
 fun Language.processor(): LanguageProcessor? {

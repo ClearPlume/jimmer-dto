@@ -86,6 +86,7 @@
 
         <gotoDeclarationHandler implementation="net.fallingangel.jimmerdto.reference.DTOGotoDeclarationHandler"/>
         <referencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOAssociationIdReferencesSearcher"/>
+        <referencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOBuiltinTypeReferencesSearcher"/>
         <methodReferencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOAssociationIdMethodReferencesSearcher"/>
 
         <colorSettingsPage implementation="net.fallingangel.jimmerdto.highlighting.DTOColorSettingsPage"/>

@@ -241,6 +241,35 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         return (element as? KtFile)?.declarations?.filterIsInstance<KtClass>().orEmpty()
     }
 
+    context(element: PsiElement)
+    override fun builtinAliases(): List<String> {
+        val qualifiedName = classQualifiedName() ?: return emptyList()
+        return when (qualifiedName) {
+            "kotlin.Boolean" -> listOf(StandardType.Boolean.name)
+            "kotlin.Char" -> listOf(StandardType.Char.name)
+            "kotlin.Byte" -> listOf(StandardType.Byte.name)
+            "kotlin.Short" -> listOf(StandardType.Short.name)
+            "kotlin.Int" -> listOf(StandardType.Int.name)
+            "kotlin.Long" -> listOf(StandardType.Long.name)
+            "kotlin.Float" -> listOf(StandardType.Float.name)
+            "kotlin.Double" -> listOf(StandardType.Double.name)
+            "kotlin.Any" -> listOf(StandardType.Any.name)
+            "kotlin.String" -> listOf(StandardType.String.name)
+            "kotlin.Array" -> listOf(StandardType.Array.name)
+            "kotlin.collections.Iterable" -> listOf(StandardType.Iterable.name)
+            "kotlin.collections.MutableIterable" -> listOf(StandardType.MutableIterable.name)
+            "kotlin.collections.Collection" -> listOf(StandardType.Collection.name)
+            "kotlin.collections.MutableCollection" -> listOf(StandardType.MutableCollection.name)
+            "kotlin.collections.List" -> listOf(StandardType.List.name)
+            "kotlin.collections.MutableList" -> listOf(StandardType.MutableList.name)
+            "kotlin.collections.Set" -> listOf(StandardType.Set.name)
+            "kotlin.collections.MutableSet" -> listOf(StandardType.MutableSet.name)
+            "kotlin.collections.Map" -> listOf(StandardType.Map.name)
+            "kotlin.collections.MutableMap" -> listOf(StandardType.MutableMap.name)
+            else -> emptyList()
+        }
+    }
+
     context(_: PsiElement)
     override fun filterEntity(filterClass: PsiElement): PsiElement? {
         return process(filterClass) { typeArgumentFor("org.babyfish.jimmer.sql.kt.fetcher.KFieldFilter") }

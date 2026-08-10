@@ -213,6 +213,29 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
         return (element as? PsiJavaFile)?.classes?.asList().orEmpty()
     }
 
+    context(element: PsiElement)
+    override fun builtinAliases(): List<String> {
+        val qualifiedName = classQualifiedName() ?: return emptyList()
+        return when (qualifiedName) {
+            "java.lang.Boolean" -> listOf(StandardType.Boolean.name)
+            "java.lang.Character" -> listOf(StandardType.Char.name)
+            "java.lang.Byte" -> listOf(StandardType.Byte.name)
+            "java.lang.Short" -> listOf(StandardType.Short.name)
+            "java.lang.Integer" -> listOf(StandardType.Int.name)
+            "java.lang.Long" -> listOf(StandardType.Long.name)
+            "java.lang.Float" -> listOf(StandardType.Float.name)
+            "java.lang.Double" -> listOf(StandardType.Double.name)
+            "java.lang.Object" -> listOf(StandardType.Any.name)
+            "java.lang.String" -> listOf(StandardType.String.name)
+            "java.lang.Iterable" -> listOf(StandardType.Iterable.name, StandardType.MutableIterable.name)
+            "java.util.Collection" -> listOf(StandardType.Collection.name, StandardType.MutableCollection.name)
+            "java.util.List" -> listOf(StandardType.List.name, StandardType.MutableList.name)
+            "java.util.Set" -> listOf(StandardType.Set.name, StandardType.MutableSet.name)
+            "java.util.Map" -> listOf(StandardType.Map.name, StandardType.MutableMap.name)
+            else -> emptyList()
+        }
+    }
+
     context(_: PsiElement)
     override fun filterEntity(filterClass: PsiElement): PsiElement? {
         val tableClass = process(filterClass) { typeArgumentFor("org.babyfish.jimmer.sql.fetcher.FieldFilter") } ?: return null
