@@ -35,6 +35,9 @@ interface LanguageProcessor {
     context(element: PsiElement)
     fun lAnnotationParams(values: Map<String, LAnnotation.Param.Value?>): List<LAnnotation.Param>?
 
+    /**
+     * 接受任意 PsiElement，对每一个都有答案，包括"我不认识你"
+     */
     context(element: PsiElement)
     fun kind(): LKind?
 
