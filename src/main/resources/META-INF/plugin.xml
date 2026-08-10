@@ -123,6 +123,13 @@
                          implementationClass="net.fallingangel.jimmerdto.inspection.DTOSortModifiersInspection"/>
     </extensions>
 
+    <projectListeners>
+        <listener class="net.fallingangel.jimmerdto.project.gradle.GradleSyncListener"
+                  topic="com.intellij.openapi.externalSystem.service.project.manage.ProjectDataImportListener"/>
+        <listener class="net.fallingangel.jimmerdto.project.maven.MavenSyncListener"
+                  topic="org.jetbrains.idea.maven.project.MavenImportListener"/>
+    </projectListeners>
+    
     <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
          Simple HTML elements (text formatting, paragraphs, and lists) can be added inside <![CDATA[ ]]> tag.
          Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
