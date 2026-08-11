@@ -136,7 +136,7 @@ negativeProp
 
 userProp
     :
-    annotation* propName Colon typeRef (Equals defaultValue)?
+    annotation* propName Colon typeRef? Equals? defaultValue?
     ;
 
 defaultValue

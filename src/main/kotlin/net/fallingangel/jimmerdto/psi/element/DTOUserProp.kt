@@ -9,7 +9,7 @@ interface DTOUserProp : DTOElement {
 
     val name: DTOPropName
 
-    val type: DTOTypeRef
+    val type: DTOTypeRef?
 
     val equals: PsiElement?
 
