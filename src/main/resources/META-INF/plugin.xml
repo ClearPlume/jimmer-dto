@@ -35,6 +35,11 @@
         <action id="MarkDtoTestSourceRoot" class="net.fallingangel.jimmerdto.project.sourceroot.MarkDtoTestSourceRootAction">
             <add-to-group group-id="MarkRootGroup"/>
         </action>
+
+        <action id="CreateJimmerDTOFile" class="net.fallingangel.jimmerdto.action.CreateFileFromTemplateAction"
+                text="Jimmer DTO File" icon="Icons.PluginIcon">
+            <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>
+        </action>
     </actions>
 
     <!-- Extension points defined by the plugin.
@@ -83,6 +88,7 @@
         <vetoRenameCondition implementation="net.fallingangel.jimmerdto.refactor.DTORenameCondition"/>
         <renamePsiElementProcessor implementation="net.fallingangel.jimmerdto.refactor.EntityRenameProcessor" order="last"/>
         <platform.backend.documentation.targetProvider implementation="net.fallingangel.jimmerdto.documentation.DTODocumentationTargetProvider"/>
+        <internalFileTemplate name="Jimmer DTO File"/>
 
         <gotoDeclarationHandler implementation="net.fallingangel.jimmerdto.reference.DTOGotoDeclarationHandler"/>
         <referencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOAssociationIdReferencesSearcher"/>
