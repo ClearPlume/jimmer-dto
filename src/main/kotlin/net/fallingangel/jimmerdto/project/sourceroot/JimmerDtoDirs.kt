@@ -25,6 +25,6 @@ class JimmerDtoDirs(raw: Map<String, String>) {
     }
 
     companion object {
-        private val dirSplitRegex = "\\s*[,:;]\\s*".toRegex()
+        private val dirSplitRegex = "\\s*[,:;](\\s*[,:;])*\\s*".toRegex()
     }
 }
