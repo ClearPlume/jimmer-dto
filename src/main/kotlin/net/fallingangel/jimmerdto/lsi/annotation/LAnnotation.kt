@@ -1,11 +1,9 @@
 package net.fallingangel.jimmerdto.lsi.annotation
 
-import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiElement
-import com.intellij.psi.search.GlobalSearchScope
-import com.intellij.psi.util.InheritanceUtil
 import net.fallingangel.jimmerdto.lsi.LElement
 import net.fallingangel.jimmerdto.lsi.LPsiDependent
+import net.fallingangel.jimmerdto.lsi.process
 
 class LAnnotation(
     override val name: String,
@@ -135,14 +133,8 @@ class LAnnotation(
                 override fun accepts(value: Value): Boolean {
                     if (value !is Value.Clazz) return false
                     val bound = bound ?: return true
-                    val project = source?.project ?: return false
-                    val boundClass = JavaPsiFacade.getInstance(project)
-                        .findClass(bound, GlobalSearchScope.allScope(project))
-                        ?: return true
-                    val valueClass = JavaPsiFacade.getInstance(project)
-                        .findClass(value.canonicalName, GlobalSearchScope.allScope(project))
-                        ?: return true
-                    return InheritanceUtil.isInheritorOrSelf(valueClass, boundClass, true)
+                    val source = source ?: return true
+                    return process(source) { isInheritorOrSelf(value.canonicalName, bound) } ?: true
                 }
 
                 override fun equals(other: Any?): Boolean {

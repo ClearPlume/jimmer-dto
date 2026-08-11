@@ -275,6 +275,18 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         return process(filterClass) { typeArgumentFor("org.babyfish.jimmer.sql.kt.fetcher.KFieldFilter") }
     }
 
+    context(element: PsiElement)
+    override fun isInheritorOrSelf(qualifiedName: String, baseName: String): Boolean? {
+        val clazz = element.ktClass(qualifiedName) ?: return null
+        val baseClass = element.ktClass(baseName) ?: return null
+
+        return analyze(clazz) {
+            val classSymbol = clazz.classSymbol ?: return null
+            val baseClassSymbol = baseClass.classSymbol ?: return null
+            classSymbol.defaultType.isSubtypeOf(baseClassSymbol.defaultType)
+        }
+    }
+
     context(types: ResolvedTypes)
     fun parents(clazz: KtClass): List<LClass> {
         return analyze(clazz) {

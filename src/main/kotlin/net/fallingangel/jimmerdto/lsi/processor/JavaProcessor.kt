@@ -252,6 +252,13 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
         return process(tableClass) { typeArgumentFor("org.babyfish.jimmer.sql.ast.table.Table") }
     }
 
+    context(element: PsiElement)
+    override fun isInheritorOrSelf(qualifiedName: String, baseName: String): Boolean? {
+        val clazz = element.psiClass(qualifiedName) ?: return null
+        val baseClass = element.psiClass(baseName) ?: return null
+        return InheritanceUtil.isInheritorOrSelf(clazz, baseClass, true)
+    }
+
     context(types: ResolvedTypes)
     fun parents(clazz: PsiClass): List<LClass> {
         return clazz.supers

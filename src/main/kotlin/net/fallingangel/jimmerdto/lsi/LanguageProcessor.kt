@@ -52,6 +52,9 @@ interface LanguageProcessor {
 
     context(element: PsiElement)
     fun builtinAliases(): List<String>
+
+    context(element: PsiElement)
+    fun isInheritorOrSelf(qualifiedName: String, baseName: String): Boolean?
 }
 
 fun Language.processor(): LanguageProcessor? {
