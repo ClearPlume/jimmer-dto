@@ -93,6 +93,9 @@ class DTOCompletionContributor : CompletionContributor() {
         // Implements关键字提示
         completeImplementsKeyword()
 
+        // Implements 列表提示
+        completeImplementsType()
+
         // 属性配置提示
         completePropConfig()
 
@@ -613,6 +616,25 @@ class DTOCompletionContributor : CompletionContributor() {
                             ),
                     ),
             ),
+        )
+    }
+
+    /**
+     * Implements 列表提示
+     */
+    private fun completeImplementsType() {
+        complete(
+            { parameters, result ->
+                AllClassesGetter.processJavaClasses(parameters, result.prefixMatcher, true) { psiClass ->
+                    if (psiClass.isAnnotationType) return@processJavaClasses
+                    if (psiClass is KtLightElement<*, *> && psiClass.kotlinOrigin == null) return@processJavaClasses
+
+                    result.addAllElements(listOf(psiClass).lookUp())
+                }
+                result.restartCompletionOnAnyPrefixChange()
+            },
+            identifier.withParent(DTOQualifiedNamePart::class.java)
+                .inside(DTOImplements::class.java)
         )
     }
 
