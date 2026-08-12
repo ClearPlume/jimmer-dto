@@ -187,14 +187,6 @@ fun PsiElement.siblingComma(forward: Boolean = true) = sibling<PsiElement>(forwa
     it.elementType == DTOLanguage.token[DTOParser.Comma]
 }
 
-inline fun <reified P> PsiElement.parent(): P {
-    return parent as P
-}
-
-inline fun <reified P> PsiElement.parentUnSure(): P? {
-    return parent as? P
-}
-
 fun Project.notification(content: String, type: NotificationType = NotificationType.INFORMATION) {
     NotificationGroupManager.getInstance()
         .getNotificationGroup("JimmerDTO Notification Group")

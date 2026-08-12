@@ -24,7 +24,7 @@ class DTOMacroArgImpl(node: ASTNode) : DTONamedElementImpl(node), DTOMacroArg {
     }
 
     override fun resolve(): PsiElement? {
-        val macro = parent.parent<DTOMacro>()
+        val macro = parent<DTOMacro>() ?: return null
         val clazz = macro.containingLClass ?: return null
         return if (value?.text == "this" || value?.text == clazz.name) {
             clazz.source

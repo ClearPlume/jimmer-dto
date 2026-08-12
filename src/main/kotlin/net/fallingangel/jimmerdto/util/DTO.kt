@@ -10,7 +10,7 @@ import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
 
 inline fun <reified T : PsiElement> PsiElement.haveParent() = parentOfType<T>() != null
 
-inline fun <reified T : PsiElement> PsiElement.parent(withSelf: Boolean = true, predicate: T.() -> Boolean): T? {
+inline fun <reified T : PsiElement> PsiElement.parent(withSelf: Boolean = true, predicate: T.() -> Boolean = { true }): T? {
     val parents = parentsOfType<T>(withSelf)
     return parents.find(predicate)
 }

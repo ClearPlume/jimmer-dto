@@ -26,7 +26,7 @@ class DTOEnumMappingConstantImpl(node: ASTNode) : DTONamedElementImpl(node), DTO
 
     override fun resolve(): PsiElement? {
         val name = nameIdentifier.text
-        val prop = parent.parent.parent.parent<DTOPositiveProp>()
+        val prop = parent<DTOPositiveProp>() ?: return null
         val propType = prop.property?.actualType as? LProperty.Type.Enum ?: return null
         return propType.constants[name]
     }

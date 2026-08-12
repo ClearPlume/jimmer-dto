@@ -9,8 +9,8 @@ interface DTOEnumBody : DTOElement {
 
     val values: List<String>
         get() {
-            val prop = parent.parent<DTOPositiveProp>()
-            val propType = prop.property?.actualType as? LProperty.Type.Enum ?: return listOf()
+            val prop = parent.parent<DTOPositiveProp>() ?: return emptyList()
+            val propType = prop.property?.actualType as? LProperty.Type.Enum ?: return emptyList()
             return propType.constants.keys.toList()
         }
 }

@@ -1159,13 +1159,13 @@ class DTOAnnotator : Annotator {
             val configName = o.name.text
             o.name.style(DTOSyntaxHighlighter.PROP_CONFIG)
 
-            val prop = o.parent<DTOPositiveProp> { true } ?: return
+            val prop = o.parent<DTOPositiveProp>() ?: return
             if (prop.arg != null) {
                 o.name.error("Prop config '$configName' cannot be applied to the function '${prop.name.value}'")
                 return
             }
 
-            val dto = o.parent<DTODto> { true } ?: return
+            val dto = o.parent<DTODto>() ?: return
             if (dto modifiedBy Modifier.Specification || dto modifiedBy Modifier.Input) {
                 o.error("Configuration can only be applied to output DTO")
             }
@@ -1489,7 +1489,7 @@ class DTOAnnotator : Annotator {
          * 为枚举映射体上色
          */
         override fun visitEnumBody(o: DTOEnumBody) {
-            val prop = o.parent.parent<DTOPositiveProp>()
+            val prop = o.parent<DTOPositiveProp>() ?: return
             val availableEnums = o.values
             val currentEnumNames = o.mappings.map { it.constant.text }
 
@@ -1513,7 +1513,7 @@ class DTOAnnotator : Annotator {
          * 为枚举映射上色
          */
         override fun visitEnumMapping(o: DTOEnumMapping) {
-            val enumBody = o.parent<DTOEnumBody>()
+            val enumBody = o.parent<DTOEnumBody>() ?: return
             val enumMappingName = o.constant.text
             val enumMappingValue = o.string ?: o.int ?: run {
                 o.constant.error("Missing value")

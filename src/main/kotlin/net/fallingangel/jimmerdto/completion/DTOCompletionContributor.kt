@@ -15,9 +15,9 @@ import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
+import net.fallingangel.jimmerdto.completion.pattern.lsiElement
 import net.fallingangel.jimmerdto.core.DTOLanguage.rule
 import net.fallingangel.jimmerdto.core.DTOLanguage.token
-import net.fallingangel.jimmerdto.completion.pattern.lsiElement
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.enums.StandardType
@@ -140,7 +140,7 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 result.addAllElements(bodyLookups())
-                val prop = parameters.position.parent.parent<DTOPositiveProp>()
+                val prop = parameters.position.parent<DTOPositiveProp>() ?: return@complete
                 result.addAllElements(prop.functions().lookUp())
                 result.addAllElements(prop.containingLClass?.allProperties?.lookUp() ?: emptyList())
             },
@@ -155,8 +155,8 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeNegativeProp() {
         complete(
             { parameters, result ->
-                val propName = parameters.position.parent<DTOPropName>()
-                result.addAllElements(propName.parent<DTONegativeProp>().containingLClass?.allProperties?.lookUp() ?: emptyList())
+                val negativeProp = parameters.position.parent<DTONegativeProp>() ?: return@complete
+                result.addAllElements(negativeProp.containingLClass?.allProperties?.lookUp() ?: emptyList())
             },
             identifier.withParent(DTOPropName::class.java)
                 .withSuperParent(2, DTONegativeProp::class.java),
@@ -177,7 +177,7 @@ class DTOCompletionContributor : CompletionContributor() {
         )
         complete(
             { parameters, result ->
-                val macroArgs = parameters.position.parent.parent.parent<DTOMacro>()
+                val macroArgs = parameters.position.parent<DTOMacro>() ?: return@complete
                 result.addAllElements(macroArgs.types.lookUp())
             },
             identifier.withParent(DTOMacroArg::class.java),
@@ -190,7 +190,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeEnum() {
         complete(
             { parameters, result ->
-                val prop = parameters.position.parent.parent.parent<DTOEnumBody>()
+                val prop = parameters.position.parent<DTOEnumBody>() ?: return@complete
                 result.addAllElements(prop.values.lookUp())
             },
             identifier.withParent(DTOEnumMappingConstant::class.java)
@@ -204,7 +204,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeDtoModifier() {
         complete(
             { parameters, result ->
-                val dto = parameters.position.parent.parent<DTODto>()
+                val dto = parameters.position.parent<DTODto>() ?: return@complete
                 result.addAllElements(
                     dto.availableModifiers
                         .map { LookupInfo(it, "$it ") }
@@ -259,7 +259,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeFunctionParameter() {
         complete(
             { parameters, result ->
-                val propArgs = parameters.position.parent.parent<DTOPropArg>()
+                val propArgs = parameters.position.parent<DTOPropArg>() ?: return@complete
                 result.addAllElements(propArgs.args?.lookUp() ?: emptyList())
             },
             identifier.withParent(DTOValue::class.java)
@@ -623,7 +623,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completePropConfig() {
         complete(
             { parameters, result ->
-                val prop = parameters.position.parent.parent<DTOPositiveProp>()
+                val prop = parameters.position.parent<DTOPositiveProp>() ?: return@complete
                 val property = prop.property ?: return@complete
 
                 val haveFilter = prop.hasConfig(PropConfigName.Filter)
@@ -686,7 +686,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completePropConfigArg() {
         complete(
             { parameters, result ->
-                val prop = parameters.position.parentOfType<DTOPositiveProp>() ?: return@complete
+                val prop = parameters.position.parent<DTOPositiveProp>() ?: return@complete
                 val path = parameters.position.parent
                     .siblings(forward = false, withSelf = false)
                     .filter { it.elementType == rule[RULE_qualifiedNamePart] }
@@ -853,7 +853,7 @@ class DTOCompletionContributor : CompletionContributor() {
                     if (name in file.importIndex) {
                         // 已导入的类全限定名是否等于要导入的类
                         if (file.importIndex[name]?.firstOrNull() != qualifiedName) {
-                            val annotationName = file.findElementAt(context.startOffset)?.parent?.parentUnSure<DTOQualifiedName>()
+                            val annotationName = file.findElementAt(context.startOffset)?.parent?.parent as? DTOQualifiedName
                             annotationName ?: return@withInsertHandler
                             annotationName.replace(project.createQualifiedName(qualifiedName))
                         }

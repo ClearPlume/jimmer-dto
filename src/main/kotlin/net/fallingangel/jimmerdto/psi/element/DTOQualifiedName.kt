@@ -46,7 +46,7 @@ interface DTOQualifiedName : DTOElement {
 
     val initialSpace: Resolution.Space?
         get() {
-            val config = parent<DTOPropConfig> { true }
+            val config = parent<DTOPropConfig>()
             if (config != null) {
                 return when (config.name.text) {
                     PropConfigName.Where.text, PropConfigName.OrderBy.text -> config.containingLClass?.let(Resolution.Space::Properties)
