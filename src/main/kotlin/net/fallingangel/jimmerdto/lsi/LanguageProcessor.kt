@@ -3,6 +3,7 @@ package net.fallingangel.jimmerdto.lsi
 import com.intellij.lang.Language
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNamedElement
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import org.jetbrains.kotlin.name.ClassId
 
@@ -52,6 +53,12 @@ interface LanguageProcessor {
 
     context(element: PsiElement)
     fun builtinAliases(): List<String>
+
+    context(element: PsiElement)
+    fun nestedTypes(): List<PsiNamedElement>
+
+    context(element: PsiElement)
+    fun enumConstants(): List<PsiNamedElement>
 
     context(element: PsiElement)
     fun isInheritorOrSelf(qualifiedName: String, baseName: String): Boolean?

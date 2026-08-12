@@ -5,6 +5,7 @@ import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.search.ProjectScope
 import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.util.CachedValue
@@ -268,6 +269,18 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             "kotlin.collections.MutableMap" -> listOf(StandardType.MutableMap.name)
             else -> emptyList()
         }
+    }
+
+    context(element: PsiElement)
+    override fun nestedTypes(): List<PsiNamedElement> {
+        val clazz = element.narrow<KtClass>()
+        return clazz.body?.declarations?.filterIsInstance<KtClassOrObject>()?.filter { it !is KtEnumEntry }.orEmpty()
+    }
+
+    context(element: PsiElement)
+    override fun enumConstants(): List<PsiNamedElement> {
+        val clazz = element.narrow<KtClass>()
+        return clazz.body?.declarations?.filterIsInstance<KtEnumEntry>().orEmpty()
     }
 
     context(_: PsiElement)

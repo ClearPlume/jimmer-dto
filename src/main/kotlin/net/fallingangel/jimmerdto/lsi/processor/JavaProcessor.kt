@@ -246,6 +246,18 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
         }
     }
 
+    context(element: PsiElement)
+    override fun nestedTypes(): List<PsiNamedElement> {
+        val clazz = element.narrow<PsiClass>()
+        return clazz.innerClasses.toList()
+    }
+
+    context(element: PsiElement)
+    override fun enumConstants(): List<PsiNamedElement> {
+        val clazz = element.narrow<PsiClass>()
+        return clazz.fields.filterIsInstance<PsiEnumConstant>()
+    }
+
     context(_: PsiElement)
     override fun filterEntity(filterClass: PsiElement): PsiElement? {
         val tableClass = process(filterClass) { typeArgumentFor("org.babyfish.jimmer.sql.fetcher.FieldFilter") } ?: return null
