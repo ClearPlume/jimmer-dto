@@ -10,4 +10,7 @@ interface DTOImportedType : DTOElement {
 
     val target: Resolution.Target?
         get() = (parent as? DTOGroupedImport)?.target
+
+    val simpleName: String
+        get() = alias?.value ?: type.value
 }

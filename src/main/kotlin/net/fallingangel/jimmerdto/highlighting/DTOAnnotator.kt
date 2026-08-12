@@ -51,7 +51,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 重复导入
-            val type = o.alias?.value ?: o.qualifiedName.simpleName
+            val type = o.simpleName
             if ((o.file.importIndex[type]?.size ?: 0) > 1) {
                 o.error(
                     "Conflicting import: imported name `$type` is ambiguous",
@@ -81,7 +81,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 导包重复检测
-            val type = o.alias?.value ?: o.type.value
+            val type = o.simpleName
             if ((o.file.importIndex[type]?.size ?: 0) > 1) {
                 o.error(
                     "Conflicting import: imported name `$type` is ambiguous",

@@ -8,4 +8,10 @@ interface DTOImportStatement : DTOElement {
     val alias: DTOAlias?
 
     val groupedImport: DTOGroupedImport?
+
+    /**
+     * [groupedImport] 非空时不可使用
+     */
+    val simpleName: String
+        get() = alias?.value ?: qualifiedName.simpleName
 }

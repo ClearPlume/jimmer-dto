@@ -94,12 +94,10 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
                 if (groupedImport != null) {
                     val qualified = import.qualifiedName.value
                     groupedImport.types.forEach {
-                        val name = it.alias?.value ?: it.type.value
-                        imports.computeIfAbsent(name) { mutableListOf() }.add("$qualified.${it.type.value}")
+                        imports.computeIfAbsent(it.simpleName) { mutableListOf() }.add("$qualified.${it.type.value}")
                     }
                 } else {
-                    val name = import.alias?.value ?: import.qualifiedName.simpleName
-                    imports.computeIfAbsent(name) { mutableListOf() }.add(import.qualifiedName.value)
+                    imports.computeIfAbsent(import.simpleName) { mutableListOf() }.add(import.qualifiedName.value)
                 }
             }
 
