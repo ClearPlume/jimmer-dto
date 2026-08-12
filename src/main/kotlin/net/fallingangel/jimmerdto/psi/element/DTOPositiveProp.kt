@@ -6,8 +6,6 @@ import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.findProperty
-import net.fallingangel.jimmerdto.lsi.jimmer.*
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.util.modifiedBy
@@ -92,36 +90,5 @@ interface DTOPositiveProp : DTOElement {
             emptyList()
         }
         return functions + specFunctions
-    }
-
-    fun childProps(prefix: List<String>): List<Pair<String, String>> {
-        val clazz = property?.actualType?.resolvedLClass ?: return emptyList()
-        val props = if (prefix.isEmpty()) {
-            clazz.allProperties
-        } else {
-            val propertyClass = clazz.findProperty(prefix)?.actualType?.resolvedLClass ?: return emptyList()
-            propertyClass.allProperties
-        }
-
-        val scalars = props
-            .filter { it.type is LProperty.Type.Scalar || it.type is LProperty.Type.Enum }
-            .map { it.name to it.presentableType }
-        val associations = props
-            .filter(LProperty::isReference)
-            .map { it.name to it.presentableType }
-        val views = props
-            .filter(LProperty::isEntityAssociation)
-            .mapNotNull { prop ->
-                val idType = prop.targetClass!!.properties
-                    .find { it.isId }
-                    ?.presentableType
-                    ?: return@mapNotNull null
-                "${prop.name}Id" to idType
-            }
-        val embeddable = props
-            .filter(LProperty::isEmbedded)
-            .map { it.name to it.presentableType }
-
-        return scalars + associations + views + embeddable
     }
 }

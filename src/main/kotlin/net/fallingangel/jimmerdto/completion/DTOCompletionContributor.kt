@@ -686,21 +686,15 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completePropConfigArg() {
         complete(
             { parameters, result ->
-                val prop = parameters.position.parent<DTOPositiveProp>() ?: return@complete
-                val path = parameters.position.parent
-                    .siblings(forward = false, withSelf = false)
-                    .filter { it.elementType == rule[RULE_qualifiedNamePart] }
-                    .map { it.text }
-                    .toList()
-                    .asReversed()
-                val properties = prop.childProps(path)
+                val part = parameters.position.parent<DTOQualifiedNamePart>() ?: return@complete
+                val candidates = part.space?.candidates() ?: return@complete
+
                 result.addAllElements(
-                    properties
-                        .map { (name, type) ->
-                            LookupElementBuilder.create(name)
-                                .withIcon(AllIcons.Nodes.Property)
-                                .withTypeText(type, true)
-                        }
+                    candidates.mapNotNull { (name, target) ->
+                        val source = target.source ?: return@mapNotNull null
+                        LookupElementBuilder.create(source, name)
+                            .withIcon(source.getIcon(0))
+                    }   
                 )
             },
             or(
