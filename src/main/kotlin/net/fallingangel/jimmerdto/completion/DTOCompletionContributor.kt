@@ -694,7 +694,7 @@ class DTOCompletionContributor : CompletionContributor() {
                         val source = target.source ?: return@mapNotNull null
                         LookupElementBuilder.create(source, name)
                             .withIcon(source.getIcon(0))
-                    }   
+                    }
                 )
             },
             or(
@@ -832,8 +832,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun List<PsiClass>.lookUp(needImport: Boolean = true, customizer: LookupElementBuilder.() -> LookupElement = { this }) = mapNotNull {
         val qualifiedName = it.qualifiedName ?: return@mapNotNull null
         val name = it.name!!
-        LookupElementBuilder.create(qualifiedName, name)
-            .withIcon(it.icon)
+        LookupElementBuilder.createWithIcon(it)
             .withTypeText("(${qualifiedName.substringBeforeLast('.')})", true)
             .withInsertHandler { context, _ ->
                 if (needImport) {

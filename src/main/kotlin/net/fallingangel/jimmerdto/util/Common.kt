@@ -1,8 +1,5 @@
 package net.fallingangel.jimmerdto.util
 
-import com.intellij.icons.AllIcons
-import com.intellij.lang.java.JavaLanguage
-import com.intellij.lang.jvm.JvmModifier
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
@@ -20,56 +17,13 @@ import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
-import org.jetbrains.kotlin.idea.KotlinIcons
-import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
-import org.jetbrains.kotlin.psi.KtObjectDeclaration
-import javax.swing.Icon
 
 val DTOElement.file: DTOFile
     get() = containingFile as DTOFile
-
-@Suppress("UnstableApiUsage")
-val PsiClass.icon: Icon?
-    get() = when (language) {
-        is JavaLanguage -> when {
-            isAnnotationType -> AllIcons.Nodes.Annotationtype
-            isInterface -> AllIcons.Nodes.Interface
-            isRecord -> AllIcons.Nodes.Record
-            isEnum -> AllIcons.Nodes.Enum
-
-            else -> if (hasModifier(JvmModifier.ABSTRACT)) {
-                AllIcons.Nodes.AbstractClass
-            } else {
-                AllIcons.Nodes.Class
-            }
-        }
-
-        is KotlinLanguage -> (this as KtLightClass).icon
-
-        else -> null
-    }
-
-@Suppress("UnstableApiUsage")
-val KtLightClass.icon: Icon
-    get() = if (kotlinOrigin is KtObjectDeclaration) {
-        KotlinIcons.OBJECT
-    } else {
-        when {
-            isAnnotationType -> KotlinIcons.ANNOTATION
-            isInterface -> KotlinIcons.INTERFACE
-            isEnum -> KotlinIcons.ENUM
-
-            else -> if (hasModifier(JvmModifier.ABSTRACT)) {
-                KotlinIcons.ABSTRACT_CLASS
-            } else {
-                KotlinIcons.CLASS
-            }
-        }
-    }
 
 val PsiType.nullable: Boolean
     get() = this is PsiClassType && PsiPrimitiveType.getUnboxedType(this) != null
