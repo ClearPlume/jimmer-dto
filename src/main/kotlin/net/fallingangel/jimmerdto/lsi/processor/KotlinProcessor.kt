@@ -23,10 +23,7 @@ import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotation
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
-import org.jetbrains.kotlin.analysis.api.symbols.KaClassKind
-import org.jetbrains.kotlin.analysis.api.symbols.KaClassSymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KaEnumEntrySymbol
-import org.jetbrains.kotlin.analysis.api.symbols.KaNamedClassSymbol
+import org.jetbrains.kotlin.analysis.api.symbols.*
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KaAnnotatedSymbol
 import org.jetbrains.kotlin.analysis.api.types.*
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
@@ -166,7 +163,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             // TODO Unresolved
             valueParameters.mapNotNull { parameter ->
                 val name = parameter.name.asString()
-                val type = resolveParamType(parameter.returnType) ?: return@mapNotNull null
+                val type = resolveParamType(parameter) ?: return@mapNotNull null
                 val source = parameter.psi
 
                 val defaultValue = (source as? KtParameter)?.let {
@@ -429,6 +426,15 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             params,
             annotation.psi,
         )
+    }
+
+    fun KaSession.resolveParamType(parameter: KaValueParameterSymbol): ParamType? {
+        val type = resolveParamType(parameter.returnType) ?: return null
+        return if (parameter.isVararg) {
+            ParamType.Array(type)
+        } else {
+            type
+        }
     }
 
     fun KaSession.resolveParamType(type: KaType): ParamType? {
