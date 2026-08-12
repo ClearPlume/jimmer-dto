@@ -141,7 +141,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
     context(element: PsiElement)
     override fun classQualifiedName(): String? {
-        val clazz = element.narrow<KtClass>()
+        val clazz = element.narrow<KtClassOrObject>()
         return clazz.fqName?.asString()
     }
 
