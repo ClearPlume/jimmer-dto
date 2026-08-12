@@ -20,5 +20,9 @@ interface DTOQualifiedNamePart : DTONamedElement {
         }
 
     val target: Resolution.Target?
-        get() = space?.resolve(part)
+        get() = if (part.isEmpty()) {
+            null
+        } else {
+            space?.resolve(part)
+        }
 }
