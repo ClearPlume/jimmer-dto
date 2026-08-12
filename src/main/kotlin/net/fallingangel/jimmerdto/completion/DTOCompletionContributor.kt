@@ -845,7 +845,7 @@ class DTOCompletionContributor : CompletionContributor() {
                     // 是否已经导入过相同简单名的类
                     if (name in file.importIndex) {
                         // 已导入的类全限定名是否等于要导入的类
-                        if (file.importIndex[name]?.firstOrNull() != qualifiedName) {
+                        if (file.importIndex[name]?.singleOrNull() != qualifiedName) {
                             val annotationName = file.findElementAt(context.startOffset)?.parent?.parent as? DTOQualifiedName
                             annotationName ?: return@withInsertHandler
                             annotationName.replace(project.createQualifiedName(qualifiedName))
