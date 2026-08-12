@@ -10,8 +10,6 @@ import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.psi.*
 import com.intellij.psi.codeStyle.CodeStyleManager
-import com.intellij.psi.search.ProjectScope
-import com.intellij.psi.search.PsiShortNamesCache
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
@@ -22,14 +20,17 @@ import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.compiling
 import net.fallingangel.jimmerdto.lsi.jimmer.isEntityAssociation
 import net.fallingangel.jimmerdto.lsi.jimmer.isList
 import net.fallingangel.jimmerdto.lsi.jimmer.isReference
+import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser.*
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.util.*
+import org.jetbrains.kotlin.asJava.elements.KtLightElement
 import net.fallingangel.jimmerdto.psi.DTOParser.Modifier as ParserModifier
 import net.fallingangel.jimmerdto.psi.DTOParser.PropConfigName as ParserPropConfig
 
@@ -109,8 +110,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeUserPropType() {
         complete(
             { parameters, result ->
-                val text = parameters.position.text.substringBefore(DUMMY_IDENTIFIER_TRIMMED)
-                result.addAllElements(findUserPropType(text, parameters.originalFile as DTOFile))
+                findUserPropType(parameters, result, parameters.originalFile as DTOFile)
             },
             identifier.withParent(DTOQualifiedNamePart::class.java)
                 .withSuperParent(3, DTOTypeRef::class.java)
@@ -124,8 +124,7 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeUserPropGenericType() {
         complete(
             { parameters, result ->
-                val text = parameters.position.text.substringBefore(DUMMY_IDENTIFIER_TRIMMED)
-                result.addAllElements(findUserPropType(text, parameters.originalFile as DTOFile, true))
+                findUserPropType(parameters, result, parameters.originalFile as DTOFile, true)
             },
             identifier.withParent(DTOQualifiedNamePart::class.java)
                 .withSuperParent(3, DTOTypeRef::class.java)
@@ -758,31 +757,41 @@ class DTOCompletionContributor : CompletionContributor() {
         )
     }
 
-    private fun findUserPropType(prefix: String, file: DTOFile, isGeneric: Boolean = false): List<LookupElement> {
-        val cache = PsiShortNamesCache.getInstance(file.project)
-        val classes = cache
-            .allClassNames
-            .filter { it.startsWith(prefix) }
-            .flatMap { cache.getClassesByName(it, ProjectScope.getAllScope(file.project)).toList() }
-            .toList()
+    private fun findUserPropType(
+        parameters: CompletionParameters,
+        result: CompletionResultSet,
+        file: DTOFile,
+        isGeneric: Boolean = false
+    ) {
+        val builtinTypes = compiling(file) { StandardType.entries.mapNotNull { builtinType(it) } }.orEmpty()
+        result.addAllElements(builtinTypes.lookUp())
+        val builtinFqn = builtinTypes.mapNotNull { process(it) { classQualifiedName() } }
+
+        val imports = file.importIndex.values
+            .mapNotNull { it.singleOrNull() }
+            .mapNotNull { file.psiClass(it) }
+            .filterNot { it.isAnnotationType }
             .lookUp()
+        result.addAllElements(imports)
+        val importedFqn = file.importIndex.values.mapNotNullTo(mutableSetOf()) { it.singleOrNull() }
+
+        val excluded = builtinFqn + importedFqn
 
         val genericModifiers = if (isGeneric) {
             listOf("out", "in").lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
         } else {
             emptyList()
         }
+        result.addAllElements(genericModifiers)
 
-        val preludes = StandardType.entries.map(Enum<*>::name).lookUp()
-        val imports = file.importIndex.values
-            .mapNotNull { it.singleOrNull() }
-            .mapNotNull { file.psiClass(it) }
-            .filterNot { it.isAnnotationType }
-            .lookUp()
-        return preludes +
-                genericModifiers +
-                imports +
-                classes
+        AllClassesGetter.processJavaClasses(parameters, result.prefixMatcher, true) { psiClass ->
+            if (psiClass.isAnnotationType) return@processJavaClasses
+            if (psiClass.qualifiedName in excluded) return@processJavaClasses
+            if (psiClass is KtLightElement<*, *> && psiClass.kotlinOrigin == null) return@processJavaClasses
+
+            result.addAllElements(listOf(psiClass).lookUp())
+        }
+        result.restartCompletionOnAnyPrefixChange()
     }
 
     private fun bodyLookups(): List<LookupElement> {
@@ -828,10 +837,13 @@ class DTOCompletionContributor : CompletionContributor() {
         }
     }
 
-    @JvmName("lookupPsiClass")
-    private fun List<PsiClass>.lookUp(needImport: Boolean = true, customizer: LookupElementBuilder.() -> LookupElement = { this }) = mapNotNull {
-        val qualifiedName = it.qualifiedName ?: return@mapNotNull null
-        val name = it.name!!
+    @JvmName("lookupClass")
+    private fun List<PsiElement>.lookUp(
+        needImport: Boolean = true,
+        customizer: LookupElementBuilder.() -> LookupElement = { this },
+    ): List<LookupElement> = mapNotNull {
+        val qualifiedName = process(it) { classQualifiedName() } ?: return@mapNotNull null
+        val name = (it as? PsiNamedElement)?.name ?: return@mapNotNull null
         LookupElementBuilder.createWithIcon(it)
             .withTypeText("(${qualifiedName.substringBeforeLast('.')})", true)
             .withInsertHandler { context, _ ->
