@@ -43,6 +43,12 @@ class DTOAnnotator : Annotator {
 
     private class DTOAnnotatorVisitor(private val holder: AnnotationHolder) : DTOVisitor() {
         /**
+         * TODO export 处实体注解校验 the "Probe" is not decorated by "@Entity", "Embeddable" or "Immutable"
+         */
+        override fun visitExportStatement(o: DTOExportStatement) {
+        }
+
+        /**
          * 导包重复检测(普通导包语句)
          */
         override fun visitImportStatement(o: DTOImportStatement) {
@@ -102,8 +108,6 @@ class DTOAnnotator : Annotator {
 
         /**
          * 为全限定类名的部分上色
-         * 
-         * TODO 实体注解校验 the "Probe" is not decorated by "@Entity", "Embeddable" or "Immutable"
          */
         override fun visitQualifiedNamePart(o: DTOQualifiedNamePart) {
             if (o.part in DTOLanguage.softKeywords) {
@@ -152,6 +156,9 @@ class DTOAnnotator : Annotator {
                     if (property.isEntityAssociation && !property.isReference) {
                         o.error("Illegal property: Table joins are not permitted here")
                     }
+                }
+
+                is Resolution.Target.Subtype -> {
                 }
             }
         }

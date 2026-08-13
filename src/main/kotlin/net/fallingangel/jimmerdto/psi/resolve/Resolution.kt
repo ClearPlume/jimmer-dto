@@ -174,6 +174,21 @@ object Resolution {
                 return explicit + implicit
             }
         }
+
+        class Subtypes(val file: DTOFile, val lClass: LClass) : Space() {
+            private val globalRaw = GlobalRaw(file)
+
+            override fun resolve(name: String): Target? {
+                val child = lClass.children.find { it.name == name }
+                child?.let { return Target.Subtype(it) }
+
+                return globalRaw.resolve(name)
+            }
+
+            override fun candidates(): List<Candidate> {
+                return lClass.children.map { Candidate(it.name, Target.Subtype(it)) }
+            }
+        }
     }
 
     sealed class Target {
@@ -216,6 +231,15 @@ object Resolution {
 
             override fun spaceForMembers(): Space? {
                 return property.targetClass?.let(Space::Properties)
+            }
+        }
+
+        class Subtype(val lClass: LClass) : Target() {
+            override val source: PsiElement
+                get() = lClass.source
+
+            override fun spaceForMembers(): Space? {
+                return null
             }
         }
 

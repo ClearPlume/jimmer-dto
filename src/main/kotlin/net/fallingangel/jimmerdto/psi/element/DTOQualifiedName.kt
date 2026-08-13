@@ -5,8 +5,6 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.search.ProjectScope
 import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.enums.PropConfigName
-import net.fallingangel.jimmerdto.lsi.LClass
-import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.util.*
@@ -46,6 +44,12 @@ interface DTOQualifiedName : DTOElement {
 
     val initialSpace: Resolution.Space?
         get() {
+            val parent = parent
+            if (parent is DTOMorphism) {
+                val lClass = parent.containingLClass ?: return null
+                return Resolution.Space.Subtypes(file, lClass)
+            }
+
             val config = parent<DTOPropConfig>()
             if (config != null) {
                 return when (config.name.text) {
@@ -66,10 +70,4 @@ interface DTOQualifiedName : DTOElement {
 
     val target: Resolution.Target?
         get() = parts.lastOrNull()?.target
-
-    val resolvedLClass: LClass?
-        get() {
-            val target = target as? Resolution.Target.Type ?: return null
-            return process(target.source) { lClass() }
-        }
 }
