@@ -22,6 +22,7 @@ import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.compiling
 import net.fallingangel.jimmerdto.lsi.jimmer.*
 import net.fallingangel.jimmerdto.lsi.process
+import net.fallingangel.jimmerdto.psi.DTOLexer
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
@@ -85,11 +86,7 @@ class DTOAnnotator : Annotator {
             if ((o.file.importIndex[type]?.size ?: 0) > 1) {
                 o.error(
                     "Conflicting import: imported name `$type` is ambiguous",
-                    RemoveElement(
-                        type,
-                        o,
-                        relatedElementsFinder = { listOfNotNull(it.siblingComma(false), it.siblingComma()) },
-                    ),
+                    RemoveElement(type, o),
                 )
             }
 
@@ -98,11 +95,7 @@ class DTOAnnotator : Annotator {
             if (qualifiedType in AUTO_IMPORTED_TYPES) {
                 o.error(
                     "'$qualifiedType' cannot be imported because it is built-in type",
-                    RemoveElement(
-                        qualifiedType,
-                        o,
-                        relatedElementsFinder = { listOfNotNull(it.siblingComma(false), it.siblingComma()) },
-                    ),
+                    RemoveElement(qualifiedType, o),
                 )
             }
         }
@@ -336,20 +329,12 @@ class DTOAnnotator : Annotator {
                     if (element is DTOAnnotationValue) {
                         element.error(
                             "Shorthand form is the `value` parameter, which duplicates the explicit `value`",
-                            RemoveElement(
-                                element.text,
-                                element,
-                                relatedElementsFinder = { listOfNotNull(it.siblingComma() ?: it.siblingComma(false)) },
-                            ),
+                            RemoveElement(element.text, element),
                         )
                     } else {
                         element.error(
                             "Duplicated annotation parameter `$name`",
-                            RemoveElement(
-                                element.parent.text,
-                                element.parent,
-                                relatedElementsFinder = { listOfNotNull(it.siblingComma() ?: it.siblingComma(false)) },
-                            ),
+                            RemoveElement(element.parent.text, element.parent),
                         )
                     }
                 }
@@ -371,11 +356,7 @@ class DTOAnnotator : Annotator {
                 if (name !in declaredNames) {
                     nameElement.error(
                         "No parameter with name '$name' found",
-                        RemoveElement(
-                            name,
-                            nameElement as? DTOAnnotationValue ?: nameElement.parent,
-                            relatedElementsFinder = { listOfNotNull(it.siblingComma() ?: it.siblingComma(false)) },
-                        ),
+                        RemoveElement(name, nameElement as? DTOAnnotationValue ?: nameElement.parent),
                     )
                 }
             }
@@ -504,28 +485,14 @@ class DTOAnnotator : Annotator {
                 return
             }
 
-            fun locateTarget(args: PsiElement, offset: Int): DTOMacroArg {
-                args as DTOMacroArgs
-                return args.values.find { it.startOffsetInParent == offset }!!
-            }
-
-            fun locateRelated(arg: PsiElement): List<PsiElement> {
-                return listOfNotNull(arg.siblingComma(false), arg.siblingComma())
-            }
-
             // 不允许出现超过一个<this>
             val thisList = argList.filter { it.text == "this" }
             thisList.forEach { it.style(DTOSyntaxHighlighter.KEYWORD) }
             if (thisList.size > 1) {
-                thisList.forEach { `this` ->
-                    `this`.error(
+                thisList.forEach {
+                    it.error(
                         "Only one `this` is allowed",
-                        RemoveElement(
-                            "this",
-                            o,
-                            { locateTarget(it, `this`.startOffsetInParent) },
-                            { locateRelated(it) },
-                        ),
+                        RemoveElement("this", it),
                         style = DTOSyntaxHighlighter.DUPLICATION,
                     )
                 }
@@ -538,24 +505,14 @@ class DTOAnnotator : Annotator {
                 if (macroArg.text !in macroAvailableParams) {
                     macroArg.error(
                         "Available parameters: [${macroAvailableParams.joinToString(", ")}]",
-                        RemoveElement(
-                            macroArg.text,
-                            o,
-                            { locateTarget(it, macroArg.startOffsetInParent) },
-                            { locateRelated(it) },
-                        )
+                        RemoveElement(macroArg.text, macroArg)
                     )
                 }
                 // 当前元素在参数列表中出现过一次以上，即为重复
                 if (argList.count { it.text == macroArg.text } != 1) {
                     macroArg.error(
                         "Each parameter is only allowed to appear once",
-                        RemoveElement(
-                            macroArg.text,
-                            o,
-                            { locateTarget(it, macroArg.startOffsetInParent) },
-                            { locateRelated(it) },
-                        ),
+                        RemoveElement(macroArg.text, macroArg),
                         style = DTOSyntaxHighlighter.DUPLICATION
                     )
                 }
@@ -569,22 +526,12 @@ class DTOAnnotator : Annotator {
                 if (macroArg.text == "this" && sameThisArg != null) {
                     sameThisArg.error(
                         "Here `$thisName` is equivalent to `this`",
-                        RemoveElement(
-                            sameThisArg.text,
-                            o,
-                            { locateTarget(it, sameThisArg.startOffsetInParent) },
-                            { locateRelated(it) },
-                        ),
+                        RemoveElement(sameThisArg.text, sameThisArg),
                         style = DTOSyntaxHighlighter.DUPLICATION
                     )
                     macroArg.error(
                         "Here `this` is equivalent to `$thisName`",
-                        RemoveElement(
-                            "this",
-                            o,
-                            { locateTarget(it, macroArg.startOffsetInParent) },
-                            { locateRelated(it) },
-                        ),
+                        RemoveElement("this", macroArg),
                         style = DTOSyntaxHighlighter.DUPLICATION
                     )
                 }
@@ -766,16 +713,6 @@ class DTOAnnotator : Annotator {
                 return
             }
 
-            fun locateTarget(parent: PsiElement): PsiElement {
-                return parent.children
-                    .filterIsInstance<DTOTypeRef>()
-                    .find { it.startOffsetInParent == o.startOffsetInParent }!!
-            }
-
-            fun locateRelated(type: PsiElement): List<PsiElement> {
-                return listOfNotNull(type.siblingComma(false), type.siblingComma())
-            }
-
             val type = o.type.value
             val clazz = o.type.target?.source
             val qualifiedName = clazz?.let { process(it) { classQualifiedName() } }
@@ -816,7 +753,7 @@ class DTOAnnotator : Annotator {
                 if (parent.implements.count { it.type.value == o.type.value } > 1) {
                     o.error(
                         "Duplicate super interface `${o.type.value}`",
-                        RemoveElement(o.type.value, o.parent, ::locateTarget, ::locateRelated),
+                        RemoveElement(o.type.value, o),
                     )
                 }
             }
@@ -825,7 +762,7 @@ class DTOAnnotator : Annotator {
             if (qualifiedName?.startsWith("org.babyfish.jimmer.") == true) {
                 o.error(
                     "Types under `org.babyfish.jimmer` are not allowed",
-                    RemoveElement(o.type.value, o.parent, ::locateTarget, ::locateRelated),
+                    RemoveElement(o.type.value, o),
                 )
             }
         }
@@ -905,15 +842,7 @@ class DTOAnnotator : Annotator {
                 if (arg.values.count { value -> value.text == it.text } > 1) {
                     it.error(
                         "Duplicate prop `${it.text}`",
-                        RemoveElement(
-                            it.text,
-                            arg,
-                            { a ->
-                                a as DTOPropArg
-                                a.values.find { v -> v.startOffsetInParent == it.startOffsetInParent }!!
-                            },
-                            { a -> listOfNotNull(a.siblingComma(false), a.siblingComma()) },
-                        ),
+                        RemoveElement(it.text, it),
                         style = DTOSyntaxHighlighter.DUPLICATION
                     )
                 }
@@ -1034,18 +963,7 @@ class DTOAnnotator : Annotator {
             if (alias != null && prop.parent.elementType == DTOLanguage.rule[DTOParser.RULE_aliasGroupBody]) {
                 prop.error(
                     "Alias definition for direct children is prohibited in `alias-group`",
-                    RemoveElement(
-                        "Alias `${alias.text}` for $propName",
-                        prop,
-                        {
-                            it as DTOPositiveProp
-                            it.alias!!
-                        },
-                        {
-                            it as DTOPositiveProp
-                            listOfNotNull(it.`as`)
-                        },
-                    ),
+                    RemoveElement("Alias `${alias.text}` for $propName", alias, DTOLexer.As),
                 )
             }
 

@@ -5,15 +5,11 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
-import com.intellij.psi.util.elementType
-import com.intellij.psi.util.siblings
 import com.intellij.util.indexing.FileBasedIndex
-import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.core.DTOLanguage.xPath
 import net.fallingangel.jimmerdto.index.ANNOTATION_CLASS_INDEX
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 import net.fallingangel.jimmerdto.psi.DTOFile
-import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
@@ -129,16 +125,6 @@ inline fun <reified T : PsiElement> PsiElement.findChildNullable(path: String): 
 
 inline fun <reified T : PsiElement> PsiElement.findChildren(path: String): List<T> {
     return xPath.evaluate(this, xPath.split(path)).filterIsInstance<T>()
-}
-
-inline fun <reified T : PsiElement> PsiElement.sibling(forward: Boolean = true, filter: (PsiElement) -> Boolean): T? {
-    return siblings(forward, false)
-        .filterIsInstance<T>()
-        .firstOrNull(filter)
-}
-
-fun PsiElement.siblingComma(forward: Boolean = true) = sibling<PsiElement>(forward) {
-    it.elementType == DTOLanguage.token[DTOParser.Comma]
 }
 
 fun Project.notification(content: String, type: NotificationType = NotificationType.INFORMATION) {
