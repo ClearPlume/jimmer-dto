@@ -19,6 +19,8 @@ import net.fallingangel.jimmerdto.project.ProjectSyncTracker
 import net.fallingangel.jimmerdto.psi.element.DTODtoName
 import net.fallingangel.jimmerdto.psi.element.DTOExportStatement
 import net.fallingangel.jimmerdto.psi.element.DTOImportStatement
+import net.fallingangel.jimmerdto.psi.element.DTOQualifiedName
+import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
 import net.fallingangel.jimmerdto.util.psiClass
@@ -33,7 +35,7 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
         }
 
     val export: DTOExportStatement?
-        get() = findChildNullable<DTOExportStatement>("/dtoFile/exportStatement")
+        get() = findChildNullable("/dtoFile/exportStatement")
 
     val hasExport: Boolean
         get() = export != null
@@ -45,7 +47,7 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
         get() = export?.`package`?.value ?: export?.export?.let { it.`package` + ".dto" } ?: "$implicitPackage.dto"
 
     val importStatements: List<DTOImportStatement>
-        get() = findChildren<DTOImportStatement>("/dtoFile/importStatement")
+        get() = findChildren("/dtoFile/importStatement")
 
     val qualifiedEntity: String
         get() = export?.export?.value ?: buildString {
@@ -103,6 +105,11 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
 
             CachedValueProvider.Result.create(imports, this)
         }
+    val usedTypeNames: Set<String>
+        get() = findChildren<DTOQualifiedName>("//qualifiedName")
+            .filter { it.initialSpace is Resolution.Space.GlobalWithImports }
+            .map { it.parts.first().part }
+            .toSet()
 
     override fun getFileType() = DTOFileType.INSTANCE
 
