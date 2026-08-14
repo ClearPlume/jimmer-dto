@@ -71,6 +71,14 @@ class DTOAnnotator : Annotator {
             if (qualifiedType in AUTO_IMPORTED_TYPES) {
                 o.error("'$qualifiedType' cannot be imported because it is built-in type", RemoveElement(qualifiedType, o))
             }
+
+            // 注解别名高亮
+            val target = o.qualifiedName.target
+            if (target is Resolution.Target.Type) {
+                if (process(target.type) { isAnnotationClass() } == true) {
+                    o.alias?.style(DTOSyntaxHighlighter.ANNOTATION)
+                }
+            }
         }
 
         /**
