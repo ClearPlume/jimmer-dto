@@ -95,6 +95,7 @@
         <gotoDeclarationHandler implementation="net.fallingangel.jimmerdto.reference.DTOGotoDeclarationHandler"/>
         <gotoDeclarationHandler implementation="net.fallingangel.jimmerdto.reference.DTOAliasGotoDeclarationHandler"/>
         <lang.findUsagesProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.reference.DTOFindUsagesProvider"/>
+        <customUsageSearcher implementation="net.fallingangel.jimmerdto.reference.DTOAliasUsageSearcher"/>
         <referencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOAssociationIdReferencesSearcher"/>
         <referencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOBuiltinTypeReferencesSearcher"/>
         <methodReferencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOAssociationIdMethodReferencesSearcher"/>
@@ -120,6 +121,7 @@
 
         <fileBasedIndex implementation="net.fallingangel.jimmerdto.index.AnnotationClassIndex"/>
         <fileBasedIndex implementation="net.fallingangel.jimmerdto.index.DtoEntityIndex"/>
+        <fileBasedIndex implementation="net.fallingangel.jimmerdto.index.DTOImportAliasIndex"/>
     </extensions>
 
     <extensions defaultExtensionNs="org.jetbrains.kotlin">
