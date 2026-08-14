@@ -93,6 +93,7 @@
         <internalFileTemplate name="Jimmer DTO File"/>
 
         <gotoDeclarationHandler implementation="net.fallingangel.jimmerdto.reference.DTOGotoDeclarationHandler"/>
+        <gotoDeclarationHandler implementation="net.fallingangel.jimmerdto.reference.DTOAliasGotoDeclarationHandler"/>
         <lang.findUsagesProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.reference.DTOFindUsagesProvider"/>
         <referencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOAssociationIdReferencesSearcher"/>
         <referencesSearch implementation="net.fallingangel.jimmerdto.reference.DTOBuiltinTypeReferencesSearcher"/>
