@@ -2,6 +2,7 @@ package net.fallingangel.jimmerdto.psi.element
 
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.enums.SimplePropType
+import net.fallingangel.jimmerdto.psi.grammarMismatch
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 
 interface DTOPropValue : DTOElement {

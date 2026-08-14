@@ -3,6 +3,7 @@ package net.fallingangel.jimmerdto.psi.element
 import com.intellij.openapi.util.text.StringUtil
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.lsi.process
+import net.fallingangel.jimmerdto.psi.grammarMismatch
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
