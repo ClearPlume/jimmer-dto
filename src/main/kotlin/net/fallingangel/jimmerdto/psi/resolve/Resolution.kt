@@ -13,6 +13,7 @@ import net.fallingangel.jimmerdto.lsi.jimmer.idViewBaseProp
 import net.fallingangel.jimmerdto.lsi.jimmer.isReference
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.psi.element.DTOAlias
 import net.fallingangel.jimmerdto.util.ktClass
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.elements.KtLightElement
@@ -60,7 +61,13 @@ object Resolution {
                 if (candidates != null) {
                     // 歧义：错误已报在 import 处，此处静默
                     val qualified = candidates.singleOrNull() ?: return null
-                    return global.resolve(qualified)
+                    val target = global.resolve(qualified.qualifiedName)
+
+                    return if (qualified.alias == null) {
+                        target
+                    } else {
+                        Target.Alias(qualified.alias, target as? Target.Type)
+                    }
                 }
 
                 if (name.first().isLowerCase()) {
@@ -79,8 +86,13 @@ object Resolution {
 
                 val importedTargets = file.importIndex.flatMap { (name, candidates) ->
                     candidates.mapNotNull { qualified ->
-                        val target = global.resolve(qualified) ?: return@mapNotNull null
-                        Candidate(name, target)
+                        val target = global.resolve(qualified.qualifiedName) ?: return@mapNotNull null
+
+                        if (qualified.alias == null) {
+                            Candidate(name, target)
+                        } else {
+                            Candidate(name, Target.Alias(qualified.alias, target as? Target.Type))
+                        }
                     }
                 }
 
@@ -217,6 +229,15 @@ object Resolution {
 
             override fun spaceForMembers(): Space {
                 return Space.Type(type)
+            }
+        }
+
+        class Alias(val alias: DTOAlias, val target: Type?) : Target() {
+            override val source: PsiElement
+                get() = alias
+
+            override fun spaceForMembers(): Space? {
+                return target?.spaceForMembers()
             }
         }
 

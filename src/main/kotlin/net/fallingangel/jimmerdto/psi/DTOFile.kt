@@ -20,6 +20,7 @@ import net.fallingangel.jimmerdto.psi.element.DTODtoName
 import net.fallingangel.jimmerdto.psi.element.DTOExportStatement
 import net.fallingangel.jimmerdto.psi.element.DTOImportStatement
 import net.fallingangel.jimmerdto.psi.element.DTOQualifiedName
+import net.fallingangel.jimmerdto.psi.resolve.ImportEntry
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
@@ -87,19 +88,19 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             )
         }
 
-    val importIndex: Map<String, List<String>>
+    val importIndex: Map<String, List<ImportEntry>>
         get() = CachedValuesManager.getCachedValue(this, CACHED_IMPORTS_KEY) {
-            val imports = mutableMapOf<String, MutableList<String>>()
+            val imports = mutableMapOf<String, MutableList<ImportEntry>>()
 
             importStatements.forEach { import ->
                 val groupedImport = import.groupedImport
                 if (groupedImport != null) {
                     val qualified = import.qualifiedName.value
                     groupedImport.types.forEach {
-                        imports.computeIfAbsent(it.simpleName) { mutableListOf() }.add("$qualified.${it.type.value}")
+                        imports.computeIfAbsent(it.simpleName) { mutableListOf() }.add(ImportEntry("$qualified.${it.type.value}", it.alias))
                     }
                 } else {
-                    imports.computeIfAbsent(import.simpleName) { mutableListOf() }.add(import.qualifiedName.value)
+                    imports.computeIfAbsent(import.simpleName) { mutableListOf() }.add(ImportEntry(import.qualifiedName.value, import.alias))
                 }
             }
 
@@ -118,6 +119,6 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
     companion object {
         private val CACHED_CLASS_KEY = Key<CachedValue<LClass?>>("DTO_FILE_CACHED_CLASS")
         private val CACHED_DTO_KEY = Key<CachedValue<List<String>>>("DTO_FILE_CACHED_DTO")
-        private val CACHED_IMPORTS_KEY = Key<CachedValue<Map<String, List<String>>>>("DTO_FILE_IMPORTMAP")
+        private val CACHED_IMPORTS_KEY = Key<CachedValue<Map<String, List<ImportEntry>>>>("DTO_FILE_IMPORTMAP")
     }
 }

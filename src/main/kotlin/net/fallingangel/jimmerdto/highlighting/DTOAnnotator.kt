@@ -119,6 +119,12 @@ class DTOAnnotator : Annotator {
                 return
             }
 
+            fun styleIfAnnotation(source: PsiElement) {
+                if (process(source) { isAnnotationClass() } == true) {
+                    o.style(DTOSyntaxHighlighter.ANNOTATION)
+                }
+            }
+
             when (val target = o.target) {
                 null -> {
                     // 在 `export a.b.c -> package a.b.c.d.e.f` 下的包不参与存在性校验
@@ -145,11 +151,7 @@ class DTOAnnotator : Annotator {
                     }
                 }
 
-                is Resolution.Target.Type -> {
-                    if (process(target.source) { isAnnotationClass() } == true) {
-                        o.style(DTOSyntaxHighlighter.ANNOTATION)
-                    }
-                }
+                is Resolution.Target.Type -> styleIfAnnotation(target.source)
 
                 is Resolution.Target.Property -> {
                     val property = target.property
@@ -160,6 +162,8 @@ class DTOAnnotator : Annotator {
 
                 is Resolution.Target.Subtype -> {
                 }
+
+                is Resolution.Target.Alias -> target.target?.let { styleIfAnnotation(target.target.source) }
             }
         }
 

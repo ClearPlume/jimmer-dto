@@ -791,11 +791,11 @@ class DTOCompletionContributor : CompletionContributor() {
 
         val imports = file.importIndex.values
             .mapNotNull { it.singleOrNull() }
-            .mapNotNull { file.psiClass(it) }
+            .mapNotNull { file.psiClass(it.qualifiedName) }
             .filterNot { it.isAnnotationType }
             .lookUp()
         result.addAllElements(imports)
-        val importedFqn = file.importIndex.values.mapNotNullTo(mutableSetOf()) { it.singleOrNull() }
+        val importedFqn = file.importIndex.values.mapNotNullTo(mutableSetOf()) { it.singleOrNull()?.qualifiedName }
 
         val excluded = builtinFqn + importedFqn
 
@@ -879,7 +879,7 @@ class DTOCompletionContributor : CompletionContributor() {
                     // 是否已经导入过相同简单名的类
                     if (name in file.importIndex) {
                         // 已导入的类全限定名是否等于要导入的类
-                        if (file.importIndex[name]?.singleOrNull() != qualifiedName) {
+                        if (file.importIndex[name]?.singleOrNull()?.qualifiedName != qualifiedName) {
                             val annotationName = file.findElementAt(context.startOffset)?.parent<DTOQualifiedName>() ?: return@withInsertHandler
                             annotationName.replace(project.createQualifiedName(qualifiedName))
                         }

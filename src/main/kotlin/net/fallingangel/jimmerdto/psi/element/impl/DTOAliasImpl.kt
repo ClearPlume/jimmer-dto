@@ -21,6 +21,10 @@ class DTOAliasImpl(node: ASTNode) : DTONamedElementImpl(node), DTOAlias {
         return project.createAlias(name).node
     }
 
+    override fun resolve(): PsiElement? {
+        return target?.source
+    }
+
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {
             visitor.visitAlias(this)
