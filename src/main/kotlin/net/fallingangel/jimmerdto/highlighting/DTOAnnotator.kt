@@ -83,7 +83,8 @@ class DTOAnnotator : Annotator {
                 return
             } else {
                 if (process(clazz) { isAnnotationClass() } == true) {
-                    o.style(DTOSyntaxHighlighter.ANNOTATION)
+                    o.type.style(DTOSyntaxHighlighter.ANNOTATION)
+                    o.alias?.style(DTOSyntaxHighlighter.ANNOTATION)
                 }
             }
 
