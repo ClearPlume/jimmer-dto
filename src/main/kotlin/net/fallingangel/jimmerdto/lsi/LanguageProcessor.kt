@@ -19,7 +19,7 @@ interface LanguageProcessor {
     fun lProperty(containingLClass: LClass): LProperty?
 
     context(element: PsiElement)
-    fun containingClass(): PsiElement?
+    fun containingClass(): PsiNamedElement?
 
     context(element: PsiElement)
     fun isAnnotationClass(): Boolean
@@ -46,10 +46,10 @@ interface LanguageProcessor {
     fun hasAnnotation(vararg annotation: ClassId): Boolean
 
     context(element: PsiElement)
-    fun typeArgumentFor(superName: String, index: Int = 0): PsiElement?
+    fun typeArgumentFor(superName: String, index: Int = 0): PsiNamedElement?
 
     context(element: PsiElement)
-    fun topLevelClasses(): List<PsiElement>
+    fun topLevelClasses(): List<PsiNamedElement>
 
     context(element: PsiElement)
     fun builtinAliases(): List<String>

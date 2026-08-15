@@ -1,6 +1,7 @@
 package net.fallingangel.jimmerdto.lsi
 
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNamedElement
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
 import net.fallingangel.jimmerdto.lsi.annotation.annotationsToString
@@ -17,7 +18,7 @@ class LClass(
     parentsHolder: Lazy<List<LClass>>,
     val childrenProvider: () -> List<LClass>,
     propertiesHolder: Lazy<List<LProperty>>,
-    override val source: PsiElement,
+    override val source: PsiNamedElement,
 ) : LElement, LAnnotationOwner, LPsiDependent {
     override val annotations by annotationsHolder
 

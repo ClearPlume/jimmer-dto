@@ -94,7 +94,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun containingClass(): PsiElement? {
+    override fun containingClass(): PsiNamedElement? {
         val property = element as? KtProperty ?: return null
         return property.containingClass()
     }
@@ -112,7 +112,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun builtinType(type: StandardType): PsiElement? {
+    override fun builtinType(type: StandardType): PsiNamedElement? {
         val qualified = when (type) {
             StandardType.Boolean -> "kotlin.Boolean"
             StandardType.Char -> "kotlin.Char"
@@ -221,7 +221,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun typeArgumentFor(superName: String, index: Int): PsiElement? {
+    override fun typeArgumentFor(superName: String, index: Int): PsiNamedElement? {
         val clazz = element.narrow<KtClass>()
         return analyze(clazz) {
             val symbol = clazz.symbol as? KaClassSymbol ?: return null
@@ -230,12 +230,12 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
                 .firstOrNull { it.classId.asFqNameString() == superName }
                 ?: return null
             val typeParameter = superType.typeArguments.getOrNull(index)?.type ?: return null
-            (typeParameter as? KaClassType)?.symbol?.psi
+            (typeParameter as? KaClassType)?.symbol?.psi as? PsiNamedElement
         }
     }
 
     context(element: PsiElement)
-    override fun topLevelClasses(): List<PsiElement> {
+    override fun topLevelClasses(): List<PsiNamedElement> {
         return (element as? KtFile)?.declarations?.filterIsInstance<KtClass>().orEmpty()
     }
 
@@ -281,7 +281,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(_: PsiElement)
-    override fun filterEntity(filterClass: PsiElement): PsiElement? {
+    override fun filterEntity(filterClass: PsiElement): PsiNamedElement? {
         return process(filterClass) { typeArgumentFor("org.babyfish.jimmer.sql.kt.fetcher.KFieldFilter") }
     }
 

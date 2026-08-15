@@ -1,7 +1,8 @@
 package net.fallingangel.jimmerdto.psi.resolve
 
 import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiClass
+import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiPackage
 import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.LClass
@@ -107,7 +108,7 @@ object Resolution {
             }
         }
 
-        class Type(val declaration: PsiElement) : Space() {
+        class Type(val declaration: PsiNamedElement) : Space() {
             override fun resolve(name: String): Target? {
                 return candidates().find { it.name == name }?.target
             }
@@ -204,12 +205,12 @@ object Resolution {
     }
 
     sealed class Target {
-        abstract val source: PsiElement?
+        abstract val source: PsiNamedElement
 
         abstract fun spaceForMembers(): Space?
 
         class Pkg(val `package`: PsiPackage) : Target() {
-            override val source: PsiElement
+            override val source: PsiNamedElement
                 get() = `package`
 
             override fun spaceForMembers(): Space {
@@ -217,14 +218,14 @@ object Resolution {
             }
         }
 
-        class Type private constructor(val type: PsiElement) : Target() {
+        class Type private constructor(val type: PsiNamedElement) : Target() {
             companion object {
-                operator fun invoke(type: PsiElement): Target {
+                operator fun invoke(type: PsiNamedElement): Target {
                     return Type((type as? KtLightClass)?.kotlinOrigin ?: type)
                 }
             }
 
-            override val source: PsiElement
+            override val source: PsiNamedElement
                 get() = type
 
             override fun spaceForMembers(): Space {
@@ -233,7 +234,7 @@ object Resolution {
         }
 
         class Alias(val alias: DTOAlias, val target: Type?) : Target() {
-            override val source: PsiElement
+            override val source: PsiNamedElement
                 get() = alias
 
             override fun spaceForMembers(): Space? {
@@ -247,7 +248,7 @@ object Resolution {
                 class ImplicitId(val reference: LProperty) : Via()
             }
 
-            override val source: PsiElement?
+            override val source: PsiNamedElement
                 get() = property.source
 
             override fun spaceForMembers(): Space? {
@@ -256,7 +257,7 @@ object Resolution {
         }
 
         class Subtype(val lClass: LClass) : Target() {
-            override val source: PsiElement
+            override val source: PsiNamedElement
                 get() = lClass.source
 
             override fun spaceForMembers(): Space? {
@@ -264,8 +265,8 @@ object Resolution {
             }
         }
 
-        class EnumConst(val enum: PsiElement) : Target() {
-            override val source: PsiElement
+        class EnumConst(val enum: PsiNamedElement) : Target() {
+            override val source: PsiNamedElement
                 get() = enum
 
             override fun spaceForMembers(): Space? {

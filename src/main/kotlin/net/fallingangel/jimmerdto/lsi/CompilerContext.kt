@@ -3,6 +3,7 @@ package net.fallingangel.jimmerdto.lsi
 import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.openapi.module.Module
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNamedElement
 import net.fallingangel.jimmerdto.enums.StandardType
 import org.jetbrains.kotlin.idea.base.util.module
 
@@ -12,10 +13,10 @@ interface CompilerContext {
     fun appliesTo(module: Module): Boolean
 
     context(element: PsiElement)
-    fun builtinType(type: StandardType): PsiElement?
-    
+    fun builtinType(type: StandardType): PsiNamedElement?
+
     context(_: PsiElement)
-    fun filterEntity(filterClass: PsiElement): PsiElement?
+    fun filterEntity(filterClass: PsiElement): PsiNamedElement?
 }
 
 fun Module.context(): CompilerContext? {

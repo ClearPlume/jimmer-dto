@@ -711,8 +711,8 @@ class DTOCompletionContributor : CompletionContributor() {
                 val candidates = part.space?.candidates() ?: return@complete
 
                 result.addAllElements(
-                    candidates.mapNotNull { (name, target) ->
-                        val source = target.source ?: return@mapNotNull null
+                    candidates.map { (name, target) ->
+                        val source = target.source
                         LookupElementBuilder.create(source, name)
                             .withIcon(source.getIcon(0))
                     }

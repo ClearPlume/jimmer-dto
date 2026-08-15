@@ -1,6 +1,7 @@
 package net.fallingangel.jimmerdto.lsi
 
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNamedElement
 import net.fallingangel.jimmerdto.lsi.annotation.*
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 
@@ -9,7 +10,7 @@ class LProperty(
     val type: Type,
     val abstract: Boolean,
     override val annotations: List<LAnnotation>,
-    override val source: PsiElement?,
+    override val source: PsiNamedElement,
     val containingLClass: LClass,
 ) : LElement, LAnnotationOwner, LPsiDependent {
     sealed class Type : LPsiDependent {

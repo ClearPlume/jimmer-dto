@@ -100,7 +100,7 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun containingClass(): PsiElement? {
+    override fun containingClass(): PsiNamedElement? {
         val property = element as? PsiMethod ?: return null
         return property.containingClass
     }
@@ -118,7 +118,7 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun builtinType(type: StandardType): PsiElement? {
+    override fun builtinType(type: StandardType): PsiNamedElement? {
         val qualified = when (type) {
             StandardType.Boolean -> "java.lang.Boolean"
             StandardType.Char -> "java.lang.Character"
@@ -209,7 +209,7 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun typeArgumentFor(superName: String, index: Int): PsiElement? {
+    override fun typeArgumentFor(superName: String, index: Int): PsiNamedElement? {
         val clazz = element.narrow<PsiClass>()
         val superClass = element.psiClass(superName) ?: return null
         val substitutor = TypeConversionUtil.getClassSubstitutor(superClass, clazz, PsiSubstitutor.EMPTY) ?: return null
@@ -219,7 +219,7 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun topLevelClasses(): List<PsiElement> {
+    override fun topLevelClasses(): List<PsiNamedElement> {
         return (element as? PsiJavaFile)?.classes?.asList().orEmpty()
     }
 
@@ -259,7 +259,7 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(_: PsiElement)
-    override fun filterEntity(filterClass: PsiElement): PsiElement? {
+    override fun filterEntity(filterClass: PsiElement): PsiNamedElement? {
         val tableClass = process(filterClass) { typeArgumentFor("org.babyfish.jimmer.sql.fetcher.FieldFilter") } ?: return null
         return process(tableClass) { typeArgumentFor("org.babyfish.jimmer.sql.ast.table.Table") }
     }
