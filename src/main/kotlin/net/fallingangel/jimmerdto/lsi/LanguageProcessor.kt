@@ -31,6 +31,9 @@ interface LanguageProcessor {
     fun classQualifiedName(): String?
 
     context(element: PsiElement)
+    fun packageName(): String?
+
+    context(element: PsiElement)
     fun qualifiedEnumConstant(): Pair<String, String>?
 
     context(element: PsiElement)

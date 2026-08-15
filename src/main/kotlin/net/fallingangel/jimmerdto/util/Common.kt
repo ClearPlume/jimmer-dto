@@ -5,14 +5,10 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
-import com.intellij.util.indexing.FileBasedIndex
 import net.fallingangel.jimmerdto.core.DTOLanguage.xPath
-import net.fallingangel.jimmerdto.index.ANNOTATION_CLASS_INDEX
-import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
-import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClass
@@ -140,43 +136,6 @@ fun PsiElement.psiClass(qualifiedName: String): PsiClass? {
 
 fun PsiElement.ktClass(qualifiedName: String): KtClassOrObject? {
     return KotlinFullClassNameIndex[qualifiedName, project, resolveScope].firstOrNull()
-}
-
-/**
- * @param `package` null等同于空字符串
- */
-fun Project.allClasses(`package`: String? = ""): List<PsiClass> {
-    val classes = JavaPsiFacade.getInstance(this).findPackage(`package` ?: "")?.classes ?: emptyArray()
-    return classes.filter { it !is KtLightClass || (it.kotlinOrigin != null) }
-}
-
-/**
- * @param `package` null为获取所有包下所有类
- */
-fun Project.allAnnotations(`package`: String? = null): List<PsiClass> {
-    return if (`package` == null) {
-        val psiFacade = JavaPsiFacade.getInstance(this)
-        val scope = ProjectScope.getAllScope(this)
-
-        FileBasedIndex.getInstance()
-            .getAllKeys(ANNOTATION_CLASS_INDEX, this)
-            .mapNotNull { psiFacade.findClass(it, scope) }
-    } else {
-        JavaPsiFacade.getInstance(this).findPackage(`package`)?.classes?.filter { it.isAnnotationType } ?: emptyList()
-    }
-}
-
-/**
- * @param `package` null等同于空字符串
- */
-fun Project.allEntities(`package`: String? = ""): List<PsiClass> {
-    return allClasses(`package` ?: "").filter {
-        it.isInterface && it.hasAnnotation(JimmerAnnotations.Entity, JimmerAnnotations.Embeddable, JimmerAnnotations.Immutable)
-    }
-}
-
-fun Project.allPackages(`package`: String): List<PsiPackage> {
-    return JavaPsiFacade.getInstance(this).findPackage(`package`)?.subPackages?.toList() ?: emptyList()
 }
 
 fun PsiModifierListOwner.hasAnnotation(vararg anno: ClassId): Boolean {

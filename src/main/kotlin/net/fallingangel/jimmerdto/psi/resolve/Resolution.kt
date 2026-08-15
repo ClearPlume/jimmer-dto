@@ -1,5 +1,8 @@
 package net.fallingangel.jimmerdto.psi.resolve
 
+import com.intellij.codeInsight.completion.AllClassesGetter
+import com.intellij.codeInsight.completion.CompletionParameters
+import com.intellij.codeInsight.completion.PrefixMatcher
 import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiNamedElement
@@ -41,10 +44,18 @@ object Resolution {
                     ?.map { Candidate(it.demand(PsiPackage::getName), Target.Pkg(it)) }
                     .orEmpty()
             }
+
+            context(parameters: CompletionParameters, matcher: PrefixMatcher)
+            fun eachClass(consume: (PsiClass) -> Unit) {
+                AllClassesGetter.processJavaClasses(parameters, matcher, true) { psiClass ->
+                    if (psiClass is KtLightElement<*, *> && psiClass.kotlinOrigin == null) return@processJavaClasses
+                    consume(psiClass)
+                }
+            }
         }
 
         class GlobalWithImports(val file: DTOFile, val fallbackPackage: String) : Space() {
-            private val global = GlobalRaw(file)
+            val global = GlobalRaw(file)
 
             override fun resolve(name: String): Target? {
                 StandardType[name]?.let { standard ->

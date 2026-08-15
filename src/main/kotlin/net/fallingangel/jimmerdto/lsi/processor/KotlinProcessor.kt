@@ -146,6 +146,12 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
+    override fun packageName(): String? {
+        val clazz = element.narrow<KtClassOrObject>()
+        return (clazz.containingFile as? KtFile)?.packageFqName?.asString()
+    }
+
+    context(element: PsiElement)
     override fun qualifiedEnumConstant(): Pair<String, String>? {
         val enum = element.narrow<KtEnumEntry>()
         val clazz = enum.containingClass() ?: error("Enum constant ${enum.name} without containing class in ${enum.containingFile.name}")

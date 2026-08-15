@@ -5,32 +5,29 @@ import com.intellij.codeInsight.completion.CompletionInitializationContext.DUMMY
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
-import com.intellij.openapi.project.Project
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.psi.*
-import com.intellij.psi.codeStyle.CodeStyleManager
-import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
-import com.intellij.psi.util.siblings
 import net.fallingangel.jimmerdto.completion.pattern.lsiElement
 import net.fallingangel.jimmerdto.core.DTOLanguage.rule
 import net.fallingangel.jimmerdto.core.DTOLanguage.token
 import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
-import net.fallingangel.jimmerdto.enums.StandardType
+import net.fallingangel.jimmerdto.lsi.LKind
 import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.compiling
+import net.fallingangel.jimmerdto.lsi.jimmer.isEntity
 import net.fallingangel.jimmerdto.lsi.jimmer.isEntityAssociation
 import net.fallingangel.jimmerdto.lsi.jimmer.isList
 import net.fallingangel.jimmerdto.lsi.jimmer.isReference
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser.*
+import net.fallingangel.jimmerdto.psi.demand
 import net.fallingangel.jimmerdto.psi.element.*
+import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.util.*
-import org.jetbrains.kotlin.asJava.elements.KtLightElement
 import net.fallingangel.jimmerdto.psi.DTOParser.Modifier as ParserModifier
 import net.fallingangel.jimmerdto.psi.DTOParser.PropConfigName as ParserPropConfig
 
@@ -43,7 +40,7 @@ class DTOCompletionContributor : CompletionContributor() {
         completeUserPropType()
 
         // 用户属性类型中的泛型提示
-        completeUserPropGenericType()
+        completeGenericType()
 
         // 正属性提示
         completeProp()
@@ -112,9 +109,7 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeUserPropType() {
         complete(
-            { parameters, result ->
-                findUserPropType(parameters, result, parameters.originalFile as DTOFile)
-            },
+            ::completeQualifiedNamePart,
             identifier.withParent(DTOQualifiedNamePart::class.java)
                 .withSuperParent(3, DTOTypeRef::class.java)
                 .withSuperParent(4, DTOUserProp::class.java),
@@ -122,12 +117,13 @@ class DTOCompletionContributor : CompletionContributor() {
     }
 
     /**
-     * 用户属性类型中的泛型提示
+     * 类型中的泛型提示
      */
-    private fun completeUserPropGenericType() {
+    private fun completeGenericType() {
         complete(
             { parameters, result ->
-                findUserPropType(parameters, result, parameters.originalFile as DTOFile, true)
+                result.addAllElements(listOf("out", "in").lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) })
+                completeQualifiedNamePart(parameters, result)
             },
             identifier.withParent(DTOQualifiedNamePart::class.java)
                 .withSuperParent(3, DTOTypeRef::class.java)
@@ -336,11 +332,14 @@ class DTOCompletionContributor : CompletionContributor() {
      * Export包提示
      */
     private fun completeExportPackage() {
-        completePackage(
+        complete(
+            { parameters, result ->
+                completeQualifiedNamePart(parameters, result) {
+                    it is PsiPackage || (process(it) { isEntity() } ?: false)
+                }
+            },
             identifier.withParent(DTOQualifiedNamePart::class.java)
                 .withSuperParent(3, DTOExportStatement::class.java),
-            Project::allEntities,
-            needImport = false,
         )
     }
 
@@ -348,10 +347,10 @@ class DTOCompletionContributor : CompletionContributor() {
      * Import包提示
      */
     private fun completeImportPackage() {
-        completePackage(
+        complete(
+            ::completeQualifiedNamePart,
             identifier.withParent(DTOQualifiedNamePart::class.java)
                 .withSuperParent(3, DTOImportStatement::class.java),
-            Project::allClasses
         )
     }
 
@@ -359,50 +358,15 @@ class DTOCompletionContributor : CompletionContributor() {
      * 注解提示
      */
     private fun completeAnnotation() {
-        completePackage(
+        complete(
+            { parameters, result ->
+                completeQualifiedNamePart(parameters, result) {
+                    process(it) { kind() == LKind.Annotation } ?: false
+                }
+            },
             identifier.withParent(DTOQualifiedNamePart::class.java)
                 .withSuperParent(3, DTOAnnotation::class.java)
                 .andNot(identifier.withSuperParent(4, DTOAnnotationSingleValue::class.java)),
-            Project::allAnnotations,
-            true,
-        )
-    }
-
-    /**
-     * 包和类提示
-     *
-     * @param classAvailableBeforeFirstDot 类提示是否在全限定类名中的第一段可用
-     */
-    private inline fun completePackage(
-        place: ElementPattern<PsiElement>,
-        crossinline classes: Project.(String?) -> List<PsiClass>,
-        classAvailableBeforeFirstDot: Boolean = false,
-        needImport: Boolean = true,
-    ) {
-        complete(
-            { parameters, result ->
-                val project = parameters.position.project
-                val typedPackage = parameters.position.parent.siblings(forward = false, withSelf = false)
-                    .filter { it.elementType == rule[RULE_qualifiedNamePart] }
-                    .map(PsiElement::getText)
-                    .toList()
-                    .asReversed()
-                val curPackage = typedPackage.joinToString(".")
-                val curPackageClasses = if (typedPackage.isEmpty() && classAvailableBeforeFirstDot) {
-                    project.classes(null).lookUp(needImport)
-                } else {
-                    project.classes(curPackage).lookUp(needImport)
-                }
-
-                val availablePackages = project.allPackages(curPackage)
-                    .map {
-                        LookupElementBuilder.create(it.name!!)
-                            .withIcon(AllIcons.Nodes.Package)
-                    }
-
-                result.addAllElements(curPackageClasses + availablePackages)
-            },
-            place,
         )
     }
 
@@ -521,7 +485,7 @@ class DTOCompletionContributor : CompletionContributor() {
                 if (paramType is PsiClassType) {
                     val clazz = paramType.resolve()
                     if (clazz?.isAnnotationType == true) {
-                        result.addAllElements(listOf(clazz).lookUp())
+                        result.addAllElements(listOf(clazz).map { it.lookUp(it.demand(PsiClass::getName), true) })
                     }
                 }
             },
@@ -624,15 +588,7 @@ class DTOCompletionContributor : CompletionContributor() {
      */
     private fun completeImplementsType() {
         complete(
-            { parameters, result ->
-                AllClassesGetter.processJavaClasses(parameters, result.prefixMatcher, true) { psiClass ->
-                    if (psiClass.isAnnotationType) return@processJavaClasses
-                    if (psiClass is KtLightElement<*, *> && psiClass.kotlinOrigin == null) return@processJavaClasses
-
-                    result.addAllElements(listOf(psiClass).lookUp())
-                }
-                result.restartCompletionOnAnyPrefixChange()
-            },
+            ::completeQualifiedNamePart,
             identifier.withParent(DTOQualifiedNamePart::class.java)
                 .inside(DTOImplements::class.java)
         )
@@ -707,16 +663,9 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completePropConfigArg() {
         complete(
             { parameters, result ->
-                val part = parameters.position.parent<DTOQualifiedNamePart>() ?: return@complete
-                val candidates = part.space?.candidates() ?: return@complete
-
-                result.addAllElements(
-                    candidates.map { (name, target) ->
-                        val source = target.source
-                        LookupElementBuilder.create(source, name)
-                            .withIcon(source.getIcon(0))
-                    }
-                )
+                completeQualifiedNamePart(parameters, result) {
+                    process(it) { kind() == LKind.Property } ?: false
+                }
             },
             or(
                 identifier.withSuperParent(
@@ -779,41 +728,42 @@ class DTOCompletionContributor : CompletionContributor() {
         )
     }
 
-    private fun findUserPropType(
+    private fun completeQualifiedNamePart(
         parameters: CompletionParameters,
         result: CompletionResultSet,
-        file: DTOFile,
-        isGeneric: Boolean = false
+        filter: (PsiNamedElement) -> Boolean = { true },
     ) {
-        val builtinTypes = compiling(file) { StandardType.entries.mapNotNull { builtinType(it) } }.orEmpty()
-        result.addAllElements(builtinTypes.lookUp())
-        val builtinFqn = builtinTypes.mapNotNull { process(it) { classQualifiedName() } }
+        val part = parameters.position.parent<DTOQualifiedNamePart>() ?: return
+        when (val space = part.space) {
+            null -> return
 
-        val imports = file.importIndex.values
-            .mapNotNull { it.singleOrNull() }
-            .mapNotNull { file.psiClass(it.qualifiedName) }
-            .filterNot { it.isAnnotationType }
-            .lookUp()
-        result.addAllElements(imports)
-        val importedFqn = file.importIndex.values.mapNotNullTo(mutableSetOf()) { it.singleOrNull()?.qualifiedName }
+            is Resolution.Space.GlobalWithImports -> {
+                val emitted = mutableSetOf<String>()
+                for (candidate in space.candidates()) {
+                    val target = candidate.target
+                    val subject = (target as? Resolution.Target.Alias)?.target?.type ?: target.source
+                    if (filter(subject)) {
+                        result.addElement(candidate.lookUp(true))
+                        emitted.add(candidate.name)
+                    }
+                }
+                space.global.eachClass(parameters = parameters, matcher = result.prefixMatcher) {
+                    val name = it.demand(PsiClass::getName)
+                    if (it.name !in emitted && filter(it)) {
+                        result.addElement(it.lookUp(name, true))
+                    }
+                }
+                result.restartCompletionOnAnyPrefixChange()
+            }
 
-        val excluded = builtinFqn + importedFqn
-
-        val genericModifiers = if (isGeneric) {
-            listOf("out", "in").lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
-        } else {
-            emptyList()
+            else -> {
+                result.addAllElements(
+                    space.candidates()
+                        .filter { filter(it.target.source) }
+                        .lookUp(false)
+                )
+            }
         }
-        result.addAllElements(genericModifiers)
-
-        AllClassesGetter.processJavaClasses(parameters, result.prefixMatcher, true) { psiClass ->
-            if (psiClass.isAnnotationType) return@processJavaClasses
-            if (psiClass.qualifiedName in excluded) return@processJavaClasses
-            if (psiClass is KtLightElement<*, *> && psiClass.kotlinOrigin == null) return@processJavaClasses
-
-            result.addAllElements(listOf(psiClass).lookUp())
-        }
-        result.restartCompletionOnAnyPrefixChange()
     }
 
     private fun bodyLookups(): List<LookupElement> {
@@ -857,63 +807,6 @@ class DTOCompletionContributor : CompletionContributor() {
                 .withTypeText(it.presentableType, true)
                 .customizer()
         }
-    }
-
-    @JvmName("lookupClass")
-    private fun List<PsiElement>.lookUp(
-        needImport: Boolean = true,
-        customizer: LookupElementBuilder.() -> LookupElement = { this },
-    ): List<LookupElement> = mapNotNull {
-        val qualifiedName = process(it) { classQualifiedName() } ?: return@mapNotNull null
-        val name = (it as? PsiNamedElement)?.name ?: return@mapNotNull null
-        LookupElementBuilder.createWithIcon(it)
-            .withTypeText("(${qualifiedName.substringBeforeLast('.')})", true)
-            .withInsertHandler { context, _ ->
-                if (needImport) {
-                    val file = context.file as DTOFile
-                    val root = file.findChild<PsiElement>("/dtoFile")
-                    val project = file.project
-                    val export = file.export
-                    val imports = file.importStatements
-
-                    // 是否已经导入过相同简单名的类
-                    if (name in file.importIndex) {
-                        // 已导入的类全限定名是否等于要导入的类
-                        if (file.importIndex[name]?.singleOrNull()?.qualifiedName != qualifiedName) {
-                            val annotationName = file.findElementAt(context.startOffset)?.parent<DTOQualifiedName>() ?: return@withInsertHandler
-                            annotationName.replace(project.createQualifiedName(qualifiedName))
-                        }
-                    } else {
-                        val import = project.createImport(qualifiedName)
-
-                        if (imports.isEmpty()) {
-                            if (export == null) {
-                                val inserted = root.addBefore(import, file.findChild("/dtoFile/dto"))
-                                CodeStyleManager.getInstance(project).reformatRange(
-                                    root,
-                                    0,
-                                    inserted.textRange.endOffset,
-                                )
-                            } else {
-                                val inserted = root.addAfter(import, export)
-                                CodeStyleManager.getInstance(project).reformatRange(
-                                    root,
-                                    export.textRange.startOffset,
-                                    inserted.textRange.endOffset,
-                                )
-                            }
-                        } else {
-                            val inserted = root.addAfter(import, imports.last())
-                            CodeStyleManager.getInstance(project).reformatRange(
-                                root,
-                                imports.last().textRange.startOffset,
-                                inserted.textRange.endOffset,
-                            )
-                        }
-                    }
-                }
-            }
-            .customizer()
     }
 
     @JvmName("lookupInfo")
