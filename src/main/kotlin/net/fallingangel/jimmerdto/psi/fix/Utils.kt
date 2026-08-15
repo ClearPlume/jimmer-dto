@@ -53,6 +53,7 @@ val ParamType.templateExpression: Expression
             val lookupElements = constants
                 .map { (name, element) ->
                     LookupElementBuilder.create(element, "${canonicalName}.$name")
+                        .withIcon(element.getIcon(0))
                 }
             ConstantNode(value).withLookupItems(lookupElements)
         }
