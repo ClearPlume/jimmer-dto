@@ -2,6 +2,7 @@ package net.fallingangel.jimmerdto.psi
 
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
+import kotlin.reflect.KCallable
 
 fun DTOElement.grammarMismatch(): Nothing {
     error("No branch matched for ${node.elementType} at ${containingFile.name}:$textOffset, text: $text")
@@ -9,4 +10,16 @@ fun DTOElement.grammarMismatch(): Nothing {
 
 fun PsiElement.unhandledElement(): Nothing {
     error("Unhandled element type ${node.elementType} at ${containingFile.name}:$textOffset, text: $text")
+}
+
+fun <R : Any> PsiElement.demand(declaration: KCallable<R?>, vararg args: Any?): R {
+    return if (args.isEmpty()) {
+        declaration.call(this) ?: missing(declaration.name)
+    } else {
+        declaration.call(this, args) ?: missing(declaration.name)
+    }
+}
+
+fun PsiElement.missing(what: String): Nothing {
+    error("Missing $what on ${node.elementType} at ${containingFile.name}:$textOffset, text: $text")
 }

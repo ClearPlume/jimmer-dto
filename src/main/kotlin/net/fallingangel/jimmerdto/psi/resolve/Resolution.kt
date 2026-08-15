@@ -14,6 +14,7 @@ import net.fallingangel.jimmerdto.lsi.jimmer.idViewBaseProp
 import net.fallingangel.jimmerdto.lsi.jimmer.isReference
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.psi.demand
 import net.fallingangel.jimmerdto.psi.element.DTOAlias
 import net.fallingangel.jimmerdto.util.ktClass
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
@@ -37,12 +38,7 @@ object Resolution {
                 return JavaPsiFacade.getInstance(file.project)
                     .findPackage("")
                     ?.subPackages
-                    ?.map {
-                        Candidate(
-                            requireNotNull(it.name) { "Sub package of root has no name: $it" },
-                            Target.Pkg(it),
-                        )
-                    }
+                    ?.map { Candidate(it.demand(PsiPackage::getName), Target.Pkg(it)) }
                     .orEmpty()
             }
         }
@@ -131,19 +127,11 @@ object Resolution {
             }
 
             override fun candidates(): List<Candidate> {
-                val subPackages = `package`.subPackages.map {
-                    Candidate(
-                        requireNotNull(it.name) { "Sub package has no name: $it" },
-                        Target.Pkg(it),
-                    )
-                }
+                val subPackages = `package`.subPackages.map { Candidate(it.demand(PsiPackage::getName), Target.Pkg(it)) }
 
-                val classes = `package`.classes.filter { it !is KtLightElement<*, *> }.map {
-                    Candidate(
-                        requireNotNull(it.name) { "PsiClass has no name: $it" },
-                        Target.Type(it),
-                    )
-                }
+                val classes = `package`.classes
+                    .filter { it !is KtLightElement<*, *> }
+                    .map { Candidate(it.demand(PsiClass::getName), Target.Type(it)) }
 
                 val ktClasses = KotlinTopLevelClassByPackageIndex[`package`.qualifiedName, `package`.project, `package`.resolveScope]
                     .mapNotNull { it.name?.let { name -> Candidate(name, Target.Type(it)) } }
