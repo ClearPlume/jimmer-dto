@@ -26,8 +26,7 @@ fun Resolution.Candidate.lookUp(insideImportMechanism: Boolean): LookupElement {
 
         is Resolution.Target.Property -> {
             val property = target.property
-            LookupElementBuilder.create(property.name)
-                .withPsiElement(target.property.source)
+            LookupElementBuilder.create(target.property.source, property.name)
                 .withIcon(property.source.getIcon(0))
         }
 
@@ -38,8 +37,7 @@ fun Resolution.Candidate.lookUp(insideImportMechanism: Boolean): LookupElement {
                 ?.let {
                     val element = it.type
                     val packageName = process(element) { packageName() } ?: element.missing("packageName")
-                    LookupElementBuilder.create(name)
-                        .withPsiElement(element)
+                    LookupElementBuilder.create(element, name)
                         .withIcon(element.getIcon(0))
                         .withTailText(" -> ${element.name}")
                         .withTypeText("($packageName)", true)
@@ -55,8 +53,7 @@ fun PsiNamedElement.lookUp(name: String, insideImportMechanism: Boolean): Lookup
     val qualifiedName = process(this) { classQualifiedName() } ?: missing("qualifiedName")
     val packageName = process(this) { packageName() } ?: missing("packageName")
 
-    return LookupElementBuilder.create(name)
-        .withPsiElement(this)
+    return LookupElementBuilder.create(this, name)
         .withIcon(getIcon(0))
         .withTypeText("($packageName)", true)
         .withInsertHandler { context, _ ->
