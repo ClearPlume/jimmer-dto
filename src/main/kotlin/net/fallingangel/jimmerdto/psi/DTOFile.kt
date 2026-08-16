@@ -7,6 +7,8 @@ import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.FileViewProvider
+import com.intellij.psi.PsiElement
+import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -15,12 +17,10 @@ import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.project.ProjectSyncTracker
-import net.fallingangel.jimmerdto.psi.element.DTODtoName
-import net.fallingangel.jimmerdto.psi.element.DTOExportStatement
-import net.fallingangel.jimmerdto.psi.element.DTOImportStatement
-import net.fallingangel.jimmerdto.psi.element.DTOQualifiedName
+import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.resolve.ImportEntry
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
+import net.fallingangel.jimmerdto.util.findChild
 import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
 import net.fallingangel.jimmerdto.util.psiClass
@@ -110,6 +110,38 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             .filter { it.initialSpace is Resolution.Space.GlobalWithImports }
             .map { it.parts.first().part }
             .toSet()
+
+    fun addImport(qualifiedName: String) {
+        val import = project.createImport(qualifiedName)
+
+        val root = findChild<PsiElement>("/dtoFile")
+        val export = export
+
+        if (importStatements.isEmpty()) {
+            if (export == null) {
+                val inserted = root.addBefore(import, findChild("/dtoFile/dto"))
+                CodeStyleManager.getInstance(project).reformatRange(
+                    root,
+                    0,
+                    inserted.textRange.endOffset,
+                )
+            } else {
+                val inserted = root.addAfter(import, export)
+                CodeStyleManager.getInstance(project).reformatRange(
+                    root,
+                    export.textRange.startOffset,
+                    inserted.textRange.endOffset,
+                )
+            }
+        } else {
+            val inserted = root.addAfter(import, importStatements.last())
+            CodeStyleManager.getInstance(project).reformatRange(
+                root,
+                importStatements.last().textRange.startOffset,
+                inserted.textRange.endOffset,
+            )
+        }
+    }
 
     override fun getFileType() = DTOFileType.INSTANCE
 
