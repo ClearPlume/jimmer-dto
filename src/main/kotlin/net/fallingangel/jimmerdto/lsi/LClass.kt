@@ -1,6 +1,5 @@
 package net.fallingangel.jimmerdto.lsi
 
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
@@ -18,8 +17,8 @@ class LClass(
     parentsHolder: Lazy<List<LClass>>,
     val childrenProvider: () -> List<LClass>,
     propertiesHolder: Lazy<List<LProperty>>,
-    override val source: PsiNamedElement,
-) : LElement, LAnnotationOwner, LPsiDependent {
+    override val dependencyItem: PsiNamedElement,
+) : LElement, LAnnotationOwner, LDependencyProvider {
     override val annotations by annotationsHolder
 
     val parents by parentsHolder
@@ -52,10 +51,10 @@ class LClass(
         return allProperties.find { it.name == name }
     }
 
-    override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
-        annotations.forEach { it.collectPsiElements(result, visited) }
-        parents.forEach { it.collectPsiElements(result, visited) }
-        properties.forEach { it.collectPsiElements(result, visited) }
+    override fun collectChildren(result: MutableSet<Any>, visited: MutableSet<LDependencyProvider>) {
+        annotations.forEach { it.collectDependencyItems(result, visited) }
+        parents.forEach { it.collectDependencyItems(result, visited) }
+        properties.forEach { it.collectDependencyItems(result, visited) }
     }
 
     override fun toString() = toDebugString(mutableSetOf())
@@ -79,7 +78,7 @@ class LClass(
             append("annotations=$annotationStr, ")
             append("parents=$parentsStr, ")
             append("properties=$propertiesStr, ")
-            append("source=$source, ")
+            append("dependencyItem=$dependencyItem, ")
             append(")")
         }
     }

@@ -26,7 +26,7 @@ class DTOPropNameImpl(node: ASTNode) : DTONamedElementImpl(node), DTOPropName {
         if (prop is DTOPositiveProp && prop.arg != null) {
             return null
         }
-        return containingLClass?.findProperty(value)?.source
+        return containingLClass?.findProperty(value)?.dependencyItem
     }
 
     override fun accept(visitor: PsiElementVisitor) {

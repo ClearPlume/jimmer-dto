@@ -37,6 +37,6 @@ class DTOQualifiedNamePartImpl(node: ASTNode) : DTONamedElementImpl(node), DTOQu
     override fun resolve(): PsiElement? {
         val target = target as? TargetProperty ?: return target?.source
         val via = target.via as? TargetProperty.Via.ImplicitId ?: return target.source
-        return via.reference.source
+        return via.reference.dependencyItem
     }
 }

@@ -1,24 +1,25 @@
 package net.fallingangel.jimmerdto.lsi.annotation
 
 import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiNamedElement
+import net.fallingangel.jimmerdto.lsi.LDependencyProvider
 import net.fallingangel.jimmerdto.lsi.LElement
-import net.fallingangel.jimmerdto.lsi.LPsiDependent
 import net.fallingangel.jimmerdto.lsi.process
 
 class LAnnotation(
     override val name: String,
     val canonicalName: String,
     val params: List<Param>,
-    override val source: PsiElement?,
-) : LElement, LPsiDependent {
+    override val dependencyItem: PsiElement,
+) : LElement, LDependencyProvider {
     class Param(
         override val name: String,
         val type: Type,
         val value: Value?,
         val defaultValue: Value?,
-        override val source: PsiElement?,
-    ) : LElement, LPsiDependent {
-        sealed class Type : LPsiDependent {
+        override val dependencyItem: PsiNamedElement,
+    ) : LElement, LDependencyProvider {
+        sealed class Type : LDependencyProvider {
             abstract val presentation: String
 
             open fun accepts(value: Value): Boolean {
@@ -48,7 +49,6 @@ class LAnnotation(
 
             class Scalar(val kind: Kind) : Type() {
                 override val presentation = kind.toString()
-                override val source = null
 
                 enum class Kind {
                     BOOLEAN, BYTE, SHORT, INT, LONG, FLOAT, DOUBLE, CHAR, STRING
@@ -86,7 +86,7 @@ class LAnnotation(
 
             @Suppress("StatefulEp")
             // false positive: not an EP, lifecycle bound to CachedValue
-            class Enum(val canonicalName: String, entries: List<Pair<String, PsiElement>>, override val source: PsiElement?) : Type() {
+            class Enum(val canonicalName: String, entries: List<Pair<String, PsiElement>>, override val dependencyItem: Any) : Type() {
                 override val presentation = canonicalName
 
                 val constants = entries.toMap()
@@ -107,10 +107,9 @@ class LAnnotation(
 
             class Array(val elementType: Type) : Type() {
                 override val presentation = "Array<${elementType.presentation}>"
-                override val source = null
 
-                override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
-                    elementType.collectPsiElements(result, visited)
+                override fun collectChildren(result: MutableSet<Any>, visited: MutableSet<LDependencyProvider>) {
+                    elementType.collectDependencyItems(result, visited)
                 }
 
                 override fun equals(other: Any?): Boolean {
@@ -127,14 +126,13 @@ class LAnnotation(
                 }
             }
 
-            class Clazz(val bound: String?, override val source: PsiElement?) : Type() {
+            class Clazz(val bound: String?, override val dependencyItem: PsiElement) : Type() {
                 override val presentation = if (bound != null) "Class<$bound>" else "Class<?>"
 
                 override fun accepts(value: Value): Boolean {
                     if (value !is Value.Clazz) return false
                     val bound = bound ?: return true
-                    val source = source ?: return true
-                    return process(source) { isInheritorOrSelf(value.canonicalName, bound) } ?: true
+                    return process(dependencyItem) { isInheritorOrSelf(value.canonicalName, bound) } ?: true
                 }
 
                 override fun equals(other: Any?): Boolean {
@@ -151,8 +149,7 @@ class LAnnotation(
                 }
             }
 
-            @Suppress("StatefulEp")
-            class Annotation(val canonicalName: String, override val source: PsiElement?) : Type() {
+            class Annotation(val canonicalName: String, override val dependencyItem: Any) : Type() {
                 override val presentation = canonicalName
 
                 override fun equals(other: Any?): Boolean {
@@ -271,8 +268,8 @@ class LAnnotation(
             return type.accepts(value)
         }
 
-        override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
-            type.collectPsiElements(result, visited)
+        override fun collectChildren(result: MutableSet<Any>, visited: MutableSet<LDependencyProvider>) {
+            type.collectDependencyItems(result, visited)
         }
 
         override fun equals(other: Any?): Boolean {
@@ -302,8 +299,8 @@ class LAnnotation(
         }
     }
 
-    override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
-        params.forEach { it.collectPsiElements(result, visited) }
+    override fun collectChildren(result: MutableSet<Any>, visited: MutableSet<LDependencyProvider>) {
+        params.forEach { it.collectDependencyItems(result, visited) }
     }
 
     override fun equals(other: Any?): Boolean {

@@ -1165,7 +1165,7 @@ class DTOAnnotator : Annotator {
                     } else {
                         val target = qualifiedName.target
                         if (target is Resolution.Target.Type) {
-                            val targetEntity = property.targetClass?.source ?: return
+                            val targetEntity = property.targetClass?.dependencyItem ?: return
                             val filterEntity = compiling(prop) { filterEntity(target.type) } ?: return
 
                             if (!targetEntity.isEquivalentTo(filterEntity)) {
@@ -1192,7 +1192,7 @@ class DTOAnnotator : Annotator {
                     } else {
                         val target = qualifiedName.target
                         if (target is Resolution.Target.Type) {
-                            val targetEntity = property.targetClass?.source ?: return
+                            val targetEntity = property.targetClass?.dependencyItem ?: return
                             val strategyEntity = process(target.type) { typeArgumentFor("org.babyfish.jimmer.sql.fetcher.RecursionStrategy") }
                             strategyEntity?.takeIf { it !is PsiTypeParameter } ?: return
 

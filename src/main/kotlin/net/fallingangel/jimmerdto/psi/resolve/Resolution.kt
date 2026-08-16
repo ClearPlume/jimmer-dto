@@ -248,7 +248,7 @@ object Resolution {
             }
 
             override val source: PsiNamedElement
-                get() = property.source
+                get() = property.dependencyItem
 
             override fun spaceForMembers(): Space? {
                 return property.targetClass?.let(Space::Properties)
@@ -257,7 +257,7 @@ object Resolution {
 
         class Subtype(val lClass: LClass) : Target() {
             override val source: PsiNamedElement
-                get() = lClass.source
+                get() = lClass.dependencyItem
 
             override fun spaceForMembers(): Space? {
                 return null

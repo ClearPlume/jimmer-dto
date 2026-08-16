@@ -7,7 +7,6 @@ import com.intellij.openapi.roots.ProjectRootModificationTracker
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.psi.FileViewProvider
-import com.intellij.psi.PsiElement
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
@@ -63,8 +62,8 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             val clazz = psiClass(qualifiedEntity) ?: return@getCachedValue null
             val entity = process(clazz) { lClass() } ?: return@getCachedValue null
 
-            val classDependencies = mutableSetOf<PsiElement>()
-            entity.collectPsiElements(classDependencies)
+            val classDependencies = mutableSetOf<Any>()
+            entity.collectDependencyItems(classDependencies)
 
             CachedValueProvider.Result.create(
                 entity,

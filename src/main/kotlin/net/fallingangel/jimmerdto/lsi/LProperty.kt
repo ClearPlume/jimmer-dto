@@ -10,10 +10,10 @@ class LProperty(
     val type: Type,
     val abstract: Boolean,
     override val annotations: List<LAnnotation>,
-    override val source: PsiNamedElement,
+    override val dependencyItem: PsiNamedElement,
     val containingLClass: LClass,
-) : LElement, LAnnotationOwner, LPsiDependent {
-    sealed class Type : LPsiDependent {
+) : LElement, LAnnotationOwner, LDependencyProvider {
+    sealed class Type : LDependencyProvider {
         abstract val nullable: Boolean
 
         /**
@@ -39,7 +39,6 @@ class LProperty(
         class Scalar(val canonicalName: String, override val nullable: Boolean) : Type() {
             override val actualType = this
             override val presentation = canonicalName.substringAfterLast('.')
-            override val source = null
 
             override fun equals(other: Any?): Boolean {
                 if (this === other) return true
@@ -61,16 +60,12 @@ class LProperty(
             val canonicalName: String,
             entries: List<Pair<String, PsiElement>>,
             override val nullable: Boolean,
-            override val source: PsiElement?,
+            override val dependencyItem: Any,
         ) : Type() {
             override val actualType = this
             override val presentation = canonicalName
 
             val constants = entries.toMap()
-
-            override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
-                result.addAll(constants.values)
-            }
 
             override fun equals(other: Any?): Boolean {
                 if (this === other) return true
@@ -89,10 +84,9 @@ class LProperty(
         class Array(val elementType: Type, override val nullable: Boolean) : Type() {
             override val actualType = this
             override val presentation = "Array<${elementType.presentation}>"
-            override val source = null
 
-            override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
-                elementType.collectPsiElements(result, visited)
+            override fun collectChildren(result: MutableSet<Any>, visited: MutableSet<LDependencyProvider>) {
+                elementType.collectDependencyItems(result, visited)
             }
 
             override fun equals(other: Any?): Boolean {
@@ -112,14 +106,13 @@ class LProperty(
         class Collection(val elementType: Type, val kind: Kind, override val nullable: Boolean) : Type() {
             override val actualType = elementType
             override val presentation = "$kind<${elementType.presentation}>"
-            override val source = null
 
             enum class Kind {
                 List, Set, Queue
             }
 
-            override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
-                elementType.collectPsiElements(result, visited)
+            override fun collectChildren(result: MutableSet<Any>, visited: MutableSet<LDependencyProvider>) {
+                elementType.collectDependencyItems(result, visited)
             }
 
             override fun equals(other: Any?): Boolean {
@@ -144,11 +137,10 @@ class LProperty(
         class Map(val keyType: Type, val valueType: Type, override val nullable: Boolean) : Type() {
             override val actualType = this
             override val presentation = "Map<${keyType.presentation}, ${valueType.presentation}>"
-            override val source = null
 
-            override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
-                keyType.collectPsiElements(result, visited)
-                valueType.collectPsiElements(result, visited)
+            override fun collectChildren(result: MutableSet<Any>, visited: MutableSet<LDependencyProvider>) {
+                keyType.collectDependencyItems(result, visited)
+                valueType.collectDependencyItems(result, visited)
             }
 
             override fun equals(other: Any?): Boolean {
@@ -170,12 +162,12 @@ class LProperty(
             }
         }
 
-        class Clazz(val clazz: LClass, override val nullable: Boolean, override val source: PsiElement?) : Type() {
+        class Clazz(val clazz: LClass, override val nullable: Boolean, override val dependencyItem: Any) : Type() {
             override val actualType = this
             override val presentation = clazz.canonicalName
 
-            override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
-                clazz.collectPsiElements(result, visited)
+            override fun collectChildren(result: MutableSet<Any>, visited: MutableSet<LDependencyProvider>) {
+                clazz.collectDependencyItems(result, visited)
             }
 
             override fun equals(other: Any?): Boolean {
@@ -209,9 +201,9 @@ class LProperty(
         }
     }
 
-    override fun collectChildren(result: MutableSet<PsiElement>, visited: MutableSet<LPsiDependent>) {
-        annotations.forEach { it.collectPsiElements(result, visited) }
-        type.collectPsiElements(result, visited)
+    override fun collectChildren(result: MutableSet<Any>, visited: MutableSet<LDependencyProvider>) {
+        annotations.forEach { it.collectDependencyItems(result, visited) }
+        type.collectDependencyItems(result, visited)
     }
 
     override fun toString(): String {

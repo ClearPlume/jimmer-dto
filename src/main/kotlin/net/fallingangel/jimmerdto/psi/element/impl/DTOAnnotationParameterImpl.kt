@@ -36,7 +36,7 @@ class DTOAnnotationParameterImpl(node: ASTNode) : DTONamedElementImpl(node), DTO
 
     override fun resolve(): PsiElement? {
         val anno = (parent as? DTOAnnotationElement)?.lAnnotation ?: return null
-        return anno.params.firstOrNull { it.name == name.text }?.source
+        return anno.params.firstOrNull { it.name == name.text }?.dependencyItem
     }
 
     override fun accept(visitor: PsiElementVisitor) {

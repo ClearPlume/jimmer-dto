@@ -26,8 +26,8 @@ fun Resolution.Candidate.lookUp(insideImportMechanism: Boolean): LookupElement {
 
         is Resolution.Target.Property -> {
             val property = target.property
-            LookupElementBuilder.create(target.property.source, property.name)
-                .withIcon(property.source.getIcon(0))
+            LookupElementBuilder.create(target.property.dependencyItem, property.name)
+                .withIcon(property.dependencyItem.getIcon(0))
         }
 
         is Resolution.Target.EnumConst -> LookupElementBuilder.createWithIcon(target.enum)
@@ -45,7 +45,7 @@ fun Resolution.Candidate.lookUp(insideImportMechanism: Boolean): LookupElement {
                 ?: LookupElementBuilder.create(name)
         }
 
-        is Resolution.Target.Subtype -> LookupElementBuilder.createWithIcon(target.lClass.source)
+        is Resolution.Target.Subtype -> LookupElementBuilder.createWithIcon(target.lClass.dependencyItem)
     }
 }
 

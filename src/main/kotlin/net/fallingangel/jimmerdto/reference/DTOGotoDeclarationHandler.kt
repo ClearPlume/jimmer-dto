@@ -15,6 +15,6 @@ class DTOGotoDeclarationHandler : GotoDeclarationHandler {
         val target = parent.target as? TargetProperty ?: return null
         val via = target.via as? TargetProperty.Via.ImplicitId ?: return null
 
-        return arrayOf(via.reference.source, target.source)
+        return arrayOf(via.reference.dependencyItem, target.source)
     }
 }

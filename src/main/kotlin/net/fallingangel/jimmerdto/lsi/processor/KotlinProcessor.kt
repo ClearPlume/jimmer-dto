@@ -170,13 +170,11 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             valueParameters.mapNotNull { parameter ->
                 val name = parameter.name.asString()
                 val type = resolveParamType(parameter) ?: return@mapNotNull null
-                val source = parameter.psi
+                val source = parameter.psi as? KtParameter ?: return@mapNotNull null
 
-                val defaultValue = (source as? KtParameter)?.let {
-                    it.defaultValue?.let { defaultValue ->
-                        val defaultValue = defaultValue.evaluateAsAnnotationValue() ?: return@let null
-                        resolveParamValue(defaultValue)
-                    }
+                val defaultValue = source.defaultValue?.let { defaultValue ->
+                    val defaultValue = defaultValue.evaluateAsAnnotationValue() ?: return@let null
+                    resolveParamValue(defaultValue)
                 }
 
                 LAnnotation.Param(name, type, values[name], defaultValue, source)
@@ -327,6 +325,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
         val nullable = type.isMarkedNullable
         val symbol = type.symbol
+        val source = symbol.psi ?: return null
         val classId = symbol.classId ?: return null
         val fqName = classId.asFqNameString()
 
@@ -354,7 +353,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
                         .mapNotNull { it.name.asString() to (it.psi ?: return@mapNotNull null) }
                         .toList(),
                     nullable,
-                    symbol.psi,
+                    source,
                 )
             }
 
@@ -387,7 +386,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             }
 
             else -> {
-                val psi = symbol.psi as? KtClass ?: return LProperty.Type.Scalar(fqName, nullable)
+                val classSource = source as? KtClass ?: return LProperty.Type.Scalar(fqName, nullable)
                 if (
                     symbol.hasAnnotation(
                         JimmerAnnotations.Entity,
@@ -396,7 +395,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
                         JimmerAnnotations.Immutable
                     )
                 ) {
-                    LProperty.Type.Clazz(lClass(element = psi) ?: return null, nullable, psi)
+                    LProperty.Type.Clazz(lClass(element = classSource) ?: return null, nullable, classSource)
                 } else {
                     LProperty.Type.Scalar(fqName, nullable)
                 }
@@ -430,7 +429,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             classId.shortClassName.asString(),
             classId.asFqNameString(),
             params,
-            annotation.psi,
+            annotation.psi as? KtAnnotationEntry ?: return null,
         )
     }
 
@@ -445,6 +444,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
     fun KaSession.resolveParamType(type: KaType): ParamType? {
         val type = type as? KaClassType ?: return null
+        val source = type.symbol.psi ?: return null
 
         return when (type.classId.asFqNameString()) {
             "kotlin.IntArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.INT))
@@ -462,8 +462,8 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             }
 
             "kotlin.reflect.KClass" -> when (val typeArgument = type.typeArguments[0]) {
-                is KaStarTypeProjection -> ParamType.Clazz(null, type.symbol.psi)
-                is KaTypeArgumentWithVariance -> ParamType.Clazz((typeArgument.type as? KaClassType)?.classId?.asFqNameString(), type.symbol.psi)
+                is KaStarTypeProjection -> ParamType.Clazz(null, source)
+                is KaTypeArgumentWithVariance -> ParamType.Clazz((typeArgument.type as? KaClassType)?.classId?.asFqNameString(), source)
             }
 
             else -> {
@@ -478,11 +478,11 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
                                 .filterIsInstance<KaEnumEntrySymbol>()
                                 .mapNotNull { it.name.asString() to (it.psi ?: return@mapNotNull null) }
                                 .toList(),
-                            symbol.psi,
+                            source,
                         )
                     }
 
-                    is KaNamedClassSymbol if symbol.classKind == KaClassKind.ANNOTATION_CLASS -> ParamType.Annotation(fqName, symbol.psi)
+                    is KaNamedClassSymbol if symbol.classKind == KaClassKind.ANNOTATION_CLASS -> ParamType.Annotation(fqName, source)
                     else -> ParamType.Scalar(scalarKind(fqName) ?: return null)
                 }
             }

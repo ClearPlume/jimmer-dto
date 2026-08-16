@@ -39,7 +39,7 @@ private fun contribute(
 ) {
     val clazz = process(element) { containingClass() } ?: return
     val lClass = process(clazz) { lClass() } ?: return
-    val property = lClass.properties.find { it.source.isEquivalentTo(element) } ?: return
+    val property = lClass.properties.find { it.dependencyItem.isEquivalentTo(element) } ?: return
     if (!property.isReference) return
 
     optimizer.searchWord(

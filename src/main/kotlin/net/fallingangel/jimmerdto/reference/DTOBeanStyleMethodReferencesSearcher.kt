@@ -12,7 +12,7 @@ class DTOBeanStyleMethodReferencesSearcher : QueryExecutorBase<PsiReference, Met
         val element = queryParameters.method
         val clazz = process(element) { containingClass() } ?: return
         val lClass = process(clazz) { lClass() } ?: return
-        val property = lClass.properties.find { it.source.isEquivalentTo(element) } ?: return
+        val property = lClass.properties.find { it.dependencyItem.isEquivalentTo(element) } ?: return
 
         if (property.name == element.name) return
         queryParameters.optimizer.searchWord(

@@ -19,7 +19,7 @@ class DTOValueImpl(node: ASTNode) : DTONamedElementImpl(node), DTOValue {
     }
 
     override fun resolve(): PsiElement? {
-        return property?.source
+        return property?.dependencyItem
     }
 
     override fun accept(visitor: PsiElementVisitor) {

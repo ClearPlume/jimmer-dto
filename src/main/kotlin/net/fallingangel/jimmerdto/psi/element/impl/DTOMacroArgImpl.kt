@@ -27,9 +27,9 @@ class DTOMacroArgImpl(node: ASTNode) : DTONamedElementImpl(node), DTOMacroArg {
         val macro = parent<DTOMacro>() ?: return null
         val clazz = macro.containingLClass ?: return null
         return if (value?.text == "this" || value?.text == clazz.name) {
-            clazz.source
+            clazz.dependencyItem
         } else {
-            clazz.allParents.find { it.name == value?.text }?.source
+            clazz.allParents.find { it.name == value?.text }?.dependencyItem
         }
     }
 
