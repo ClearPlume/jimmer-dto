@@ -191,6 +191,8 @@ object Resolution {
             private val globalRaw = GlobalRaw(file)
 
             override fun resolve(name: String): Target? {
+                if (lClass.name == name) return Target.Subtype(lClass)
+
                 val child = lClass.children.find { it.name == name }
                 child?.let { return Target.Subtype(it) }
 
