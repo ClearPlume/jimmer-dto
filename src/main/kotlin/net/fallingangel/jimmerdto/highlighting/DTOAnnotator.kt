@@ -139,7 +139,11 @@ class DTOAnnotator : Annotator {
                     // 在 `export a.b.c -> package a.b.c.d.e.f` 下的包不参与存在性校验
                     val notUnderExportPackage = o.parent<DTOExportStatement> { `package` != null } == null
                     if (notUnderExportPackage && (o.prevPart == null || o.prevPart?.target != null)) {
-                        o.error("Unresolved reference: ${o.part}")
+                        val fixes = mutableListOf<CommonIntentionAction>()
+                        if (o.space is Resolution.Space.GlobalWithImports) {
+                            fixes.add(ImportClassFix(o))
+                        }
+                        o.error("Unresolved reference: ${o.part}", *fixes.toTypedArray())
                     }
                 }
 
@@ -736,15 +740,6 @@ class DTOAnnotator : Annotator {
             val type = o.type.value
             val clazz = o.type.target?.source
             val qualifiedName = clazz?.let { process(it) { classQualifiedName() } }
-
-            // 类型解析
-            if (clazz == null && StandardType[type] == null) {
-                o.type.error(
-                    "Unresolved reference: $type",
-                    ImportClass(o.type),
-                )
-                return
-            }
 
             // 泛型校验
             val declaredArity = when (clazz) {
