@@ -13,11 +13,7 @@ fun PsiElement.unhandledElement(): Nothing {
 }
 
 fun <R : Any> PsiElement.demand(declaration: KCallable<R?>, vararg args: Any?): R {
-    return if (args.isEmpty()) {
-        declaration.call(this) ?: missing(declaration.name)
-    } else {
-        declaration.call(this, args) ?: missing(declaration.name)
-    }
+    return declaration.call(this, *args) ?: missing(declaration.name)
 }
 
 fun PsiElement.missing(what: String): Nothing {
