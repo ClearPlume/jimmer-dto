@@ -29,6 +29,13 @@ class DTOImportOptimizer : ImportOptimizer {
                     }
             }
 
+        if (unusedImports.isEmpty() && unusedImportTypes.isEmpty()) {
+            return object : ImportOptimizer.CollectingInfoRunnable {
+                override fun run() = Unit
+                override fun getUserNotificationInfo() = "Unused imports not found"
+            }
+        }
+
         return Runnable {
             // 删除未使用导包节点
             unusedImports.forEach(PsiElement::delete)
