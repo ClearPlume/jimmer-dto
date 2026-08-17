@@ -3,7 +3,6 @@ package net.fallingangel.jimmerdto.reference
 import com.intellij.lang.findUsages.FindUsagesProvider
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.psi.element.DTOAlias
-import net.fallingangel.jimmerdto.psi.unhandledElement
 
 class DTOFindUsagesProvider : FindUsagesProvider {
     override fun canFindUsagesFor(psiElement: PsiElement): Boolean {
@@ -15,7 +14,7 @@ class DTOFindUsagesProvider : FindUsagesProvider {
     override fun getType(element: PsiElement): String {
         return when (element) {
             is DTOAlias -> "alias"
-            else -> element.unhandledElement()
+            else -> ""
         }
     }
 
@@ -33,7 +32,7 @@ class DTOFindUsagesProvider : FindUsagesProvider {
                 }
             }
 
-            else -> element.unhandledElement()
+            else -> ""
         }
     }
 
@@ -45,7 +44,7 @@ class DTOFindUsagesProvider : FindUsagesProvider {
                 element.value
             }
 
-            else -> element.unhandledElement()
+            else -> ""
         }
     }
 }
