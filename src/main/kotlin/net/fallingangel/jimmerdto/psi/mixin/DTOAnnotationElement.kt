@@ -23,13 +23,11 @@ interface DTOAnnotationElement : DTOElement {
     val lAnnotation: LAnnotation?
         get() {
             val target = qualifiedName.target as? Resolution.Target.Type ?: return null
-            val (canonicalName, params) = process(target.source) { classQualifiedName() to lAnnotationParams(values) } ?: return null
-            canonicalName ?: return null
+            val (className, params) = process(target.source) { className() to lAnnotationParams(values) } ?: return null
             params ?: return null
 
             return LAnnotation(
-                qualifiedName.simpleName,
-                canonicalName,
+                className,
                 params,
                 target.source,
             )

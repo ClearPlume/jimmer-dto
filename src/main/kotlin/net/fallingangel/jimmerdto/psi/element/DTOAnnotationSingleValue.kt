@@ -51,7 +51,7 @@ interface DTOAnnotationSingleValue : DTOElement {
                         ParamValue.Enum(canonicalName, constantName)
                     } else {
                         val target = qualifiedName.target as? Resolution.Target.Type ?: return null
-                        val qualifiedName = process(target.type) { classQualifiedName() } ?: return null
+                        val qualifiedName = process(target.type) { className() } ?: return null
                         ParamValue.Clazz(qualifiedName)
                     }
                 }

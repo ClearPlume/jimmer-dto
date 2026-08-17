@@ -29,16 +29,16 @@ class LProperty(
 
         fun toDebugString(visited: MutableSet<String>): String = when (this) {
             is Scalar -> "Scalar(name=$presentation, nullable=$nullable)"
-            is Enum -> "Enum(name=$presentation, canonicalName=$canonicalName, nullable=$nullable, values=$constants)"
+            is Enum -> "Enum(name=$presentation, fqName=$fqName, nullable=$nullable, values=$constants)"
             is Array -> "Array(nullable=$nullable, elementType=${elementType.toDebugString(visited)})"
             is Collection -> "Collection(nullable=$nullable, kind=$kind, elementType=${elementType.toDebugString(visited)})"
             is Map -> "Map(nullable=$nullable, keyType=${keyType.toDebugString(visited)}, valueType=${valueType.toDebugString(visited)})"
             is Clazz -> "Class(nullable=$nullable, class=${clazz.toDebugString(visited)})"
         }
 
-        class Scalar(val canonicalName: String, override val nullable: Boolean) : Type() {
+        class Scalar(val name: String, override val nullable: Boolean) : Type() {
             override val actualType = this
-            override val presentation = canonicalName.substringAfterLast('.')
+            override val presentation = name
 
             override fun equals(other: Any?): Boolean {
                 if (this === other) return true
@@ -46,24 +46,25 @@ class LProperty(
 
                 other as Scalar
 
-                return canonicalName == other.canonicalName
+                return name == other.name
             }
 
             override fun hashCode(): Int {
-                return canonicalName.hashCode()
+                return name.hashCode()
             }
         }
 
         @Suppress("StatefulEp")
         // false positive: not an EP, lifecycle bound to CachedValue
         class Enum(
-            val canonicalName: String,
+            lName: LName,
             entries: List<Pair<String, PsiElement>>,
             override val nullable: Boolean,
             override val dependencyItem: Any,
         ) : Type() {
             override val actualType = this
-            override val presentation = canonicalName
+            override val presentation = lName.name
+            val fqName = lName.fqName
 
             val constants = entries.toMap()
 
@@ -73,11 +74,11 @@ class LProperty(
 
                 other as Enum
 
-                return canonicalName == other.canonicalName
+                return fqName == other.fqName
             }
 
             override fun hashCode(): Int {
-                return canonicalName.hashCode()
+                return fqName.hashCode()
             }
         }
 
@@ -164,7 +165,7 @@ class LProperty(
 
         class Clazz(val clazz: LClass, override val nullable: Boolean, override val dependencyItem: Any) : Type() {
             override val actualType = this
-            override val presentation = clazz.canonicalName
+            override val presentation = clazz.name
 
             override fun collectChildren(result: MutableSet<Any>, visited: MutableSet<LDependencyProvider>) {
                 clazz.collectDependencyItems(result, visited)
@@ -222,14 +223,14 @@ class LProperty(
         other as LProperty
 
         if (name != other.name) return false
-        if (containingLClass.canonicalName != other.containingLClass.canonicalName) return false
+        if (containingLClass.fqName != other.containingLClass.fqName) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = name.hashCode()
-        result = 31 * result + containingLClass.canonicalName.hashCode()
+        result = 31 * result + containingLClass.fqName.hashCode()
         return result
     }
 }

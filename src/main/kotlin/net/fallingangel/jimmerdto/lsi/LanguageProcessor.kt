@@ -28,13 +28,10 @@ interface LanguageProcessor {
     fun isEnumClass(): Boolean
 
     context(element: PsiElement)
-    fun classQualifiedName(): String?
+    fun className(): LName
 
     context(element: PsiElement)
-    fun packageName(): String?
-
-    context(element: PsiElement)
-    fun qualifiedEnumConstant(): Pair<String, String>?
+    fun qualifiedEnumConstant(): Pair<LName, String>?
 
     context(element: PsiElement)
     fun lAnnotationParams(values: Map<String, LAnnotation.Param.Value?>): List<LAnnotation.Param>?

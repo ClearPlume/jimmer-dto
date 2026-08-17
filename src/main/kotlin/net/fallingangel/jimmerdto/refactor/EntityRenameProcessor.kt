@@ -16,7 +16,7 @@ class EntityRenameProcessor : RenamePsiElementProcessor() {
     override fun canProcessElement(element: PsiElement) = element is PsiClass || element is KtClass
 
     override fun prepareRenaming(element: PsiElement, newName: String, allRenames: MutableMap<PsiElement, String>, scope: SearchScope) {
-        val entityName = process(element) { takeIf { isEntity() }?.classQualifiedName() }
+        val entityName = process(element) { takeIf { isEntity() }?.className()?.fqName }
 
         entityName ?: return
         val project = element.project

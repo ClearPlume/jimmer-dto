@@ -29,7 +29,7 @@ fun Resolution.Candidate.lookUp(insideImportMechanism: Boolean): LookupElement {
             target.target
                 ?.let {
                     val element = it.type
-                    val packageName = process(element) { packageName() } ?: element.missing("packageName")
+                    val packageName = process(element) { className().pkg } ?: element.missing("className")
                     LookupElementBuilder.create(element, name)
                         .withIcon(element.getIcon(0))
                         .withTailText(" -> ${element.name}")
@@ -43,16 +43,14 @@ fun Resolution.Candidate.lookUp(insideImportMechanism: Boolean): LookupElement {
 }
 
 fun PsiNamedElement.lookUp(name: String, insideImportMechanism: Boolean): LookupElement {
-    val qualifiedName = process(this) { classQualifiedName() } ?: missing("qualifiedName")
-    val packageName = process(this) { packageName() } ?: missing("packageName")
-
+    val className = process(this) { className() } ?: missing("className")
     return LookupElementBuilder.create(this, name)
         .withIcon(getIcon(0))
-        .withTypeText("($packageName)", true)
+        .withTypeText("(${className.pkg})", true)
         .withInsertHandler { context, _ ->
             if (insideImportMechanism) {
                 val file = context.file as DTOFile
-                file.addImport(qualifiedName)
+                file.addImport(className.fqName)
             }
         }
 }

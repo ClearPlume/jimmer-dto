@@ -13,6 +13,7 @@ import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerOptions
+import net.fallingangel.jimmerdto.psi.demand
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.nullable
 import net.fallingangel.jimmerdto.util.psiClass
@@ -24,6 +25,14 @@ import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as Para
 class JavaProcessor : LanguageProcessor, CompilerContext {
     private val childrenKey = Key.create<CachedValue<List<PsiClass>>>("JAVA_CACHED_CHILDREN_CLASS")
 
+    private val PsiClass.lName: LName
+        get() {
+            val outer = generateSequence(this) { it.containingClass }.toList().asReversed()
+            val pkg = (outer.first().containingFile as PsiJavaFile).packageName
+            val nesting = outer.dropLast(1).map { it.demand(PsiClass::getName) }
+            return LName(pkg, nesting, demand(PsiClass::getName))
+        }
+
     override fun supports(language: Language): Boolean {
         return language == JavaLanguage.INSTANCE
     }
@@ -33,16 +42,15 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement, types: ResolvedTypes)
-    override fun lClass(): LClass? {
+    override fun lClass(): LClass {
         val clazz = element.narrow<PsiClass>()
-        val qualifiedName = clazz.qualifiedName ?: return null
-        val name = clazz.name ?: return null
+        val lName = clazz.lName
+        val qualifiedName = lName.fqName
 
         return types.getOrPut(qualifiedName) {
             lateinit var lClass: LClass
             lClass = LClass(
-                name,
-                qualifiedName,
+                lName,
                 // TODO Unresolved
                 lazy { clazz.annotations.mapNotNull { resolveAnnotation(it) } },
                 lazy { parents(clazz) },
@@ -141,24 +149,17 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun classQualifiedName(): String? {
+    override fun className(): LName {
         val clazz = element.narrow<PsiClass>()
-        return clazz.qualifiedName
+        return clazz.lName
     }
 
     context(element: PsiElement)
-    override fun packageName(): String? {
-        val clazz = element.narrow<PsiClass>()
-        return (clazz.containingFile as? PsiJavaFile)?.packageName
-    }
-
-    context(element: PsiElement)
-    override fun qualifiedEnumConstant(): Pair<String, String>? {
+    override fun qualifiedEnumConstant(): Pair<LName, String> {
         val enum = element.narrow<PsiEnumConstant>()
         val clazz = enum.containingClass ?: error("Enum constant ${enum.name} without containing class in ${enum.containingFile.name}")
-        val canonicalName = clazz.qualifiedName ?: return null
         val entryName = enum.name
-        return canonicalName to entryName
+        return clazz.lName to entryName
     }
 
     context(element: PsiElement)
@@ -231,7 +232,7 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
 
     context(element: PsiElement)
     override fun builtinAliases(): List<String> {
-        val qualifiedName = classQualifiedName() ?: return emptyList()
+        val qualifiedName = className().fqName
         return when (qualifiedName) {
             "java.lang.Boolean" -> listOf(StandardType.Boolean.name)
             "java.lang.Character" -> listOf(StandardType.Char.name)
@@ -304,7 +305,7 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
                 when {
                     typeClass.isEnum -> {
                         LProperty.Type.Enum(
-                            type.canonicalText,
+                            typeClass.lName,
                             typeClass.fields
                                 .filterIsInstance<PsiEnumConstant>()
                                 .map { it.name to it },
@@ -355,7 +356,7 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
                                 JimmerAnnotations.Immutable
                             )
                         ) {
-                            LProperty.Type.Clazz(lClass(element = typeClass) ?: return null, type.nullable, typeClass)
+                            LProperty.Type.Clazz(lClass(element = typeClass), type.nullable, typeClass)
                         } else {
                             LProperty.Type.Scalar(type.canonicalText, type.nullable)
                         }
@@ -369,9 +370,6 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
 
     fun resolveAnnotation(annotation: PsiAnnotation): LAnnotation? {
         val clazz = annotation.resolveAnnotationType() ?: return null
-        val className = clazz.name ?: return null
-        val canonicalName = clazz.qualifiedName ?: return null
-
         val values = annotation.parameterList.attributes
             // TODO Unresolved
             .mapNotNull { attribute ->
@@ -384,8 +382,7 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
         val params = process(clazz) { lAnnotationParams(values) } ?: return null
 
         return LAnnotation(
-            className,
-            canonicalName,
+            clazz.lName,
             params,
             clazz,
         )
@@ -395,14 +392,14 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
         return when (type) {
             is PsiPrimitiveType -> ParamType.Scalar(
                 when (type) {
-                    PsiTypes.booleanType() -> ParamType.Scalar.Kind.BOOLEAN
-                    PsiTypes.byteType() -> ParamType.Scalar.Kind.BYTE
-                    PsiTypes.shortType() -> ParamType.Scalar.Kind.SHORT
-                    PsiTypes.intType() -> ParamType.Scalar.Kind.INT
-                    PsiTypes.longType() -> ParamType.Scalar.Kind.LONG
-                    PsiTypes.floatType() -> ParamType.Scalar.Kind.FLOAT
-                    PsiTypes.doubleType() -> ParamType.Scalar.Kind.DOUBLE
-                    PsiTypes.charType() -> ParamType.Scalar.Kind.CHAR
+                    PsiTypes.booleanType() -> ParamType.Scalar.Kind.Boolean
+                    PsiTypes.byteType() -> ParamType.Scalar.Kind.Byte
+                    PsiTypes.shortType() -> ParamType.Scalar.Kind.Short
+                    PsiTypes.intType() -> ParamType.Scalar.Kind.Int
+                    PsiTypes.longType() -> ParamType.Scalar.Kind.Long
+                    PsiTypes.floatType() -> ParamType.Scalar.Kind.Float
+                    PsiTypes.doubleType() -> ParamType.Scalar.Kind.Double
+                    PsiTypes.charType() -> ParamType.Scalar.Kind.Char
                     else -> return null
                 }
             )
@@ -414,7 +411,7 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
                 when {
                     typeClass.isEnum -> {
                         ParamType.Enum(
-                            type.canonicalText,
+                            typeClass.lName,
                             typeClass.fields
                                 .filterIsInstance<PsiEnumConstant>()
                                 .map { it.name to it },
@@ -422,9 +419,9 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
                         )
                     }
 
-                    typeClass.isAnnotationType -> ParamType.Annotation(type.canonicalText, typeClass)
+                    typeClass.isAnnotationType -> ParamType.Annotation(typeClass.lName, typeClass)
 
-                    type.canonicalText == "java.lang.String" -> ParamType.Scalar(ParamType.Scalar.Kind.STRING)
+                    type.canonicalText == "java.lang.String" -> ParamType.Scalar(ParamType.Scalar.Kind.String)
 
                     typeClass.qualifiedName == "java.lang.Class" -> {
                         val typeParameters = type.parameters
@@ -436,7 +433,7 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
                             else -> null
                         }
 
-                        ParamType.Clazz(boundClass?.qualifiedName, boundClass ?: typeClass)
+                        ParamType.Clazz(boundClass?.lName, boundClass ?: typeClass)
                     }
 
                     else -> null
@@ -455,12 +452,16 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
 
             is PsiReferenceExpression -> {
                 val enum = value.resolve() as? PsiEnumConstant ?: return null
-                val className = enum.containingClass?.qualifiedName ?: return null
+                val className = enum.containingClass?.lName ?: return null
                 ParamValue.Enum(className, enum.name)
             }
 
             is PsiClassObjectAccessExpression -> {
-                ParamValue.Clazz(value.operand.type.canonicalText)
+                when (val type = value.operand.type) {
+                    is PsiClassType -> type.resolve()?.lName?.let(ParamValue::Clazz)
+                    is PsiPrimitiveType -> ParamValue.Clazz(LName(type.name))
+                    else -> null
+                }
             }
 
             is PsiAnnotation -> {

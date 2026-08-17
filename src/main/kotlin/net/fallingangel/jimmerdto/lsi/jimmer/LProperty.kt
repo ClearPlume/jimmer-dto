@@ -75,7 +75,7 @@ val LClass.idProperty: LProperty?
 
 val LProperty.idViewBaseProp: LProperty?
     get() {
-        val annotation = annotations.find { it.canonicalName == IdView.asFqNameString() } ?: return null
+        val annotation = annotations.find { it.fqName == IdView.asFqNameString() } ?: return null
         val baseParam = annotation.params.find { it.name == "value" } ?: return null
         val declaredBase = (baseParam.value ?: baseParam.defaultValue)
             ?.let { it as? LAnnotation.Param.Value.Scalar }
@@ -114,7 +114,7 @@ private val SIMPLE_PROP_TYPE_MAP = mapOf(
 
 val LProperty.simplePropType: SimplePropType?
     get() = (type as? LProperty.Type.Scalar)
-        ?.canonicalName
+        ?.name
         ?.let(SIMPLE_PROP_TYPE_MAP::get)
 
 // TODO 多参函数

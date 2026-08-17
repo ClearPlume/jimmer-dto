@@ -33,7 +33,7 @@ class DTOLineMarkerProvider : RelatedItemLineMarkerProvider() {
 
         // 实体
         if (element is PsiClass || element is KtClass) {
-            val entityName = process(element) { takeIf { isEntity() }?.classQualifiedName() }
+            val entityName = process(element) { takeIf { isEntity() }?.className()?.fqName }
             if (entityName != null) {
                 val files = FileBasedIndex.getInstance().getContainingFiles(DTO_ENTITY_INDEX, entityName, element.project.projectScope())
                 if (files.isNotEmpty()) {

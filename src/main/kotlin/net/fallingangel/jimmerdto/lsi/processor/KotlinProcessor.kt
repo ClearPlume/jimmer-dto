@@ -16,6 +16,7 @@ import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
+import net.fallingangel.jimmerdto.psi.demand
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.ktClass
 import org.jetbrains.kotlin.analysis.api.KaExperimentalApi
@@ -31,6 +32,7 @@ import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
@@ -38,6 +40,18 @@ import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as Para
 
 class KotlinProcessor : LanguageProcessor, CompilerContext {
     private val childrenKey = Key.create<CachedValue<List<KtClass>>>("KOTLIN_CACHED_CHILDREN_CLASS")
+
+    private val KtClassOrObject.lName: LName
+        get() = demand(KtClassOrObject::getClassId).lName
+
+    private val ClassId.lName: LName
+        get() {
+            return LName(
+                packageFqName.asString(),
+                relativeClassName.pathSegments().dropLast(1).map(Name::asString),
+                shortClassName.asString(),
+            )
+        }
 
     override fun supports(language: Language): Boolean {
         return language == KotlinLanguage.INSTANCE
@@ -48,16 +62,15 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement, types: ResolvedTypes)
-    override fun lClass(): LClass? {
+    override fun lClass(): LClass {
         val clazz = element.narrow<KtClass>()
-        val name = clazz.name ?: return null
-        val qualifiedName = clazz.fqName?.asString() ?: return null
+        val name = clazz.lName
+        val qualifiedName = name.fqName
 
         return types.getOrPut(qualifiedName) {
             lateinit var lClass: LClass
             lClass = LClass(
                 name,
-                qualifiedName,
                 lazy {
                     analyze(clazz) {
                         // TODO Unresolved
@@ -140,24 +153,17 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun classQualifiedName(): String? {
+    override fun className(): LName {
         val clazz = element.narrow<KtClassOrObject>()
-        return clazz.fqName?.asString()
+        return clazz.lName
     }
 
     context(element: PsiElement)
-    override fun packageName(): String? {
-        val clazz = element.narrow<KtClassOrObject>()
-        return (clazz.containingFile as? KtFile)?.packageFqName?.asString()
-    }
-
-    context(element: PsiElement)
-    override fun qualifiedEnumConstant(): Pair<String, String>? {
+    override fun qualifiedEnumConstant(): Pair<LName, String>? {
         val enum = element.narrow<KtEnumEntry>()
         val clazz = enum.containingClass() ?: error("Enum constant ${enum.name} without containing class in ${enum.containingFile.name}")
-        val canonicalName = clazz.fqName?.asString() ?: return null
         val entryName = enum.name ?: return null
-        return canonicalName to entryName
+        return clazz.lName to entryName
     }
 
     @OptIn(KaExperimentalApi::class)
@@ -245,7 +251,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
     context(element: PsiElement)
     override fun builtinAliases(): List<String> {
-        val qualifiedName = classQualifiedName() ?: return emptyList()
+        val qualifiedName = className().fqName
         return when (qualifiedName) {
             "kotlin.Boolean" -> listOf(StandardType.Boolean.name)
             "kotlin.Char" -> listOf(StandardType.Char.name)
@@ -307,7 +313,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             val symbol = clazz.symbol as? KaClassSymbol ?: return emptyList()
             symbol.superTypes
                 .mapNotNull { it.symbol?.psi as? KtClass }
-                .mapNotNull { lClass(element = it) }
+                .map { lClass(element = it) }
         }
     }
 
@@ -326,8 +332,8 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         val nullable = type.isMarkedNullable
         val symbol = type.symbol
         val source = symbol.psi ?: return null
-        val classId = symbol.classId ?: return null
-        val fqName = classId.asFqNameString()
+        val lName = symbol.classId?.lName ?: return null
+        val fqName = lName.fqName
 
         return when {
             fqName == "kotlin.IntArray" -> LProperty.Type.Array(LProperty.Type.Scalar("kotlin.Int", false), nullable)
@@ -346,7 +352,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
             (symbol as? KaClassSymbol)?.classKind == KaClassKind.ENUM_CLASS -> {
                 LProperty.Type.Enum(
-                    fqName,
+                    lName,
                     symbol.staticDeclaredMemberScope
                         .declarations
                         .filterIsInstance<KaEnumEntrySymbol>()
@@ -386,7 +392,6 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             }
 
             else -> {
-                val classSource = source as? KtClass ?: return LProperty.Type.Scalar(fqName, nullable)
                 if (
                     symbol.hasAnnotation(
                         JimmerAnnotations.Entity,
@@ -395,7 +400,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
                         JimmerAnnotations.Immutable
                     )
                 ) {
-                    LProperty.Type.Clazz(lClass(element = classSource) ?: return null, nullable, classSource)
+                    LProperty.Type.Clazz(lClass(element = source), nullable, source)
                 } else {
                     LProperty.Type.Scalar(fqName, nullable)
                 }
@@ -426,8 +431,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         val params = process(clazz) { lAnnotationParams(values) } ?: return null
 
         return LAnnotation(
-            classId.shortClassName.asString(),
-            classId.asFqNameString(),
+            classId.lName,
             params,
             annotation.psi as? KtAnnotationEntry ?: return null,
         )
@@ -447,14 +451,14 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         val source = type.symbol.psi ?: return null
 
         return when (type.classId.asFqNameString()) {
-            "kotlin.IntArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.INT))
-            "kotlin.LongArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.LONG))
-            "kotlin.BooleanArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.BOOLEAN))
-            "kotlin.ByteArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.BYTE))
-            "kotlin.ShortArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.SHORT))
-            "kotlin.CharArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.CHAR))
-            "kotlin.FloatArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.FLOAT))
-            "kotlin.DoubleArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.DOUBLE))
+            "kotlin.IntArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.Int))
+            "kotlin.LongArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.Long))
+            "kotlin.BooleanArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.Boolean))
+            "kotlin.ByteArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.Byte))
+            "kotlin.ShortArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.Short))
+            "kotlin.CharArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.Char))
+            "kotlin.FloatArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.Float))
+            "kotlin.DoubleArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.Double))
 
             "kotlin.Array" -> when (val typeArgument = type.typeArguments[0]) {
                 is KaStarTypeProjection -> null
@@ -463,16 +467,14 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
             "kotlin.reflect.KClass" -> when (val typeArgument = type.typeArguments[0]) {
                 is KaStarTypeProjection -> ParamType.Clazz(null, source)
-                is KaTypeArgumentWithVariance -> ParamType.Clazz((typeArgument.type as? KaClassType)?.classId?.asFqNameString(), source)
+                is KaTypeArgumentWithVariance -> ParamType.Clazz(typeArgument.type.symbol?.classId?.lName, source)
             }
 
             else -> {
-                val fqName = type.classId.asFqNameString()
-
                 when (val symbol = type.symbol) {
                     is KaNamedClassSymbol if symbol.classKind == KaClassKind.ENUM_CLASS -> {
                         ParamType.Enum(
-                            fqName,
+                            type.classId.lName,
                             symbol.staticDeclaredMemberScope
                                 .declarations
                                 .filterIsInstance<KaEnumEntrySymbol>()
@@ -482,23 +484,23 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
                         )
                     }
 
-                    is KaNamedClassSymbol if symbol.classKind == KaClassKind.ANNOTATION_CLASS -> ParamType.Annotation(fqName, source)
-                    else -> ParamType.Scalar(scalarKind(fqName) ?: return null)
+                    is KaNamedClassSymbol if symbol.classKind == KaClassKind.ANNOTATION_CLASS -> ParamType.Annotation(type.classId.lName, source)
+                    else -> ParamType.Scalar(scalarKind(type.classId.lName.fqName) ?: return null)
                 }
             }
         }
     }
 
     private fun scalarKind(fqName: String): ParamType.Scalar.Kind? = when (fqName) {
-        "kotlin.Boolean" -> ParamType.Scalar.Kind.BOOLEAN
-        "kotlin.Byte" -> ParamType.Scalar.Kind.BYTE
-        "kotlin.Short" -> ParamType.Scalar.Kind.SHORT
-        "kotlin.Int" -> ParamType.Scalar.Kind.INT
-        "kotlin.Long" -> ParamType.Scalar.Kind.LONG
-        "kotlin.Float" -> ParamType.Scalar.Kind.FLOAT
-        "kotlin.Double" -> ParamType.Scalar.Kind.DOUBLE
-        "kotlin.Char" -> ParamType.Scalar.Kind.CHAR
-        "kotlin.String" -> ParamType.Scalar.Kind.STRING
+        "kotlin.Boolean" -> ParamType.Scalar.Kind.Boolean
+        "kotlin.Byte" -> ParamType.Scalar.Kind.Byte
+        "kotlin.Short" -> ParamType.Scalar.Kind.Short
+        "kotlin.Int" -> ParamType.Scalar.Kind.Int
+        "kotlin.Long" -> ParamType.Scalar.Kind.Long
+        "kotlin.Float" -> ParamType.Scalar.Kind.Float
+        "kotlin.Double" -> ParamType.Scalar.Kind.Double
+        "kotlin.Char" -> ParamType.Scalar.Kind.Char
+        "kotlin.String" -> ParamType.Scalar.Kind.String
         else -> null
     }
 
@@ -507,15 +509,19 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             // TODO Unresolved
             is KaAnnotationValue.ArrayValue -> ParamValue.Array(expression.values.mapNotNull { resolveParamValue(it) })
 
-            is KaAnnotationValue.ClassLiteralValue -> ParamValue.Clazz((expression.classId ?: return null).asFqNameString())
+            is KaAnnotationValue.ClassLiteralValue -> {
+                val classId = expression.classId ?: return null
+                val clazz = findClass(classId)?.psi as? KtClass ?: return null
+                ParamValue.Clazz(clazz.lName)
+            }
 
             is KaAnnotationValue.ConstantValue -> ParamValue.Scalar(expression.value.value ?: return null)
 
             is KaAnnotationValue.EnumEntryValue -> {
                 val callableId = expression.callableId ?: return null
-                val packageName = callableId.packageName.asString()
-                val className = callableId.className?.asString() ?: return null
-                ParamValue.Enum("$packageName.$className", callableId.callableName.asString())
+                val classId = callableId.classId ?: return null
+                val clazz = findClass(classId)?.psi as? KtClass ?: return null
+                ParamValue.Enum(clazz.lName, callableId.callableName.asString())
             }
 
             is KaAnnotationValue.NestedAnnotationValue -> {

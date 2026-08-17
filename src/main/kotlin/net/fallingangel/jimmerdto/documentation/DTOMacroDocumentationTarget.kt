@@ -46,7 +46,7 @@ class DTOMacroDocumentationTarget(private val macro: DTOMacro) : DocumentationTa
                 }
 
                 """
-                    $DEFINITION_START${clazz.canonicalName}$DEFINITION_END
+                    $DEFINITION_START${clazz.fqName}$DEFINITION_END
                     $SECTIONS_START
                     $propsString
                     $SECTIONS_END

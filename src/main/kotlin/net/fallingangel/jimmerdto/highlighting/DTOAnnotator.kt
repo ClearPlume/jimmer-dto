@@ -106,7 +106,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 内置类型不可导入
-            val qualifiedType = process(clazz) { classQualifiedName() } ?: return
+            val qualifiedType = process(clazz) { className().fqName } ?: return
             if (qualifiedType in AUTO_IMPORTED_TYPES) {
                 o.error(
                     "'$qualifiedType' cannot be imported because it is built-in type",
@@ -309,7 +309,7 @@ class DTOAnnotator : Annotator {
 
         fun visitAnnotationName(qualifiedName: DTOQualifiedName) {
             val type = (qualifiedName.target as? Resolution.Target.Type)?.type ?: return
-            val annotationName = process(type) { classQualifiedName() } ?: return
+            val annotationName = process(type) { className() } ?: return
             val simpleName = qualifiedName.simpleName
 
             if (simpleName in setOf("Nullable", "NonNull")) {
@@ -319,21 +319,21 @@ class DTOAnnotator : Annotator {
 
             if (simpleName in setOf("Null", "NotNull")) {
                 val packages = setOf("javax.validation.constraints", "jakarta.validation.constraints")
-                if (annotationName.substringBeforeLast('.') !in packages) {
+                if (annotationName.pkg !in packages) {
                     qualifiedName.error("Only ${packages.joinToString { "'$it.$simpleName'" }} are accepted by DTO language")
                 }
                 return
             }
 
-            if (simpleName == "TNullable" && annotationName != JimmerAnnotations.TNullable.asFqNameString()) {
+            if (simpleName == "TNullable" && annotationName.fqName != JimmerAnnotations.TNullable.asFqNameString()) {
                 qualifiedName.error("Only '${JimmerAnnotations.TNullable.asFqNameString()}' is accepted by DTO language")
                 return
             }
 
-            if (annotationName.startsWith("org.babyfish.jimmer.") &&
-                !annotationName.startsWith("org.babyfish.jimmer.client.") &&
-                !annotationName.startsWith("org.babyfish.jimmer.jackson.") &&
-                annotationName != "org.babyfish.jimmer.kt.dto.KotlinDto"
+            if (annotationName.pkg.startsWith("org.babyfish.jimmer.") &&
+                !annotationName.pkg.startsWith("org.babyfish.jimmer.client.") &&
+                !annotationName.pkg.startsWith("org.babyfish.jimmer.jackson.") &&
+                annotationName.fqName != "org.babyfish.jimmer.kt.dto.KotlinDto"
             ) {
                 qualifiedName.error("Jimmer annotation '$annotationName' is forbidden by DTO language")
                 return
@@ -739,7 +739,7 @@ class DTOAnnotator : Annotator {
 
             val type = o.type.value
             val clazz = o.type.target?.source
-            val qualifiedName = clazz?.let { process(it) { classQualifiedName() } }
+            val qualifiedName = clazz?.let { process(it) { className() } }
 
             // 泛型校验
             val declaredArity = when (clazz) {
@@ -774,7 +774,7 @@ class DTOAnnotator : Annotator {
             }
 
             // 禁止类型校验
-            if (qualifiedName?.startsWith("org.babyfish.jimmer.") == true) {
+            if (qualifiedName?.pkg?.startsWith("org.babyfish.jimmer.") == true) {
                 o.error(
                     "Types under `org.babyfish.jimmer` are not allowed",
                     RemoveElement(o.type.value, o),
@@ -1164,8 +1164,8 @@ class DTOAnnotator : Annotator {
                             val filterEntity = compiling(prop) { filterEntity(target.type) } ?: return
 
                             if (!targetEntity.isEquivalentTo(filterEntity)) {
-                                val targetEntityName = process(targetEntity) { classQualifiedName() } ?: return
-                                val filterEntityName = process(filterEntity) { classQualifiedName() } ?: return
+                                val targetEntityName = process(targetEntity) { className() } ?: return
+                                val filterEntityName = process(filterEntity) { className() } ?: return
                                 qualifiedName.error(
                                     "The filter class '${qualifiedName.text}' is illegal, " +
                                             "it specifies the entity type '$filterEntityName', " +
@@ -1192,8 +1192,8 @@ class DTOAnnotator : Annotator {
                             strategyEntity?.takeIf { it !is PsiTypeParameter } ?: return
 
                             if (!targetEntity.isEquivalentTo(strategyEntity)) {
-                                val targetEntityName = process(targetEntity) { classQualifiedName() } ?: return
-                                val strategyName = process(strategyEntity) { classQualifiedName() } ?: return
+                                val targetEntityName = process(targetEntity) { className() } ?: return
+                                val strategyName = process(strategyEntity) { className() } ?: return
                                 qualifiedName.error(
                                     "The recursion class '${qualifiedName.text}' is illegal, " +
                                             "it specifies the entity type '$strategyName', " +

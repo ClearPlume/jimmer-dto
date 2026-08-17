@@ -24,7 +24,7 @@ class DTOAliasUsageSearcher : CustomUsageSearcher() {
             val qualifiedName = process(element) {
                 val kind = kind()
                 if (kind in setOf(LKind.Class, LKind.Interface, LKind.Annotation, LKind.Enum)) {
-                    classQualifiedName()
+                    className().fqName
                 } else {
                     null
                 }

@@ -11,24 +11,27 @@ import net.fallingangel.jimmerdto.lsi.annotation.annotationsToString
  * 禁止在本类的构造过程（init 块、非 lazy 属性初始化器）中触发任何 Lazy 的求值。
  */
 class LClass(
-    override val name: String,
-    val canonicalName: String,
+    lName: LName,
     annotationsHolder: Lazy<List<LAnnotation>>,
     parentsHolder: Lazy<List<LClass>>,
     val childrenProvider: () -> List<LClass>,
     propertiesHolder: Lazy<List<LProperty>>,
     override val dependencyItem: PsiNamedElement,
 ) : LElement, LAnnotationOwner, LDependencyProvider {
+    override val name = lName.name
+
+    val fqName = lName.fqName
+
     override val annotations by annotationsHolder
 
     val parents by parentsHolder
 
     val allParents by lazy {
         buildList {
-            val visited = mutableSetOf(canonicalName)
+            val visited = mutableSetOf(fqName)
             fun collect(cls: LClass) {
                 for (parent in cls.parents) {
-                    if (visited.add(parent.canonicalName)) {
+                    if (visited.add(parent.fqName)) {
                         add(parent)
                         collect(parent)
                     }
@@ -60,7 +63,7 @@ class LClass(
     override fun toString() = toDebugString(mutableSetOf())
 
     fun toDebugString(visited: MutableSet<String>): String {
-        val id = canonicalName
+        val id = fqName
         if (id in visited) return "$id↺"  // 发现递归引用，返回带↺的标识
 
         visited += id // 标记当前节点已访问
@@ -74,7 +77,7 @@ class LClass(
         return buildString {
             append("LClass(")
             append("name=$name, ")
-            append("canonicalName=$canonicalName, ")
+            append("fqName=$fqName, ")
             append("annotations=$annotationStr, ")
             append("parents=$parentsStr, ")
             append("properties=$propertiesStr, ")
@@ -89,10 +92,10 @@ class LClass(
 
         other as LClass
 
-        return canonicalName == other.canonicalName
+        return fqName == other.fqName
     }
 
     override fun hashCode(): Int {
-        return canonicalName.hashCode()
+        return fqName.hashCode()
     }
 }

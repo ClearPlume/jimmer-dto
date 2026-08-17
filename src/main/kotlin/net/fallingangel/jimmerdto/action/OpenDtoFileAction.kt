@@ -29,7 +29,7 @@ class OpenDtoFileAction : AnAction() {
         val project = event.project ?: return
         val selectedElement = event.getData(CommonDataKeys.PSI_ELEMENT) ?: return
         val entityElement = process(selectedElement.containingFile) { topLevelClasses() }?.singleOrNull() ?: return
-        val entityQualifiedName = process(entityElement) { classQualifiedName() } ?: return
+        val entityQualifiedName = process(entityElement) { className().fqName } ?: return
 
         val dtoFiles = FileBasedIndex.getInstance()
             .getContainingFiles(DTO_ENTITY_INDEX, entityQualifiedName, project.projectScope())
