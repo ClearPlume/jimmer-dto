@@ -675,7 +675,7 @@ class DTOAnnotator : Annotator {
         }
 
         private fun visitUserPropType(o: DTOTypeRef) {
-            if (o.type.parts.size > 1 || o.type.target == null) {
+            if (o.type.target == null) {
                 return
             }
 
