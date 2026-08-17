@@ -742,6 +742,37 @@ class DTOAnnotator : Annotator {
             }
 
             val type = o.type.value
+
+            // 禁止使用的类型
+            ILLEGAL_TYPES[type]?.let { suggests ->
+                val fixes = suggests
+                    .map {
+                        ReplaceName(
+                            o,
+                            buildString {
+                                append(it.type.name)
+                                if (it.args.isNotEmpty()) {
+                                    it.args.joinTo(this, ", ", "<", ">")
+                                } else {
+                                    o.arguments?.values?.takeIf(List<*>::isNotEmpty)?.let { arguments ->
+                                        append('<')
+                                        for (argument in arguments) {
+                                            append(argument.text)
+                                        }
+                                        append('>')
+                                    }
+                                }
+                                if (o.questionMark != null) {
+                                    append('?')
+                                }
+                            },
+                            Project::createTypeRef,
+                        )
+                    }
+                    .toTypedArray()
+                o.error("Illegal type '$type'", *fixes)
+            }
+
             val clazz = o.type.target?.source ?: return
             val qualifiedName = process(clazz) { className() } ?: return
 
@@ -763,33 +794,6 @@ class DTOAnnotator : Annotator {
                     "Types under `org.babyfish.jimmer` are not allowed",
                     RemoveElement(o.type.value, o),
                 )
-            }
-
-            // 禁止使用的类型
-            ILLEGAL_TYPES[type]?.let { suggests ->
-                val fixes = suggests
-                    .map {
-                        ReplaceName(
-                            o,
-                            buildString {
-                                append(it.type.name)
-                                if (it.args.isNotEmpty()) {
-                                    it.args.joinTo(this, ", ", "<", ">")
-                                } else {
-                                    o.arguments?.values?.takeIf(List<*>::isNotEmpty)?.let { arguments ->
-                                        append('<')
-                                        for (argument in arguments) {
-                                            append(argument.text)
-                                        }
-                                        append('>')
-                                    }
-                                }
-                            },
-                            Project::createTypeRef,
-                        )
-                    }
-                    .toTypedArray()
-                o.error("Illegal type '$type'", *fixes)
             }
         }
 
