@@ -45,11 +45,13 @@ fun Resolution.Candidate.lookUp(insideImportMechanism: Boolean): LookupElement {
 
 fun PsiNamedElement.lookUp(name: String, insideImportMechanism: Boolean): LookupElement {
     val className = process(this) { className() } ?: missing("className")
+    val builtin = className.fqName in AUTO_IMPORTED_TYPES
+
     return LookupElementBuilder.create(this, name)
         .withIcon(getIcon(0))
-        .withTypeText("(${className.pkg})", true)
+        .withTypeText(if (builtin) "(built-in)" else "(${className.pkg})", true)
         .withInsertHandler { context, _ ->
-            if (insideImportMechanism && className.fqName !in AUTO_IMPORTED_TYPES) {
+            if (insideImportMechanism && !builtin) {
                 (context.file as DTOFile).addImport(className.fqName)
             }
         }
