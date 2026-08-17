@@ -733,26 +733,6 @@ class DTOAnnotator : Annotator {
          * 为类型定义上色
          */
         override fun visitTypeDef(o: DTOTypeRef) {
-            if (o.parent is DTOUserProp) {
-                return
-            }
-
-            val type = o.type.value
-            val clazz = o.type.target?.source
-            val qualifiedName = clazz?.let { process(it) { className() } }
-
-            // 泛型校验
-            val declaredArity = when (clazz) {
-                is PsiClass -> clazz.typeParameters.size
-                is KtClass -> clazz.typeParameters.size
-                else -> 0
-            }
-            val exceptedTypeParamNumber = StandardType[type]?.arity ?: declaredArity
-            val writtenTypeParamNumber = o.arguments?.values?.size ?: 0
-            if (writtenTypeParamNumber != exceptedTypeParamNumber) {
-                o.error("Generic parameter mismatch, expected `$exceptedTypeParamNumber` but got `$writtenTypeParamNumber`")
-            }
-
             // Dto接口实现校验
             val parent = o.parent
             if (parent is DTOImplements) {
@@ -773,12 +753,55 @@ class DTOAnnotator : Annotator {
                 }
             }
 
+            val type = o.type.value
+            val clazz = o.type.target?.source ?: return
+            val qualifiedName = process(clazz) { className() } ?: return
+
+            // 泛型校验
+            val declaredArity = when (clazz) {
+                is PsiClass -> clazz.typeParameters.size
+                is KtClass -> clazz.typeParameters.size
+                else -> return
+            }
+            val exceptedTypeParamNumber = StandardType[type]?.arity ?: declaredArity
+            val writtenTypeParamNumber = o.arguments?.values?.size ?: 0
+            if (writtenTypeParamNumber != exceptedTypeParamNumber) {
+                o.error("Generic parameter mismatch, expected `$exceptedTypeParamNumber` but got `$writtenTypeParamNumber`")
+            }
+
             // 禁止类型校验
-            if (qualifiedName?.pkg?.startsWith("org.babyfish.jimmer.") == true) {
+            if (qualifiedName.pkg.startsWith("org.babyfish.jimmer.")) {
                 o.error(
                     "Types under `org.babyfish.jimmer` are not allowed",
                     RemoveElement(o.type.value, o),
                 )
+            }
+
+            // 禁止使用的类型
+            ILLEGAL_TYPES[type]?.let { suggests ->
+                val fixes = suggests
+                    .map {
+                        ReplaceName(
+                            o,
+                            buildString {
+                                append(it.type.name)
+                                if (it.args.isNotEmpty()) {
+                                    it.args.joinTo(this, ", ", "<", ">")
+                                } else {
+                                    o.arguments?.values?.takeIf(List<*>::isNotEmpty)?.let { arguments ->
+                                        append('<')
+                                        for (argument in arguments) {
+                                            append(argument.text)
+                                        }
+                                        append('>')
+                                    }
+                                }
+                            },
+                            Project::createTypeRef,
+                        )
+                    }
+                    .toTypedArray()
+                o.error("Illegal type '$type'", *fixes)
             }
         }
 

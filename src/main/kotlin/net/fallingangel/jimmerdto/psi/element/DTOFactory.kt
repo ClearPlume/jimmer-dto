@@ -113,7 +113,7 @@ fun Project.createUserProp(name: String, type: String): DTOUserProp {
         .userProps[0]
 }
 
-fun Project.createUserPropType(type: String) = createUserProp("dummy", type).type!!
+fun Project.createTypeRef(type: String) = createUserProp("dummy", type).type!!
 
 fun Project.createPropName(name: String): DTOPropName {
     return createDTO("Dummy", positiveProps = listOf(name))

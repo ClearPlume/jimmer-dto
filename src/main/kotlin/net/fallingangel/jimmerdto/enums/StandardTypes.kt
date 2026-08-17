@@ -1,6 +1,6 @@
 package net.fallingangel.jimmerdto.enums
 
-enum class StandardType(vararg val typeParams: String) {
+enum class StandardType(vararg typeParams: String) {
     Boolean, Char, Byte, Short, Int, Long, Float, Double, Any, String,
     Array("T"),
     Iterable("E"), MutableIterable("E"),
@@ -50,13 +50,7 @@ data class StandardTypeRef(
     val type: S,
     val args: List<S> = emptyList(),
     val nullable: Boolean = false,
-) {
-    override fun toString() = buildString {
-        append(type.name)
-        if (args.isNotEmpty()) args.joinTo(this, ", ", "<", ">") { it.name }
-        if (nullable) append('?')
-    }
-}
+)
 
 private val S.only get() = listOf(StandardTypeRef(this))
 private val S.nullable get() = listOf(StandardTypeRef(this, nullable = true))
