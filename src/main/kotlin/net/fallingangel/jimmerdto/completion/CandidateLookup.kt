@@ -3,6 +3,7 @@ package net.fallingangel.jimmerdto.completion
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.PsiNamedElement
+import net.fallingangel.jimmerdto.enums.AUTO_IMPORTED_TYPES
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.missing
@@ -48,9 +49,8 @@ fun PsiNamedElement.lookUp(name: String, insideImportMechanism: Boolean): Lookup
         .withIcon(getIcon(0))
         .withTypeText("(${className.pkg})", true)
         .withInsertHandler { context, _ ->
-            if (insideImportMechanism) {
-                val file = context.file as DTOFile
-                file.addImport(className.fqName)
+            if (insideImportMechanism && className.fqName !in AUTO_IMPORTED_TYPES) {
+                (context.file as DTOFile).addImport(className.fqName)
             }
         }
 }

@@ -7,6 +7,7 @@ import com.intellij.psi.JavaPsiFacade
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiPackage
+import net.fallingangel.jimmerdto.enums.AUTO_IMPORTED_TYPES
 import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
@@ -48,6 +49,7 @@ object Resolution {
             context(parameters: CompletionParameters, matcher: PrefixMatcher)
             fun eachClass(consume: (PsiClass) -> Unit) {
                 AllClassesGetter.processJavaClasses(parameters, matcher, true) { psiClass ->
+                    if (psiClass.demand(PsiClass::getQualifiedName) in AUTO_IMPORTED_TYPES) return@processJavaClasses
                     if (psiClass is KtLightElement<*, *> && psiClass.kotlinOrigin == null) return@processJavaClasses
                     consume(psiClass)
                 }

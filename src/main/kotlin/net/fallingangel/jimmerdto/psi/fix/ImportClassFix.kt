@@ -10,6 +10,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiFile
 import com.intellij.psi.createSmartPointer
 import com.intellij.psi.search.PsiShortNamesCache
+import net.fallingangel.jimmerdto.enums.AUTO_IMPORTED_TYPES
 import net.fallingangel.jimmerdto.psi.demand
 import net.fallingangel.jimmerdto.psi.element.DTOQualifiedNamePart
 import net.fallingangel.jimmerdto.util.file
@@ -21,7 +22,14 @@ class ImportClassFix(part: DTOQualifiedNamePart) : HintAction {
     private val file = part.file
     private val pointer = part.createSmartPointer()
 
-    private val relatedClasses by lazy { PsiShortNamesCache.getInstance(project).getClassesByName(name, scope) }
+    private val relatedClasses by lazy {
+        PsiShortNamesCache.getInstance(project)
+            .getClassesByName(name, scope)
+            .filter {
+                val qualifiedName = it.demand(PsiClass::getQualifiedName)
+                qualifiedName !in AUTO_IMPORTED_TYPES
+            }
+    }
 
     override fun startInWriteAction() = false
 
