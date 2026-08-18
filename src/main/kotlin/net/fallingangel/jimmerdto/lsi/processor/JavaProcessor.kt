@@ -17,8 +17,10 @@ import net.fallingangel.jimmerdto.psi.demand
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.nullable
 import net.fallingangel.jimmerdto.util.psiClass
+import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.base.util.module
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.psi.KtClassOrObject
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
 
@@ -272,9 +274,19 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun isInheritorOrSelf(qualifiedName: String, baseName: String): Boolean? {
-        val clazz = element.psiClass(qualifiedName) ?: return null
-        val baseClass = element.psiClass(baseName) ?: return null
+    override fun isInheritorOrSelf(base: String): Boolean? {
+        val baseClass = element.psiClass(base) ?: return null
+        return isInheritorOrSelf(baseClass)
+    }
+
+    context(element: PsiElement)
+    override fun isInheritorOrSelf(base: PsiElement): Boolean? {
+        val clazz = element.narrow<PsiClass>()
+        val baseClass = when (base) {
+            is PsiClass -> base
+            is KtClassOrObject -> base.toLightClass()
+            else -> error("Unexpected base: ${base::class}")
+        } ?: return null
         return InheritanceUtil.isInheritorOrSelf(clazz, baseClass, true)
     }
 
@@ -415,25 +427,23 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
                             typeClass.fields
                                 .filterIsInstance<PsiEnumConstant>()
                                 .map { it.name to it },
-                            typeClass,
                         )
                     }
 
-                    typeClass.isAnnotationType -> ParamType.Annotation(typeClass.lName, typeClass)
+                    typeClass.isAnnotationType -> ParamType.Annotation(typeClass.lName)
 
                     type.canonicalText == "java.lang.String" -> ParamType.Scalar(ParamType.Scalar.Kind.String)
 
                     typeClass.qualifiedName == "java.lang.Class" -> {
                         val typeParameters = type.parameters
-                        val type0 = typeParameters.getOrNull(0) ?: return ParamType.Clazz(null, typeClass)
+                        val type0 = typeParameters.getOrNull(0) ?: return ParamType.Clazz(null, null)
 
                         val boundClass = when (type0) {
                             is PsiWildcardType -> (type0.bound as? PsiClassType)?.resolve()
                             is PsiClassType -> type0.resolve()
                             else -> null
                         }
-
-                        ParamType.Clazz(boundClass?.lName, boundClass ?: typeClass)
+                        ParamType.Clazz(boundClass?.lName, boundClass)
                     }
 
                     else -> null
@@ -457,11 +467,12 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
             }
 
             is PsiClassObjectAccessExpression -> {
-                when (val type = value.operand.type) {
-                    is PsiClassType -> type.resolve()?.lName?.let(ParamValue::Clazz)
-                    is PsiPrimitiveType -> ParamValue.Clazz(LName(type.name))
+                val clazz = when (val type = value.operand.type) {
+                    is PsiClassType -> type.resolve()
+                    is PsiPrimitiveType -> type.getBoxedType(value)?.resolve()
                     else -> null
-                }
+                } ?: return null
+                ParamValue.Clazz(clazz.lName, clazz)
             }
 
             is PsiAnnotation -> {

@@ -61,7 +61,10 @@ interface LanguageProcessor {
     fun enumConstants(): List<PsiNamedElement>
 
     context(element: PsiElement)
-    fun isInheritorOrSelf(qualifiedName: String, baseName: String): Boolean?
+    fun isInheritorOrSelf(base: String): Boolean?
+
+    context(element: PsiElement)
+    fun isInheritorOrSelf(base: PsiElement): Boolean?
 }
 
 fun Language.processor(): LanguageProcessor? {

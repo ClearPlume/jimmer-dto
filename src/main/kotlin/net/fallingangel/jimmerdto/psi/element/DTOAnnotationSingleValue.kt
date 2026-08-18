@@ -52,7 +52,7 @@ interface DTOAnnotationSingleValue : DTOElement {
                     } else {
                         val target = qualifiedName.target as? Resolution.Target.Type ?: return null
                         val qualifiedName = process(target.type) { className() } ?: return null
-                        ParamValue.Clazz(qualifiedName)
+                        ParamValue.Clazz(qualifiedName, target.type)
                     }
                 }
 

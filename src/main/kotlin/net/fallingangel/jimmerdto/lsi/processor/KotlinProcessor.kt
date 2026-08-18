@@ -4,6 +4,7 @@ import com.intellij.lang.Language
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.util.Key
+import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.search.ProjectScope
@@ -296,14 +297,23 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun isInheritorOrSelf(qualifiedName: String, baseName: String): Boolean? {
-        val clazz = element.ktClass(qualifiedName) ?: return null
-        val baseClass = element.ktClass(baseName) ?: return null
+    override fun isInheritorOrSelf(base: String): Boolean? {
+        val baseClass = element.ktClass(base) ?: return null
+        return isInheritorOrSelf(baseClass)
+    }
+
+    context(element: PsiElement)
+    override fun isInheritorOrSelf(base: PsiElement): Boolean? {
+        val clazz = element.narrow<KtClass>()
 
         return analyze(clazz) {
             val classSymbol = clazz.classSymbol ?: return null
-            val baseClassSymbol = baseClass.classSymbol ?: return null
-            classSymbol.defaultType.isSubtypeOf(baseClassSymbol.defaultType)
+            val baseSymbol = when (base) {
+                is KtClassOrObject -> base.classSymbol
+                is PsiClass -> base.namedClassSymbol
+                else -> error("Unexpected base: ${base::class}")
+            } ?: return null
+            classSymbol.defaultType.isSubtypeOf(baseSymbol.defaultType)
         }
     }
 
@@ -448,7 +458,6 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
     fun KaSession.resolveParamType(type: KaType): ParamType? {
         val type = type as? KaClassType ?: return null
-        val source = type.symbol.psi ?: return null
 
         return when (type.classId.asFqNameString()) {
             "kotlin.IntArray" -> ParamType.Array(ParamType.Scalar(ParamType.Scalar.Kind.Int))
@@ -466,8 +475,11 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             }
 
             "kotlin.reflect.KClass" -> when (val typeArgument = type.typeArguments[0]) {
-                is KaStarTypeProjection -> ParamType.Clazz(null, source)
-                is KaTypeArgumentWithVariance -> ParamType.Clazz(typeArgument.type.symbol?.classId?.lName, source)
+                is KaStarTypeProjection -> ParamType.Clazz(null, null)
+                is KaTypeArgumentWithVariance -> {
+                    val symbol = typeArgument.type.symbol
+                    ParamType.Clazz(symbol?.classId?.lName, symbol?.psi)
+                }
             }
 
             else -> {
@@ -480,11 +492,10 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
                                 .filterIsInstance<KaEnumEntrySymbol>()
                                 .mapNotNull { it.name.asString() to (it.psi ?: return@mapNotNull null) }
                                 .toList(),
-                            source,
                         )
                     }
 
-                    is KaNamedClassSymbol if symbol.classKind == KaClassKind.ANNOTATION_CLASS -> ParamType.Annotation(type.classId.lName, source)
+                    is KaNamedClassSymbol if symbol.classKind == KaClassKind.ANNOTATION_CLASS -> ParamType.Annotation(type.classId.lName)
                     else -> ParamType.Scalar(scalarKind(type.classId.lName.fqName) ?: return null)
                 }
             }
@@ -511,7 +522,8 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
             is KaAnnotationValue.ClassLiteralValue -> {
                 val classId = expression.classId ?: return null
-                ParamValue.Clazz(classId.lName)
+                val clazz = expression.type.symbol?.psi ?: return null
+                ParamValue.Clazz(classId.lName, clazz)
             }
 
             is KaAnnotationValue.ConstantValue -> ParamValue.Scalar(expression.value.value ?: return null)

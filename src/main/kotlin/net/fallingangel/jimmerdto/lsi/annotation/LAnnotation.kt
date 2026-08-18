@@ -22,7 +22,7 @@ class LAnnotation(
         val defaultValue: Value?,
         override val dependencyItem: PsiNamedElement,
     ) : LElement, LDependencyProvider {
-        sealed class Type : LDependencyProvider {
+        sealed class Type {
             abstract val presentation: String
 
             open fun accepts(value: Value): Boolean {
@@ -89,7 +89,7 @@ class LAnnotation(
 
             @Suppress("StatefulEp")
             // false positive: not an EP, lifecycle bound to CachedValue
-            class Enum(lName: LName, entries: List<Pair<String, PsiElement>>, override val dependencyItem: Any) : Type() {
+            class Enum(lName: LName, entries: List<Pair<String, PsiElement>>) : Type() {
                 override val presentation = lName.fqName
                 val name = lName.name
                 val fqName = lName.fqName
@@ -113,10 +113,6 @@ class LAnnotation(
             class Array(val elementType: Type) : Type() {
                 override val presentation = "Array<${elementType.presentation}>"
 
-                override fun collectChildren(result: MutableSet<Any>, visited: MutableSet<LDependencyProvider>) {
-                    elementType.collectDependencyItems(result, visited)
-                }
-
                 override fun equals(other: Any?): Boolean {
                     if (this === other) return true
                     if (javaClass != other?.javaClass) return false
@@ -131,13 +127,13 @@ class LAnnotation(
                 }
             }
 
-            class Clazz(val bound: LName?, override val dependencyItem: PsiElement) : Type() {
-                override val presentation = if (bound != null) "Class<${bound.name}>" else "Class<?>"
+            class Clazz(val boundName: LName?, val bound: PsiElement?) : Type() {
+                override val presentation = if (boundName != null) "Class<${boundName.name}>" else "Class<?>"
 
                 override fun accepts(value: Value): Boolean {
                     if (value !is Value.Clazz) return false
-                    val bound = bound?.fqName ?: return true
-                    return process(dependencyItem) { isInheritorOrSelf(value.typeName, bound) } ?: true
+                    bound ?: return true
+                    return process(value.source) { isInheritorOrSelf(bound) } ?: true
                 }
 
                 override fun equals(other: Any?): Boolean {
@@ -146,15 +142,15 @@ class LAnnotation(
 
                     other as Clazz
 
-                    return bound == other.bound
+                    return boundName == other.boundName
                 }
 
                 override fun hashCode(): Int {
-                    return bound.hashCode()
+                    return boundName.hashCode()
                 }
             }
 
-            class Annotation(lName: LName, override val dependencyItem: Any) : Type() {
+            class Annotation(lName: LName) : Type() {
                 override val presentation = lName.name
                 val fqName = lName.fqName
                 val name = lName.name
@@ -252,7 +248,7 @@ class LAnnotation(
                 }
             }
 
-            class Clazz(lName: LName) : Value() {
+            class Clazz(lName: LName, val source: PsiElement) : Value() {
                 override val typeName = lName.fqName
                 override val presentation = "Class<$typeName>"
 
@@ -291,10 +287,6 @@ class LAnnotation(
 
         fun accepts(value: Value): Boolean {
             return type.accepts(value)
-        }
-
-        override fun collectChildren(result: MutableSet<Any>, visited: MutableSet<LDependencyProvider>) {
-            type.collectDependencyItems(result, visited)
         }
 
         override fun equals(other: Any?): Boolean {
