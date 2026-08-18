@@ -273,6 +273,11 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
         return process(tableClass) { typeArgumentFor("org.babyfish.jimmer.sql.ast.table.Table") }
     }
 
+    context(_: PsiElement)
+    override fun fieldFilterName(): LName {
+        return LName("org.babyfish.jimmer.sql.fetcher", "FieldFilter")
+    }
+
     context(element: PsiElement)
     override fun isInheritorOrSelf(base: String): Boolean? {
         val baseClass = element.psiClass(base) ?: return null

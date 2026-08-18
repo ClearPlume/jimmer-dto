@@ -297,6 +297,11 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         return process(filterClass) { typeArgumentFor("org.babyfish.jimmer.sql.kt.fetcher.KFieldFilter") }
     }
 
+    context(_: PsiElement)
+    override fun fieldFilterName(): LName {
+        return LName("org.babyfish.jimmer.sql.kt.fetcher", "KFieldFilter")
+    }
+
     context(element: PsiElement)
     override fun isInheritorOrSelf(base: String): Boolean? {
         val clazz = element.narrow<KtClass>()

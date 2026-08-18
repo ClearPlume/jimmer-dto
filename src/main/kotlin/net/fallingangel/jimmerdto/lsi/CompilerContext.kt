@@ -17,6 +17,9 @@ interface CompilerContext {
 
     context(_: PsiElement)
     fun filterEntity(filterClass: PsiElement): PsiNamedElement?
+
+    context(_: PsiElement)
+    fun fieldFilterName(): LName
 }
 
 fun Module.context(): CompilerContext? {
