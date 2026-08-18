@@ -313,7 +313,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
                 is PsiClass -> base.namedClassSymbol
                 else -> error("Unexpected base: ${base::class}")
             } ?: return null
-            classSymbol.defaultType.isSubtypeOf(baseSymbol.defaultType)
+            classSymbol == baseSymbol || classSymbol.isSubClassOf(baseSymbol)
         }
     }
 
