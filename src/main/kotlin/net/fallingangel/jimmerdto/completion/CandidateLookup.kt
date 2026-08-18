@@ -6,8 +6,11 @@ import com.intellij.psi.PsiNamedElement
 import net.fallingangel.jimmerdto.enums.AUTO_IMPORTED_TYPES
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.psi.element.DTOQualifiedName
+import net.fallingangel.jimmerdto.psi.element.createQualifiedName
 import net.fallingangel.jimmerdto.psi.missing
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
+import net.fallingangel.jimmerdto.util.parent
 
 fun List<Resolution.Candidate>.lookUp(insideImportMechanism: Boolean): List<LookupElement> {
     return map { it.lookUp(insideImportMechanism) }
@@ -52,7 +55,19 @@ fun PsiNamedElement.lookUp(name: String, insideImportMechanism: Boolean): Lookup
         .withTypeText(if (builtin) "(built-in)" else "(${className.pkg})", true)
         .withInsertHandler { context, _ ->
             if (insideImportMechanism && !builtin) {
-                (context.file as DTOFile).addImport(className.fqName)
+                val file = context.file as DTOFile
+                val qualifiedName = className.fqName
+
+                // 是否已经导入过相同简单名的类
+                if (name in file.importIndex) {
+                    // 已导入的类全限定名是否等于要导入的类
+                    if (file.importIndex[name]?.singleOrNull()?.qualifiedName != qualifiedName) {
+                        val annotationName = file.findElementAt(context.startOffset)?.parent<DTOQualifiedName>() ?: return@withInsertHandler
+                        annotationName.replace(project.createQualifiedName(qualifiedName))
+                    }
+                } else {
+                    (context.file as DTOFile).addImport(className.fqName)
+                }
             }
         }
 }
