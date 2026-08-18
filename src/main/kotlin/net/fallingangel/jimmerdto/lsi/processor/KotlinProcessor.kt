@@ -33,6 +33,7 @@ import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
@@ -298,8 +299,14 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
     context(element: PsiElement)
     override fun isInheritorOrSelf(base: String): Boolean? {
-        val baseClass = element.ktClass(base) ?: return null
-        return isInheritorOrSelf(baseClass)
+        val clazz = element.narrow<KtClass>()
+
+        return analyze(clazz) {
+            val classSymbol = clazz.classSymbol ?: return null
+            val baseClassId = ClassId.topLevel(FqName(base))
+            val baseSymbol = findClass(baseClassId) ?: return null
+            classSymbol == baseSymbol || classSymbol.isSubClassOf(baseSymbol)
+        }
     }
 
     context(element: PsiElement)
