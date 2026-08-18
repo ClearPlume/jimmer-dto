@@ -1179,8 +1179,8 @@ class DTOAnnotator : Annotator {
                             val filterEntity = compiling(prop) { filterEntity(target.type) } ?: return
 
                             if (!targetEntity.isEquivalentTo(filterEntity)) {
-                                val targetEntityName = process(targetEntity) { className() } ?: return
-                                val filterEntityName = process(filterEntity) { className() } ?: return
+                                val targetEntityName = process(targetEntity) { className().fqName } ?: return
+                                val filterEntityName = process(filterEntity) { className().fqName } ?: return
                                 qualifiedName.error(
                                     "The filter class '${qualifiedName.text}' is illegal, " +
                                             "it specifies the entity type '$filterEntityName', " +

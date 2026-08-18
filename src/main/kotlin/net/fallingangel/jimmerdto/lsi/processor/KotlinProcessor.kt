@@ -511,8 +511,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
             is KaAnnotationValue.ClassLiteralValue -> {
                 val classId = expression.classId ?: return null
-                val clazz = findClass(classId)?.psi as? KtClass ?: return null
-                ParamValue.Clazz(clazz.lName)
+                ParamValue.Clazz(classId.lName)
             }
 
             is KaAnnotationValue.ConstantValue -> ParamValue.Scalar(expression.value.value ?: return null)
@@ -520,8 +519,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             is KaAnnotationValue.EnumEntryValue -> {
                 val callableId = expression.callableId ?: return null
                 val classId = callableId.classId ?: return null
-                val clazz = findClass(classId)?.psi as? KtClass ?: return null
-                ParamValue.Enum(clazz.lName, callableId.callableName.asString())
+                ParamValue.Enum(classId.lName, callableId.callableName.asString())
             }
 
             is KaAnnotationValue.NestedAnnotationValue -> {
