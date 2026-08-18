@@ -304,7 +304,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
     context(element: PsiElement)
     override fun isInheritorOrSelf(base: String): Boolean? {
-        val clazz = element.narrow<KtClass>()
+        val clazz = element.narrow<KtClassOrObject>()
 
         return analyze(clazz) {
             val classSymbol = clazz.classSymbol ?: return null
@@ -316,7 +316,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
     context(element: PsiElement)
     override fun isInheritorOrSelf(base: PsiElement): Boolean? {
-        val clazz = element.narrow<KtClass>()
+        val clazz = element.narrow<KtClassOrObject>()
 
         return analyze(clazz) {
             val classSymbol = clazz.classSymbol ?: return null
