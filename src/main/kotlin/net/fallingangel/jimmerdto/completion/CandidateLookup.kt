@@ -23,7 +23,7 @@ fun Resolution.Candidate.lookUp(insideImportMechanism: Boolean): LookupElement {
 
         is Resolution.Target.Property -> {
             val property = target.property
-            LookupElementBuilder.create(target.property.dependencyItem, property.name)
+            LookupElementBuilder.create(target.property.dependencyItem, name)
                 .withIcon(property.dependencyItem.getIcon(0))
         }
 
