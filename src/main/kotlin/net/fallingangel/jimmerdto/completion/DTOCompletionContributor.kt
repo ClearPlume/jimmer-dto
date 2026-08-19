@@ -684,6 +684,15 @@ class DTOCompletionContributor : CompletionContributor() {
                                 .map { it.lookUp(it.demand(PsiClass::getName), true) }
                         )
                     }
+
+                    PropConfigName.FetchType.text -> {
+                        val referenceFetchType = JimmerTypes.ReferenceFetchType.psiClass(element = propConfig) ?: return@complete
+                        val availableTypes = referenceFetchType.fields
+                            .filterIsInstance<PsiEnumConstant>()
+                            .filter { it.name != "AUTO" }
+
+                        result.addAllElements(availableTypes.map { LookupElementBuilder.createWithIcon(it) })
+                    }
                 }
             },
             identifier.inside(DTOPropConfig::class.java),
