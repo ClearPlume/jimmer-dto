@@ -17,6 +17,7 @@ import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerTypes
 import net.fallingangel.jimmerdto.psi.demand
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.ktClass
@@ -293,12 +294,12 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
     context(_: PsiElement)
     override fun filterEntity(filterClass: PsiElement): PsiNamedElement? {
-        return process(filterClass) { typeArgumentFor(LName.fromFqn("org.babyfish.jimmer.sql.kt.fetcher.KFieldFilter")) }
+        return process(filterClass) { typeArgumentFor(JimmerTypes.KFieldFilter) }
     }
 
     context(_: PsiElement)
     override fun fieldFilterName(): LName {
-        return LName("org.babyfish.jimmer.sql.kt.fetcher", "KFieldFilter")
+        return JimmerTypes.KFieldFilter
     }
 
     context(element: PsiElement)

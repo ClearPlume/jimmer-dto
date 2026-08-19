@@ -13,6 +13,7 @@ import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerOptions
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerTypes
 import net.fallingangel.jimmerdto.psi.demand
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.nullable
@@ -268,13 +269,13 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
 
     context(_: PsiElement)
     override fun filterEntity(filterClass: PsiElement): PsiNamedElement? {
-        val tableClass = process(filterClass) { typeArgumentFor(LName.fromFqn("org.babyfish.jimmer.sql.fetcher.FieldFilter")) } ?: return null
-        return process(tableClass) { typeArgumentFor(LName.fromFqn("org.babyfish.jimmer.sql.ast.table.Table")) }
+        val tableClass = process(filterClass) { typeArgumentFor(JimmerTypes.FieldFilter) } ?: return null
+        return process(tableClass) { typeArgumentFor(JimmerTypes.Table) }
     }
 
     context(_: PsiElement)
     override fun fieldFilterName(): LName {
-        return LName("org.babyfish.jimmer.sql.fetcher", "FieldFilter")
+        return JimmerTypes.FieldFilter
     }
 
     context(element: PsiElement)

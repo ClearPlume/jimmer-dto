@@ -14,11 +14,9 @@ import com.intellij.psi.PsiTypeParameter
 import com.intellij.psi.util.elementType
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.siblings
-import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.enums.*
 import net.fallingangel.jimmerdto.enums.Function
-import net.fallingangel.jimmerdto.lsi.LName
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.compiling
 import net.fallingangel.jimmerdto.lsi.jimmer.*
@@ -1214,17 +1212,17 @@ class DTOAnnotator : Annotator {
                     } else {
                         val target = qualifiedName.target
                         if (target is Resolution.Target.Type) {
-                            process(target.type) { isInheritorOrSelf(LName.fromFqn("org.babyfish.jimmer.sql.fetcher.RecursionStrategy")) }?.let {
+                            process(target.type) { isInheritorOrSelf(JimmerTypes.RecursionStrategy) }?.let {
                                 if (!it) {
                                     val className = process(target.type) { className() } ?: target.type.missing("className")
-                                    qualifiedName.error("'${className.fqName}' is not a subtype of 'RecursionStrategy'")
+                                    qualifiedName.error("'${className.fqName}' is not a subtype of '${JimmerTypes.RecursionStrategy.name}'")
                                     return
                                 }
                             }
 
                             val targetEntity = property.targetClass?.dependencyItem ?: return
                             val strategyEntity = process(target.type) {
-                                typeArgumentFor(LName.fromFqn("org.babyfish.jimmer.sql.fetcher.RecursionStrategy"))
+                                typeArgumentFor(JimmerTypes.RecursionStrategy)
                             }
                             strategyEntity?.takeIf { it !is PsiTypeParameter } ?: return
 
@@ -1249,7 +1247,7 @@ class DTOAnnotator : Annotator {
                     val fetchType = o.qualifiedName
                     if (fetchType != null) {
                         val fetchTypeValue = fetchType.value
-                        val referenceFetchType = LName.fromFqn(Constant.REFERENCE_FETCH_TYPE).psiClass(element = o) ?: return
+                        val referenceFetchType = JimmerTypes.ReferenceFetchType.psiClass(element = o) ?: return
                         val availableTypes = referenceFetchType.fields
                             .filterIsInstance<PsiEnumConstant>()
                             .map(PsiEnumConstant::getName)
