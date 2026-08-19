@@ -17,7 +17,8 @@ import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.lsi.LKind
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.compiling
-import net.fallingangel.jimmerdto.lsi.jimmer.*
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerTypes
+import net.fallingangel.jimmerdto.lsi.jimmer.isEntity
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser.*
@@ -599,51 +600,10 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 val prop = parameters.position.parent<DTOPositiveProp>() ?: return@complete
+                val config = parameters.position.parent<DTOPropConfig>() ?: return@complete
+
                 val property = prop.property ?: return@complete
-
-                val haveFilter = prop.hasConfig(PropConfigName.Filter)
-                val haveWhere = prop.hasConfig(PropConfigName.Where)
-                val haveOrderBy = prop.hasConfig(PropConfigName.OrderBy)
-                val haveDepth = prop.hasConfig(PropConfigName.Depth)
-                val haveRecursion = prop.hasConfig(PropConfigName.Recursion)
-
-                val isEntityAssociation = property.isEntityAssociation
-                val propertyIsList = property.isList
-
-                val availableConfigs = PropConfigName.entries.toMutableList()
-
-                // TODO availableConfigs 剔除逻辑
-                if (haveFilter || !isEntityAssociation || property.isReference && !property.nullable) {
-                    availableConfigs -= PropConfigName.Where
-                }
-
-                if (haveFilter || !isEntityAssociation || !propertyIsList) {
-                    availableConfigs -= PropConfigName.OrderBy
-                }
-
-                if (haveWhere || haveOrderBy || !isEntityAssociation || !propertyIsList) {
-                    availableConfigs -= PropConfigName.Filter
-                }
-
-                if (haveDepth || property.actualType != prop.containingLClass) {
-                    availableConfigs -= PropConfigName.Recursion
-                }
-
-                if (!isEntityAssociation || propertyIsList) {
-                    availableConfigs -= PropConfigName.FetchType
-                }
-
-                if (!isEntityAssociation || !propertyIsList) {
-                    availableConfigs -= PropConfigName.Limit
-                }
-
-                if (!propertyIsList) {
-                    availableConfigs -= PropConfigName.Batch
-                }
-
-                if (haveRecursion || property.actualType != prop.containingLClass) {
-                    availableConfigs -= PropConfigName.Depth
-                }
+                val availableConfigs = PropConfigName.entries.filter { it.violations(config, prop, property).isEmpty() }
 
                 result.addAllElements(
                     availableConfigs

@@ -1118,46 +1118,29 @@ class DTOAnnotator : Annotator {
                 o.error("Configuration can only be applied to output DTO")
             }
 
-            val availableNames = PropConfigName.availableNames
-            if (configName !in availableNames) {
-                o.name.error(
-                    "Incorrect prop-config name '$configName'",
-                    ChangeReferenceFix(o.name, availableNames)
-                )
-                return
-            }
-
-            val conflicts = PropConfigName.exclusive[configName].orEmpty()
-            prop.configs
-                .takeWhile { it !== o }
-                .firstOrNull { it.name.text in conflicts }
-                ?.let {
-                    o.name.error("Cannot specify '${o.name.text}' when '${it.name.text}' exists")
-                }
-
             val property = prop.property ?: return
             o.qualifiedName?.validatePropPath()
 
+            PropConfigName.fromText(configName)
+                ?.violations(o, prop, property)
+                ?.forEach { o.name.error(it) }
+                ?: run {
+                    val availableNames = PropConfigName.availableNames
+                    o.name.error(
+                        "Incorrect prop-config name '$configName'",
+                        ChangeReferenceFix(o.name, availableNames)
+                    )
+                    return
+                }
+
             when (configName) {
                 PropConfigName.Where.text -> {
-                    if (!property.isEntityAssociation) {
-                        o.name.error("Cannot specify '!where' when the property is not association")
-                    }
-
-                    if (property.isReference && !property.nullable) {
-                        o.name.error("Cannot specify '!where' when the property is non-null reference")
-                    }
-
                     if (o.whereArgs == null) {
                         o.name.error("Missing predicate in '!where'")
                     }
                 }
 
                 PropConfigName.OrderBy.text -> {
-                    if (!property.isEntityAssociation || !property.isList) {
-                        o.name.error("Cannot specify '!orderBy' when the property is not associated list")
-                    }
-
                     val orderByArgs = o.orderByArgs
                     if ((orderByArgs == null || orderByArgs.orderItems.isEmpty()) && o.qualifiedName == null) {
                         o.name.error("Missing order items in '!orderBy'")
@@ -1165,10 +1148,6 @@ class DTOAnnotator : Annotator {
                 }
 
                 PropConfigName.Filter.text -> {
-                    if (!property.isEntityAssociation || !property.isList) {
-                        o.name.error("Cannot specify '!filter' when the property is not associated list")
-                    }
-
                     val qualifiedName = o.qualifiedName
                     if (qualifiedName == null) {
                         o.name.error("Missing filter class in '!filter'")
@@ -1202,10 +1181,6 @@ class DTOAnnotator : Annotator {
                 }
 
                 PropConfigName.Recursion.text -> {
-                    if (!prop.isRecursive || !property.isRecursive) {
-                        o.name.error("'!recursion' can only be applied for recursive property")
-                    }
-
                     val qualifiedName = o.qualifiedName
                     if (qualifiedName == null) {
                         o.name.error("Missing recursion strategy class in '!recursion'")
@@ -1240,10 +1215,6 @@ class DTOAnnotator : Annotator {
                 }
 
                 PropConfigName.FetchType.text -> {
-                    if (!property.isEntityAssociation || property.isList) {
-                        o.name.error("Cannot specify '!fetchType' when the property is not associated reference")
-                    }
-
                     val fetchType = o.qualifiedName
                     if (fetchType != null) {
                         val fetchTypeValue = fetchType.value
@@ -1267,10 +1238,6 @@ class DTOAnnotator : Annotator {
                 }
 
                 PropConfigName.Limit.text -> {
-                    if (!property.isEntityAssociation || !property.isList) {
-                        o.name.error("Cannot specify '!limit' when the property is not associated list")
-                    }
-
                     val intPair = o.intPair
                     if (intPair != null) {
                         val limit = intPair.first
@@ -1292,10 +1259,6 @@ class DTOAnnotator : Annotator {
                 }
 
                 PropConfigName.Batch.text -> {
-                    if (!property.isEntityAssociation || !property.isList) {
-                        o.name.error("Cannot specify '!batch' when the property is not associated list")
-                    }
-
                     val intPair = o.intPair
                     if (intPair != null) {
                         val batch = intPair.first
@@ -1311,10 +1274,6 @@ class DTOAnnotator : Annotator {
                 }
 
                 PropConfigName.Depth.text -> {
-                    if (!prop.isRecursive || !property.isRecursive) {
-                        o.name.error("'!depth' can only be applied for recursive property")
-                    }
-
                     val intPair = o.intPair
                     if (intPair != null) {
                         val depth = intPair.first
