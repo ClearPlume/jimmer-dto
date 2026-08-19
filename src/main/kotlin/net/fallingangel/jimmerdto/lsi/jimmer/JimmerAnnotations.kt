@@ -17,4 +17,5 @@ object JimmerAnnotations {
     val ExcludeFromAllScalars = LName.fromFqn("org.babyfish.jimmer.sql.ExcludeFromAllScalars")
     val LogicalDeleted = LName.fromFqn("org.babyfish.jimmer.sql.LogicalDeleted")
     val ManyToManyView = LName.fromFqn("org.babyfish.jimmer.sql.ManyToManyView")
+    val KotlinDto = LName.fromFqn("org.babyfish.jimmer.kt.dto.KotlinDto")
 }

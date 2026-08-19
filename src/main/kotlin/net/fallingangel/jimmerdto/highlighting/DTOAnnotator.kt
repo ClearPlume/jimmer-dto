@@ -330,9 +330,9 @@ class DTOAnnotator : Annotator {
             if (annotationName.pkg.startsWith("org.babyfish.jimmer.") &&
                 !annotationName.pkg.startsWith("org.babyfish.jimmer.client.") &&
                 !annotationName.pkg.startsWith("org.babyfish.jimmer.jackson.") &&
-                annotationName.fqName != "org.babyfish.jimmer.kt.dto.KotlinDto"
+                annotationName != JimmerAnnotations.KotlinDto
             ) {
-                qualifiedName.error("Jimmer annotation '$annotationName' is forbidden by DTO language")
+                qualifiedName.error("Jimmer annotation '${annotationName.fqName}' is forbidden by DTO language")
                 return
             }
         }
