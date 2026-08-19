@@ -665,9 +665,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
                 when (propConfig.name.text) {
                     in arrayOf(PropConfigName.Where.text, PropConfigName.OrderBy.text) -> {
-                        completeQualifiedNamePart(parameters, result) {
-                            process(it) { kind() == LKind.Property } ?: false
-                        }
+                        val part = parameters.position.parent<DTOQualifiedNamePart>() ?: return@complete
+                        val candidates = part.space?.candidates() ?: return@complete
+                        result.addAllElements(candidates.lookUp(false))
                     }
 
                     PropConfigName.Recursion.text -> {
