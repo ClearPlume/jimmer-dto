@@ -4,7 +4,9 @@ import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.*
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.search.ProjectScope
+import com.intellij.psi.search.searches.ClassInheritorsSearch
 import net.fallingangel.jimmerdto.core.DTOLanguage.xPath
 import net.fallingangel.jimmerdto.lsi.LName
 import net.fallingangel.jimmerdto.psi.DTOFile
@@ -138,6 +140,12 @@ fun LName.psiClass(): PsiClass? {
 context(element: PsiElement)
 fun LName.ktClass(): KtClassOrObject? {
     return KotlinFullClassNameIndex[fqName, element.project, element.resolveScope].firstOrNull()
+}
+
+context(element: PsiElement)
+fun LName.inheritors(): List<PsiClass> {
+    val clazz = psiClass() ?: return emptyList()
+    return ClassInheritorsSearch.search(clazz, GlobalSearchScope.projectScope(element.project), false).toList()
 }
 
 fun PsiModifierListOwner.hasAnnotation(vararg anno: LName): Boolean {

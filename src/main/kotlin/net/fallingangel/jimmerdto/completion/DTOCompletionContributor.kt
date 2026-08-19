@@ -16,10 +16,8 @@ import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.lsi.LKind
 import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.jimmer.isEntity
-import net.fallingangel.jimmerdto.lsi.jimmer.isEntityAssociation
-import net.fallingangel.jimmerdto.lsi.jimmer.isList
-import net.fallingangel.jimmerdto.lsi.jimmer.isReference
+import net.fallingangel.jimmerdto.lsi.compiling
+import net.fallingangel.jimmerdto.lsi.jimmer.*
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.DTOParser.*
@@ -663,50 +661,32 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completePropConfigArg() {
         complete(
             { parameters, result ->
-                completeQualifiedNamePart(parameters, result) {
-                    process(it) { kind() == LKind.Property } ?: false
+                val propConfig = parameters.position.parent<DTOPropConfig>() ?: return@complete
+
+                when (propConfig.name.text) {
+                    in arrayOf(PropConfigName.Where.text, PropConfigName.OrderBy.text) -> {
+                        completeQualifiedNamePart(parameters, result) {
+                            process(it) { kind() == LKind.Property } ?: false
+                        }
+                    }
+
+                    PropConfigName.Recursion.text -> {
+                        result.addAllElements(
+                            JimmerTypes.RecursionStrategy.inheritors(element = propConfig)
+                                .map { it.lookUp(it.demand(PsiClass::getName), true) }
+                        )
+                    }
+
+                    PropConfigName.Filter.text -> {
+                        val fieldFilterName = compiling(propConfig) { fieldFilterName() } ?: return@complete
+                        result.addAllElements(
+                            fieldFilterName.inheritors(element = propConfig)
+                                .map { it.lookUp(it.demand(PsiClass::getName), true) }
+                        )
+                    }
                 }
             },
-            or(
-                identifier.withSuperParent(
-                    5,
-                    lsiElement(DTOWhereArgs::class.java)
-                        .afterSiblingSkipping(
-                            lsiElement(token[LParen]),
-                            or(
-                                lsiElement(token[ParserPropConfig]).withText("!where"),
-                                lsiElement(token[ParserPropConfig]).withText("!orderBy"),
-                            ),
-                        ),
-                ),
-                identifier.withSuperParent(
-                    4,
-                    lsiElement(DTOOrderByArgs::class.java)
-                        .afterSiblingSkipping(
-                            lsiElement(token[LParen]),
-                            or(
-                                lsiElement(token[ParserPropConfig]).withText("!where"),
-                                lsiElement(token[ParserPropConfig]).withText("!orderBy"),
-                            ),
-                        ),
-                ),
-                identifier.withParent(error.afterSibling(lsiElement(DTOWhereArgs::class.java))),
-                identifier.withSuperParent(
-                    2,
-                    lsiElement(DTOQualifiedName::class.java)
-                        .afterSiblingSkipping(
-                            lsiElement(token[LParen]),
-                            or(
-                                lsiElement(token[ParserPropConfig]).withText("!where"),
-                                lsiElement(token[ParserPropConfig]).withText("!orderBy"),
-                            ),
-                        ),
-                ),
-                identifier.withSuperParent(
-                    4,
-                    lsiElement(DTOPredicate::class.java)
-                ),
-            ),
+            identifier.inside(DTOPropConfig::class.java),
         )
     }
 
