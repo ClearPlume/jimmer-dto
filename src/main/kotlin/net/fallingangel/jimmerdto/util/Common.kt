@@ -130,12 +130,14 @@ fun Project.notification(content: String, type: NotificationType = NotificationT
         .notify(this)
 }
 
-fun PsiElement.psiClass(qualifiedName: String): PsiClass? {
-    return JavaPsiFacade.getInstance(project).findClass(qualifiedName, resolveScope)
+context(element: PsiElement)
+fun LName.psiClass(): PsiClass? {
+    return JavaPsiFacade.getInstance(element.project).findClass(fqName, element.resolveScope)
 }
 
-fun PsiElement.ktClass(qualifiedName: String): KtClassOrObject? {
-    return KotlinFullClassNameIndex[qualifiedName, project, resolveScope].firstOrNull()
+context(element: PsiElement)
+fun LName.ktClass(): KtClassOrObject? {
+    return KotlinFullClassNameIndex[fqName, element.project, element.resolveScope].firstOrNull()
 }
 
 fun PsiModifierListOwner.hasAnnotation(vararg anno: LName): Boolean {

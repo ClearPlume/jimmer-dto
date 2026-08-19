@@ -18,6 +18,7 @@ import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.enums.*
 import net.fallingangel.jimmerdto.enums.Function
+import net.fallingangel.jimmerdto.lsi.LName
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.compiling
 import net.fallingangel.jimmerdto.lsi.jimmer.*
@@ -1178,7 +1179,7 @@ class DTOAnnotator : Annotator {
                         if (target is Resolution.Target.Type) {
                             val fieldFilterName = compiling(prop) { fieldFilterName() } ?: return
 
-                            process(target.type) { isInheritorOrSelf(fieldFilterName.fqName) }?.let {
+                            process(target.type) { isInheritorOrSelf(fieldFilterName) }?.let {
                                 if (!it) {
                                     val className = process(target.type) { className() } ?: target.type.missing("className")
                                     qualifiedName.error("'${className.fqName}' is not a subtype of '${fieldFilterName.name}'")
@@ -1213,7 +1214,7 @@ class DTOAnnotator : Annotator {
                     } else {
                         val target = qualifiedName.target
                         if (target is Resolution.Target.Type) {
-                            process(target.type) { isInheritorOrSelf("org.babyfish.jimmer.sql.fetcher.RecursionStrategy") }?.let {
+                            process(target.type) { isInheritorOrSelf(LName.fromFqn("org.babyfish.jimmer.sql.fetcher.RecursionStrategy")) }?.let {
                                 if (!it) {
                                     val className = process(target.type) { className() } ?: target.type.missing("className")
                                     qualifiedName.error("'${className.fqName}' is not a subtype of 'RecursionStrategy'")
@@ -1222,7 +1223,9 @@ class DTOAnnotator : Annotator {
                             }
 
                             val targetEntity = property.targetClass?.dependencyItem ?: return
-                            val strategyEntity = process(target.type) { typeArgumentFor("org.babyfish.jimmer.sql.fetcher.RecursionStrategy") }
+                            val strategyEntity = process(target.type) {
+                                typeArgumentFor(LName.fromFqn("org.babyfish.jimmer.sql.fetcher.RecursionStrategy"))
+                            }
                             strategyEntity?.takeIf { it !is PsiTypeParameter } ?: return
 
                             if (!targetEntity.isEquivalentTo(strategyEntity)) {
@@ -1246,7 +1249,7 @@ class DTOAnnotator : Annotator {
                     val fetchType = o.qualifiedName
                     if (fetchType != null) {
                         val fetchTypeValue = fetchType.value
-                        val referenceFetchType = o.psiClass(Constant.REFERENCE_FETCH_TYPE) ?: return
+                        val referenceFetchType = LName.fromFqn(Constant.REFERENCE_FETCH_TYPE).psiClass(element = o) ?: return
                         val availableTypes = referenceFetchType.fields
                             .filterIsInstance<PsiEnumConstant>()
                             .map(PsiEnumConstant::getName)

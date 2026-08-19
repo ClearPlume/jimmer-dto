@@ -9,14 +9,11 @@ import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiPackage
 import net.fallingangel.jimmerdto.enums.AUTO_IMPORTED_TYPES
 import net.fallingangel.jimmerdto.enums.StandardType
-import net.fallingangel.jimmerdto.lsi.LClass
-import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.compiling
+import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.jimmer.defaultViewBasePropName
 import net.fallingangel.jimmerdto.lsi.jimmer.idProperty
 import net.fallingangel.jimmerdto.lsi.jimmer.idViewBaseProp
 import net.fallingangel.jimmerdto.lsi.jimmer.isReference
-import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.demand
 import net.fallingangel.jimmerdto.psi.element.DTOAlias
@@ -35,7 +32,7 @@ object Resolution {
                 val facade = JavaPsiFacade.getInstance(file.project)
                 return facade.findClass(name, file.resolveScope)?.takeIf { it !is KtLightElement<*, *> }?.let { Target.Type(it) }
                     ?: facade.findPackage(name)?.let(Target::Pkg)
-                    ?: file.ktClass(name)?.let { Target.Type(it) }
+                    ?: LName(name).ktClass(element = file)?.let { Target.Type(it) }
             }
 
             override fun candidates(): List<Candidate> {

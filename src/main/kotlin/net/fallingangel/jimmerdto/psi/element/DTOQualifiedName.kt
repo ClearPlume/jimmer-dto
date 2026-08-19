@@ -5,6 +5,7 @@ import com.intellij.psi.PsiClass
 import com.intellij.psi.search.ProjectScope
 import net.fallingangel.jimmerdto.Constant
 import net.fallingangel.jimmerdto.enums.PropConfigName
+import net.fallingangel.jimmerdto.lsi.LName
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.util.*
@@ -55,7 +56,7 @@ interface DTOQualifiedName : DTOElement {
                 return when (config.name.text) {
                     PropConfigName.Where.text, PropConfigName.OrderBy.text -> config.containingLClass?.let(Resolution.Space::Properties)
 
-                    PropConfigName.FetchType.text -> psiClass(Constant.REFERENCE_FETCH_TYPE)?.let(Resolution.Space::Type)
+                    PropConfigName.FetchType.text -> LName(Constant.REFERENCE_FETCH_TYPE).psiClass()?.let(Resolution.Space::Type)
 
                     else -> Resolution.Space.GlobalWithImports(file, file.entityPackage)
                 }

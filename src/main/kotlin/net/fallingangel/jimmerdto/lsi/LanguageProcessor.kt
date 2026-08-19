@@ -45,7 +45,7 @@ interface LanguageProcessor {
     fun hasAnnotation(vararg annotation: LName): Boolean
 
     context(element: PsiElement)
-    fun typeArgumentFor(superName: String, index: Int = 0): PsiNamedElement?
+    fun typeArgumentFor(superName: LName, index: Int = 0): PsiNamedElement?
 
     context(element: PsiElement)
     fun topLevelClasses(): List<PsiNamedElement>
@@ -60,7 +60,7 @@ interface LanguageProcessor {
     fun enumConstants(): List<PsiNamedElement>
 
     context(element: PsiElement)
-    fun isInheritorOrSelf(base: String): Boolean?
+    fun isInheritorOrSelf(base: LName): Boolean?
 
     context(element: PsiElement)
     fun isInheritorOrSelf(base: PsiElement): Boolean?

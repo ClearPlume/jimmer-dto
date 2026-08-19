@@ -146,7 +146,7 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
             StandardType.Set, StandardType.MutableSet -> "java.util.Set"
             StandardType.Map, StandardType.MutableMap -> "java.util.Map"
         }
-        return qualified?.let(element::psiClass)
+        return qualified?.let(LName::fromFqn)?.psiClass()
     }
 
     context(element: PsiElement)
@@ -217,9 +217,9 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun typeArgumentFor(superName: String, index: Int): PsiNamedElement? {
+    override fun typeArgumentFor(superName: LName, index: Int): PsiNamedElement? {
         val clazz = element.narrow<PsiClass>()
-        val superClass = element.psiClass(superName) ?: return null
+        val superClass = superName.psiClass() ?: return null
         val substitutor = TypeConversionUtil.getClassSubstitutor(superClass, clazz, PsiSubstitutor.EMPTY) ?: return null
         val typeParameter = superClass.typeParameters.getOrNull(index) ?: return null
         val substituted = substitutor.substitute(typeParameter) ?: return null
@@ -268,8 +268,8 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
 
     context(_: PsiElement)
     override fun filterEntity(filterClass: PsiElement): PsiNamedElement? {
-        val tableClass = process(filterClass) { typeArgumentFor("org.babyfish.jimmer.sql.fetcher.FieldFilter") } ?: return null
-        return process(tableClass) { typeArgumentFor("org.babyfish.jimmer.sql.ast.table.Table") }
+        val tableClass = process(filterClass) { typeArgumentFor(LName.fromFqn("org.babyfish.jimmer.sql.fetcher.FieldFilter")) } ?: return null
+        return process(tableClass) { typeArgumentFor(LName.fromFqn("org.babyfish.jimmer.sql.ast.table.Table")) }
     }
 
     context(_: PsiElement)
@@ -278,8 +278,8 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun isInheritorOrSelf(base: String): Boolean? {
-        val baseClass = element.psiClass(base) ?: return null
+    override fun isInheritorOrSelf(base: LName): Boolean? {
+        val baseClass = base.psiClass() ?: return null
         return isInheritorOrSelf(baseClass)
     }
 

@@ -33,7 +33,6 @@ import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.idea.facet.KotlinFacet
 import org.jetbrains.kotlin.name.ClassId
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.containingClass
@@ -151,7 +150,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             StandardType.Map -> "kotlin.collections.Map"
             StandardType.MutableMap -> "kotlin.collections.MutableMap"
         }
-        return element.ktClass(qualified)
+        return LName.fromFqn(qualified).ktClass()
     }
 
     context(element: PsiElement)
@@ -233,13 +232,13 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun typeArgumentFor(superName: String, index: Int): PsiNamedElement? {
+    override fun typeArgumentFor(superName: LName, index: Int): PsiNamedElement? {
         val clazz = element.narrow<KtClass>()
         return analyze(clazz) {
             val symbol = clazz.symbol as? KaClassSymbol ?: return null
             val superType = symbol.defaultType.allSupertypes
                 .filterIsInstance<KaClassType>()
-                .firstOrNull { it.classId.asFqNameString() == superName }
+                .firstOrNull { superName.toClassId() == it.classId }
                 ?: return null
             val typeParameter = superType.typeArguments.getOrNull(index)?.type ?: return null
             (typeParameter as? KaClassType)?.symbol?.psi as? PsiNamedElement
@@ -294,7 +293,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
     context(_: PsiElement)
     override fun filterEntity(filterClass: PsiElement): PsiNamedElement? {
-        return process(filterClass) { typeArgumentFor("org.babyfish.jimmer.sql.kt.fetcher.KFieldFilter") }
+        return process(filterClass) { typeArgumentFor(LName.fromFqn("org.babyfish.jimmer.sql.kt.fetcher.KFieldFilter")) }
     }
 
     context(_: PsiElement)
@@ -303,13 +302,12 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun isInheritorOrSelf(base: String): Boolean? {
+    override fun isInheritorOrSelf(base: LName): Boolean? {
         val clazz = element.narrow<KtClassOrObject>()
 
         return analyze(clazz) {
             val classSymbol = clazz.classSymbol ?: return null
-            val baseClassId = ClassId.topLevel(FqName(base))
-            val baseSymbol = findClass(baseClassId) ?: return null
+            val baseSymbol = findClass(base.toClassId()) ?: return null
             classSymbol == baseSymbol || classSymbol.isSubClassOf(baseSymbol)
         }
     }
