@@ -1,14 +1,14 @@
 package net.fallingangel.jimmerdto.lsi.annotation
 
-import org.jetbrains.kotlin.name.ClassId
+import net.fallingangel.jimmerdto.lsi.LName
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
 
-fun LAnnotationOwner.hasAnnotation(annotationClass: ClassId): Boolean {
-    return annotations.any { it.fqName == annotationClass.asFqNameString() }
+fun LAnnotationOwner.hasAnnotation(annotationClass: LName): Boolean {
+    return annotations.any { it.fqName == annotationClass.fqName }
 }
 
-fun LAnnotationOwner.hasAnnotation(vararg annotationClass: ClassId): Boolean {
-    return annotations.any { it.fqName in annotationClass.map(ClassId::asFqNameString) }
+fun LAnnotationOwner.hasAnnotation(vararg annotationClass: LName): Boolean {
+    return annotations.any { it.fqName in annotationClass.map(LName::fqName) }
 }
 
 fun LAnnotationOwner.hasAnnotationBySimple(vararg simpleAnnotation: String): Boolean {

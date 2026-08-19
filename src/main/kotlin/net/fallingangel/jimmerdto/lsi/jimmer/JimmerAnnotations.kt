@@ -1,20 +1,20 @@
 package net.fallingangel.jimmerdto.lsi.jimmer
 
-import org.jetbrains.kotlin.name.ClassId
+import net.fallingangel.jimmerdto.lsi.LName
 
 object JimmerAnnotations {
-    val Entity = ClassId.fromString("org/babyfish/jimmer/sql/Entity")
-    val MappedSuperclass = ClassId.fromString("org/babyfish/jimmer/sql/MappedSuperclass")
-    val Embeddable = ClassId.fromString("org/babyfish/jimmer/sql/Embeddable")
-    val Immutable = ClassId.fromString("org/babyfish/jimmer/Immutable")
-    val TNullable = ClassId.fromString("org/babyfish/jimmer/client/TNullable")
+    val Entity = LName.fromFqn("org.babyfish.jimmer.sql.Entity")
+    val MappedSuperclass = LName.fromFqn("org.babyfish.jimmer.sql.MappedSuperclass")
+    val Embeddable = LName.fromFqn("org.babyfish.jimmer.sql.Embeddable")
+    val Immutable = LName.fromFqn("org.babyfish.jimmer.Immutable")
+    val TNullable = LName.fromFqn("org.babyfish.jimmer.client.TNullable")
 
-    val Id = ClassId.fromString("org/babyfish/jimmer/sql/Id")
-    val IdView = ClassId.fromString("org/babyfish/jimmer/sql/IdView")
-    val Key = ClassId.fromString("org/babyfish/jimmer/sql/Key")
-    val Formula = ClassId.fromString("org/babyfish/jimmer/Formula")
-    val Transient = ClassId.fromString("org/babyfish/jimmer/sql/Transient")
-    val ExcludeFromAllScalars = ClassId.fromString("org/babyfish/jimmer/sql/ExcludeFromAllScalars")
-    val LogicalDeleted = ClassId.fromString("org/babyfish/jimmer/sql/LogicalDeleted")
-    val ManyToManyView = ClassId.fromString("org/babyfish/jimmer/sql/ManyToManyView")
+    val Id = LName.fromFqn("org.babyfish.jimmer.sql.Id")
+    val IdView = LName.fromFqn("org.babyfish.jimmer.sql.IdView")
+    val Key = LName.fromFqn("org.babyfish.jimmer.sql.Key")
+    val Formula = LName.fromFqn("org.babyfish.jimmer.Formula")
+    val Transient = LName.fromFqn("org.babyfish.jimmer.sql.Transient")
+    val ExcludeFromAllScalars = LName.fromFqn("org.babyfish.jimmer.sql.ExcludeFromAllScalars")
+    val LogicalDeleted = LName.fromFqn("org.babyfish.jimmer.sql.LogicalDeleted")
+    val ManyToManyView = LName.fromFqn("org.babyfish.jimmer.sql.ManyToManyView")
 }

@@ -5,7 +5,6 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
-import org.jetbrains.kotlin.name.ClassId
 
 private val EP = ExtensionPointName.create<LanguageProcessor>("net.fallingangel.languageProcessor")
 
@@ -43,7 +42,7 @@ interface LanguageProcessor {
     fun kind(): LKind?
 
     context(element: PsiElement)
-    fun hasAnnotation(vararg annotation: ClassId): Boolean
+    fun hasAnnotation(vararg annotation: LName): Boolean
 
     context(element: PsiElement)
     fun typeArgumentFor(superName: String, index: Int = 0): PsiNamedElement?

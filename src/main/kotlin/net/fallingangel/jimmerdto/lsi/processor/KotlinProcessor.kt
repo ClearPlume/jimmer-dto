@@ -223,13 +223,13 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun hasAnnotation(vararg annotation: ClassId): Boolean {
+    override fun hasAnnotation(vararg annotation: LName): Boolean {
         val declaration = element.narrow<KtDeclaration>()
         val classIds = analyze(declaration) {
             val symbol = declaration.symbol as? KaAnnotatedSymbol ?: return false
             symbol.annotations.classIds
         }
-        return annotation.any { it in classIds }
+        return annotation.map(LName::toClassId).any { it in classIds }
     }
 
     context(element: PsiElement)

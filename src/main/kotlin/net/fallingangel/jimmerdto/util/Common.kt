@@ -6,11 +6,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.*
 import com.intellij.psi.search.ProjectScope
 import net.fallingangel.jimmerdto.core.DTOLanguage.xPath
+import net.fallingangel.jimmerdto.lsi.LName
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotated
 import org.jetbrains.kotlin.idea.stubindex.KotlinFullClassNameIndex
-import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassOrObject
 
@@ -138,13 +138,13 @@ fun PsiElement.ktClass(qualifiedName: String): KtClassOrObject? {
     return KotlinFullClassNameIndex[qualifiedName, project, resolveScope].firstOrNull()
 }
 
-fun PsiModifierListOwner.hasAnnotation(vararg anno: ClassId): Boolean {
+fun PsiModifierListOwner.hasAnnotation(vararg anno: LName): Boolean {
     val annotations = annotations.mapNotNull(PsiAnnotation::getQualifiedName)
-    return anno.any { it.asFqNameString() in annotations }
+    return anno.map(LName::toClassId).any { it.asFqNameString() in annotations }
 }
 
-fun KaAnnotated.hasAnnotation(vararg anno: ClassId): Boolean {
-    return anno.any { it in annotations }
+fun KaAnnotated.hasAnnotation(vararg anno: LName): Boolean {
+    return anno.map(LName::toClassId).any { it in annotations }
 }
 
 fun Project.literalType(literal: String): PsiType? {

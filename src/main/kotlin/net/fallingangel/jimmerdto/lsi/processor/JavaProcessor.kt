@@ -19,7 +19,6 @@ import net.fallingangel.jimmerdto.util.nullable
 import net.fallingangel.jimmerdto.util.psiClass
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.base.util.module
-import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Value as ParamValue
@@ -212,9 +211,9 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
-    override fun hasAnnotation(vararg annotation: ClassId): Boolean {
+    override fun hasAnnotation(vararg annotation: LName): Boolean {
         val annotated = element.narrow<PsiModifierListOwner>()
-        return annotation.map(ClassId::asFqNameString).any(annotated::hasAnnotation)
+        return annotation.map(LName::fqName).any(annotated::hasAnnotation)
     }
 
     context(element: PsiElement)
