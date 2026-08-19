@@ -19,6 +19,7 @@ sealed class ArgType(val test: (LProperty) -> Boolean) {
     object EntityAssociation : ArgType(LProperty::isEntityAssociation)
     object Embeddable : ArgType(LProperty::isEmbedded)
     object ListAssociation : ArgType(LProperty::isList)
-    object StringProp : ArgType({ it.type.presentation == "String" || it.type.presentation == "String?" })
+    object StringProp : ArgType({ it.type is LProperty.Type.Scalar && (it.type.name == "java.lang.String" || it.type.name == "kotlin.String") })
+
     object Nullable : ArgType(LProperty::nullable)
 }
