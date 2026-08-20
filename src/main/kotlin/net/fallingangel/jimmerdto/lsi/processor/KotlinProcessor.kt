@@ -454,7 +454,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         return LAnnotation(
             classId.lName,
             params,
-            annotation.psi as? KtAnnotationEntry ?: return null,
+            annotation.psi ?: return null,
         )
     }
 
