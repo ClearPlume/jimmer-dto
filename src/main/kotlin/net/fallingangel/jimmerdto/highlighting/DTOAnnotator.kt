@@ -464,8 +464,9 @@ class DTOAnnotator : Annotator {
             val qualifiedName = o.qualifiedName ?: return
             val target = qualifiedName.target ?: return
 
-            if (target !is Resolution.Target.Type) {
+            if (target !is Resolution.Target.Type && o.classSuffix != null) {
                 qualifiedName.error("Annotation argument must be class literal", TruncateToClassLiteral(o))
+                return
             }
         }
 
