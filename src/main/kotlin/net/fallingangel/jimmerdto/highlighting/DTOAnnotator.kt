@@ -436,6 +436,15 @@ class DTOAnnotator : Annotator {
         }
 
         /**
+         * 为注解单值上色
+         */
+        override fun visitAnnotationSingleValue(o: DTOAnnotationSingleValue) {
+            o.unsupportedSuffix?.let {
+                it.error("References to '${it.text}' isn't supported")
+            }
+        }
+
+        /**
          * 为宏名称上色
          */
         override fun visitMacro(o: DTOMacro) {

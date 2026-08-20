@@ -34,7 +34,10 @@ class DTOAnnotationSingleValueImpl(node: ASTNode) : ANTLRPsiNode(node), DTOAnnot
         get() = findChildNullable("/annotationSingleValue/qualifiedName")
 
     override val classSuffix: PsiElement?
-        get() = findChildNullable("/annotationSingleValue/classSuffix")
+        get() = findChildNullable("/annotationSingleValue/classSuffix/Class")
+
+    override val unsupportedSuffix: PsiElement?
+        get() = findChildNullable("/annotationSingleValue/classSuffix/Identifier")
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {

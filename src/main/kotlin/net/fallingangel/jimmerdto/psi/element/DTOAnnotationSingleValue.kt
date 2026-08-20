@@ -25,6 +25,8 @@ interface DTOAnnotationSingleValue : DTOElement {
 
     val classSuffix: PsiElement?
 
+    val unsupportedSuffix: PsiElement?
+
     val value: ParamValue?
         get() {
             val boolean = boolean?.text?.toBoolean()
