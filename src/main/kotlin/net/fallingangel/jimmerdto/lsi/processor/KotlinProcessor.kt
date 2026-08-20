@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.analysis.api.annotations.KaAnnotationValue
 import org.jetbrains.kotlin.analysis.api.symbols.*
 import org.jetbrains.kotlin.analysis.api.symbols.markers.KaAnnotatedSymbol
 import org.jetbrains.kotlin.analysis.api.types.*
+import org.jetbrains.kotlin.analysis.utils.classId
 import org.jetbrains.kotlin.asJava.classes.KtLightClass
 import org.jetbrains.kotlin.asJava.toLightClass
 import org.jetbrains.kotlin.idea.KotlinLanguage
@@ -308,8 +309,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
         return analyze(clazz) {
             val classSymbol = clazz.classSymbol ?: return null
-            val baseSymbol = findClass(base.toClassId()) ?: return null
-            classSymbol == baseSymbol || classSymbol.isSubClassOf(baseSymbol)
+            classSymbol.defaultType.isSubtypeOf(base.toClassId())
         }
     }
 
@@ -319,12 +319,12 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
         return analyze(clazz) {
             val classSymbol = clazz.classSymbol ?: return null
-            val baseSymbol = when (base) {
-                is KtClassOrObject -> base.classSymbol
-                is PsiClass -> base.namedClassSymbol
+            val baseId = when (base) {
+                is KtClassOrObject -> base.getClassId()
+                is PsiClass -> base.classId
                 else -> error("Unexpected base: ${base::class}")
             } ?: return null
-            classSymbol == baseSymbol || classSymbol.isSubClassOf(baseSymbol)
+            classSymbol.defaultType.isSubtypeOf(baseId)
         }
     }
 
