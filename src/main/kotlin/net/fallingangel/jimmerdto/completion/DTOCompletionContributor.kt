@@ -9,7 +9,7 @@ import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.psi.*
 import com.intellij.psi.util.parentOfType
-import net.fallingangel.jimmerdto.completion.pattern.lsiElement
+import net.fallingangel.jimmerdto.completion.pattern.dtoElement
 import net.fallingangel.jimmerdto.core.DTOLanguage.rule
 import net.fallingangel.jimmerdto.core.DTOLanguage.token
 import net.fallingangel.jimmerdto.enums.Modifier
@@ -34,8 +34,8 @@ import net.fallingangel.jimmerdto.psi.DTOParser.Modifier as ParserModifier
 import net.fallingangel.jimmerdto.psi.DTOParser.PropConfigName as ParserPropConfig
 
 class DTOCompletionContributor : CompletionContributor() {
-    private val identifier = lsiElement(token[Identifier])
-    private val error = lsiElement(TokenType.ERROR_ELEMENT)
+    private val identifier = dtoElement(token[Identifier])
+    private val error = dtoElement(TokenType.ERROR_ELEMENT)
 
     init {
         // 用户属性类型提示
@@ -194,7 +194,7 @@ class DTOCompletionContributor : CompletionContributor() {
                 result.addAllElements(prop.values.lookUp())
             },
             identifier.withParent(DTOEnumMappingConstant::class.java)
-                .withSuperParent(3, lsiElement(DTOEnumBody::class.java))
+                .withSuperParent(3, dtoElement(DTOEnumBody::class.java))
         )
     }
 
@@ -245,8 +245,8 @@ class DTOCompletionContributor : CompletionContributor() {
                     .withSuperParent(2, DTOPositiveProp::class.java),
                 identifier.withParent(
                     not(
-                        lsiElement(DTOPropName::class.java)
-                            .afterSibling(lsiElement(token[ParserModifier])),
+                        dtoElement(DTOPropName::class.java)
+                            .afterSibling(dtoElement(token[ParserModifier])),
                     ),
                 ),
             )
@@ -263,7 +263,7 @@ class DTOCompletionContributor : CompletionContributor() {
                 result.addAllElements(propArgs.args?.lookUp() ?: emptyList())
             },
             identifier.withParent(DTOValue::class.java)
-                .withSuperParent(2, lsiElement(DTOPropArg::class.java)),
+                .withSuperParent(2, dtoElement(DTOPropArg::class.java)),
         )
     }
 
@@ -282,9 +282,9 @@ class DTOCompletionContributor : CompletionContributor() {
             identifier
                 .withSuperParent(
                     3,
-                    lsiElement().withFirstNonWhitespaceChild(
-                        lsiElement(DTODto::class.java)
-                            .withChild(lsiElement(DTODtoName::class.java)),
+                    dtoElement().withFirstNonWhitespaceChild(
+                        dtoElement(DTODto::class.java)
+                            .withChild(dtoElement(DTODtoName::class.java)),
                     ),
                 ),
         )
@@ -306,10 +306,10 @@ class DTOCompletionContributor : CompletionContributor() {
                 identifier
                     .withSuperParent(
                         3,
-                        lsiElement().withFirstNonWhitespaceChild(
-                            lsiElement(DTODto::class.java)
+                        dtoElement().withFirstNonWhitespaceChild(
+                            dtoElement(DTODto::class.java)
                                 .withChild(
-                                    lsiElement(DTODtoName::class.java)
+                                    dtoElement(DTODtoName::class.java)
                                         .withText(DUMMY_IDENTIFIER_TRIMMED),
                                 ),
                         ),
@@ -318,11 +318,11 @@ class DTOCompletionContributor : CompletionContributor() {
                     .andNot(identifier.withParent(error))
                     .withSuperParent(
                         2,
-                        lsiElement(DTODto::class.java)
+                        dtoElement(DTODto::class.java)
                             .afterSibling(
                                 or(
-                                    lsiElement(DTOExportStatement::class.java),
-                                    lsiElement(DTOImportStatement::class.java)
+                                    dtoElement(DTOExportStatement::class.java),
+                                    dtoElement(DTOImportStatement::class.java)
                                 ),
                             ),
                     ),
@@ -541,9 +541,9 @@ class DTOCompletionContributor : CompletionContributor() {
             identifier
                 .withParent(
                     or(
-                        lsiElement(rule[DTOParser.RULE_classSuffix]),
-                        lsiElement(DTOQualifiedNamePart::class.java)
-                            .afterSibling(lsiElement(token[DTOLexer.Dot])),
+                        dtoElement(rule[DTOParser.RULE_classSuffix]),
+                        dtoElement(DTOQualifiedNamePart::class.java)
+                            .afterSibling(dtoElement(token[DTOLexer.Dot])),
                     )
                 )
                 .inside(DTOAnnotation::class.java)
@@ -564,7 +564,7 @@ class DTOCompletionContributor : CompletionContributor() {
             },
             or(
                 // dto DUMMY_IDENTIFIER_TRIMMED { ... }
-                identifier.withParent(error.afterSibling(lsiElement(DTODtoName::class.java))),
+                identifier.withParent(error.afterSibling(dtoElement(DTODtoName::class.java))),
                 /*
                  * dto {
                  *     prop DUMMY_IDENTIFIER_TRIMMED
@@ -574,21 +574,21 @@ class DTOCompletionContributor : CompletionContributor() {
                     .withSuperParent(
                         2,
                         // prop DUMMY_IDENTIFIER_TRIMMED
-                        lsiElement(DTOPositiveProp::class.java)
+                        dtoElement(DTOPositiveProp::class.java)
                             .afterSibling(
                                 // prop(...) DUMMY_IDENTIFIER_TRIMMED
-                                lsiElement(DTOPositiveProp::class.java)
+                                dtoElement(DTOPositiveProp::class.java)
                                     .andNot(
-                                        lsiElement(DTOPositiveProp::class.java)
-                                            .withChild(lsiElement(DTOPropArg::class.java)),
+                                        dtoElement(DTOPositiveProp::class.java)
+                                            .withChild(dtoElement(DTOPropArg::class.java)),
                                     ),
                             )
                             .andNot(
                                 // prop DUMMY_IDENTIFIER_TRIMMED@Anno
-                                lsiElement(DTOPositiveProp::class.java)
+                                dtoElement(DTOPositiveProp::class.java)
                                     .withChild(
-                                        lsiElement(DTOPropBody::class.java)
-                                            .withChild(lsiElement(DTOAnnotation::class.java)),
+                                        dtoElement(DTOPropBody::class.java)
+                                            .withChild(dtoElement(DTOAnnotation::class.java)),
                                     ),
                             ),
                     ),
@@ -625,7 +625,7 @@ class DTOCompletionContributor : CompletionContributor() {
                         .lookUp { PrioritizedLookupElement.withPriority(bold(), 100.0) }
                 )
             },
-            lsiElement(token[ParserPropConfig]),
+            dtoElement(token[ParserPropConfig]),
         )
     }
 
