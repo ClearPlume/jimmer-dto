@@ -26,6 +26,7 @@ import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
 import net.fallingangel.jimmerdto.psi.fix.annotation.MergeSuffixIntoClassLiteral
+import net.fallingangel.jimmerdto.psi.fix.annotation.TruncateToClassLiteral
 import net.fallingangel.jimmerdto.psi.missing
 import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationElement
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
@@ -453,6 +454,18 @@ class DTOAnnotator : Annotator {
                     ReplaceName(o.classOperator, ".", { createDot() }),
                 )
                 return
+            }
+        }
+
+        /**
+         * 为类引用上色
+         */
+        override fun visitAnnotationSingleValue(o: DTOAnnotationSingleValue) {
+            val qualifiedName = o.qualifiedName ?: return
+            val target = qualifiedName.target ?: return
+
+            if (target !is Resolution.Target.Type) {
+                qualifiedName.error("Annotation argument must be class literal", TruncateToClassLiteral(o))
             }
         }
 
