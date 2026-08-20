@@ -4,7 +4,6 @@ import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.completion.CompletionInitializationContext.DUMMY_IDENTIFIER_TRIMMED
 import com.intellij.codeInsight.lookup.LookupElement
 import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.icons.AllIcons
 import com.intellij.patterns.ElementPattern
 import com.intellij.patterns.PlatformPatterns.*
 import com.intellij.psi.*
@@ -378,56 +377,24 @@ class DTOCompletionContributor : CompletionContributor() {
     private fun completeAnnotationParam() {
         complete(
             { parameters, result ->
-                val (annotationClass, params) = when (val parent = parameters.position.parent.parent) {
-                    is DTOAnnotation -> parent.qualifiedName.clazz to parent.params.map { it.name.text }
-                    is DTONestAnnotation -> parent.qualifiedName.clazz to parent.params.map { it.name.text }
-                    else -> when (val anno = parameters.position.parent.parent.parent.parent.parent) {
-                        is DTOAnnotation -> anno.qualifiedName.clazz to anno.params.map { it.name.text }
-                        is DTONestAnnotation -> anno.qualifiedName.clazz to anno.params.map { it.name.text }
-                        else -> null to emptyList()
+                val annotation = parameters.position.parent<DTOAnnotationElement>() ?: return@complete
+                val writtenParams = annotation.params.mapTo(mutableSetOf()) { it.name.text }
+                val params = annotation.lAnnotation?.params ?: return@complete
+
+                params
+                    .filter { it.name !in writtenParams }
+                    .forEach { param ->
+                        result.addElement(
+                            LookupElementBuilder.create(param.dependencyItem, "${param.name} = ")
+                                .withIcon(param.dependencyItem.getIcon(0)),
+                        )
                     }
-                }
-                annotationClass ?: return@complete
-                val project = annotationClass.project
-                val stringType = project.stringType
-                val elements = annotationClass.methods
-                    .filter { it.name !in params }
-                    .map {
-                        val paramType = it.returnType
-                        val default = when {
-                            parameters.position.parent is DTOAnnotationParameter -> ""
-                            paramType == stringType -> " = \"\""
-                            paramType is PsiArrayType && paramType.componentType == stringType -> " = [\"\"]"
-                            paramType == PsiTypes.charType() -> " = ''"
-                            paramType is PsiArrayType && paramType.componentType == PsiTypes.charType() -> " = ['']"
-                            else -> " = "
-                        }
-                        LookupElementBuilder.create(it.name + default)
-                            .withIcon(AllIcons.Nodes.Property)
-                            .withPresentableText(it.name)
-                            .withTailText(default, true)
-                            .withTypeText(paramType?.canonicalText, true)
-                            .withInsertHandler { context, _ ->
-                                val offset = if (default in listOf(" = ", "")) {
-                                    0
-                                } else {
-                                    if (paramType is PsiArrayType) {
-                                        2
-                                    } else {
-                                        1
-                                    }
-                                }
-                                context.editor.caretModel.moveToOffset(context.tailOffset - offset)
-                            }
-                    }
-                result.addAllElements(elements)
             },
-            or(
-                identifier.withParent(DTOAnnotationParameter::class.java),
-                // 还没有输入参数时的情况
-                identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)
-                    .andNot(identifier.withParent(PsiErrorElement::class.java)),
-            ),
+            identifier.withParent(DTOQualifiedNamePart::class.java)
+                .inside(
+                    dtoElement(DTOAnnotationValue::class.java)
+                        .withParent(DTOAnnotationElement::class.java),
+                ),
         )
     }
 
