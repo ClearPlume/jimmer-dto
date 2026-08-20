@@ -287,7 +287,7 @@ enumMappingConstant
 
 classSuffix
     :
-    QuestionMark? (Dot | DoubleColon) Class
+    QuestionMark? (Dot | DoubleColon) (Class | Identifier)
     ;
 
 directive

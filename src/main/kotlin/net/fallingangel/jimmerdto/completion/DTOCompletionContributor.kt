@@ -16,14 +16,17 @@ import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.lsi.LKind
 import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.compiling
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerTypes
 import net.fallingangel.jimmerdto.lsi.jimmer.isEntity
 import net.fallingangel.jimmerdto.lsi.process
-import net.fallingangel.jimmerdto.psi.DTOFile
-import net.fallingangel.jimmerdto.psi.DTOParser.*
+import net.fallingangel.jimmerdto.psi.DTOLexer
+import net.fallingangel.jimmerdto.psi.DTOParser
+import net.fallingangel.jimmerdto.psi.DTOParser.Identifier
 import net.fallingangel.jimmerdto.psi.demand
 import net.fallingangel.jimmerdto.psi.element.*
+import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationElement
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.util.*
@@ -513,26 +516,37 @@ class DTOCompletionContributor : CompletionContributor() {
         )
     }
 
+    /**
+     * Class关键字提示
+     */
     private fun completeClassKeyword() {
         complete(
-            { _, result ->
-                result.addAllElements(
-                    listOf("class").lookUp {
-                        PrioritizedLookupElement.withPriority(bold(), 100.0)
-                    }
-                )
+            { parameters, result ->
+                val annotation = parameters.position.parent<DTOAnnotationElement>() ?: return@complete
+                val paramName = if (annotation.value != null) {
+                    "value"
+                } else {
+                    parameters.position.parent<DTOAnnotationParameter>()?.name?.text ?: return@complete
+                }
+                val param = annotation.lAnnotation?.params?.find { it.name == paramName } ?: return@complete
+
+                if (param.actualType is LAnnotation.Param.Type.Clazz) {
+                    result.addAllElements(
+                        listOf("class").lookUp {
+                            PrioritizedLookupElement.withPriority(bold(), 100.0)
+                        }
+                    )
+                }
             },
-            or(
-                identifier.withParent(DTOEnumMappingConstant::class.java),
-                identifier.withParent(error.afterSibling(lsiElement(rule[RULE_classSuffix]))),
-                identifier.withParent(DTOFile::class.java)
-                    .afterSibling(
-                        or(
-                            lsiElement(rule[RULE_classSuffix]),
-                            lsiElement(token[Dot]),
-                        ),
-                    ),
-            )
+            identifier
+                .withParent(
+                    or(
+                        lsiElement(rule[DTOParser.RULE_classSuffix]),
+                        lsiElement(DTOQualifiedNamePart::class.java)
+                            .afterSibling(lsiElement(token[DTOLexer.Dot])),
+                    )
+                )
+                .inside(DTOAnnotation::class.java)
         )
     }
 

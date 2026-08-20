@@ -22,6 +22,13 @@ class LAnnotation(
         val defaultValue: Value?,
         override val dependencyItem: PsiNamedElement,
     ) : LElement, LDependencyProvider {
+        val actualType: Type
+            get() = if (type is Type.Array) {
+                type.elementType
+            } else {
+                type
+            }
+
         sealed class Type {
             abstract val presentation: String
 
