@@ -468,6 +468,11 @@ class DTOAnnotator : Annotator {
                 qualifiedName.error("Annotation argument must be class literal", TruncateToClassLiteral(o))
                 return
             }
+
+            if (o.value == null) {
+                qualifiedName.error("Annotation argument must be a compile-time constant")
+                return
+            }
         }
 
         /**
