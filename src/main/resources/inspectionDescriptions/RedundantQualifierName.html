@@ -1,0 +1,21 @@
+<html lang="en">
+<body>
+Reports qualified names that can be shortened because the type is already imported or lives in the same package.
+<p><b>Example:</b></p>
+<pre><code>
+BookView {
+    #allScalars
+    remark: com.example.model.Remark
+}
+</code></pre>
+<p>After the fix:</p>
+<pre><code>
+import com.example.model.Remark
+
+BookView {
+    #allScalars
+    remark: Remark
+}
+</code></pre>
+</body>
+</html>

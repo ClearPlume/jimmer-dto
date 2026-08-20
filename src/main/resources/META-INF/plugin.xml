@@ -137,6 +137,9 @@
         <localInspection language="JimmerDTO" groupName="Jimmer DTO" displayName="Unused import directive"
                          enabledByDefault="true" level="WEAK WARNING"
                          implementationClass="net.fallingangel.jimmerdto.inspection.UnusedImportDirectiveInspection"/>
+        <localInspection language="JimmerDTO" groupName="Jimmer DTO" displayName="Redundant qualifier name"
+                         enabledByDefault="true" level="WEAK WARNING"
+                         implementationClass="net.fallingangel.jimmerdto.inspection.RedundantQualifierNameInspection"/>
     </extensions>
 
     <projectListeners>
