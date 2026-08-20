@@ -15,7 +15,6 @@ import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.lsi.LKind
 import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.compiling
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerTypes
 import net.fallingangel.jimmerdto.lsi.jimmer.isEntity
@@ -28,7 +27,11 @@ import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationElement
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.structure.LookupInfo
-import net.fallingangel.jimmerdto.util.*
+import net.fallingangel.jimmerdto.util.inheritors
+import net.fallingangel.jimmerdto.util.modifiedBy
+import net.fallingangel.jimmerdto.util.parent
+import net.fallingangel.jimmerdto.util.psiClass
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation.Param.Type as ParamType
 import net.fallingangel.jimmerdto.psi.DTOParser.Modifier as ParserModifier
 import net.fallingangel.jimmerdto.psi.DTOParser.PropConfigName as ParserPropConfig
 
@@ -399,87 +402,32 @@ class DTOCompletionContributor : CompletionContributor() {
     }
 
     /**
-     * 注解参数值提示(目前只有注解类型的参数实现了提示)
+     * 注解参数值提示
      */
     private fun completeAnnotationParamValue() {
         complete(
             { parameters, result ->
-                if (parameters.position.parent is DTOAnnotationParameter) {
-                    return@complete
-                }
+                completeQualifiedNamePart(parameters, result)
 
-                val tripe = parameters.position.parent.parent.parent
-
-                // @anno(param = dummy)
-                val (param, anno) = if (tripe is DTOAnnotationSingleValue) {
-                    // SingleValue往上二级或者三级是Parameter
-                    val upper = tripe.parent.parent
-                    val param = upper as? DTOAnnotationParameter ?: upper.parent.parent as DTOAnnotationParameter
-                    // Parameter父级是Annotation
-                    param.name.text to param.parent as DTOAnnotation
-                } else {
-                    val nestAnno = tripe as DTONestAnnotation
-                    // NestAnnotation往上二级
-                    when (val upper = nestAnno.parent.parent) {
-                        is DTOAnnotationParameter -> upper.name.text to upper.parent as DTOAnnotation
-
-                        is DTOAnnotationValue -> when {
-                            // value父级为注解
-                            upper.parent is DTOAnnotation -> "value" to upper.parent as DTOAnnotation
-
-                            // value父级为数组
-                            upper.parent is DTOAnnotationArrayValue -> if (upper.parent.parent.parent is DTOAnnotation) {
-                                "value" to upper.parent.parent.parent as DTOAnnotation
-                            } else {
-                                val param = upper.parent.parent.parent as DTOAnnotationParameter
-                                param.name.text to param.parent as DTOAnnotation
+                val annotation = parameters.position.parent<DTOAnnotationElement>() ?: return@complete
+                val param = annotation.paramAt(parameters.position) ?: return@complete
+                when (val paramType = param.actualType) {
+                    is ParamType.Scalar if (paramType.kind == ParamType.Scalar.Kind.Boolean) -> {
+                        result.addAllElements(
+                            listOf("true", "false").lookUp {
+                                PrioritizedLookupElement.withPriority(bold(), 100.0)
                             }
-
-                            // value父级为param
-                            else -> {
-                                val param = upper.parent as DTOAnnotationParameter
-                                param.name.text to param.parent as DTOAnnotation
-                            }
-                        }
-
-                        else -> {
-                            val param = upper.parent.parent as DTOAnnotationParameter
-                            param.name.text to param.parent as DTOAnnotation
-                        }
+                        )
                     }
-                }
 
-                val annotationClass = anno.qualifiedName.clazz
-                val paramType = annotationClass?.methods?.find { it.name == param }?.returnType?.extract ?: return@complete
-                if (paramType is PsiClassType) {
-                    val clazz = paramType.resolve()
-                    if (clazz?.isAnnotationType == true) {
-                        result.addAllElements(listOf(clazz).map { it.lookUp(it.demand(PsiClass::getName), true) })
-                    }
+                    else -> {}
                 }
             },
-            or(
-                // @Anno(param = <caret>)
-                identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)
-                    .withSuperParent(5, DTOAnnotationParameter::class.java)
-                    .andNot(identifier.withParent(PsiErrorElement::class.java)),
-                // @Anno(param = [<caret>])
-                identifier.withSuperParent(3, DTOAnnotationSingleValue::class.java)
-                    .withSuperParent(7, DTOAnnotationParameter::class.java)
-                    .andNot(identifier.withParent(PsiErrorElement::class.java)),
-                // @Anno(param = Ne<caret>st())
-                identifier.withSuperParent(3, DTONestAnnotation::class.java)
-                    .withSuperParent(6, DTOAnnotationParameter::class.java),
-                // @Anno(param = [Ne<caret>st()])
-                identifier.withSuperParent(3, DTONestAnnotation::class.java)
-                    .withSuperParent(8, DTOAnnotationParameter::class.java),
-                // @Anno(Ne<caret>st())
-                identifier.withSuperParent(3, DTONestAnnotation::class.java)
-                    .withSuperParent(5, DTOAnnotationValue::class.java),
-                // @Anno([Ne<caret>st()])
-                identifier.withSuperParent(3, DTONestAnnotation::class.java)
-                    .withSuperParent(7, DTOAnnotationValue::class.java),
-            ),
+            identifier.withParent(DTOQualifiedNamePart::class.java)
+                .inside(
+                    dtoElement(DTOAnnotationParameter::class.java)
+                        .withParent(DTOAnnotationElement::class.java),
+                ),
         )
     }
 
@@ -490,14 +438,9 @@ class DTOCompletionContributor : CompletionContributor() {
         complete(
             { parameters, result ->
                 val annotation = parameters.position.parent<DTOAnnotationElement>() ?: return@complete
-                val paramName = if (annotation.value != null) {
-                    "value"
-                } else {
-                    parameters.position.parent<DTOAnnotationParameter>()?.name?.text ?: return@complete
-                }
-                val param = annotation.lAnnotation?.params?.find { it.name == paramName } ?: return@complete
+                val param = annotation.paramAt(parameters.position) ?: return@complete
 
-                if (param.actualType is LAnnotation.Param.Type.Clazz) {
+                if (param.actualType is ParamType.Clazz) {
                     result.addAllElements(
                         listOf("class").lookUp {
                             PrioritizedLookupElement.withPriority(bold(), 100.0)

@@ -1,11 +1,13 @@
 package net.fallingangel.jimmerdto.psi.mixin
 
+import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.element.DTOAnnotationParameter
 import net.fallingangel.jimmerdto.psi.element.DTOAnnotationValue
 import net.fallingangel.jimmerdto.psi.element.DTOQualifiedName
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
+import net.fallingangel.jimmerdto.util.parent
 
 interface DTOAnnotationElement : DTOElement {
     val qualifiedName: DTOQualifiedName
@@ -32,4 +34,9 @@ interface DTOAnnotationElement : DTOElement {
                 target.source,
             )
         }
+
+    fun paramAt(position: PsiElement): LAnnotation.Param? {
+        val name = position.parent<DTOAnnotationParameter>()?.name?.text ?: "value"
+        return lAnnotation?.params?.find { it.name == name }
+    }
 }

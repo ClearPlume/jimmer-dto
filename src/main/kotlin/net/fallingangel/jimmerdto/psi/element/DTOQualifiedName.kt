@@ -1,14 +1,13 @@
 package net.fallingangel.jimmerdto.psi.element
 
-import com.intellij.psi.JavaPsiFacade
-import com.intellij.psi.PsiClass
-import com.intellij.psi.search.ProjectScope
 import net.fallingangel.jimmerdto.enums.PropConfigName
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerTypes
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
-import net.fallingangel.jimmerdto.util.*
-import org.jetbrains.kotlin.psi.KtClass
+import net.fallingangel.jimmerdto.util.file
+import net.fallingangel.jimmerdto.util.haveParent
+import net.fallingangel.jimmerdto.util.parent
+import net.fallingangel.jimmerdto.util.psiClass
 
 interface DTOQualifiedName : DTOElement {
     val parts: List<DTOQualifiedNamePart>
@@ -21,26 +20,6 @@ interface DTOQualifiedName : DTOElement {
 
     val simpleName: String
         get() = parts.last().part
-
-    val clazz: PsiClass?
-        get() {
-            val resolved = parts.last().resolve()
-            // 只有在[类型使用]情景下，会解析到别名
-            return if (resolved is DTOAlias) {
-                when (val parent = resolved.parent) {
-                    is DTOImportedType -> parent.type.resolve() as? PsiClass
-                    is DTOImportStatement -> parent.qualifiedName.clazz
-                    else -> null
-                }
-            } else {
-                if (resolved is KtClass) {
-                    val java = resolved.javaFqName ?: return null
-                    JavaPsiFacade.getInstance(project).findClass(java, ProjectScope.getAllScope(project))
-                } else {
-                    resolved as? PsiClass
-                }
-            }
-        }
 
     val initialSpace: Resolution.Space?
         get() {

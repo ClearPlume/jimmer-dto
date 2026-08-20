@@ -498,6 +498,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
                     is KaNamedClassSymbol if symbol.classKind == KaClassKind.ENUM_CLASS -> {
                         ParamType.Enum(
                             type.classId.lName,
+                            type.symbol.psi ?: return null,
                             symbol.staticDeclaredMemberScope
                                 .declarations
                                 .filterIsInstance<KaEnumEntrySymbol>()

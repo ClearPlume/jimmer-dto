@@ -429,6 +429,7 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
                     typeClass.isEnum -> {
                         ParamType.Enum(
                             typeClass.lName,
+                            typeClass,
                             typeClass.fields
                                 .filterIsInstance<PsiEnumConstant>()
                                 .map { it.name to it },

@@ -96,7 +96,7 @@ class LAnnotation(
 
             @Suppress("StatefulEp")
             // false positive: not an EP, lifecycle bound to CachedValue
-            class Enum(lName: LName, entries: List<Pair<String, PsiElement>>) : Type() {
+            class Enum(lName: LName, val source: PsiElement, entries: List<Pair<String, PsiElement>>) : Type() {
                 override val presentation = lName.fqName
                 val name = lName.name
                 val fqName = lName.fqName
