@@ -23,9 +23,7 @@ interface DTOAnnotationSingleValue : DTOElement {
 
     val qualifiedName: DTOQualifiedName?
 
-    val classSuffix: PsiElement?
-
-    val unsupportedSuffix: PsiElement?
+    val classSuffix: DTOClassSuffix?
 
     val value: ParamValue?
         get() {

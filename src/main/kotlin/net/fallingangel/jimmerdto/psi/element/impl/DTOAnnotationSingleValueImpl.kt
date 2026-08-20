@@ -4,6 +4,7 @@ import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
 import net.fallingangel.jimmerdto.psi.element.DTOAnnotationSingleValue
+import net.fallingangel.jimmerdto.psi.element.DTOClassSuffix
 import net.fallingangel.jimmerdto.psi.element.DTONestAnnotation
 import net.fallingangel.jimmerdto.psi.element.DTOQualifiedName
 import net.fallingangel.jimmerdto.psi.element.DTOVisitor
@@ -33,11 +34,8 @@ class DTOAnnotationSingleValueImpl(node: ASTNode) : ANTLRPsiNode(node), DTOAnnot
     override val qualifiedName: DTOQualifiedName?
         get() = findChildNullable("/annotationSingleValue/qualifiedName")
 
-    override val classSuffix: PsiElement?
-        get() = findChildNullable("/annotationSingleValue/classSuffix/Class")
-
-    override val unsupportedSuffix: PsiElement?
-        get() = findChildNullable("/annotationSingleValue/classSuffix/Identifier")
+    override val classSuffix: DTOClassSuffix?
+        get() = findChildNullable("/annotationSingleValue/classSuffix")
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {

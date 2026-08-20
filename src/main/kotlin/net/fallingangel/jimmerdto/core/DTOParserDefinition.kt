@@ -72,6 +72,7 @@ class DTOParserDefinition : ParserDefinition {
             DTOParser.RULE_annotation -> DTOAnnotationImpl(node)
             DTOParser.RULE_annotationValue -> DTOAnnotationValueImpl(node)
             DTOParser.RULE_annotationSingleValue -> DTOAnnotationSingleValueImpl(node)
+            DTOParser.RULE_classSuffix -> DTOClassSuffixImpl(node)
             DTOParser.RULE_annotationArrayValue -> DTOAnnotationArrayValueImpl(node)
             DTOParser.RULE_annotationParameter -> DTOAnnotationParameterImpl(node)
             DTOParser.RULE_nestedAnnotation -> DTONestAnnotationImpl(node)

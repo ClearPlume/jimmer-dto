@@ -63,6 +63,10 @@ open class DTOVisitor : PsiElementVisitor() {
         visitElement(o)
     }
 
+    open fun visitClassSuffix(o: DTOClassSuffix) {
+        visitElement(o)
+    }
+
     open fun visitAnnotationArrayValue(o: DTOAnnotationArrayValue) {
         visitElement(o)
     }

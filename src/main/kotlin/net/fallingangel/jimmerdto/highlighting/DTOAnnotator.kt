@@ -25,6 +25,7 @@ import net.fallingangel.jimmerdto.psi.DTOLexer
 import net.fallingangel.jimmerdto.psi.DTOParser
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
+import net.fallingangel.jimmerdto.psi.fix.annotation.MergeSuffixIntoClassLiteral
 import net.fallingangel.jimmerdto.psi.missing
 import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationElement
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
@@ -436,11 +437,22 @@ class DTOAnnotator : Annotator {
         }
 
         /**
-         * 为注解单值上色
+         * 为类引用上色
          */
-        override fun visitAnnotationSingleValue(o: DTOAnnotationSingleValue) {
+        override fun visitClassSuffix(o: DTOClassSuffix) {
+            val annotationValue = o.parent as DTOAnnotationSingleValue
+
             o.unsupportedSuffix?.let {
-                it.error("References to '${it.text}' isn't supported")
+                it.error(
+                    "References to '${it.text}' isn't supported",
+                    ReplaceName(it, "class") { createClassKeyword() },
+                    MergeSuffixIntoClassLiteral(annotationValue),
+                )
+                o.classOperator.error(
+                    "'::' must be followed by 'class'",
+                    ReplaceName(o.classOperator, ".", { createDot() }),
+                )
+                return
             }
         }
 

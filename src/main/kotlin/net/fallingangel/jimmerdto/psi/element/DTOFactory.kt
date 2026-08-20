@@ -3,6 +3,7 @@ package net.fallingangel.jimmerdto.psi.element
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.util.lastLeaf
 import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.util.findChild
@@ -16,6 +17,18 @@ fun Project.createComma(): PsiElement {
         .firstChild
         .firstChild
         .firstChild
+}
+
+fun Project.createDot(): PsiElement {
+    return createDTOFile(".").lastLeaf()
+}
+
+fun Project.createClassOperator(): PsiElement {
+    return createDTOFile("::").lastLeaf()
+}
+
+fun Project.createClassKeyword(): PsiElement {
+    return createDTOFile("class").lastLeaf()
 }
 
 fun Project.createImport(qualifiedName: String): DTOImportStatement {
