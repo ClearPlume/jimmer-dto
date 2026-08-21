@@ -126,7 +126,7 @@ value
 
 propBody
     :
-    annotation* implements? (dtoBody | Arrow enumBody)
+    (annotation* implements? dtoBody) | Arrow enumBody
     ;
 
 negativeProp
