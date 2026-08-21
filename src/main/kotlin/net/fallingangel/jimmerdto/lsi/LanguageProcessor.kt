@@ -5,6 +5,7 @@ import com.intellij.openapi.extensions.ExtensionPointName
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationSite
 
 private val EP = ExtensionPointName.create<LanguageProcessor>("net.fallingangel.languageProcessor")
 
@@ -64,6 +65,9 @@ interface LanguageProcessor {
 
     context(element: PsiElement)
     fun isInheritorOrSelf(base: PsiElement): Boolean?
+
+    context(element: PsiElement)
+    fun annotationSites(): Set<LAnnotationSite>
 }
 
 fun Language.processor(): LanguageProcessor? {

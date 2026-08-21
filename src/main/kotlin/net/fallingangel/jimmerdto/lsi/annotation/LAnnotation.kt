@@ -10,6 +10,7 @@ import net.fallingangel.jimmerdto.lsi.process
 class LAnnotation(
     lName: LName,
     val params: List<Param>,
+    val targets: Set<LAnnotationSite>,
     override val dependencyItem: PsiElement,
 ) : LElement, LDependencyProvider {
     override val name = lName.name

@@ -11,10 +11,12 @@ import com.intellij.psi.util.*
 import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationSite
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerOptions
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerTypes
 import net.fallingangel.jimmerdto.psi.demand
+import net.fallingangel.jimmerdto.psi.unhandledElement
 import net.fallingangel.jimmerdto.util.hasAnnotation
 import net.fallingangel.jimmerdto.util.nullable
 import net.fallingangel.jimmerdto.util.psiClass
@@ -295,6 +297,29 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
         return InheritanceUtil.isInheritorOrSelf(clazz, baseClass, true)
     }
 
+    context(element: PsiElement)
+    override fun annotationSites(): Set<LAnnotationSite> {
+        val clazz = element.narrow<PsiClass>()
+        val target = clazz.getAnnotation("java.lang.annotation.Target") ?: return emptySet()
+        val value = target.findAttributeValue("value") ?: return emptySet()
+        val propSites = arrayOf("FIELD", "METHOD")
+
+        val elements = when (value) {
+            is PsiArrayInitializerMemberValue -> value.initializers.asList()
+            is PsiReferenceExpression -> listOf(value)
+            else -> value.unhandledElement()
+        }
+
+        return elements.mapNotNullTo(mutableSetOf()) {
+            val site = (it as? PsiReferenceExpression)?.resolve() as? PsiEnumConstant ?: return@mapNotNullTo null
+            if (site.name in propSites) {
+                LAnnotationSite.Prop
+            } else {
+                null
+            }
+        }
+    }
+
     context(types: ResolvedTypes)
     fun parents(clazz: PsiClass): List<LClass> {
         return clazz.supers
@@ -397,10 +422,12 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
             .toMap()
 
         val params = process(clazz) { lAnnotationParams(values) } ?: return null
+        val sites = process(clazz) { annotationSites() } ?: return null
 
         return LAnnotation(
             clazz.lName,
             params,
+            sites + LAnnotationSite.Type,
             clazz,
         )
     }

@@ -16,6 +16,7 @@ import com.intellij.psi.util.PsiModificationTracker
 import net.fallingangel.jimmerdto.enums.StandardType
 import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationSite
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerTypes
 import net.fallingangel.jimmerdto.psi.demand
@@ -328,6 +329,31 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         }
     }
 
+    context(element: PsiElement)
+    override fun annotationSites(): Set<LAnnotationSite> {
+        val clazz = element.narrow<KtClass>()
+        val propSites = arrayOf("FIELD", "PROPERTY_GETTER", "FUNCTION", "PROPERTY_SETTER", "PROPERTY")
+
+        val sites = analyze(clazz) {
+            val target = clazz.symbol.annotations[ClassId.fromString("kotlin/annotation/Target")].singleOrNull()
+            target ?: return emptySet()
+            val argument = target.arguments.singleOrNull() ?: return emptySet()
+
+            val value = argument.expression as KaAnnotationValue.ArrayValue
+            value.values
+                .mapNotNullTo(mutableSetOf()) {
+                    if (it !is KaAnnotationValue.EnumEntryValue) return@mapNotNullTo null
+                    val site = it.callableId?.callableName?.asString()
+                    if (site in propSites) {
+                        LAnnotationSite.Prop
+                    } else {
+                        null
+                    }
+                }
+        }
+        return sites
+    }
+
     context(types: ResolvedTypes)
     fun parents(clazz: KtClass): List<LClass> {
         return analyze(clazz) {
@@ -450,10 +476,12 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             .toMap()
 
         val params = process(clazz) { lAnnotationParams(values) } ?: return null
+        val sites = process(clazz) { annotationSites() } ?: return null
 
         return LAnnotation(
             classId.lName,
             params,
+            sites + LAnnotationSite.Type,
             annotation.psi ?: return null,
         )
     }

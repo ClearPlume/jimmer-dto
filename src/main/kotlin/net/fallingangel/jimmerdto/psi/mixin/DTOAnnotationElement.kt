@@ -27,10 +27,12 @@ interface DTOAnnotationElement : DTOElement {
             val target = qualifiedName.target as? Resolution.Target.Type ?: return null
             val (className, params) = process(target.source) { className() to lAnnotationParams(values) } ?: return null
             params ?: return null
+            val sites = process(target.source) { annotationSites() } ?: return null
 
             return LAnnotation(
                 className,
                 params,
+                sites,
                 target.source,
             )
         }
