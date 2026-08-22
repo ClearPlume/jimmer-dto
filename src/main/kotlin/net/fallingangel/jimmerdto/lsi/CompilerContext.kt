@@ -12,6 +12,9 @@ private val EP = ExtensionPointName.create<CompilerContext>("net.fallingangel.co
 interface CompilerContext {
     fun appliesTo(module: Module): Boolean
 
+    context(_: PsiElement)
+    val precompiler: Precompiler
+
     context(element: PsiElement)
     fun builtinType(type: StandardType): PsiNamedElement?
 

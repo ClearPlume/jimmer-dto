@@ -128,6 +128,10 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         return clazz.isEnum()
     }
 
+    context(_: PsiElement)
+    override val precompiler: Precompiler
+        get() = Precompiler.Ksp
+
     context(element: PsiElement)
     override fun builtinType(type: StandardType): PsiNamedElement? {
         val qualified = when (type) {
@@ -329,25 +333,23 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         }
     }
 
-    context(element: PsiElement)
-    override fun annotationSites(): Set<LAnnotationSite> {
+    context(element: PsiElement, precompiler: Precompiler)
+    override fun annotationSites(): Set<LAnnotationSite>? {
         val clazz = element.narrow<KtClass>()
-        val propSites = arrayOf("FIELD", "PROPERTY_GETTER", "FUNCTION", "PROPERTY_SETTER", "PROPERTY")
-
         val sites = analyze(clazz) {
-            val target = clazz.symbol.annotations[ClassId.fromString("kotlin/annotation/Target")].singleOrNull()
-            target ?: return emptySet()
-            val argument = target.arguments.singleOrNull() ?: return emptySet()
+            val target = clazz.symbol.annotations[ClassId.fromString("kotlin/annotation/Target")].singleOrNull() ?: return null
+            val argument = target.arguments.find { it.name.asString() == "allowedTargets" } ?: return emptySet()
 
             val value = argument.expression as KaAnnotationValue.ArrayValue
             value.values
                 .mapNotNullTo(mutableSetOf()) {
                     if (it !is KaAnnotationValue.EnumEntryValue) return@mapNotNullTo null
                     val site = it.callableId?.callableName?.asString()
-                    if (site in propSites) {
-                        LAnnotationSite.Prop
-                    } else {
-                        null
+                    when (site) {
+                        "CLASS" -> LAnnotationSite.Type
+                        "FIELD", "PROPERTY_GETTER", "FUNCTION", "PROPERTY_SETTER" -> LAnnotationSite.Prop
+                        "PROPERTY" -> LAnnotationSite.Prop.takeIf { precompiler == Precompiler.Ksp }
+                        else -> null
                     }
                 }
         }
@@ -476,12 +478,10 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
             .toMap()
 
         val params = process(clazz) { lAnnotationParams(values) } ?: return null
-        val sites = process(clazz) { annotationSites() } ?: return null
 
         return LAnnotation(
             classId.lName,
             params,
-            sites + LAnnotationSite.Type,
             annotation.psi ?: return null,
         )
     }

@@ -129,6 +129,10 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
         return clazz.isEnum
     }
 
+    context(_: PsiElement)
+    override val precompiler: Precompiler
+        get() = Precompiler.Apt
+
     context(element: PsiElement)
     override fun builtinType(type: StandardType): PsiNamedElement? {
         val qualified = when (type) {
@@ -297,12 +301,11 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
         return InheritanceUtil.isInheritorOrSelf(clazz, baseClass, true)
     }
 
-    context(element: PsiElement)
-    override fun annotationSites(): Set<LAnnotationSite> {
+    context(element: PsiElement, precompiler: Precompiler)
+    override fun annotationSites(): Set<LAnnotationSite>? {
         val clazz = element.narrow<PsiClass>()
-        val target = clazz.getAnnotation("java.lang.annotation.Target") ?: return emptySet()
-        val value = target.findAttributeValue("value") ?: return emptySet()
-        val propSites = arrayOf("FIELD", "METHOD")
+        val target = clazz.getAnnotation("java.lang.annotation.Target") ?: return null
+        val value = target.findAttributeValue("value") ?: return null
 
         val elements = when (value) {
             is PsiArrayInitializerMemberValue -> value.initializers.asList()
@@ -312,10 +315,10 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
 
         return elements.mapNotNullTo(mutableSetOf()) {
             val site = (it as? PsiReferenceExpression)?.resolve() as? PsiEnumConstant ?: return@mapNotNullTo null
-            if (site.name in propSites) {
-                LAnnotationSite.Prop
-            } else {
-                null
+            when (site.name) {
+                "TYPE" -> LAnnotationSite.Type
+                "FIELD", "METHOD" -> LAnnotationSite.Prop
+                else -> null
             }
         }
     }
@@ -422,12 +425,10 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
             .toMap()
 
         val params = process(clazz) { lAnnotationParams(values) } ?: return null
-        val sites = process(clazz) { annotationSites() } ?: return null
 
         return LAnnotation(
             clazz.lName,
             params,
-            sites + LAnnotationSite.Type,
             clazz,
         )
     }

@@ -2,19 +2,19 @@ package net.fallingangel.jimmerdto.lsi.annotation
 
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiNamedElement
-import net.fallingangel.jimmerdto.lsi.LDependencyProvider
-import net.fallingangel.jimmerdto.lsi.LElement
-import net.fallingangel.jimmerdto.lsi.LName
-import net.fallingangel.jimmerdto.lsi.process
+import net.fallingangel.jimmerdto.lsi.*
 
 class LAnnotation(
     lName: LName,
     val params: List<Param>,
-    val targets: Set<LAnnotationSite>,
     override val dependencyItem: PsiElement,
 ) : LElement, LDependencyProvider {
     override val name = lName.name
     val fqName = lName.fqName
+
+    context(precompiler: Precompiler)
+    val targets: Set<LAnnotationSite>?
+        get() = process(dependencyItem) { annotationSites() ?: setOf(LAnnotationSite.Type) }
 
     class Param(
         override val name: String,

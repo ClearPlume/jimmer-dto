@@ -66,8 +66,8 @@ interface LanguageProcessor {
     context(element: PsiElement)
     fun isInheritorOrSelf(base: PsiElement): Boolean?
 
-    context(element: PsiElement)
-    fun annotationSites(): Set<LAnnotationSite>
+    context(element: PsiElement, precompiler: Precompiler)
+    fun annotationSites(): Set<LAnnotationSite>?
 }
 
 fun Language.processor(): LanguageProcessor? {

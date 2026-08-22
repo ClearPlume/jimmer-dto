@@ -14,9 +14,7 @@ import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
 import net.fallingangel.jimmerdto.core.DTOFileType
 import net.fallingangel.jimmerdto.core.DTOLanguage
-import net.fallingangel.jimmerdto.lsi.LClass
-import net.fallingangel.jimmerdto.lsi.LName
-import net.fallingangel.jimmerdto.lsi.process
+import net.fallingangel.jimmerdto.lsi.*
 import net.fallingangel.jimmerdto.project.ProjectSyncTracker
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.resolve.ImportEntry
@@ -57,6 +55,9 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             }
             append(originalFile.virtualFile.nameWithoutExtension)
         }
+
+    val precompiler: Precompiler
+        get() = compiling(this) { precompiler } ?: missing("module")
 
     val clazz: LClass?
         get() = CachedValuesManager.getCachedValue(this, CACHED_CLASS_KEY) {
