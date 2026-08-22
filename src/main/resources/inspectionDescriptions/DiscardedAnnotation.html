@@ -1,0 +1,11 @@
+<html lang="en">
+<body>
+An annotation on a DTO property is copied to the generated property only if its
+<code>@Target</code> accepts a property site. Otherwise, the Jimmer compiler drops it
+silently — the code compiles, the annotation is gone.
+<pre><code>
+@FunctionalInterface // @Target(TYPE) — no property site, dropped
+name
+</code></pre>
+</body>
+</html>

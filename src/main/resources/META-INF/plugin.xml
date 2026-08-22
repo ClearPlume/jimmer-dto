@@ -143,6 +143,9 @@
         <localInspection language="JimmerDTO" groupName="Jimmer DTO" displayName="@KotlinDto is ignored"
                          enabledByDefault="true" level="WEAK WARNING"
                          implementationClass="net.fallingangel.jimmerdto.inspection.IgnoredKotlinDtoInspection"/>
+        <localInspection language="JimmerDTO" groupName="Jimmer DTO" displayName="Annotation discarded on generated DTO property"
+                         enabledByDefault="true" level="WEAK WARNING"
+                         implementationClass="net.fallingangel.jimmerdto.inspection.DiscardedAnnotationInspection"/>
     </extensions>
 
     <projectListeners>
