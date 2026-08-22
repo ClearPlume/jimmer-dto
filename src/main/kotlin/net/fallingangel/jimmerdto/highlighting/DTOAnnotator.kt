@@ -18,6 +18,7 @@ import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.enums.*
 import net.fallingangel.jimmerdto.enums.Function
 import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationSite
 import net.fallingangel.jimmerdto.lsi.compiling
 import net.fallingangel.jimmerdto.lsi.jimmer.*
 import net.fallingangel.jimmerdto.lsi.process
@@ -290,6 +291,22 @@ class DTOAnnotator : Annotator {
         override fun visitAnnotation(o: DTOAnnotation) {
             o.at.style(DTOSyntaxHighlighter.ANNOTATION)
             visitAnnotation(o as DTOAnnotationElement)
+
+            // 不支持添加在类上的注解
+            val target = o.qualifiedName.target ?: return
+            val lAnnotation = o.lAnnotation ?: return
+            val className = process(target.source) { className() } ?: return
+            if (className == JimmerAnnotations.KotlinDto) return
+            if (o.host.site != LAnnotationSite.Type) return
+
+            val targets = with(o.file.precompiler) { lAnnotation.targets } ?: return
+            if (o.host.site !in targets) {
+                o.qualifiedName.error(
+                    "Annotation '${className.fqName}' is not applicable to type declarations",
+                    RemoveElement(o.qualifiedName.value, o),
+                )
+                return
+            }
         }
 
         /**
