@@ -1,0 +1,17 @@
+<html lang="en">
+<body>
+<p>
+    Reports <code>@KotlinDto</code> annotations that are silently ignored.
+    The annotation configures the mutability of generated Kotlin DTO classes, so it only takes effect
+    on a DTO type declaration in a module compiled by <code>jimmer-ksp</code>.
+    It is dropped on a property, and ignored entirely by <code>jimmer-apt</code>.
+</p>
+<pre><code>
+BookView {
+    // @KotlinDto is dropped here
+    @KotlinDto(KotlinDtoImmutability.MUTABLE)
+    name
+}
+</code></pre>
+</body>
+</html>

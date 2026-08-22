@@ -7,12 +7,12 @@ import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationSite
-import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationOwner
+import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationHost
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.LookupInfo
 import net.fallingangel.jimmerdto.util.modifiedBy
 
-interface DTOPositiveProp : DTOElement, DTOAnnotationOwner {
+interface DTOPositiveProp : DTOElement, DTOAnnotationHost {
     val annotations: List<DTOAnnotation>
 
     val configs: List<DTOPropConfig>
@@ -37,7 +37,7 @@ interface DTOPositiveProp : DTOElement, DTOAnnotationOwner {
 
     val recursive: PsiElement?
 
-    override val annotationSite: LAnnotationSite
+    override val site: LAnnotationSite
         get() = LAnnotationSite.Prop
 
     //             / dtoBody

@@ -6,6 +6,7 @@ import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.element.DTOAnnotationParameter
 import net.fallingangel.jimmerdto.psi.element.DTOAnnotationValue
 import net.fallingangel.jimmerdto.psi.element.DTOQualifiedName
+import net.fallingangel.jimmerdto.psi.grammarMismatch
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.util.parent
 
@@ -15,6 +16,9 @@ interface DTOAnnotationElement : DTOElement {
     val value: DTOAnnotationValue?
 
     val params: List<DTOAnnotationParameter>
+
+    val host: DTOAnnotationHost
+        get() = parent as? DTOAnnotationHost ?: grammarMismatch()
 
     val values: Map<String, LAnnotation.Param.Value?>
         get() = buildMap {

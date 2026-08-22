@@ -7,11 +7,11 @@ import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationSite
 import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations
 import net.fallingangel.jimmerdto.psi.DTOFile
-import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationOwner
+import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationHost
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.util.modifiedBy
 
-interface DTODto : DTOElement, DTOAnnotationOwner {
+interface DTODto : DTOElement, DTOAnnotationHost {
     val annotations: List<DTOAnnotation>
 
     val modifierElements: List<PsiElement>
@@ -22,7 +22,7 @@ interface DTODto : DTOElement, DTOAnnotationOwner {
 
     val dtoBody: DTODtoBody
 
-    override val annotationSite: LAnnotationSite
+    override val site: LAnnotationSite
         get() = LAnnotationSite.Type
 
     val clazz: LClass?
