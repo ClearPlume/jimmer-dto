@@ -9,18 +9,18 @@ import com.intellij.psi.PsiNamedElement
 import com.intellij.psi.PsiPackage
 import net.fallingangel.jimmerdto.enums.AUTO_IMPORTED_TYPES
 import net.fallingangel.jimmerdto.enums.StandardType
-import net.fallingangel.jimmerdto.lsi.*
+import net.fallingangel.jimmerdto.lsi.LClass
+import net.fallingangel.jimmerdto.lsi.LProperty
+import net.fallingangel.jimmerdto.lsi.compiling
 import net.fallingangel.jimmerdto.lsi.jimmer.defaultViewBasePropName
 import net.fallingangel.jimmerdto.lsi.jimmer.idProperty
 import net.fallingangel.jimmerdto.lsi.jimmer.idViewBaseProp
 import net.fallingangel.jimmerdto.lsi.jimmer.isReference
+import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.demand
 import net.fallingangel.jimmerdto.psi.element.DTOAlias
-import net.fallingangel.jimmerdto.util.ktClass
-import org.jetbrains.kotlin.asJava.classes.KtLightClass
-import org.jetbrains.kotlin.asJava.elements.KtLightElement
-import org.jetbrains.kotlin.idea.stubindex.KotlinTopLevelClassByPackageIndex
+import org.jetbrains.kotlin.asJava.unwrapped
 
 object Resolution {
     sealed class Space {
@@ -30,25 +30,23 @@ object Resolution {
         class GlobalRaw(val file: DTOFile) : Space() {
             override fun resolve(name: String): Target? {
                 val facade = JavaPsiFacade.getInstance(file.project)
-                return facade.findClass(name, file.resolveScope)?.takeIf { it !is KtLightElement<*, *> }?.let { Target.Type(it) }
-                    ?: facade.findPackage(name)?.let(Target::Pkg)
-                    ?: LName(name).ktClass(element = file)?.let { Target.Type(it) }
+                return facade.findClass(name, file.resolveScope)?.unwrapped?.let { Target.Type(it as PsiNamedElement) }
+                    ?: facade.findPackage(name)?.let { Target.Pkg(file, it) }
             }
 
             override fun candidates(): List<Candidate> {
                 return JavaPsiFacade.getInstance(file.project)
                     .findPackage("")
-                    ?.subPackages
-                    ?.map { Candidate(it.demand(PsiPackage::getName), Target.Pkg(it)) }
+                    ?.getSubPackages(file.resolveScope)
+                    ?.map { Candidate(it.demand(PsiPackage::getName), Target.Pkg(file, it)) }
                     .orEmpty()
             }
 
             context(parameters: CompletionParameters, matcher: PrefixMatcher)
-            fun eachClass(consume: (PsiClass) -> Unit) {
+            fun eachClass(consume: (PsiNamedElement) -> Unit) {
                 AllClassesGetter.processJavaClasses(parameters, matcher, true) { psiClass ->
                     if (psiClass.demand(PsiClass::getQualifiedName) in AUTO_IMPORTED_TYPES) return@processJavaClasses
-                    if (psiClass is KtLightElement<*, *> && psiClass.kotlinOrigin == null) return@processJavaClasses
-                    consume(psiClass)
+                    consume(psiClass.unwrapped as? PsiNamedElement ?: return@processJavaClasses)
                 }
             }
         }
@@ -107,7 +105,7 @@ object Resolution {
 
                 val fallbackTargets = JavaPsiFacade.getInstance(file.project)
                     .findPackage(fallbackPackage)
-                    ?.let { psiPackage -> Pkg(psiPackage).candidates().filter { (_, target) -> target is Target.Type } }
+                    ?.let { psiPackage -> Pkg(file, psiPackage).candidates().filter { (_, target) -> target is Target.Type } }
                     .orEmpty()
 
                 return standardTargets + importedTargets + topLevelTargets + fallbackTargets
@@ -128,25 +126,22 @@ object Resolution {
             }
         }
 
-        class Pkg(val `package`: PsiPackage) : Space() {
+        class Pkg(val file: DTOFile, val `package`: PsiPackage) : Space() {
             override fun resolve(name: String): Target? {
-                return `package`.subPackages.find { it.name == name }?.let(Target::Pkg)
-                    ?: `package`.classes.find { it !is KtLightElement<*, *> && it.name == name }?.let { Target.Type(it) }
-                    ?: KotlinTopLevelClassByPackageIndex[`package`.qualifiedName, `package`.project, `package`.resolveScope]
-                        .find { it.name == name }?.let { Target.Type(it) }
+                return `package`.getClasses(file.resolveScope).find { it.name == name }?.unwrapped?.let { Target.Type(it as PsiNamedElement) }
+                    ?: `package`.getSubPackages(file.resolveScope).find { it.name == name }?.let { Target.Pkg(file, it) }
             }
 
             override fun candidates(): List<Candidate> {
-                val subPackages = `package`.subPackages.map { Candidate(it.demand(PsiPackage::getName), Target.Pkg(it)) }
+                val subPackages = `package`.getSubPackages(file.resolveScope)
+                    .map { Candidate(it.demand(PsiPackage::getName), Target.Pkg(file, it)) }
 
-                val classes = `package`.classes
-                    .filter { it !is KtLightElement<*, *> }
-                    .map { Candidate(it.demand(PsiClass::getName), Target.Type(it)) }
+                val classes = `package`.getClasses(file.resolveScope)
+                    .mapNotNull { it.unwrapped }
+                    .map { it as PsiNamedElement }
+                    .map { Candidate(it.demand(PsiNamedElement::getName), Target.Type(it)) }
 
-                val ktClasses = KotlinTopLevelClassByPackageIndex[`package`.qualifiedName, `package`.project, `package`.resolveScope]
-                    .mapNotNull { it.name?.let { name -> Candidate(name, Target.Type(it)) } }
-
-                return subPackages + classes + ktClasses
+                return subPackages + classes
             }
         }
 
@@ -209,22 +204,16 @@ object Resolution {
 
         abstract fun spaceForMembers(): Space?
 
-        class Pkg(val `package`: PsiPackage) : Target() {
+        class Pkg(val file: DTOFile, val `package`: PsiPackage) : Target() {
             override val source: PsiNamedElement
                 get() = `package`
 
             override fun spaceForMembers(): Space {
-                return Space.Pkg(`package`)
+                return Space.Pkg(file, `package`)
             }
         }
 
-        class Type private constructor(val type: PsiNamedElement) : Target() {
-            companion object {
-                operator fun invoke(type: PsiNamedElement): Target {
-                    return Type((type as? KtLightClass)?.kotlinOrigin ?: type)
-                }
-            }
-
+        class Type(val type: PsiNamedElement) : Target() {
             override val source: PsiNamedElement
                 get() = type
 

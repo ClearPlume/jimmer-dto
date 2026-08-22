@@ -621,7 +621,7 @@ class DTOCompletionContributor : CompletionContributor() {
                     }
                 }
                 space.global.eachClass(parameters = parameters, matcher = result.prefixMatcher) {
-                    val name = it.demand(PsiClass::getName)
+                    val name = it.demand(PsiNamedElement::getName)
                     if (it.name !in emitted && filter(it)) {
                         result.addElement(it.lookUp(name, true))
                     }
