@@ -510,7 +510,7 @@ class DTOAnnotator : Annotator {
             // 宏名称
             val macroName = o.name
             // TODO 优化可选项获取逻辑
-            val availableMacros = if (o.haveParent<DTOPolymorphic>()) {
+            val availableMacros = if (o.parent is DTOPolymorphic) {
                 listOf("exhaustive")
             } else {
                 listOf("allScalars", "allReferences")
