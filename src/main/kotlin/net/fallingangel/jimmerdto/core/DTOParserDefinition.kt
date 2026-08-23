@@ -118,6 +118,7 @@ class DTOParserDefinition : ParserDefinition {
             DTOParser.RULE_defaultMorphism -> DTODefaultMorphismImpl(node)
             DTOParser.RULE_typeMorphism -> DTOTypeMorphismImpl(node)
             DTOParser.RULE_classDeclaration -> DTOClassDeclarationImpl(node)
+            DTOParser.RULE_classKeyword -> DTOClassKeywordImpl(node)
 
             else -> ANTLRPsiNode(node)
         }

@@ -493,6 +493,17 @@ class DTOAnnotator : Annotator {
         }
 
         /**
+         * 为多态类型分支的名称指定上色
+         */
+        override fun visitClassKeyword(o: DTOClassKeyword) {
+            val unsupportedKeyword = o.unsupportedKeyword
+            unsupportedKeyword?.error(
+                "Expected 'class'",
+                ReplaceName(unsupportedKeyword, "class") { createClassKeyword() }
+            )
+        }
+
+        /**
          * 为宏名称上色
          */
         override fun visitMacro(o: DTOMacro) {

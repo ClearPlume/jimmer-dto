@@ -218,4 +218,8 @@ open class DTOVisitor : PsiElementVisitor() {
     open fun visitClassDeclaration(o: DTOClassDeclaration) {
         visitElement(o)
     }
+
+    open fun visitClassKeyword(o: DTOClassKeyword) {
+        visitElement(o)
+    }
 }

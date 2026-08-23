@@ -320,7 +320,12 @@ typeMorphism
 
 classDeclaration
     :
-    Class Identifier
+    classKeyword Identifier
+    ;
+
+classKeyword
+    :
+    Class | Identifier
     ;
 
 // Common
