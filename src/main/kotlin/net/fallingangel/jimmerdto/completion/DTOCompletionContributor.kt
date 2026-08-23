@@ -88,8 +88,8 @@ class DTOCompletionContributor : CompletionContributor() {
         // 注解参数值提示
         completeAnnotationParamValue()
 
-        // Class关键字提示
-        completeClassKeyword()
+        // 注解参数 Class 关键字提示
+        completeAnnotationClassKeyword()
 
         // Implements关键字提示
         completeImplementsKeyword()
@@ -102,6 +102,9 @@ class DTOCompletionContributor : CompletionContributor() {
 
         // 属性配置参数提示
         completePropConfigArg()
+
+        // 多态分支类定义 class 关键字提示
+        completeMorphismClassKeyword()
     }
 
     override fun beforeCompletion(context: CompletionInitializationContext) {
@@ -432,9 +435,9 @@ class DTOCompletionContributor : CompletionContributor() {
     }
 
     /**
-     * Class关键字提示
+     * 注解参数 Class 关键字提示
      */
-    private fun completeClassKeyword() {
+    private fun completeAnnotationClassKeyword() {
         complete(
             { parameters, result ->
                 val annotation = parameters.position.parent<DTOAnnotationElement>() ?: return@complete
@@ -580,6 +583,23 @@ class DTOCompletionContributor : CompletionContributor() {
                 }
             },
             identifier.inside(DTOPropConfig::class.java),
+        )
+    }
+
+    /**
+     * 多态分支类定义 class 关键字提示
+     */
+    private fun completeMorphismClassKeyword() {
+        complete(
+            { _, result ->
+                result.addAllElements(
+                    listOf("class").lookUp {
+                        PrioritizedLookupElement.withPriority(bold(), 100.0)
+                    }
+                )
+            },
+            identifier.withParent(dtoElement(DTOClassKeyword::class.java))
+                .inside(dtoElement(DTOMorphism::class.java)),
         )
     }
 
