@@ -11,8 +11,10 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.createSmartPointer
 import com.intellij.psi.search.PsiShortNamesCache
 import net.fallingangel.jimmerdto.enums.AUTO_IMPORTED_TYPES
+import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.demand
 import net.fallingangel.jimmerdto.psi.element.DTOQualifiedNamePart
+import net.fallingangel.jimmerdto.psi.missing
 import net.fallingangel.jimmerdto.util.file
 
 class ImportClassFix(part: DTOQualifiedNamePart) : HintAction {
@@ -63,19 +65,22 @@ class ImportClassFix(part: DTOQualifiedNamePart) : HintAction {
     private fun importing(editor: Editor): Boolean {
         relatedClasses.singleOrNull()
             ?.let {
-                WriteCommandAction.runWriteCommandAction(editor.project) {
-                    file.addImport(it.demand(PsiClass::getQualifiedName))
-                }
+                doImport(editor, it)
             }
             ?: run {
                 PsiTargetNavigator(relatedClasses)
                     .navigate(editor, "Choose $name") {
-                        WriteCommandAction.runWriteCommandAction(editor.project) {
-                            file.addImport(it.demand(PsiClass::getQualifiedName))
-                        }
+                        doImport(editor, it)
                         true
                     }
             }
         return true
+    }
+
+    private fun doImport(editor: Editor, clazz: PsiClass) {
+        val className = process(clazz) { className() } ?: clazz.missing("className")
+        WriteCommandAction.runWriteCommandAction(editor.project) {
+            file.addImport(className)
+        }
     }
 }

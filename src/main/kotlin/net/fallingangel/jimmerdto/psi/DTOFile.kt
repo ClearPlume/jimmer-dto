@@ -113,9 +113,10 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
             .map { it.parts.first().part }
             .toSet()
 
-    fun addImport(qualifiedName: String) {
-        val import = project.createImport(qualifiedName)
+    fun addImport(lName: LName) {
+        if (lName.pkg == entityPackage) return
 
+        val import = project.createImport(lName.fqName)
         val root = findChild<PsiElement>("/dtoFile")
         val export = export
 

@@ -66,7 +66,7 @@ fun PsiNamedElement.lookUp(name: String, insideImportMechanism: Boolean): Lookup
                         annotationName.replace(project.createQualifiedName(qualifiedName))
                     }
                 } else {
-                    (context.file as DTOFile).addImport(className.fqName)
+                    (context.file as DTOFile).addImport(className)
                 }
             }
         }
