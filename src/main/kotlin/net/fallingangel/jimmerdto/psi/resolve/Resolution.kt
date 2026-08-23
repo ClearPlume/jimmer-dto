@@ -182,7 +182,7 @@ object Resolution {
         }
 
         class Subtypes(val file: DTOFile, val lClass: LClass) : Space() {
-            private val globalRaw = GlobalRaw(file)
+            val global = GlobalRaw(file)
 
             override fun resolve(name: String): Target? {
                 if (lClass.name == name) return Target.Subtype(lClass)
@@ -190,7 +190,7 @@ object Resolution {
                 val child = lClass.children.find { it.name == name }
                 child?.let { return Target.Subtype(it) }
 
-                return globalRaw.resolve(name)
+                return global.resolve(name)
             }
 
             override fun candidates(): List<Candidate> {

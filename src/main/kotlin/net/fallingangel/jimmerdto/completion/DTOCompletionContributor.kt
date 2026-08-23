@@ -103,6 +103,9 @@ class DTOCompletionContributor : CompletionContributor() {
         // 属性配置参数提示
         completePropConfigArg()
 
+        // 多态分支目标类型提示
+        completeMorphismTarget()
+
         // 多态分支类定义 class 关键字提示
         completeMorphismClassKeyword()
     }
@@ -587,6 +590,23 @@ class DTOCompletionContributor : CompletionContributor() {
     }
 
     /**
+     * 多态分支目标类型提示
+     */
+    private fun completeMorphismTarget() {
+        complete(
+            { parameters, result ->
+                completeQualifiedNamePart(parameters, result) {
+                    it is PsiPackage || (process(it) { isEntity() } ?: false)
+                }
+            },
+            identifier.withParent(
+                dtoElement(DTOQualifiedNamePart::class.java)
+                    .withSuperParent(2, DTOTypeMorphism::class.java)
+            ),
+        )
+    }
+
+    /**
      * 多态分支类定义 class 关键字提示
      */
     private fun completeMorphismClassKeyword() {
@@ -647,6 +667,22 @@ class DTOCompletionContributor : CompletionContributor() {
                     }
                 }
                 result.restartCompletionOnAnyPrefixChange()
+            }
+
+            is Resolution.Space.Subtypes -> {
+                result.addAllElements(
+                    listOf("default").lookUp {
+                        PrioritizedLookupElement.withPriority(bold(), 100.0)
+                    }
+                )
+                result.addAllElements(
+                    space.candidates()
+                        .filter { filter(it.target.source) }
+                        .lookUp(true)
+                )
+                val entity = space.lClass.dependencyItem
+                result.addElement(entity.lookUp(entity.demand(PsiNamedElement::getName), false))
+                result.addAllElements(space.global.candidates().lookUp(false))
             }
 
             else -> {

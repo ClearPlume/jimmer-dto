@@ -42,7 +42,7 @@ fun Resolution.Candidate.lookUp(insideImportMechanism: Boolean): LookupElement {
                 ?: LookupElementBuilder.create(name)
         }
 
-        is Resolution.Target.Subtype -> LookupElementBuilder.createWithIcon(target.lClass.dependencyItem)
+        is Resolution.Target.Subtype -> target.lClass.dependencyItem.lookUp(name, insideImportMechanism)
     }
 }
 
