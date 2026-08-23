@@ -75,7 +75,8 @@ class Formatter : FormattingModelBuilder {
 
             // morphism
             .betweenInside(token[Class], token[Identifier], rule[RULE_classDeclaration]).spaces(1)
-            .betweenInside(rule[RULE_qualifiedName], rule[RULE_classDeclaration], rule[RULE_morphism]).spaces(1)
+            .betweenInside(token[Default], rule[RULE_classDeclaration], rule[RULE_defaultMorphism]).spaces(1)
+            .betweenInside(rule[RULE_qualifiedName], rule[RULE_classDeclaration], rule[RULE_typeMorphism]).spaces(1)
 
         return FormattingModelProvider.createFormattingModelForPsiFile(
             context.containingFile,

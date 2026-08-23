@@ -115,7 +115,8 @@ class DTOParserDefinition : ParserDefinition {
 
             DTOParser.RULE_directive -> DTODirectiveImpl(node)
             DTOParser.RULE_polymorphic -> DTOPolymorphicImpl(node)
-            DTOParser.RULE_morphism -> DTOMorphismImpl(node)
+            DTOParser.RULE_defaultMorphism -> DTODefaultMorphismImpl(node)
+            DTOParser.RULE_typeMorphism -> DTOTypeMorphismImpl(node)
             DTOParser.RULE_classDeclaration -> DTOClassDeclarationImpl(node)
 
             else -> ANTLRPsiNode(node)

@@ -9,24 +9,21 @@ import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.findChildren
 import org.antlr.intellij.adaptor.psi.ANTLRPsiNode
 
-class DTOMorphismImpl(node: ASTNode) : ANTLRPsiNode(node), DTOMorphism {
+class DTODefaultMorphismImpl(node: ASTNode) : ANTLRPsiNode(node), DTODefaultMorphism {
     override val annotations: List<DTOAnnotation>
-        get() = findChildren("/morphism/annotation")
+        get() = findChildren("/defaultMorphism/annotation")
 
-    override val modifierElement: PsiElement?
-        get() = findChildNullable("/morphism/Modifier")
-
-    override val targetType: DTOQualifiedName?
-        get() = findChildNullable("/morphism/qualifiedName")
+    override val default: PsiElement
+        get() = findChild("/defaultMorphism/Default")
 
     override val classDeclaration: DTOClassDeclaration?
-        get() = findChildNullable("/morphism/classDeclaration")
+        get() = findChildNullable("/defaultMorphism/classDeclaration")
 
     override val implements: DTOImplements?
-        get() = findChildNullable("/morphism/implements")
+        get() = findChildNullable("/defaultMorphism/implements")
 
     override val dtoBody: DTODtoBody
-        get() = findChild("/morphism/dtoBody")
+        get() = findChild("/defaultMorphism/dtoBody")
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {

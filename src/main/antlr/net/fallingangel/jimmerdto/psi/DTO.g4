@@ -297,14 +297,22 @@ directive
 
 polymorphic
     :
-    directive LBrace (macro | morphism)* RBrace
+    directive LBrace (macro | defaultMorphism | typeMorphism)* RBrace
     ;
 
-morphism
+defaultMorphism
     :
     annotation*
-    Modifier?
-    qualifiedName?
+    Default
+    classDeclaration?
+    implements?
+    dtoBody
+    ;
+
+typeMorphism
+    :
+    annotation*
+    qualifiedName
     classDeclaration?
     implements?
     dtoBody
@@ -418,7 +426,11 @@ Modifier
     'fuzzy'|
     'out' |
     'in' |
-    'sealed' |
+    'sealed'
+    ;
+
+Default
+    :
     'default'
     ;
 

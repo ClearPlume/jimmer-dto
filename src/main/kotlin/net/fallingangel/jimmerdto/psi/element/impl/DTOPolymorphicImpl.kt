@@ -15,7 +15,7 @@ class DTOPolymorphicImpl(node: ASTNode) : ANTLRPsiNode(node), DTOPolymorphic {
         get() = findChildren("/polymorphic/macro")
 
     override val morphisms: List<DTOMorphism>
-        get() = findChildren("/polymorphic/morphism")
+        get() = children.filterIsInstance<DTOMorphism>()
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {

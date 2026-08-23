@@ -41,7 +41,7 @@ class DTOErrorListener : SyntaxErrorListener() {
                 error("No quotation marks are needed here")
             }
 
-            offendingSymbol.type == DTOLexer.Identifier && context.inside<MorphismContext>() -> {
+            offendingSymbol.type == DTOLexer.Identifier && (context.inside<DefaultMorphismContext>() || context.inside<TypeMorphismContext>()) -> {
                 error("To rename the generated class, use 'class ${offendingSymbol.text}' syntax")
             }
 

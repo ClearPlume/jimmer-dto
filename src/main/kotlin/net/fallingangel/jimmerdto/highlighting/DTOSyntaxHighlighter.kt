@@ -37,7 +37,8 @@ class DTOSyntaxHighlighter : SyntaxHighlighterBase() {
             DTOLexer.ILike,
             DTOLexer.Or,
             DTOLexer.Asc,
-            DTOLexer.Desc -> arrayOf(KEYWORD)
+            DTOLexer.Desc,
+            DTOLexer.Default -> arrayOf(KEYWORD)
 
             DTOLexer.Modifier -> arrayOf(MODIFIER)
 
