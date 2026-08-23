@@ -522,7 +522,7 @@ class DTOAnnotator : Annotator {
             } else {
                 macroName.error(
                     "Macro name should be one of: $availableMacros",
-                    ChooseMacro(macroName, availableMacros),
+                    ChooseValueFix(macroName, availableMacros),
                 )
                 return
             }
@@ -1196,7 +1196,7 @@ class DTOAnnotator : Annotator {
                     val availableNames = PropConfigName.availableNames
                     o.name.error(
                         "Incorrect prop-config name '$configName'",
-                        ChangeReferenceFix(o.name, availableNames)
+                        ChooseValueFix(o.name, availableNames)
                     )
                     return
                 }
@@ -1297,7 +1297,7 @@ class DTOAnnotator : Annotator {
                         } else {
                             fetchType.error(
                                 "Incorrect fetchType '$fetchTypeValue'",
-                                ChangeReferenceFix(fetchType, availableTypes),
+                                ChooseValueFix(fetchType, availableTypes),
                             )
                         }
                     } else {
