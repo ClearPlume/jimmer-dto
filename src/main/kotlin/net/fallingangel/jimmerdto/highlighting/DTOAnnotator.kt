@@ -139,6 +139,10 @@ class DTOAnnotator : Annotator {
 
             when (val target = o.target) {
                 null -> {
+                    // 重复导入不再报错
+                    val ambiguous = o.prevPart == null && (o.file.importIndex[o.part]?.size ?: 0) > 1
+                    if (ambiguous) return
+
                     // 在 `export a.b.c -> package a.b.c.d.e.f` 下的包不参与存在性校验
                     val notUnderExportPackage = o.parent<DTOExportStatement> { `package` != null } == null
                     if (notUnderExportPackage && (o.prevPart == null || o.prevPart?.target != null)) {
@@ -147,6 +151,7 @@ class DTOAnnotator : Annotator {
                             fixes.add(ImportClassFix(o))
                         }
                         o.error("Unresolved reference: ${o.part}", *fixes.toTypedArray())
+                        return
                     }
                 }
 
