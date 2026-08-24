@@ -4,32 +4,20 @@ import com.intellij.lang.ImportOptimizer
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.psi.element.DTOImportStatement
+import net.fallingangel.jimmerdto.psi.element.DTOImportedType
 import net.fallingangel.jimmerdto.psi.element.createImport
 import net.fallingangel.jimmerdto.psi.fix.deleteWithAdjacentToken
+import net.fallingangel.jimmerdto.psi.resolve.ImportEntry
 
 class DTOImportOptimizer : ImportOptimizer {
     override fun supports(file: PsiFile) = file is DTOFile
 
     override fun processFile(file: PsiFile): Runnable {
         file as DTOFile
-        val usedTypeNames = file.usedTypeNames
+        val removableImportEntries = file.removableImportEntries
 
-        // 收集未使用导包节点
-        val unusedImports = file.importStatements
-            .filter { it.groupedImport == null }
-            .mapNotNull { import ->
-                import.takeIf { it.simpleName !in usedTypeNames }
-            }
-        val unusedImportTypes = file.importStatements
-            .mapNotNull { it.groupedImport }
-            .flatMap { group ->
-                group.types
-                    .mapNotNull { importedType ->
-                        importedType.takeIf { it.simpleName !in usedTypeNames }
-                    }
-            }
-
-        if (unusedImports.isEmpty() && unusedImportTypes.isEmpty()) {
+        if (removableImportEntries.isEmpty()) {
             return object : ImportOptimizer.CollectingInfoRunnable {
                 override fun run() = Unit
                 override fun getUserNotificationInfo() = "Unused imports not found"
@@ -38,8 +26,14 @@ class DTOImportOptimizer : ImportOptimizer {
 
         return Runnable {
             // 删除未使用导包节点
-            unusedImports.forEach(PsiElement::delete)
-            unusedImportTypes.forEach(PsiElement::deleteWithAdjacentToken)
+            removableImportEntries
+                .filter { it.declaration is DTOImportStatement }
+                .map(ImportEntry::declaration)
+                .forEach(PsiElement::delete)
+            removableImportEntries
+                .filter { it.declaration is DTOImportedType }
+                .map(ImportEntry::declaration)
+                .forEach(PsiElement::deleteWithAdjacentToken)
 
             // 删除空导包组
             file.importStatements

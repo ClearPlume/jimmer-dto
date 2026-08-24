@@ -19,10 +19,7 @@ import net.fallingangel.jimmerdto.project.ProjectSyncTracker
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.resolve.ImportEntry
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
-import net.fallingangel.jimmerdto.util.findChild
-import net.fallingangel.jimmerdto.util.findChildNullable
-import net.fallingangel.jimmerdto.util.findChildren
-import net.fallingangel.jimmerdto.util.psiClass
+import net.fallingangel.jimmerdto.util.*
 
 class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLanguage) {
     private val implicitPackage: String
@@ -91,27 +88,30 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
 
     val importIndex: Map<String, List<ImportEntry>>
         get() = CachedValuesManager.getCachedValue(this, CACHED_IMPORTS_KEY) {
-            val imports = mutableMapOf<String, MutableList<ImportEntry>>()
-
-            importStatements.forEach { import ->
-                val groupedImport = import.groupedImport
-                if (groupedImport != null) {
-                    val qualified = import.qualifiedName.value
-                    groupedImport.types.forEach {
-                        imports.computeIfAbsent(it.simpleName) { mutableListOf() }.add(ImportEntry("$qualified.${it.type.value}", it.alias))
-                    }
-                } else {
-                    imports.computeIfAbsent(import.simpleName) { mutableListOf() }.add(ImportEntry(import.qualifiedName.value, import.alias))
-                }
-            }
-
+            val imports = importStatements.flatMap(DTOImportStatement::importEntries).groupBy(ImportEntry::simpleName)
             CachedValueProvider.Result.create(imports, this)
         }
-    val usedTypeNames: Set<String>
-        get() = findChildren<DTOQualifiedName>("//qualifiedName")
-            .filter { it.initialSpace is Resolution.Space.GlobalWithImports }
-            .map { it.parts.first().part }
-            .toSet()
+
+    val removableImportEntries: List<ImportEntry>
+        get() {
+            val usedTypes = findChildren<DTOQualifiedName>("//qualifiedName")
+                .asSequence()
+                .filter { it.initialSpace is Resolution.Space.GlobalWithImports || it.initialSpace is Resolution.Space.Subtypes }
+                .mapNotNull {
+                    when (val target = it.parts.firstOrNull()?.target) {
+                        is Resolution.Target.Type, is Resolution.Target.Alias -> target.source
+                        else -> null
+                    }
+                }
+                .toList()
+
+            return importStatements
+                .flatMap(DTOImportStatement::importEntries)
+                .filter { entry ->
+                    val importedType = entry.target ?: return@filter false
+                    usedTypes.none { importedType.equivalentTo(it) }
+                }
+        }
 
     fun addImport(lName: LName) {
         if (lName.pkg == entityPackage) return
