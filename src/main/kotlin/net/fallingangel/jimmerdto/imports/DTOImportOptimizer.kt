@@ -6,7 +6,6 @@ import com.intellij.psi.PsiFile
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.element.DTOImportStatement
 import net.fallingangel.jimmerdto.psi.element.DTOImportedType
-import net.fallingangel.jimmerdto.psi.element.createImport
 import net.fallingangel.jimmerdto.psi.fix.deleteWithAdjacentToken
 import net.fallingangel.jimmerdto.psi.resolve.ImportEntry
 
@@ -39,29 +38,6 @@ class DTOImportOptimizer : ImportOptimizer {
             file.importStatements
                 .filter { it.groupedImport?.types?.isEmpty() == true }
                 .forEach(PsiElement::delete)
-
-            // 展开单条导包组
-            file.importStatements
-                .filter { it.groupedImport?.types?.size == 1 }
-                .forEach {
-                    val groupedImport = it.groupedImport!!
-                    val import = file.project.createImport(
-                        buildString {
-                            append(it.qualifiedName.value)
-                            append(".")
-
-                            val importedType = groupedImport.types.single()
-                            append(importedType.type.value)
-
-                            val alias = importedType.alias
-                            if (alias != null) {
-                                append(" as ")
-                                append(alias.value)
-                            }
-                        }
-                    )
-                    it.replace(import)
-                }
         }
     }
 }
