@@ -1240,7 +1240,7 @@ class DTOAnnotator : Annotator {
                             val targetEntity = property.targetClass?.dependencyItem ?: return
                             val filterEntity = compiling(prop) { filterEntity(target.type) } ?: return
 
-                            if (!targetEntity.isEquivalentTo(filterEntity)) {
+                            if (!targetEntity.equivalentTo(filterEntity)) {
                                 val targetEntityName = process(targetEntity) { className().fqName } ?: return
                                 val filterEntityName = process(filterEntity) { className().fqName } ?: return
                                 qualifiedName.error(
@@ -1274,7 +1274,7 @@ class DTOAnnotator : Annotator {
                             }
                             strategyEntity?.takeIf { it !is PsiTypeParameter } ?: return
 
-                            if (!targetEntity.isEquivalentTo(strategyEntity)) {
+                            if (!targetEntity.equivalentTo(strategyEntity)) {
                                 val targetEntityName = process(targetEntity) { className() } ?: return
                                 val strategyName = process(strategyEntity) { className() } ?: return
                                 qualifiedName.error(

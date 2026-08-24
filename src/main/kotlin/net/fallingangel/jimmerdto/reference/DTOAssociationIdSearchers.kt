@@ -11,6 +11,7 @@ import com.intellij.psi.search.searches.ReferencesSearch
 import com.intellij.util.Processor
 import net.fallingangel.jimmerdto.lsi.jimmer.isReference
 import net.fallingangel.jimmerdto.lsi.process
+import net.fallingangel.jimmerdto.util.equivalentTo
 
 class DTOAssociationIdReferencesSearcher : QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters>(true) {
     override fun processQuery(queryParameters: ReferencesSearch.SearchParameters, consumer: Processor<in PsiReference>) {
@@ -39,7 +40,7 @@ private fun contribute(
 ) {
     val clazz = process(element) { containingClass() } ?: return
     val lClass = process(clazz) { lClass() } ?: return
-    val property = lClass.properties.find { it.dependencyItem.isEquivalentTo(element) } ?: return
+    val property = lClass.properties.find { it.dependencyItem.equivalentTo(element) } ?: return
     if (!property.isReference) return
 
     optimizer.searchWord(

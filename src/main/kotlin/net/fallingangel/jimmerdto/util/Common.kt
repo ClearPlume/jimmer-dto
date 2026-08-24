@@ -64,6 +64,10 @@ fun KaAnnotated.hasAnnotation(vararg anno: LName): Boolean {
     return anno.map(LName::toClassId).any { it in annotations }
 }
 
+fun PsiElement.equivalentTo(other: PsiElement?): Boolean {
+    return manager.areElementsEquivalent(this, other)
+}
+
 fun String.replaceLast(oldValue: String, newValue: String): String {
     return if (endsWith(oldValue)) {
         val left = removeSuffix(oldValue)
