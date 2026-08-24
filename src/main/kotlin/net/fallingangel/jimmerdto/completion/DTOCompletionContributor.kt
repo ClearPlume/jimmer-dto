@@ -682,7 +682,15 @@ class DTOCompletionContributor : CompletionContributor() {
                 )
                 val entity = space.lClass.dependencyItem
                 result.addElement(entity.lookUp(entity.demand(PsiNamedElement::getName), false))
-                result.addAllElements(space.global.candidates().lookUp(false))
+                result.addAllElements(
+                    space.global
+                        .candidates()
+                        .filter {
+                            val subject = (it.target as? Resolution.Target.Alias)?.target?.type ?: it.target.source
+                            filter(subject)
+                        }
+                        .lookUp(false)
+                )
             }
 
             else -> {

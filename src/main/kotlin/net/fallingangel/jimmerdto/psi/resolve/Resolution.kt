@@ -182,12 +182,12 @@ object Resolution {
         }
 
         class Subtypes(val file: DTOFile, val lClass: LClass) : Space() {
-            val global = GlobalRaw(file)
+            val global = GlobalWithImports(file, file.entityPackage)
 
             override fun resolve(name: String): Target? {
                 if (lClass.name == name) return Target.Subtype(lClass)
 
-                val child = lClass.children.find { it.name == name }
+                val child = lClass.children.find { it.name == name && it.lName.pkg == file.entityPackage }
                 child?.let { return Target.Subtype(it) }
 
                 return global.resolve(name)

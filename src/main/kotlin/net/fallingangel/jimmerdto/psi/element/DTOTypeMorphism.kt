@@ -12,6 +12,7 @@ interface DTOTypeMorphism : DTOMorphism, DTOAnnotationHost {
         get() = when (val target = targetType.target) {
             is Resolution.Target.Subtype -> target.lClass
             is Resolution.Target.Type -> process(target.type) { lClass() }
+            is Resolution.Target.Alias -> target.target?.type?.let { process(it) { lClass() } }
             else -> null
         }
 }

@@ -11,7 +11,7 @@ import net.fallingangel.jimmerdto.lsi.annotation.annotationsToString
  * 禁止在本类的构造过程（init 块、非 lazy 属性初始化器）中触发任何 Lazy 的求值。
  */
 class LClass(
-    lName: LName,
+    val lName: LName,
     annotationsHolder: Lazy<List<LAnnotation>>,
     parentsHolder: Lazy<List<LClass>>,
     val childrenProvider: () -> List<LClass>,
