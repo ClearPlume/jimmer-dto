@@ -424,11 +424,14 @@ class DTOCompletionContributor : CompletionContributor() {
                         )
                     }
             },
-            identifier.withParent(DTOQualifiedNamePart::class.java)
-                .inside(
-                    dtoElement(DTOAnnotationValue::class.java)
-                        .withParent(dtoElement(rule[DTOParser.RULE_annotationArgs])),
-                ),
+            or(
+                identifier.withParent(DTOQualifiedNamePart::class.java)
+                    .inside(
+                        dtoElement(DTOAnnotationValue::class.java)
+                            .withParent(dtoElement(rule[DTOParser.RULE_annotationArgs])),
+                    ),
+                identifier.withParent(DTOAnnotationParameter::class.java),
+            ),
         )
     }
 
