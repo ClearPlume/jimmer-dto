@@ -12,6 +12,7 @@ import com.intellij.psi.codeStyle.CodeStyleManager
 import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
 import net.fallingangel.jimmerdto.core.DTOFileType
 import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.lsi.*
@@ -58,22 +59,22 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
 
     val clazz: LClass?
         get() = CachedValuesManager.getCachedValue(this, CACHED_CLASS_KEY) {
-            val clazz = LName.fromFqn(qualifiedEntity).psiClass() ?: return@getCachedValue null
-            val entity = process(clazz) { lClass() } ?: return@getCachedValue null
-
-            val classDependencies = mutableSetOf<Any>()
-            entity.collectDependencyItems(classDependencies)
-
-            CachedValueProvider.Result.create(
-                entity,
-                buildList {
-                    add(DumbService.getInstance(project).modificationTracker)
-                    add(ProjectRootModificationTracker.getInstance(project))
-                    addAll(classDependencies)
-                    export?.let(::add)
-                    add(ProjectSyncTracker.getInstance(project))
-                },
+            val dependencies = mutableSetOf(
+                this,
+                DumbService.getInstance(project).modificationTracker,
+                ProjectRootModificationTracker.getInstance(project),
+                ProjectSyncTracker.getInstance(project),
             )
+
+            fun unresolved() = CachedValueProvider.Result.create<LClass>(
+                null,
+                dependencies + PsiModificationTracker.MODIFICATION_COUNT,
+            )
+
+            val clazz = LName.fromFqn(qualifiedEntity).psiClass() ?: return@getCachedValue unresolved()
+            val entity = process(clazz) { lClass() } ?: return@getCachedValue unresolved()
+            entity.collectDependencyItems(dependencies)
+            CachedValueProvider.Result.create(entity, dependencies)
         }
 
     val dtos: List<String>
