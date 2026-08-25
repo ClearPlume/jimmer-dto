@@ -1,16 +1,17 @@
 package net.fallingangel.jimmerdto.highlighting
 
 import com.intellij.codeInsight.hints.*
-import com.intellij.codeInsight.hints.presentation.PresentationFactory
 import com.intellij.lang.Language
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.psi.DTOFile
+import net.fallingangel.jimmerdto.psi.element.DTONegativeProp
 import net.fallingangel.jimmerdto.psi.element.DTOPositiveProp
-import net.fallingangel.jimmerdto.psi.element.DTOPropName
+import net.fallingangel.jimmerdto.psi.element.DTOQualifiedNamePart
 import net.fallingangel.jimmerdto.psi.element.DTOValue
+import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
 import javax.swing.JLabel
 
@@ -33,63 +34,34 @@ class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
 
     override fun isLanguageSupported(language: Language) = language == DTOLanguage
 
-    override fun getCollectorFor(
-        file: PsiFile,
-        editor: Editor,
-        settings: NoSettings,
-        sink: InlayHintsSink
-    ): InlayHintsCollector? {
-        if (file is DTOFile) {
-            return object : FactoryInlayHintsCollector(editor) {
-                override fun collect(element: PsiElement, editor: Editor, sink: InlayHintsSink): Boolean {
-                    if (element.project.isDefault || !element.isValid) {
-                        return false
-                    }
+    override fun getCollectorFor(file: PsiFile, editor: Editor, settings: NoSettings, sink: InlayHintsSink): InlayHintsCollector? {
+        if (file !is DTOFile) return null
 
-                    when (element) {
-                        is DTOPropName -> {
-                            val prop = element.parent
-                            // TODO 非标量属性 负属性 属性配置
-                            if (prop is DTOPositiveProp) {
-                                prop.collect(sink, factory)
-                            }
-                        }
+        return object : FactoryInlayHintsCollector(editor) {
+            override fun collect(element: PsiElement, editor: Editor, sink: InlayHintsSink): Boolean {
+                if (element.project.isDefault || !element.isValid) return false
 
-                        is DTOValue -> {
-                            element.collect(sink, factory)
-                        }
-                    }
-
-                    return true
+                val (property, offset) = when (element) {
+                    is DTOPositiveProp -> element.property to element.name.endOffset
+                    is DTONegativeProp -> element.property to element.endOffset
+                    is DTOValue -> element.property to element.endOffset
+                    is DTOQualifiedNamePart -> (element.target as? Resolution.Target.Property)?.property to element.endOffset
+                    else -> return true
                 }
-            }
-        }
-        return null
-    }
 
-    private fun DTOPositiveProp.collect(sink: InlayHintsSink, factory: PresentationFactory) {
-        if (arg == null) {
-            val property = property ?: return
-            if (property.nullable) {
-                sink.addInlineElement(
-                    name.endOffset,
-                    true,
-                    factory.roundWithBackgroundAndSmallInset(factory.text("?")),
-                    false,
-                )
-            }
-        }
-    }
+                property ?: return true
 
-    private fun DTOValue.collect(sink: InlayHintsSink, factory: PresentationFactory) {
-        val property = property ?: return
-        if (property.nullable) {
-            sink.addInlineElement(
-                endOffset,
-                true,
-                factory.roundWithBackgroundAndSmallInset(factory.text("?")),
-                false,
-            )
+                if (property.nullable) {
+                    sink.addInlineElement(
+                        offset,
+                        true,
+                        factory.roundWithBackgroundAndSmallInset(factory.text("?")),
+                        false,
+                    )
+                }
+
+                return true
+            }
         }
     }
 }
