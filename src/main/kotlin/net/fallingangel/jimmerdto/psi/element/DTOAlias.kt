@@ -22,7 +22,8 @@ interface DTOAlias : DTONamedElement {
 
             is DTOImportedType -> {
                 val import = parent.parent<DTOImportStatement>() ?: grammarMismatch()
-                "${import.qualifiedName.value}.${parent.type.value}"
+                val type = parent.type.value ?: return null
+                "${import.qualifiedName.value}.$type"
             }
 
             is DTOPositiveProp -> parent.baseProperty?.name

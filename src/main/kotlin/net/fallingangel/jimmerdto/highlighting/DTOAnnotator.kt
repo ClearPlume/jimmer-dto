@@ -100,12 +100,13 @@ class DTOAnnotator : Annotator {
             }
 
             // 导包重复检测
-            val type = o.simpleName
-            if ((o.file.importIndex[type]?.size ?: 0) > 1) {
-                o.error(
-                    "Conflicting import: imported name `$type` is ambiguous",
-                    RemoveElement(type, o),
-                )
+            o.simpleName?.let {
+                if ((o.file.importIndex[it]?.size ?: 0) > 1) {
+                    o.error(
+                        "Conflicting import: imported name `$it` is ambiguous",
+                        RemoveElement(it, o),
+                    )
+                }
             }
 
             // 内置类型不可导入

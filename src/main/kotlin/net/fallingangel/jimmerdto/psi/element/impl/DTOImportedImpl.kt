@@ -7,14 +7,14 @@ import net.fallingangel.jimmerdto.psi.element.DTOImported
 import net.fallingangel.jimmerdto.psi.element.DTOVisitor
 import net.fallingangel.jimmerdto.psi.element.createImported
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
-import net.fallingangel.jimmerdto.util.findChild
+import net.fallingangel.jimmerdto.util.findChildNullable
 
 class DTOImportedImpl(node: ASTNode) : DTONamedElementImpl(node), DTOImported {
-    override val value: String
-        get() = nameIdentifier.text
+    override val value: String?
+        get() = nameIdentifier?.text
 
-    override fun getNameIdentifier(): PsiElement {
-        return findChild("/imported/Identifier")
+    override fun getNameIdentifier(): PsiElement? {
+        return findChildNullable("/imported/Identifier")
     }
 
     override fun newNameNode(name: String): ASTNode {

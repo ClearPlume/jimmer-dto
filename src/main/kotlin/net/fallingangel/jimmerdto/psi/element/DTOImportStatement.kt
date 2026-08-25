@@ -20,8 +20,8 @@ interface DTOImportStatement : DTOElement {
         get() {
             val groupedImport = groupedImport
             return groupedImport?.types
-                ?.map {
-                    val importedType = it.type.value
+                ?.mapNotNull {
+                    val importedType = it.type.value ?: return@mapNotNull null
                     ImportEntry(qualifiedName.value + '.' + importedType, it.alias, it)
                 }
                 ?: listOf(ImportEntry(qualifiedName.value, alias, this))
