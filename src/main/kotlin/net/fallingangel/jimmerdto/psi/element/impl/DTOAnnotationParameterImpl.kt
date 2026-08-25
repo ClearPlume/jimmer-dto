@@ -12,7 +12,6 @@ import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationElement
 import net.fallingangel.jimmerdto.psi.mixin.DTONamedElement
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
-import net.fallingangel.jimmerdto.reference.DTOReference
 import net.fallingangel.jimmerdto.util.findChild
 import net.fallingangel.jimmerdto.util.findChildNullable
 import net.fallingangel.jimmerdto.util.parent
@@ -34,8 +33,6 @@ class DTOAnnotationParameterImpl(node: ASTNode) : DTONamedElementImpl(node), DTO
         node.replaceChild(name.node, newNameNode)
         return this
     }
-
-    override fun getReference() = DTOReference(this, name.textRangeInParent)
 
     override fun resolve(): PsiElement? {
         val anno = parent<DTOAnnotationElement>()?.qualifiedName?.target as? Resolution.Target.Type ?: return null
