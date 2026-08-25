@@ -1,9 +1,12 @@
 package net.fallingangel.jimmerdto.project.maven
 
+import com.intellij.openapi.components.service
+import com.intellij.openapi.module.ModuleManager
 import com.intellij.platform.workspace.jps.entities.ContentRootEntity
 import com.intellij.platform.workspace.jps.entities.SourceRootEntity
 import com.intellij.platform.workspace.jps.entities.SourceRootTypeId
 import com.intellij.platform.workspace.jps.entities.modifyContentRootEntity
+import net.fallingangel.jimmerdto.project.JimmerOptionsHolder
 import net.fallingangel.jimmerdto.project.sourceroot.DtoSourceRootType
 import net.fallingangel.jimmerdto.project.sourceroot.JimmerDtoDirs
 import org.jetbrains.idea.maven.importing.MavenWorkspaceConfigurator
@@ -30,6 +33,22 @@ class JimmerMavenConfigurator : MavenWorkspaceConfigurator {
             context.storage.modifyContentRootEntity(root) {
                 sourceRoots += mainDirs.map { root.sourceRoot(it, DtoSourceRootType.SOURCE.typeId) } +
                         testDirs.map { root.sourceRoot(it, DtoSourceRootType.TEST_SOURCE.typeId) }
+            }
+        }
+    }
+
+    override fun afterModelApplied(context: MavenWorkspaceConfigurator.AppliedModelContext) {
+        val moduleManager = ModuleManager.getInstance(context.project)
+        for (projectWithModules in context.mavenProjectsWithModules) {
+            val raw = parseJSR269Args(
+                projectWithModules.mavenProject
+                    .findPlugin("org.apache.maven.plugins", "maven-compiler-plugin")
+                    ?.compilerArgs()
+                    ?: continue
+            )
+            for (moduleWithType in projectWithModules.modules) {
+                val module = moduleManager.findModuleByName(moduleWithType.module.name) ?: continue
+                module.service<JimmerOptionsHolder>().raw = raw
             }
         }
     }

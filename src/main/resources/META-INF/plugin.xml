@@ -72,6 +72,7 @@
         />
         <projectStructure.sourceRootEditHandler implementation="net.fallingangel.jimmerdto.project.sourceroot.DtoProductionSourceRootEditHandler"/>
         <projectStructure.sourceRootEditHandler implementation="net.fallingangel.jimmerdto.project.sourceroot.DtoTestSourceRootEditHandler"/>
+        <moduleService serviceImplementation="net.fallingangel.jimmerdto.project.JimmerOptionsHolder"/>
         <jps.plugin/>
 
         <lang.parserDefinition

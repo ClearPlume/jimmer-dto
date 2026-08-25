@@ -17,12 +17,13 @@ class JimmerGradleResolverExtension : AbstractProjectResolverExtension() {
     override fun populateModuleContentRoots(gradleModule: IdeaModule, ideModule: DataNode<ModuleData>) {
         super.populateModuleContentRoots(gradleModule, ideModule)
 
-        val model = resolverCtx.getExtraProject(gradleModule, JimmerBuildModel::class.java)
-        val dirs = JimmerDtoDirs(model?.options() ?: emptyMap())
+        val options = resolverCtx.getExtraProject(gradleModule, JimmerBuildModel::class.java)?.options() ?: emptyMap()
+        val dirs = JimmerDtoDirs(options)
 
         ideModule.children
             .filter { it.data is GradleSourceSetData }
             .forEach { node ->
+
                 val sourceSet = (node.data as GradleSourceSetData).moduleName
                 val payload = when (sourceSet) {
                     "main" -> JimmerDtoRoots(dirs.mainDirs, DtoSourceRootType.SOURCE.typeId)
@@ -30,6 +31,7 @@ class JimmerGradleResolverExtension : AbstractProjectResolverExtension() {
                     else -> return@forEach
                 }
                 node.createChild(JimmerDtoDirsKey, payload)
+                node.createChild(JimmerOptionsKey, JimmerOptionsPayload(options))
             }
     }
 }

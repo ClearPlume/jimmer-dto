@@ -84,7 +84,8 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
         val method = element.narrow<PsiMethod>()
 
         val type = method.returnType ?: return null
-        val keepIsPrefix = JimmerOptions.of(element.module).keepIsPrefix
+        val module = element.module ?: return null
+        val keepIsPrefix = JimmerOptions.of(module).keepIsPrefix
         val methodName = method.name
         val name = when {
             !keepIsPrefix && type == PsiTypes.booleanType() && methodName.startsWith("is") && methodName.length > 2 && methodName[2].isUpperCase() -> {
