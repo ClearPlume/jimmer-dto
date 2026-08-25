@@ -23,6 +23,10 @@ fun Project.createDot(): PsiElement {
     return createDTOFile(".").lastLeaf()
 }
 
+fun Project.createQuestionMark(): PsiElement {
+    return createDTOFile("?").lastLeaf()
+}
+
 fun Project.createClassOperator(): PsiElement {
     return createDTOFile("::").lastLeaf()
 }

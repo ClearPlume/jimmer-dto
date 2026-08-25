@@ -17,7 +17,7 @@ interface DTOPositiveProp : DTOElement, DTOAnnotationHost {
 
     val configs: List<DTOPropConfig>
 
-    val modifier: Modifier?
+    val modifierElement: PsiElement?
 
     val name: DTOPropName
 
@@ -39,6 +39,9 @@ interface DTOPositiveProp : DTOElement, DTOAnnotationHost {
 
     override val site: LAnnotationSite
         get() = LAnnotationSite.Prop
+
+    val modifier: Modifier?
+        get() = modifierElement?.let { element -> Modifier.entries.find { element.text == it.name.lowercase() } }
 
     //             / dtoBody
     // positiveProp 

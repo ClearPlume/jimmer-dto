@@ -18,4 +18,5 @@ object JimmerAnnotations {
     val LogicalDeleted = LName.fromFqn("org.babyfish.jimmer.sql.LogicalDeleted")
     val ManyToManyView = LName.fromFqn("org.babyfish.jimmer.sql.ManyToManyView")
     val KotlinDto = LName.fromFqn("org.babyfish.jimmer.kt.dto.KotlinDto")
+    val GeneratedValue = LName.fromFqn("org.babyfish.jimmer.sql.GeneratedValue")
 }

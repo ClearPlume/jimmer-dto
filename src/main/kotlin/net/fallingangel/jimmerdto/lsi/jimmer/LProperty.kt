@@ -12,6 +12,7 @@ import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Embeddable
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Entity
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Formula
+import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.GeneratedValue
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Id
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.IdView
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Immutable
@@ -96,6 +97,9 @@ fun defaultViewBasePropName(name: String, isList: Boolean): String? {
     if (name[name.length - 3].isUpperCase()) return null
     return name.dropLast(2)
 }
+
+val LProperty.isGeneratedValue: Boolean
+    get() = hasAnnotation(GeneratedValue)
 
 private val SIMPLE_PROP_TYPE_MAP = mapOf(
     "boolean" to SimplePropType.Boolean, "java.lang.Boolean" to SimplePropType.Boolean, "kotlin.Boolean" to SimplePropType.Boolean,

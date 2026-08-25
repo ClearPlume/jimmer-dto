@@ -24,6 +24,7 @@ import net.fallingangel.jimmerdto.lsi.jimmer.*
 import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.DTOLexer
 import net.fallingangel.jimmerdto.psi.DTOParser
+import net.fallingangel.jimmerdto.psi.demand
 import net.fallingangel.jimmerdto.psi.element.*
 import net.fallingangel.jimmerdto.psi.fix.*
 import net.fallingangel.jimmerdto.psi.fix.annotation.MergeSuffixIntoClassLiteral
@@ -883,7 +884,47 @@ class DTOAnnotator : Annotator {
                 visitProp(dto, o, o.name.value)
             }
 
+            // 属性 '?'
             o.optional?.let { checkOptional(dto, o, it) }
+
+            val modifierElement = o.modifierElement ?: return
+            val modifier = o.modifier ?: return
+
+            // Dto 级修饰符不可修饰属性
+            if (Modifier.Position.Prop !in modifier.positions) {
+                modifierElement.error(
+                    "'${modifierElement.text}' cannot be used to decorate property",
+                    RemoveElement(modifierElement.text, modifierElement),
+                )
+                return
+            }
+
+            // InputStrategyModifier 只允许针对 input dto 内部的属性使用
+            if (modifier.isInputStrategy && dto notModifiedBy Modifier.Input) {
+                modifierElement.error(
+                    "'${modifierElement.text}' can only be used for the property of input DTO",
+                    RemoveElement(modifierElement.text, modifierElement),
+                )
+                return
+            }
+
+            // InputStrategyModifier 只允许针对可空属性使用
+            o.baseProperty?.let { property ->
+                if (o.isRequired) {
+                    val required = o.demand(DTOPositiveProp::required)
+                    modifierElement.error(
+                        "'${modifierElement.text}' can only be used for nullable property",
+                        RemoveElement("!", required),
+                        RemoveElement(modifierElement.text, modifierElement),
+                    )
+                } else if (!(o.isOptional || o.isRecursive || (property.isId && property.isGeneratedValue)) && !property.nullable) {
+                    modifierElement.error(
+                        "'${modifierElement.text}' can only be used for nullable property",
+                        InsertAfter(o.arg ?: o.name, "?", { createQuestionMark() }),
+                        RemoveElement(modifierElement.text, modifierElement),
+                    )
+                }
+            }
         }
 
         private fun visitFunction(dto: DTODto, prop: DTOPositiveProp, functionName: String) {
