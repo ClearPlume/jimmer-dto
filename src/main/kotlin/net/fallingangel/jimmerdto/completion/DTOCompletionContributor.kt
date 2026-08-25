@@ -239,10 +239,9 @@ class DTOCompletionContributor : CompletionContributor() {
                 val dto = position.parentOfType<DTODto>() ?: return@complete
 
                 if (dto modifiedBy Modifier.Input) {
-                    // TODO 无条件提示、写错了交给 Annotator 事后报
                     result.addAllElements(
                         Modifier.entries
-                            .filter { it.level == Modifier.Level.Both }
+                            .filter { it.isInputStrategy }
                             .map {
                                 val modifier = it.name.lowercase()
                                 LookupInfo(modifier, "$modifier ")
