@@ -234,7 +234,17 @@ orderDirection
 
 annotation
     :
-    At qualifiedName (LParen (annotationValue | annotationParameter)? (Comma (annotationValue | annotationParameter))* RParen)?
+    At qualifiedName annotationArgs?
+    ;
+
+nestedAnnotation
+    :
+    At? qualifiedName annotationArgs
+    ;
+
+annotationArgs
+    :
+    LParen (annotationValue | annotationParameter)? (Comma (annotationValue | annotationParameter))* RParen
     ;
 
 annotationParameter
@@ -263,11 +273,6 @@ annotationArrayValue
     LBrace annotationValue? (Comma annotationValue)* RBrace
     |
     LBracket annotationValue? (Comma annotationValue)* RBracket
-    ;
-
-nestedAnnotation
-    :
-    At? qualifiedName LParen (annotationValue | annotationParameter)? (Comma (annotationValue | annotationParameter))* RParen
     ;
 
 enumBody

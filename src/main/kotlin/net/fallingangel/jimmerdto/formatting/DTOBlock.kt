@@ -16,11 +16,20 @@ class DTOBlock(
     alignment: Alignment?,
 ) : AbstractBlock(node, wrap, alignment) {
     // 缩进体
-    // TODO 参数列表在多行时的缩进
-    private val parents = DTOLanguage.ruleSet(RULE_dtoBody, RULE_groupedImport, RULE_aliasGroupBody, RULE_enumBody, RULE_polymorphic)
+    private val parents = DTOLanguage.ruleSet(
+        RULE_dtoBody,
+        RULE_groupedImport,
+        RULE_aliasGroupBody,
+        RULE_enumBody,
+        RULE_polymorphic,
+        RULE_propArg,
+        RULE_macroArgs,
+        RULE_genericArguments,
+        RULE_annotationArgs,
+    )
 
     // 父级为缩进体，但本身不需要缩进
-    private val parentSymbols = DTOLanguage.tokenSet(LBrace, RBrace, Arrow)
+    private val parentSymbols = DTOLanguage.tokenSet(LBrace, RBrace, LParen, RParen, LessThan, GreaterThan, Arrow)
 
     override fun getIndent(): Indent? {
         if (node.treeParent?.elementType in parents && node.elementType !in parentSymbols) {

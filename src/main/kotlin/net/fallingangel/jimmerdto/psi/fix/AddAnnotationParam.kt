@@ -21,12 +21,13 @@ class AddAnnotationParam(
 
     override fun invoke(context: ActionContext, element: DTOAnnotationElement, updater: ModPsiUpdater) {
         val project = context.project
-        val leftBrace = element.qualifiedName.nextSibling
-        val rightBrace = leftBrace?.let { element.lastChild }
+        val annotationArgs = element.qualifiedName.nextSibling
+        val leftParen = annotationArgs?.firstChild
+        val rightParen = leftParen?.let { annotationArgs.lastChild }
         val builder = updater.templateBuilder()
 
         // 无参数时
-        if (rightBrace == null) {
+        if (rightParen == null) {
             val annotation = project.createAnnotation(element.qualifiedName.value, listOf("${param.name} = ${param.type.placeholder}"))
             val insertedAnnotation = element.replace(annotation) as DTOAnnotationElement
             builder.field(insertedAnnotation.params[0].value!!, param.type.templateExpression)
@@ -38,10 +39,10 @@ class AddAnnotationParam(
 
         // @Foo("x") / @Foo(value = "x")
         if (element.params.isNotEmpty() || element.value != null) {
-            element.addBefore(project.createComma(), rightBrace)
+            annotationArgs.addBefore(project.createComma(), rightParen)
         }
 
-        val insertedParameter = element.addBefore(parameter, rightBrace) as DTOAnnotationParameter
+        val insertedParameter = annotationArgs.addBefore(parameter, rightParen) as DTOAnnotationParameter
         builder.field(insertedParameter.value!!, param.type.templateExpression)
     }
 }

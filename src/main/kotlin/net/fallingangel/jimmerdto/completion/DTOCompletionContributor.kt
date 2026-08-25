@@ -420,7 +420,7 @@ class DTOCompletionContributor : CompletionContributor() {
             identifier.withParent(DTOQualifiedNamePart::class.java)
                 .inside(
                     dtoElement(DTOAnnotationValue::class.java)
-                        .withParent(DTOAnnotationElement::class.java),
+                        .withParent(dtoElement(rule[DTOParser.RULE_annotationArgs])),
                 ),
         )
     }
@@ -450,7 +450,7 @@ class DTOCompletionContributor : CompletionContributor() {
             identifier.withParent(DTOQualifiedNamePart::class.java)
                 .inside(
                     dtoElement(DTOAnnotationParameter::class.java)
-                        .withParent(DTOAnnotationElement::class.java),
+                        .withParent(dtoElement(rule[DTOParser.RULE_annotationArgs])),
                 ),
         )
     }

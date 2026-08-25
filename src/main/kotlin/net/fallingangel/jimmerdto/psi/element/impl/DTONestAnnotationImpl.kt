@@ -17,10 +17,10 @@ class DTONestAnnotationImpl(node: ASTNode) : ANTLRPsiNode(node), DTONestAnnotati
         get() = findChild("/nestedAnnotation/qualifiedName")
 
     override val value: DTOAnnotationValue?
-        get() = findChildNullable("/nestedAnnotation/annotationValue")
+        get() = findChildNullable("/nestedAnnotation/annotationArgs/annotationValue")
 
     override val params: List<DTOAnnotationParameter>
-        get() = findChildren("/nestedAnnotation/annotationParameter")
+        get() = findChildren("/nestedAnnotation/annotationArgs/annotationParameter")
 
     override fun accept(visitor: PsiElementVisitor) {
         if (visitor is DTOVisitor) {
