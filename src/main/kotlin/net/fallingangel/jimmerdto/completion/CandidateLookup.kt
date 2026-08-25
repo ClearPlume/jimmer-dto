@@ -25,6 +25,7 @@ fun Resolution.Candidate.lookUp(insideImportMechanism: Boolean): LookupElement {
             val property = target.property
             LookupElementBuilder.create(target.property.dependencyItem, name)
                 .withIcon(property.dependencyItem.getIcon(0))
+                .withTypeText(property.presentableType, true)
         }
 
         is Resolution.Target.EnumConst -> LookupElementBuilder.createWithIcon(target.enum)

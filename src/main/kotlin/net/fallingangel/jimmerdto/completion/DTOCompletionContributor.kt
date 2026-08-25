@@ -415,6 +415,7 @@ class DTOCompletionContributor : CompletionContributor() {
                             LookupElementBuilder.create(param.dependencyItem, param.name)
                                 .withIcon(param.dependencyItem.getIcon(0))
                                 .withTailText(" =")
+                                .withTypeText(param.type.presentation, true)
                                 .withInsertHandler { context, _ ->
                                     if (parameters.position.parent !is DTOAnnotationParameter) {
                                         context.document.insertString(context.tailOffset, " = ")
