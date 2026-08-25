@@ -7,7 +7,7 @@ import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.psi.element.DTOAnnotationParameter
 import net.fallingangel.jimmerdto.psi.element.createAnnotation
 import net.fallingangel.jimmerdto.psi.element.createAnnotationParameter
-import net.fallingangel.jimmerdto.psi.element.createComma
+import net.fallingangel.jimmerdto.psi.element.createToken
 import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationElement
 
 @Suppress("UnstableApiUsage")
@@ -39,7 +39,7 @@ class AddAnnotationParam(
 
         // @Foo("x") / @Foo(value = "x")
         if (element.params.isNotEmpty() || element.value != null) {
-            annotationArgs.addBefore(project.createComma(), rightParen)
+            annotationArgs.addBefore(project.createToken(","), rightParen)
         }
 
         val insertedParameter = annotationArgs.addBefore(parameter, rightParen) as DTOAnnotationParameter

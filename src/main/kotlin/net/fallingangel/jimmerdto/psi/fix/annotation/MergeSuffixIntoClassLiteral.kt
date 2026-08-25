@@ -4,9 +4,7 @@ import com.intellij.modcommand.ActionContext
 import com.intellij.modcommand.ModPsiUpdater
 import com.intellij.modcommand.PsiUpdateModCommandAction
 import net.fallingangel.jimmerdto.psi.element.DTOAnnotationSingleValue
-import net.fallingangel.jimmerdto.psi.element.createClassOperator
-import net.fallingangel.jimmerdto.psi.element.createClassKeyword
-import net.fallingangel.jimmerdto.psi.element.createDot
+import net.fallingangel.jimmerdto.psi.element.createToken
 
 @Suppress("UnstableApiUsage")
 class MergeSuffixIntoClassLiteral(
@@ -17,8 +15,8 @@ class MergeSuffixIntoClassLiteral(
     override fun invoke(context: ActionContext, element: DTOAnnotationSingleValue, updater: ModPsiUpdater) {
         val classSuffix = element.classSuffix ?: return
         val project = context.project
-        classSuffix.classOperator.replace(project.createDot())
-        classSuffix.add(project.createClassOperator())
-        classSuffix.add(project.createClassKeyword())
+        classSuffix.classOperator.replace(project.createToken("."))
+        classSuffix.add(project.createToken("::"))
+        classSuffix.add(project.createToken("class"))
     }
 }

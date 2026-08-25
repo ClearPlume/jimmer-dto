@@ -467,12 +467,12 @@ class DTOAnnotator : Annotator {
             o.unsupportedSuffix?.let {
                 it.error(
                     "References to '${it.text}' isn't supported",
-                    ReplaceName(it, "class") { createClassKeyword() },
+                    ReplaceName(it, "class", Project::createToken),
                     MergeSuffixIntoClassLiteral(annotationValue),
                 )
                 o.classOperator.error(
                     "'::' must be followed by 'class'",
-                    ReplaceName(o.classOperator, ".", { createDot() }),
+                    ReplaceName(o.classOperator, ".", Project::createToken),
                 )
                 return
             }
@@ -503,7 +503,7 @@ class DTOAnnotator : Annotator {
             val unsupportedKeyword = o.unsupportedKeyword
             unsupportedKeyword?.error(
                 "Expected 'class'",
-                ReplaceName(unsupportedKeyword, "class") { createClassKeyword() }
+                ReplaceName(unsupportedKeyword, "class", Project::createToken)
             )
         }
 
@@ -920,7 +920,7 @@ class DTOAnnotator : Annotator {
                 } else if (!(o.isOptional || o.isRecursive || (property.isId && property.isGeneratedValue)) && !property.nullable) {
                     modifierElement.error(
                         "'${modifierElement.text}' can only be used for nullable property",
-                        InsertAfter(o.arg ?: o.name, "?", { createQuestionMark() }),
+                        InsertAfter(o.arg ?: o.name, "?", Project::createToken),
                         RemoveElement(modifierElement.text, modifierElement),
                     )
                 }

@@ -12,27 +12,8 @@ fun Project.createDTOFile(content: String = ""): DTOFile {
     return PsiFileFactory.getInstance(this).createFileFromText(DTOLanguage, content) as DTOFile
 }
 
-fun Project.createComma(): PsiElement {
-    return createDTOFile(",")
-        .firstChild
-        .firstChild
-        .firstChild
-}
-
-fun Project.createDot(): PsiElement {
-    return createDTOFile(".").lastLeaf()
-}
-
-fun Project.createQuestionMark(): PsiElement {
-    return createDTOFile("?").lastLeaf()
-}
-
-fun Project.createClassOperator(): PsiElement {
-    return createDTOFile("::").lastLeaf()
-}
-
-fun Project.createClassKeyword(): PsiElement {
-    return createDTOFile("class").lastLeaf()
+fun Project.createToken(text: String): PsiElement {
+    return createDTOFile(text).lastLeaf()
 }
 
 fun Project.createImport(qualifiedName: String): DTOImportStatement {
