@@ -412,8 +412,15 @@ class DTOCompletionContributor : CompletionContributor() {
                     .filter { it.name !in writtenParams }
                     .forEach { param ->
                         result.addElement(
-                            LookupElementBuilder.create(param.dependencyItem, "${param.name} = ")
-                                .withIcon(param.dependencyItem.getIcon(0)),
+                            LookupElementBuilder.create(param.dependencyItem, param.name)
+                                .withIcon(param.dependencyItem.getIcon(0))
+                                .withTailText(" =")
+                                .withInsertHandler { context, _ ->
+                                    if (parameters.position.parent !is DTOAnnotationParameter) {
+                                        context.document.insertString(context.tailOffset, " = ")
+                                        context.editor.caretModel.moveToOffset(context.tailOffset)
+                                    }
+                                },
                         )
                     }
             },
