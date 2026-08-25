@@ -171,6 +171,12 @@ class JavaProcessor : LanguageProcessor, CompilerContext {
     }
 
     context(element: PsiElement)
+    override fun annotationParam(name: String): PsiNamedElement? {
+        val clazz = element.narrow<PsiClass>()
+        return clazz.methods.find { it.name == name }
+    }
+
+    context(element: PsiElement)
     override fun lAnnotationParams(values: Map<String, ParamValue?>): List<LAnnotation.Param> {
         val clazz = element.narrow<PsiClass>()
         val methods = clazz.methods.filterIsInstance<PsiAnnotationMethod>()

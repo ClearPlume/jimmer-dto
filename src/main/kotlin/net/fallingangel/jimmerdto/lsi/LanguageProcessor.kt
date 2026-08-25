@@ -34,6 +34,9 @@ interface LanguageProcessor {
     fun qualifiedEnumConstant(): Pair<LName, String>?
 
     context(element: PsiElement)
+    fun annotationParam(name: String): PsiNamedElement?
+
+    context(element: PsiElement)
     fun lAnnotationParams(values: Map<String, LAnnotation.Param.Value?>): List<LAnnotation.Param>?
 
     /**

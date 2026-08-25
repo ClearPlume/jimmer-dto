@@ -174,6 +174,12 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         return clazz.lName to entryName
     }
 
+    context(element: PsiElement)
+    override fun annotationParam(name: String): PsiNamedElement? {
+        val clazz = element.narrow<KtClass>()
+        return clazz.primaryConstructor?.valueParameters?.find { it.name == name }
+    }
+
     @OptIn(KaExperimentalApi::class)
     context(element: PsiElement)
     override fun lAnnotationParams(values: Map<String, ParamValue?>): List<LAnnotation.Param> {

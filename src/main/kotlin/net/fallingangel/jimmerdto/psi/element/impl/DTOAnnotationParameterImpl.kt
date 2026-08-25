@@ -3,6 +3,7 @@ package net.fallingangel.jimmerdto.psi.element.impl
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiElementVisitor
+import net.fallingangel.jimmerdto.lsi.process
 import net.fallingangel.jimmerdto.psi.element.DTOAnnotationParameter
 import net.fallingangel.jimmerdto.psi.element.DTOAnnotationValue
 import net.fallingangel.jimmerdto.psi.element.DTOVisitor
@@ -10,9 +11,11 @@ import net.fallingangel.jimmerdto.psi.element.createAnnotationParameter
 import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationElement
 import net.fallingangel.jimmerdto.psi.mixin.DTONamedElement
 import net.fallingangel.jimmerdto.psi.mixin.impl.DTONamedElementImpl
+import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import net.fallingangel.jimmerdto.reference.DTOReference
 import net.fallingangel.jimmerdto.util.findChild
 import net.fallingangel.jimmerdto.util.findChildNullable
+import net.fallingangel.jimmerdto.util.parent
 
 class DTOAnnotationParameterImpl(node: ASTNode) : DTONamedElementImpl(node), DTOAnnotationParameter {
     override val name: PsiElement
@@ -35,8 +38,8 @@ class DTOAnnotationParameterImpl(node: ASTNode) : DTONamedElementImpl(node), DTO
     override fun getReference() = DTOReference(this, name.textRangeInParent)
 
     override fun resolve(): PsiElement? {
-        val anno = (parent as? DTOAnnotationElement)?.lAnnotation ?: return null
-        return anno.params.firstOrNull { it.name == name.text }?.dependencyItem
+        val anno = parent<DTOAnnotationElement>()?.qualifiedName?.target as? Resolution.Target.Type ?: return null
+        return process(anno.type) { annotationParam(name.text) }
     }
 
     override fun accept(visitor: PsiElementVisitor) {
