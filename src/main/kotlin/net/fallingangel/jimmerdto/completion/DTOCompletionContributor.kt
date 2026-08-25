@@ -79,6 +79,9 @@ class DTOCompletionContributor : CompletionContributor() {
         // Import包提示
         completeImportPackage()
 
+        // Import 分组提示
+        completeImportGroup()
+
         // 注解提示
         completeAnnotation()
 
@@ -361,6 +364,21 @@ class DTOCompletionContributor : CompletionContributor() {
             ::completeQualifiedNamePart,
             identifier.withParent(DTOQualifiedNamePart::class.java)
                 .withSuperParent(3, DTOImportStatement::class.java),
+        )
+    }
+
+    /**
+     * Import 分组提示
+     */
+    private fun completeImportGroup() {
+        complete(
+            { parameters, result ->
+                val importGroup = parameters.position.parent<DTOGroupedImport>() ?: return@complete
+                val space = importGroup.target?.spaceForMembers() ?: return@complete
+                result.addAllElements(space.candidates().lookUp(false))
+            },
+            identifier.withParent(DTOImported::class.java)
+                .inside(DTOImportStatement::class.java),
         )
     }
 
