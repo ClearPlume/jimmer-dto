@@ -10,7 +10,6 @@ import net.fallingangel.jimmerdto.project.JimmerOptionsHolder
 import net.fallingangel.jimmerdto.project.sourceroot.DtoSourceRootType
 import net.fallingangel.jimmerdto.project.sourceroot.JimmerDtoDirs
 import org.jetbrains.idea.maven.importing.MavenWorkspaceConfigurator
-import org.jetbrains.idea.maven.importing.StandardMavenModuleType
 import org.jetbrains.idea.maven.model.MavenPlugin
 
 @Suppress("UnstableApiUsage")
@@ -23,13 +22,12 @@ class JimmerMavenConfigurator : MavenWorkspaceConfigurator {
         val (main, test) = JimmerDtoDirs(parseJSR269Args(plugin.compilerArgs()))
 
         for (moduleWithType in projectWithModules.modules) {
-            val (mainDirs, testDirs) = when (moduleWithType.type) {
-                StandardMavenModuleType.SINGLE_MODULE -> main to test
-                StandardMavenModuleType.MAIN_ONLY -> main to emptyList()
-                StandardMavenModuleType.TEST_ONLY -> emptyList<String>() to test
-                StandardMavenModuleType.AGGREGATOR, StandardMavenModuleType.COMPOUND_MODULE -> continue
-            }
+            val type = moduleWithType.type
+            if (!type.containsCode) continue
+            val mainDirs = if (type.containsMain) main else emptyList()
+            val testDirs = if (type.containsTest) test else emptyList()
             val root = moduleWithType.module.contentRoots.find { "$projectDir/src".startsWith(it.url.presentableUrl) } ?: continue
+
             context.storage.modifyContentRootEntity(root) {
                 sourceRoots += mainDirs.map { root.sourceRoot(it, DtoSourceRootType.SOURCE.typeId) } +
                         testDirs.map { root.sourceRoot(it, DtoSourceRootType.TEST_SOURCE.typeId) }
