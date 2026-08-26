@@ -8,12 +8,9 @@ class JimmerOptionsHolder : SimplePersistentStateComponent<JimmerOptionsHolder.S
         var options by map<String, String>()
     }
 
-    @Suppress("UnstableApiUsage")
     var raw: Map<String, String>
         get() = state.options
         set(value) {
-            state.options.clear()
-            state.options.putAll(value)
-            state.intIncrementModificationCount()
+            state.options = value.toMutableMap()
         }
 }
