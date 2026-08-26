@@ -7,6 +7,9 @@ import net.fallingangel.jimmerdto.enums.Modifier
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationSite
+import net.fallingangel.jimmerdto.lsi.jimmer.baseProperty
+import net.fallingangel.jimmerdto.lsi.jimmer.isGeneratedValue
+import net.fallingangel.jimmerdto.lsi.jimmer.isId
 import net.fallingangel.jimmerdto.psi.mixin.DTOAnnotationHost
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 import net.fallingangel.jimmerdto.structure.LookupInfo
@@ -67,6 +70,13 @@ interface DTOPositiveProp : DTOElement, DTOAnnotationHost {
 
     val isRecursive: Boolean
         get() = recursive != null
+
+    val inputStrategyApplicable: Boolean
+        get() {
+            if (isRequired) return false
+            val property = baseProperty ?: return false
+            return isOptional || isRecursive || (property.isId && property.isGeneratedValue) || property.nullable
+        }
 
     fun functions(): List<LookupInfo> {
         val dto = parentOfType<DTODto>() ?: return emptyList()

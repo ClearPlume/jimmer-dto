@@ -8,6 +8,10 @@ import net.fallingangel.jimmerdto.project.JimmerOptionsHolder
 class JimmerOptions private constructor(raw: Map<String, String>) {
     val keepIsPrefix = raw["jimmer.keepIsPrefix"].toBoolean()
 
+    val defaultNullableInputModifier = raw["jimmer.dto.defaultNullableInputModifier"]
+        ?.let { text -> Modifier.entries.filter { it.isInputStrategy }.find { it.name.equals(text, true) } }
+        ?: Modifier.Static
+
     companion object {
         fun of(module: Module): JimmerOptions {
             return JimmerOptions(module.service<JimmerOptionsHolder>().raw)

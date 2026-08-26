@@ -119,6 +119,10 @@
                 language="JimmerDTO"
                 implementationClass="net.fallingangel.jimmerdto.highlighting.inlay.DTONullabilityInlayHintProvider"
         />
+        <codeInsight.inlayProvider
+                language="JimmerDTO"
+                implementationClass="net.fallingangel.jimmerdto.highlighting.inlay.DTOInputStrategyInlayHintProvider"
+        />
 
         <backgroundPostStartupActivity implementation="net.fallingangel.jimmerdto.DTOClassCleaner"/>
         <notificationGroup id="JimmerDTO Notification Group" displayType="BALLOON" bundle="plugin" key="notification.group.jimmer.dto"/>
