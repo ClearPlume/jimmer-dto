@@ -108,6 +108,9 @@ class DTOFile(viewProvider: FileViewProvider) : PsiFileBase(viewProvider, DTOLan
 
             return importStatements
                 .flatMap(DTOImportStatement::importEntries)
+                .groupBy(ImportEntry::simpleName)
+                .values
+                .mapNotNull(List<ImportEntry>::singleOrNull)
                 .filter { entry ->
                     val importedType = entry.target ?: return@filter false
                     usedTypes.none { importedType.equivalentTo(it) }
