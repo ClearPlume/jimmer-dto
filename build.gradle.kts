@@ -41,6 +41,7 @@ dependencies {
         bundledPlugins("com.intellij.java", "org.jetbrains.kotlin", "com.intellij.gradle", "org.jetbrains.idea.maven")
 
         testFramework(TestFrameworkType.Platform)
+        testFramework(TestFrameworkType.Bundled)
     }
 
     antlr(libs.antlr4) {
@@ -51,6 +52,7 @@ dependencies {
     implementation(project(":gradle-tooling"))
 
     testImplementation(libs.junit)
+    testImplementation(libs.jimmer.sql.kotlin)
 }
 
 kotlin {
@@ -126,7 +128,7 @@ tasks {
     }
 
     test {
-        systemProperty("idea.home.path", intellijPlatform.sandboxContainer.get().toString())
+        systemProperty("idea.kotlin.plugin.use.k2", "true")
     }
 
     buildSearchableOptions {
