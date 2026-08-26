@@ -2,9 +2,108 @@
 
 ## Unreleased
 
-### Deprecated
+## [0.0.8] - 2026-08-26
 
-* Deprecate 'CreateOrJumpToJimmerDtoFile'; to be removed in 0.0.8
+### Added
+
+* Annotation parameter validation: undeclared parameters, missing required parameters, type mismatch, duplicated parameters, `value` shorthand position
+* Quick fixes for the above: generate missing parameters with type-based placeholders (candidate lists for boolean and enum), remove or relocate the `value` shorthand, remove duplicated and undeclared parameters
+* Gutter icon on entities navigating to bound DTO files
+* Entity rename synchronizes the file name of DTO files bound without `export`
+* Import of built-in types is rejected
+* Paired insertion and deletion of angle brackets for generic arguments
+* Folding support for generic argument lists
+* Dedicated error message for double-quoted string literals in SQL predicates
+* Validation of the `!` modifier against DTO type modifiers and base property nullability
+* Validation of the `*` modifier against base property recursiveness, function invocation, child body, and DTO type modifiers
+* Validation that an enum body is only specified for enum properties
+* Validation of the `?` modifier against DTO type modifiers, the `flat` function, base property nullability, and enclosing flat nullability
+* Validation for `!where` predicates: property path resolution, operator applicability to the operand type, and literal type and range
+* Validation for `!orderBy` items: property path resolution and order direction
+* Pressing Enter inside an unterminated `/*` or `/**` completes the comment and continues it with `*`
+* Incomplete prop config arguments are now reported as errors — a missing `null` after `is`, a comparison with no operator or value, and empty argument lists
+* Missing arguments are reported for `!filter`, `!recursion`, `!fetchType`, `!limit`, `!batch` and `!depth`
+* Duplicated prop configs on the same property are reported — only the last one takes effect, the others are silently ignored
+* The filter class of `!filter` is checked against the target entity of the property — `Book.authors` requires a filter declared on `Author`
+* The recursion class of `!recursion` is checked against the target entity of the property
+* Prop configs are rejected on function properties — `id()`, `flat()` and `fold()`
+* Prop configs are rejected on input and specification DTOs
+* Applicability of each prop config to the property kind is checked — `!where` requires a nullable association, `!fetchType` an associated reference, `!orderBy` / `!filter` / `!limit` / `!batch` an associated list, `!recursion` / `!depth` a recursive property
+* Mutually exclusive prop configs are reported — `!filter` against `!where` and `!orderBy`, `!recursion` against `!depth`
+* The fetch mode of `!fetchType` is checked against `SELECT`, `JOIN_IF_NO_CACHE` and `JOIN_ALWAYS` — `AUTO` is not accepted here
+* Numeric arguments of `!limit`, `!batch` and `!depth` are range-checked, and literals outside the Int range are reported instead of crashing the annotator
+* Annotations forbidden by the DTO language are reported — `Nullable` and `NonNull` by simple name, `Null`, `NotNull` and `TNullable` when they resolve to a type other than the one the DTO language accepts, and Jimmer's own annotations outside the `client` and `jackson` packages
+* Report an error when `flat` or `fold` has no property body, or when any other property function has one, with quick fixes to add or remove the body
+* Property paths now resolve implicit association id segments such as `storeId`
+* Implicit association id segments navigate to both the association property and the target id property
+* Find Usages on a reference association property now finds implicit id segments in property paths
+* Mark Directory As now supports marking DTO source roots
+* DTO source roots are registered automatically on Maven and Gradle project import, from `jimmer.dto.dirs` and `jimmer.dto.testDirs`, defaulting to `src/main/dto` and `src/test/dto`
+* When jumping from an entity to its DTO file, a list is shown to choose from if the entity has more than one DTO file
+* Find Usages and usage highlighting on JVM types such as `Integer`, `Object` and `List` now include their DTO builtin aliases (`Int`, `Any`, `MutableList`) in `.dto` files
+* Find Usages on a Java entity's bean-style getter now lists its references in `.dto` files
+* DTO property resolution now refreshes after a Gradle or Maven sync, without requiring an edit to the .dto file
+* `New → Directory` now suggests configured Jimmer DTO source directories that have not been created yet
+* `New → Jimmer` DTO File is available in the New menu inside DTO source roots
+* Added completion for types in `implements` clauses
+* Highlight unused imports and support Optimize Imports for DTO files
+* Optimize Imports shows a notification when no unused imports are found
+* Rename an import alias from any of its usages in the file
+* Ctrl+Click on an import alias navigates to its declaration in the import statement
+* Import aliases in DTO files now support navigation, find usages, and rename
+* Show an import hint for unresolved names that match importable classes
+* Quick fix for adding annotation parameters now inserts simple class names, with an import hint on the inserted name
+* Report an error when the class specified by `!filter` or `!recursion` does not implement the required interface
+* Completion for `!filter` and `!recursion` argument now suggests implementations of the required base type
+* Completion for `!fetchType` argument now suggests the available fetch types
+* Reports a name other than `class` after `::` in an annotation value
+* Reports an annotation argument that is not a class literal, with fixes to correct it
+* Report qualified names that can be shortened when the type is already imported, with a quick fix to remove the redundant prefix
+* Reports an annotation argument that is not a compile-time constant
+* Annotation parameter values now offer completion for classes, packages, enum constants and other referable names, boolean parameters offer `true` and `false`
+* Report `@KotlinDto` as unused when it is written outside a DTO type declaration, or when the module is compiled by jimmer-apt
+* Report annotations on DTO properties that the Jimmer compiler silently drops because their `@Target` does not accept a property site
+* Improved completion and error recovery for `class` declarations in polymorphic DTO branches
+* Added `class` keyword completion for polymorphic DTO branches
+* Type branches inside a `#types` block now offer completion for the entity's subtypes
+* Added completion for type names inside grouped imports
+* Argument lists are now indented when written across multiple lines, covering annotations (including nested ones), macros, prop functions, and generic arguments
+* Nullable hints now appear on negative props and on property paths in `prop-config`
+* Property and annotation parameter completions now show their type
+* Report an error when a property modifier appears in an invalid position with quick fixes
+
+### Changed
+
+* The action id for opening the DTO file has changed(CreateJimmerDtoFile → OpenDtoFileAction)
+* The "JimmerDto File" action will not be removed in 0.0.8 as previously announced; its entity binding lookup now goes through the index and supports `export`
+* Built-in type resolution no longer depends on the entity's language; it is determined by the module's build setup
+* Grammar: empty annotation parameter lists and array values allowed; `nestedAnnotation` accepts the same trailing items as `annotation`
+* Syntax and annotator colors now follow the active editor color scheme instead of hardcoded values
+* Negative properties are rendered with a strikethrough instead of the unused-element style
+* DTO class cleanup no longer fails while the IDE is indexing, and no longer appears in the undo history
+* `user-prop` type completion no longer freezes on short prefixes, and now matches camel humps
+
+### Fixed
+
+* Import insertion and formatting when importing a type through completion
+* The "JimmerDto File" action locates the dto root from the source root's parent instead of the content root
+* The "JimmerDto File" action now works on Kotlin entities and is available from the editor context menu, not just the project view
+* `user-prop` types resolve even when the entity fails to resolve
+* Duplicate import detection accounts for aliases and grouped imports
+* Unterminated block comments and doc comments are lexed correctly
+* Uncommenting a block comment no longer leaves a stray closing marker
+* Non-ASCII characters no longer break parsing of incomplete comments
+* Line comments are no longer forced to the first column when toggling with `Ctrl + /`
+* Rename disabled for macro names and function property names
+* The entity-to-DTO navigation action is now available on entity files containing other top-level declarations
+* Java entities: boolean getters with an `is` prefix now resolve to the property name Jimmer actually generates, respecting the `keepIsPrefix` option
+* The `as` keyword in a grouped import is no longer highlighted as an annotation
+* Built-in types are no longer offered for import or inserted as import statements
+* Fixed `like` and `notLike` incorrectly accepting properties of non-string types
+* `class` is now suggested only where the annotation parameter expects a class literal
+* Polymorphic DTO branches now require either `default` or a target type, matching the compiler grammar
+* Completing a class that resides in the entity's package no longer inserts a redundant import statement
+* Fixed DTO files losing reference resolution, documentation, and navigation until project reopen after a transient error in the export statement
 
 ## [0.0.7.50] - 2026-07-21
 
