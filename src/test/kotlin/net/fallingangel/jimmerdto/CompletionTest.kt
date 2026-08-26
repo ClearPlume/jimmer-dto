@@ -13,7 +13,12 @@ class CompletionTest : CompletionAutoPopupTestCase() {
     }
 
     fun testCompletion() {
-        myFixture.configureByFiles("resources/completion/Completion.dto", "kotlin/net/fallingangel/jimmerdto/entity/Book.kt")
+        myFixture.configureByFiles(
+            "resources/completion/Completion.dto",
+            "kotlin/net/fallingangel/jimmerdto/entity/Book.kt",
+            "kotlin/net/fallingangel/jimmerdto/entity/Author.kt",
+            "kotlin/net/fallingangel/jimmerdto/entity/BookStore.kt",
+        )
         myFixture.completeBasic()
         myTester.joinCompletion()
         val lookupElementStrings = myFixture.lookupElementStrings
@@ -21,14 +26,16 @@ class CompletionTest : CompletionAutoPopupTestCase() {
         assertNotNull(lookupElementStrings)
         assertSameElements(
             lookupElementStrings!!,
+            "#allReferences",
             "#allScalars",
             "as() {}",
             "flat() {}",
-            "id()",
-            "id",
+            "fold() {}",
             "authorIds",
             "authors",
             "edition",
+            "id",
+            "id()",
             "name",
             "price",
             "store",
