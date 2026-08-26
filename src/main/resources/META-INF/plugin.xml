@@ -115,7 +115,10 @@
         <createDirectoryCompletionContributor implementation="net.fallingangel.jimmerdto.project.sourceroot.CreateDirectoryCompletionContributor"/>
 
         <codeInsight.lineMarkerProvider language="" implementationClass="net.fallingangel.jimmerdto.DTOLineMarkerProvider"/>
-        <codeInsight.inlayProvider language="JimmerDTO" implementationClass="net.fallingangel.jimmerdto.highlighting.DTOInlayHintProvider"/>
+        <codeInsight.inlayProvider
+                language="JimmerDTO"
+                implementationClass="net.fallingangel.jimmerdto.highlighting.inlay.DTONullabilityInlayHintProvider"
+        />
 
         <backgroundPostStartupActivity implementation="net.fallingangel.jimmerdto.DTOClassCleaner"/>
         <notificationGroup id="JimmerDTO Notification Group" displayType="BALLOON" bundle="plugin" key="notification.group.jimmer.dto"/>

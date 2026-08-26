@@ -1,10 +1,11 @@
-package net.fallingangel.jimmerdto.highlighting
+package net.fallingangel.jimmerdto.highlighting.inlay
 
 import com.intellij.codeInsight.hints.*
 import com.intellij.lang.Language
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.ui.components.JBLabel
 import net.fallingangel.jimmerdto.core.DTOLanguage
 import net.fallingangel.jimmerdto.psi.DTOFile
 import net.fallingangel.jimmerdto.psi.element.DTONegativeProp
@@ -13,21 +14,22 @@ import net.fallingangel.jimmerdto.psi.element.DTOQualifiedNamePart
 import net.fallingangel.jimmerdto.psi.element.DTOValue
 import net.fallingangel.jimmerdto.psi.resolve.Resolution
 import org.jetbrains.kotlin.psi.psiUtil.endOffset
-import javax.swing.JLabel
 
 @Suppress("UnstableApiUsage")
-class DTOInlayHintProvider : InlayHintsProvider<NoSettings> {
+class DTONullabilityInlayHintProvider : InlayHintsProvider<NoSettings> {
     override val key: SettingsKey<NoSettings>
-        get() = SettingsKey("NoSettings")
+        get() = SettingsKey("jimmer.dto.nullability")
 
     override val name: String
-        get() = "JimmerDTOPropNullabilityHint"
+        get() = "Property nullability"
 
     override val previewText: String?
         get() = null
 
-    override fun createConfigurable(settings: NoSettings) = object : ImmediateConfigurable {
-        override fun createComponent(listener: ChangeListener) = JLabel("NoSettings")
+    override fun createConfigurable(settings: NoSettings): ImmediateConfigurable {
+        return object : ImmediateConfigurable {
+            override fun createComponent(listener: ChangeListener) = JBLabel()
+        }
     }
 
     override fun createSettings() = NoSettings()
