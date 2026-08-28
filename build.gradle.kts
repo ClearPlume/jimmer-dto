@@ -135,17 +135,15 @@ tasks {
         jvmArgs("-Didea.kotlin.plugin.use.k2=true")
     }
 
-    val createSourceJar = register<Jar>("createOpenApiSourceJar") {
-        description = "Packages plugin sources into a jar bundled under lib/src, allowing dependent plugins to browse and navigate the source."
-        from(kotlin.sourceSets.main.get().kotlin) {
-            include("net/fallingangel/jimmerdto/**/*.kt")
-        }
+    val createSourceZip = register<Zip>("createSourceZip") {
+        description = "Packages plugin sources into a zip bundled under lib/src, allowing dependent plugins to browse and navigate the source."
+        from(kotlin.sourceSets.main.get().kotlin)
         destinationDirectory.set(layout.buildDirectory.dir("libs"))
         archiveClassifier.set("src")
     }
 
     buildPlugin {
-        dependsOn(createSourceJar)
-        from(createSourceJar) { into("lib/src") }
+        dependsOn(createSourceZip)
+        from(createSourceZip) { into("lib/src") }
     }
 }
