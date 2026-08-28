@@ -14,7 +14,7 @@ plugins {
 }
 
 group = "net.fallingangel"
-version = "0.0.8.1"
+version = "0.0.9"
 
 // 构建依赖
 val ideVersion = "2024.3"
