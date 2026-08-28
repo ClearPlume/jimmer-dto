@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.0.9] - 2026-08-28
+
+### Fixed
+
+* Renaming a class no longer throws an exception
+
 ## [0.0.8] - 2026-08-26
 
 ### Added

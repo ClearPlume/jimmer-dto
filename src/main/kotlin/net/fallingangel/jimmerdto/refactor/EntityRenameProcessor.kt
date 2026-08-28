@@ -1,5 +1,7 @@
 package net.fallingangel.jimmerdto.refactor
 
+import com.intellij.openapi.application.readAction
+import com.intellij.platform.ide.progress.runWithModalProgressBlocking
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.search.GlobalSearchScope
@@ -16,10 +18,15 @@ class EntityRenameProcessor : RenamePsiElementProcessor() {
     override fun canProcessElement(element: PsiElement) = element is PsiClass || element is KtClass
 
     override fun prepareRenaming(element: PsiElement, newName: String, allRenames: MutableMap<PsiElement, String>, scope: SearchScope) {
-        val entityName = process(element) { takeIf { isEntity() }?.className()?.fqName }
-
-        entityName ?: return
         val project = element.project
+
+        val entityName = runWithModalProgressBlocking(project, "Analyzing Entity") {
+            readAction {
+                process(element) {
+                    takeIf { isEntity() }?.className()?.fqName
+                }
+            }
+        } ?: return
 
         FileBasedIndex.getInstance().processValues(
             DTO_ENTITY_INDEX,
