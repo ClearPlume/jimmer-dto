@@ -473,7 +473,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
 
     fun KaSession.resolve(annotation: KaAnnotation): LAnnotation? {
         val classId = annotation.classId ?: return null
-        val clazz = findClass(classId)?.psi ?: return null
+        val clazz = findClass(classId)?.psi as? PsiNamedElement ?: return null
         val values = annotation.arguments
             // TODO Unresolved
             .mapNotNull { argument ->
@@ -488,7 +488,7 @@ class KotlinProcessor : LanguageProcessor, CompilerContext {
         return LAnnotation(
             classId.lName,
             params,
-            annotation.psi ?: return null,
+            clazz,
         )
     }
 
