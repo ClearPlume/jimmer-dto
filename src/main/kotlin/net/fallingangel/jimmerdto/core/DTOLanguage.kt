@@ -6,6 +6,7 @@ import com.intellij.psi.tree.TokenSet
 import net.fallingangel.jimmerdto.psi.DTOParser
 import org.antlr.intellij.adaptor.lexer.PSIElementTypeFactory
 import org.antlr.intellij.adaptor.xpath.XPath
+import org.antlr.v4.runtime.Vocabulary
 
 const val LANGUAGE_NAME = "JimmerDTO"
 
@@ -23,11 +24,13 @@ object DTOLanguage : Language(LANGUAGE_NAME) {
         get() = setOf("like", "null", "desc", "asc")
 
     init {
-        val vocab = DTOParser.VOCABULARY
-
         PSIElementTypeFactory.defineLanguageIElementTypes(
             DTOLanguage,
-            Array(vocab.maxTokenType + 1) { vocab.getSymbolicName(it) ?: "<INVALID>" },
+            object : Vocabulary by DTOParser.VOCABULARY {
+                override fun getDisplayName(tokenType: Int): String {
+                    return DTOParser.VOCABULARY.getSymbolicName(tokenType) ?: "<INVALID>"
+                }
+            },
             DTOParser.ruleNames,
         )
     }

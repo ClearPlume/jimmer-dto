@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## [0.1.0] - 2026-08-30
+
+### Fixed
+
+* DTO files failed to be indexed on IntelliJ 2026.2, breaking all entity-related features.
+
 ## [0.0.9] - 2026-08-28
 
 ### Fixed
