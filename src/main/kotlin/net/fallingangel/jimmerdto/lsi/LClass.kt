@@ -3,7 +3,6 @@ package net.fallingangel.jimmerdto.lsi
 import com.intellij.psi.PsiNamedElement
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotationOwner
-import net.fallingangel.jimmerdto.lsi.annotation.annotationsToString
 
 /**
  * 三个 [Lazy] 持有者和 children 的 lambda 在 [LanguageProcessor.lClass] 中构造，

@@ -8,7 +8,6 @@ import net.fallingangel.jimmerdto.enums.SimplePropType.BigInteger
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
 import net.fallingangel.jimmerdto.lsi.annotation.LAnnotation
-import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Embeddable
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Entity
 import net.fallingangel.jimmerdto.lsi.jimmer.JimmerAnnotations.Formula
@@ -76,8 +75,8 @@ val LClass.idProperty: LProperty?
 
 val LProperty.idViewBaseProp: LProperty?
     get() {
-        val annotation = annotations.find { it.lName == IdView } ?: return null
-        val baseParam = annotation.params.find { it.name == "value" } ?: return null
+        val annotation = findAnnotation(IdView) ?: return null
+        val baseParam = annotation.findParam("value") ?: return null
         val declaredBase = (baseParam.value ?: baseParam.defaultValue)
             ?.let { it as? LAnnotation.Param.Value.Scalar }
             ?.value as? String

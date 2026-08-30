@@ -16,6 +16,10 @@ class LAnnotation(
     val targets: Set<LAnnotationSite>?
         get() = process(dependencyItem) { annotationSites() ?: setOf(LAnnotationSite.Type) }
 
+    fun findParam(name: String): Param? {
+        return params.find { it.name == name }
+    }
+
     class Param(
         override val name: String,
         val type: Type,

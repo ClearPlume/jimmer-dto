@@ -3,7 +3,6 @@ package net.fallingangel.jimmerdto.psi.element
 import com.intellij.psi.PsiElement
 import net.fallingangel.jimmerdto.lsi.LClass
 import net.fallingangel.jimmerdto.lsi.LProperty
-import net.fallingangel.jimmerdto.lsi.annotation.hasAnnotation
 import net.fallingangel.jimmerdto.lsi.jimmer.*
 import net.fallingangel.jimmerdto.psi.mixin.DTOElement
 
