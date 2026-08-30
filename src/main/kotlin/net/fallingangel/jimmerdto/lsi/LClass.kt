@@ -92,10 +92,10 @@ class LClass(
 
         other as LClass
 
-        return fqName == other.fqName
+        return lName == other.lName
     }
 
     override fun hashCode(): Int {
-        return fqName.hashCode()
+        return lName.hashCode()
     }
 }

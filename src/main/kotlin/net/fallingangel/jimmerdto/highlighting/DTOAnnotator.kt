@@ -345,7 +345,7 @@ class DTOAnnotator : Annotator {
                 return
             }
 
-            if (simpleName == "TNullable" && annotationName.fqName != JimmerAnnotations.TNullable.fqName) {
+            if (simpleName == "TNullable" && annotationName != JimmerAnnotations.TNullable) {
                 qualifiedName.error("Only '${JimmerAnnotations.TNullable.fqName}' is accepted by DTO language")
                 return
             }

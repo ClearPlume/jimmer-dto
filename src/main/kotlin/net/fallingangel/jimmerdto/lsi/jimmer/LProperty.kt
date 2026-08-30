@@ -76,7 +76,7 @@ val LClass.idProperty: LProperty?
 
 val LProperty.idViewBaseProp: LProperty?
     get() {
-        val annotation = annotations.find { it.fqName == IdView.fqName } ?: return null
+        val annotation = annotations.find { it.lName == IdView } ?: return null
         val baseParam = annotation.params.find { it.name == "value" } ?: return null
         val declaredBase = (baseParam.value ?: baseParam.defaultValue)
             ?.let { it as? LAnnotation.Param.Value.Scalar }

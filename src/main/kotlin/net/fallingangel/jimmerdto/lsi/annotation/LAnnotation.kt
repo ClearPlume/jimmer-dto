@@ -5,7 +5,7 @@ import com.intellij.psi.PsiNamedElement
 import net.fallingangel.jimmerdto.lsi.*
 
 class LAnnotation(
-    lName: LName,
+    val lName: LName,
     val params: List<Param>,
     override val dependencyItem: PsiNamedElement,
 ) : LElement, LDependencyProvider {
@@ -36,9 +36,9 @@ class LAnnotation(
             open fun accepts(value: Value): Boolean {
                 return when (this) {
                     is Scalar -> value is Value.Scalar && accepts(value)
-                    is Enum -> value is Value.Enum && fqName == value.typeName
+                    is Enum -> value is Value.Enum && lName == value.lName
                     is Clazz -> value is Value.Clazz && accepts(value)
-                    is Annotation -> value is Value.Annotation && fqName == value.annotation.fqName
+                    is Annotation -> value is Value.Annotation && lName == value.annotation.lName
                     is Array -> when (value) {
                         is Value.Array -> value.elements.filterNotNull().all { elementType.accepts(it) }
                         else -> elementType.accepts(value)
@@ -97,7 +97,7 @@ class LAnnotation(
 
             @Suppress("StatefulEp")
             // false positive: not an EP, lifecycle bound to CachedValue
-            class Enum(lName: LName, val source: PsiElement, entries: List<Pair<String, PsiElement>>) : Type() {
+            class Enum(val lName: LName, val source: PsiElement, entries: List<Pair<String, PsiElement>>) : Type() {
                 override val presentation = lName.fqName
                 val name = lName.name
                 val fqName = lName.fqName
@@ -110,11 +110,11 @@ class LAnnotation(
 
                     other as Enum
 
-                    return fqName == other.fqName
+                    return lName == other.lName
                 }
 
                 override fun hashCode(): Int {
-                    return fqName.hashCode()
+                    return lName.hashCode()
                 }
             }
 
@@ -158,7 +158,7 @@ class LAnnotation(
                 }
             }
 
-            class Annotation(lName: LName) : Type() {
+            class Annotation(val lName: LName) : Type() {
                 override val presentation = lName.name
                 val fqName = lName.fqName
                 val name = lName.name
@@ -169,11 +169,11 @@ class LAnnotation(
 
                     other as Annotation
 
-                    return fqName == other.fqName
+                    return lName == other.lName
                 }
 
                 override fun hashCode(): Int {
-                    return fqName.hashCode()
+                    return lName.hashCode()
                 }
             }
         }
@@ -215,7 +215,7 @@ class LAnnotation(
                 }
             }
 
-            class Enum(lName: LName, val constantName: String) : Value() {
+            class Enum(val lName: LName, val constantName: String) : Value() {
                 override val typeName = lName.fqName
                 override val presentation = "$typeName.$constantName"
 
@@ -225,14 +225,14 @@ class LAnnotation(
 
                     other as Enum
 
-                    if (typeName != other.typeName) return false
+                    if (lName != other.lName) return false
                     if (constantName != other.constantName) return false
 
                     return true
                 }
 
                 override fun hashCode(): Int {
-                    var result = typeName.hashCode()
+                    var result = lName.hashCode()
                     result = 31 * result + constantName.hashCode()
                     return result
                 }
@@ -334,14 +334,14 @@ class LAnnotation(
 
         other as LAnnotation
 
-        if (fqName != other.fqName) return false
+        if (lName != other.lName) return false
         if (params.map(Param::value) != other.params.map(Param::value)) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = fqName.hashCode()
+        var result = lName.hashCode()
         result = 31 * result + params.map(Param::value).hashCode()
         return result
     }

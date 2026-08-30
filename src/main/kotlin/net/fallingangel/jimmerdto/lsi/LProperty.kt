@@ -57,7 +57,7 @@ class LProperty(
         @Suppress("StatefulEp")
         // false positive: not an EP, lifecycle bound to CachedValue
         class Enum(
-            lName: LName,
+            val lName: LName,
             entries: List<Pair<String, PsiElement>>,
             override val nullable: Boolean,
             override val dependencyItem: Any,
@@ -74,11 +74,11 @@ class LProperty(
 
                 other as Enum
 
-                return fqName == other.fqName
+                return lName == other.lName
             }
 
             override fun hashCode(): Int {
-                return fqName.hashCode()
+                return lName.hashCode()
             }
         }
 
