@@ -14,14 +14,14 @@ plugins {
 }
 
 group = "net.fallingangel"
-version = "0.1.0"
+version = "0.1.1"
 
 // 构建依赖
-val ideVersion = "2024.3"
+val ideVersion = "2025.1"
 
 // 插件兼容范围
-val sinceVersion = "243"
-val untilVersion = "262.*"
+val sinceVersion = "251"
+val untilVersion = "263.*"
 
 val userHome: String = System.getProperty("user.home")
 val certificateChainFileValue = file("$userHome/.gradle/chain.crt")

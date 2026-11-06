@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## [0.1.1] - 2026-11-06
+
+### Changed
+
+* Upgraded Gradle 9.8.2
+* Compatibility range narrowed to 2025.1 ~ 2026.3
+
 ## [0.1.0] - 2026-08-30
 
 ### Fixed
